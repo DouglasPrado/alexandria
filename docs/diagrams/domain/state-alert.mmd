@@ -1,0 +1,29 @@
+%% Máquina de Estados: Alerta
+%% Referência: docs/blueprint/09-state_models.md
+
+stateDiagram-v2
+    direction LR
+
+    [*] --> active : Condição anômala detectada
+
+    active : Problema não resolvido
+    active : Visível no painel admin
+    active : Tipos: node_offline, low_replication,
+    active : integrity_error, token_expired, space_low
+
+    resolved : Problema corrigido
+    resolved : Arquivado com timestamp
+
+    active --> resolved : Condição resolvida (auto ou manual)
+    resolved --> [*]
+
+    note right of active
+        Deduplicação: não criar alerta
+        se já existe um ativo para
+        mesmo tipo + recurso (RN-A3).
+    end note
+
+    note right of resolved
+        Não reabre. Se problema voltar,
+        novo alerta é criado.
+    end note

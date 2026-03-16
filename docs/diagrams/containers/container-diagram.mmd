@@ -1,0 +1,88 @@
+%% C4 Nivel 2: Diagrama de Containers — Alexandria
+%% Referencia: docs/blueprint/06-system_architecture.md
+%% Versões: Rust + Axum 0.8, Next.js 16, PostgreSQL 17, Redis 7
+
+graph TB
+    %% -------------------------------------------------------
+    %% Atores
+    %% -------------------------------------------------------
+    Admin["👤 Administrador Familiar<br/>Gerencia cluster, nós, recovery"]
+    Membro["👤 Membro Familiar<br/>Upload, galeria, download"]
+
+    %% -------------------------------------------------------
+    %% Dispositivos / Nós
+    %% -------------------------------------------------------
+    NodeAgent["💻 Agente de Nó<br/>Rust (Core SDK + Axum)<br/>Armazena chunks, heartbeat, scrubbing local"]
+
+    %% -------------------------------------------------------
+    %% Fronteira do Sistema
+    %% -------------------------------------------------------
+    subgraph SystemBoundary["🏢 Alexandria"]
+        direction TB
+
+        WebApp["🌐 Web Client<br/>Next.js 16 (Turbopack) + React + Tailwind<br/>Upload, galeria, admin"]
+
+        API["⚙️ Orquestrador<br/>Rust + Axum 0.8 + SQLx<br/>API REST, coordenação de cluster"]
+        Workers["⚙️ Media Workers<br/>Rust + FFmpeg 7 + libvips<br/>Pipeline: resize, transcode, chunk, encrypt"]
+        Scheduler_C["⚙️ Scheduler<br/>Rust (tokio::time)<br/>Scrubbing, GC, auto-healing, rebalance"]
+
+        DB[("🗄️ PostgreSQL 17<br/>Metadados: clusters, nós,<br/>arquivos, chunks, réplicas")]
+        Queue["📨 Redis 7<br/>Fila de processamento<br/>+ pub/sub eventos"]
+        Vault_C["🔐 Vault<br/>Arquivo AES-256-GCM<br/>Tokens, credenciais, chaves"]
+    end
+
+    %% -------------------------------------------------------
+    %% Sistemas Externos
+    %% -------------------------------------------------------
+    S3["📦 AWS S3 / Cloudflare R2<br/>Armazenamento de chunks<br/>(via aws-sdk-s3)"]
+    FFmpeg_C["📦 FFmpeg 7 / libvips<br/>Transcodificação de mídia"]
+    DNS_C["📦 DNS Provider<br/>Descoberta do orquestrador"]
+
+    %% -------------------------------------------------------
+    %% Relacionamentos — Atores
+    %% -------------------------------------------------------
+    Admin -->|"HTTPS/REST"| WebApp
+    Membro -->|"HTTPS/REST"| WebApp
+
+    %% -------------------------------------------------------
+    %% Frontend → Backend
+    %% -------------------------------------------------------
+    WebApp -->|"HTTPS/REST (TLS 1.3)"| API
+
+    %% -------------------------------------------------------
+    %% Backend interno
+    %% -------------------------------------------------------
+    API -->|"TCP/SQL (SQLx async)"| DB
+    API -->|"TCP (enqueue jobs)"| Queue
+    Queue -->|"consume jobs"| Workers
+    Workers -->|"CLI"| FFmpeg_C
+    Workers -->|"TCP/SQL (update metadata)"| DB
+    Scheduler_C -->|"TCP/SQL (queries manutenção)"| DB
+    Scheduler_C -->|"TCP (enqueue jobs)"| Queue
+    API --> Vault_C
+
+    %% -------------------------------------------------------
+    %% Storage e Nós
+    %% -------------------------------------------------------
+    API -->|"S3 API (aws-sdk-s3)"| S3
+    Workers -->|"S3 API (aws-sdk-s3)"| S3
+    NodeAgent -->|"HTTPS/REST (TLS 1.3)<br/>heartbeat + chunks"| API
+    NodeAgent -->|"DNS lookup"| DNS_C
+
+    %% -------------------------------------------------------
+    %% Estilos C4
+    %% -------------------------------------------------------
+    style SystemBoundary fill:none,stroke:#0b4884,stroke-width:2px,stroke-dasharray:5 5,color:#0b4884
+    style WebApp fill:#438dd5,stroke:#2e6295,color:#fff
+    style API fill:#438dd5,stroke:#2e6295,color:#fff
+    style Workers fill:#438dd5,stroke:#2e6295,color:#fff
+    style Scheduler_C fill:#438dd5,stroke:#2e6295,color:#fff
+    style DB fill:#438dd5,stroke:#2e6295,color:#fff
+    style Queue fill:#438dd5,stroke:#2e6295,color:#fff
+    style Vault_C fill:#438dd5,stroke:#2e6295,color:#fff
+    style Admin fill:#08427b,stroke:#052e56,color:#fff
+    style Membro fill:#08427b,stroke:#052e56,color:#fff
+    style NodeAgent fill:#5a9bd5,stroke:#3a7bb5,color:#fff
+    style S3 fill:#999999,stroke:#6b6b6b,color:#fff
+    style FFmpeg_C fill:#999999,stroke:#6b6b6b,color:#fff
+    style DNS_C fill:#999999,stroke:#6b6b6b,color:#fff

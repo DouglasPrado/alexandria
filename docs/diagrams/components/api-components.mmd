@@ -1,0 +1,119 @@
+%% C4 Nivel 3: Componentes Internos — Orquestrador Alexandria
+%% Referencia: docs/blueprint/06-system_architecture.md
+%% Stack: Rust + Axum 0.8 + SQLx + Tower middleware
+
+graph TB
+    subgraph ContainerBoundary["⚙️ Orquestrador (Rust + Axum 0.8) — Componentes Internos"]
+        direction TB
+
+        subgraph EntryLayer["Camada de Entrada (Axum Router)"]
+            direction LR
+            ClusterRouter["🔀 Cluster API<br/>POST /clusters<br/>POST /clusters/:id/invite<br/>GET /clusters/:id/health"]
+            FileRouter["🔀 File API<br/>POST /files/upload<br/>GET /files<br/>GET /files/:id/download"]
+            NodeRouter["🔀 Node API<br/>POST /nodes/register<br/>POST /nodes/:id/heartbeat<br/>POST /nodes/:id/drain"]
+            AlertRouter["🔀 Alert API<br/>GET /alerts<br/>PATCH /alerts/:id/resolve"]
+        end
+
+        Middleware["🛡️ Tower Middleware<br/>Auth (JWT/Token), TLS validation,<br/>Rate limiting (tower::limit), Request tracing"]
+
+        subgraph ServiceLayer["Camada de Serviços / Casos de Uso"]
+            direction LR
+            ClusterService["📋 ClusterService<br/>Criar cluster, gerar seed,<br/>convidar membros, permissões"]
+            FileService["📋 FileService<br/>Upload, pipeline orchestration,<br/>deduplicação, status tracking"]
+            NodeService["📋 NodeService<br/>Registrar nó, heartbeat,<br/>drain, detecção offline"]
+            ReplicationService["📋 ReplicationService<br/>Distribuir chunks, auto-healing,<br/>rebalanceamento, monitoramento"]
+            SchedulerService["📋 SchedulerService<br/>Scrubbing, GC, rebalance,<br/>heartbeat timeout, alertas"]
+        end
+
+        subgraph DataLayer["Camada de Acesso a Dados (SQLx + PostgreSQL 17)"]
+            direction LR
+            ClusterRepo["🗃️ ClusterRepository<br/>CRUD clusters + membros"]
+            FileRepo["🗃️ FileRepository<br/>CRUD files + manifests"]
+            ChunkRepo["🗃️ ChunkRepository<br/>CRUD chunks + réplicas"]
+            NodeRepo["🗃️ NodeRepository<br/>CRUD nodes + heartbeats"]
+            AlertRepo["🗃️ AlertRepository<br/>CRUD alerts"]
+        end
+
+        subgraph IntegrationLayer["Camada de Integrações (Core SDK)"]
+            direction LR
+            StorageClient["🔌 StorageProvider<br/>aws-sdk-s3 adapter<br/>put/get/exists/delete/list"]
+            VaultClient["🔌 VaultManager<br/>Encrypt/decrypt vault,<br/>manage credentials"]
+            CryptoEngine["🔌 CryptoEngine<br/>aes-gcm, sha2, bip39<br/>Envelope encryption"]
+            HashRing["🔌 ConsistentHashRing<br/>Distribuição de chunks,<br/>seleção de nós destino"]
+        end
+    end
+
+    %% Dependências Externas
+    DB[("🗄️ PostgreSQL 17<br/>Metadados")]
+    RedisQ["📨 Redis 7<br/>Fila + pub/sub"]
+    S3Ext["📦 S3 / R2<br/>Chunk storage"]
+
+    %% Fluxo: Entrada → Middleware
+    ClusterRouter --> Middleware
+    FileRouter --> Middleware
+    NodeRouter --> Middleware
+    AlertRouter --> Middleware
+
+    %% Fluxo: Middleware → Serviços
+    Middleware --> ClusterService
+    Middleware --> FileService
+    Middleware --> NodeService
+    Middleware --> ReplicationService
+
+    %% Fluxo: Serviços → Repositórios
+    ClusterService --> ClusterRepo
+    FileService --> FileRepo
+    FileService --> ChunkRepo
+    NodeService --> NodeRepo
+    ReplicationService --> ChunkRepo
+    ReplicationService --> NodeRepo
+    SchedulerService --> ChunkRepo
+    SchedulerService --> NodeRepo
+    SchedulerService --> AlertRepo
+
+    %% Fluxo: Serviços → Integrações
+    FileService --> CryptoEngine
+    FileService --> HashRing
+    ReplicationService --> StorageClient
+    ReplicationService --> HashRing
+    ClusterService --> VaultClient
+    ClusterService --> CryptoEngine
+
+    %% Conexões Externas
+    ClusterRepo -->|"SQLx async"| DB
+    FileRepo -->|"SQLx async"| DB
+    ChunkRepo -->|"SQLx async"| DB
+    NodeRepo -->|"SQLx async"| DB
+    AlertRepo -->|"SQLx async"| DB
+    FileService -->|"TCP (enqueue)"| RedisQ
+    SchedulerService -->|"TCP (enqueue)"| RedisQ
+    StorageClient -->|"HTTPS (aws-sdk-s3)"| S3Ext
+
+    %% Estilos
+    style ContainerBoundary fill:none,stroke:#2e6295,stroke-width:2px,stroke-dasharray:5 5,color:#2e6295
+    style EntryLayer fill:none,stroke:#438dd5,stroke-width:1px,color:#438dd5
+    style ServiceLayer fill:none,stroke:#438dd5,stroke-width:1px,color:#438dd5
+    style DataLayer fill:none,stroke:#438dd5,stroke-width:1px,color:#438dd5
+    style IntegrationLayer fill:none,stroke:#438dd5,stroke-width:1px,color:#438dd5
+    style ClusterRouter fill:#85bbf0,stroke:#5a9bd5,color:#000
+    style FileRouter fill:#85bbf0,stroke:#5a9bd5,color:#000
+    style NodeRouter fill:#85bbf0,stroke:#5a9bd5,color:#000
+    style AlertRouter fill:#85bbf0,stroke:#5a9bd5,color:#000
+    style Middleware fill:#85bbf0,stroke:#5a9bd5,color:#000
+    style ClusterService fill:#85bbf0,stroke:#5a9bd5,color:#000
+    style FileService fill:#85bbf0,stroke:#5a9bd5,color:#000
+    style NodeService fill:#85bbf0,stroke:#5a9bd5,color:#000
+    style ReplicationService fill:#85bbf0,stroke:#5a9bd5,color:#000
+    style SchedulerService fill:#85bbf0,stroke:#5a9bd5,color:#000
+    style ClusterRepo fill:#85bbf0,stroke:#5a9bd5,color:#000
+    style FileRepo fill:#85bbf0,stroke:#5a9bd5,color:#000
+    style ChunkRepo fill:#85bbf0,stroke:#5a9bd5,color:#000
+    style NodeRepo fill:#85bbf0,stroke:#5a9bd5,color:#000
+    style AlertRepo fill:#85bbf0,stroke:#5a9bd5,color:#000
+    style StorageClient fill:#85bbf0,stroke:#5a9bd5,color:#000
+    style VaultClient fill:#85bbf0,stroke:#5a9bd5,color:#000
+    style CryptoEngine fill:#85bbf0,stroke:#5a9bd5,color:#000
+    style HashRing fill:#85bbf0,stroke:#5a9bd5,color:#000
+    style DB fill:#438dd5,stroke:#2e6295,color:#fff
+    style RedisQ fill:#438dd5,stroke:#2e6295,color:#fff
+    style S3Ext fill:#999999,stroke:#6b6b6b,color:#fff

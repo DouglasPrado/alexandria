@@ -1,0 +1,109 @@
+%% ============================================================
+%% Modelo de Dados (ER) — Alexandria
+%% Referência: docs/blueprint/05-data_model.md
+%% ============================================================
+
+erDiagram
+    clusters {
+        uuid id PK "Identificador único"
+        string cluster_id UK "Hash da chave pública"
+        string nome "Nome do cluster familiar"
+        bytea public_key "Chave pública do cluster"
+        bytea encrypted_private_key "Chave privada criptografada"
+        timestamp created_at "Data de criação"
+        timestamp updated_at "Última atualização"
+    }
+
+    membros {
+        uuid id PK "Identificador único"
+        uuid cluster_id FK "Cluster ao qual pertence"
+        string nome "Nome do membro"
+        string email "E-mail para identificação"
+        string role "admin, membro, leitura"
+        uuid invited_by FK "Membro que convidou"
+        timestamp joined_at "Data de ingresso"
+        timestamp created_at "Data de criação"
+        timestamp updated_at "Última atualização"
+    }
+
+    nodes {
+        uuid id PK "Identificador único"
+        uuid cluster_id FK "Cluster ao qual pertence"
+        uuid owner_id FK "Membro que registrou"
+        string tipo "local, s3, r2, vps"
+        string nome "Nome descritivo do nó"
+        bigint capacidade_total "Espaço total em bytes"
+        bigint capacidade_usada "Espaço usado em bytes"
+        string status "online, suspeito, perdido, draining"
+        text endpoint "URL de conexão"
+        bytea config_encrypted "Credenciais criptografadas"
+        timestamp last_heartbeat "Último heartbeat recebido"
+        timestamp created_at "Data de criação"
+        timestamp updated_at "Última atualização"
+    }
+
+    files {
+        uuid id PK "Identificador único"
+        uuid cluster_id FK "Cluster ao qual pertence"
+        uuid uploaded_by FK "Membro que fez upload"
+        string nome_original "Nome do arquivo original"
+        string tipo_midia "foto, video, documento"
+        bigint tamanho_original "Tamanho antes de otimização"
+        bigint tamanho_otimizado "Tamanho após otimização"
+        string hash_conteudo "SHA-256 do conteúdo otimizado"
+        jsonb metadata "EXIF e metadados extraídos"
+        string preview_chunk_id "Chunk ID do preview"
+        string status "processing, ready, error"
+        timestamp created_at "Data de criação"
+        timestamp updated_at "Última atualização"
+    }
+
+    manifests {
+        uuid id PK "Identificador único"
+        uuid file_id FK "Arquivo descrito (único)"
+        jsonb chunks_json "Lista ordenada de chunks"
+        bytea file_key_encrypted "Chave do arquivo criptografada"
+        bytea assinatura "Assinatura criptográfica"
+        jsonb replicated_to "Lista de node_ids com cópia"
+        timestamp created_at "Data de criação"
+        timestamp updated_at "Última atualização"
+    }
+
+    chunks {
+        string id PK "SHA-256 do conteúdo criptografado"
+        uuid file_id FK "Arquivo ao qual pertence"
+        int chunk_index "Posição dentro do arquivo"
+        int tamanho "Tamanho em bytes"
+        timestamp created_at "Data de criação"
+    }
+
+    chunk_replicas {
+        uuid id PK "Identificador único"
+        string chunk_id FK "Chunk replicado"
+        uuid node_id FK "Nó que armazena"
+        timestamp verified_at "Último scrubbing OK"
+        timestamp created_at "Data de criação"
+    }
+
+    alerts {
+        uuid id PK "Identificador único"
+        uuid cluster_id FK "Cluster relacionado"
+        string tipo "Tipo do alerta"
+        text mensagem "Descrição do problema"
+        string severidade "info, warning, critical"
+        boolean resolved "Se foi resolvido"
+        timestamp created_at "Data de criação"
+        timestamp resolved_at "Data de resolução"
+    }
+
+    %% --- Relacionamentos ---
+    clusters ||--o{ membros : "possui"
+    clusters ||--o{ nodes : "gerencia"
+    clusters ||--o{ files : "armazena"
+    clusters ||--o{ alerts : "gera"
+    membros ||--o{ nodes : "registra"
+    membros ||--o{ files : "faz upload"
+    files ||--|| manifests : "descrito por"
+    files ||--|{ chunks : "composto por"
+    chunks ||--|{ chunk_replicas : "replicado em"
+    nodes ||--o{ chunk_replicas : "armazena"

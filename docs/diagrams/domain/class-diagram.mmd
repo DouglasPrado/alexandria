@@ -1,0 +1,114 @@
+%% ============================================================
+%% Modelo de Domínio — Alexandria
+%% Referência: docs/blueprint/04-domain_model.md
+%% ============================================================
+
+classDiagram
+    direction TB
+
+    class Cluster {
+        +String cluster_id
+        +String nome
+        +Bytes public_key
+        +Bytes encrypted_private_key
+        +DateTime created_at
+        +criar(seed_phrase) Cluster
+        +recuperar(seed_phrase) Cluster
+        +convidarMembro(email, role) Token
+    }
+
+    class Membro {
+        +String membro_id
+        +String nome
+        +String email
+        +Role role
+        +DateTime joined_at
+        +aceitarConvite(token) void
+        +registrarNó(config) Nó
+        +uploadArquivo(file) Arquivo
+    }
+
+    class Nó {
+        +String node_id
+        +TipoNó tipo
+        +String nome
+        +Long capacidade_total
+        +Long capacidade_usada
+        +StatusNó status
+        +String endpoint
+        +Bytes config_encrypted
+        +DateTime last_heartbeat
+        +receberHeartbeat() void
+        +iniciarDrain() void
+        +armazenarChunk(chunk) void
+        +servirChunk(chunk_id) Bytes
+    }
+
+    class Arquivo {
+        +String file_id
+        +String nome_original
+        +TipoMidia tipo_midia
+        +Long tamanho_original
+        +Long tamanho_otimizado
+        +String hash_conteudo
+        +StatusArquivo status
+        +JSON metadata
+        +DateTime created_at
+        +processar() void
+        +gerarPreview() Preview
+    }
+
+    class Manifest {
+        +String manifest_id
+        +List~ChunkRef~ chunks
+        +Bytes file_key_encrypted
+        +Bytes assinatura
+        +List~String~ replicated_to
+        +validarAssinatura() Boolean
+        +replicar(nó) void
+    }
+
+    class Chunk {
+        +String chunk_id
+        +Int chunk_index
+        +Int tamanho
+        +verificarIntegridade() Boolean
+    }
+
+    class Réplica {
+        +DateTime verified_at
+        +DateTime created_at
+        +verificar() Boolean
+    }
+
+    class Vault {
+        +Bytes vault_data
+        +String encryption_algorithm
+        +List~String~ replicated_to
+        +desbloquear(master_key) void
+        +armazenarCredencial(key, value) void
+        +replicar(nó) void
+    }
+
+    class Alerta {
+        +String alerta_id
+        +TipoAlerta tipo
+        +String mensagem
+        +Severidade severidade
+        +Boolean resolved
+        +DateTime created_at
+        +DateTime resolved_at
+        +resolver() void
+    }
+
+    %% --- Relacionamentos ---
+    Cluster "1" --> "*" Membro : possui
+    Cluster "1" --> "*" Nó : gerencia
+    Cluster "1" --> "1" Vault : protege credenciais
+    Cluster "1" --> "*" Alerta : gera
+    Membro "1" --> "*" Nó : registra
+    Membro "1" --> "*" Arquivo : faz upload
+    Arquivo "1" *-- "1" Manifest : descrito por
+    Arquivo "1" *-- "1..*" Chunk : composto por
+    Chunk "1" --> "3..*" Réplica : replicado em
+    Nó "1" --> "*" Réplica : armazena

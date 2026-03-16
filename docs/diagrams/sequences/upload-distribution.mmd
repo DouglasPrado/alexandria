@@ -1,0 +1,66 @@
+%% Fluxo: Upload e Distribuição de Arquivo
+%% Referência: docs/blueprint/07-critical_flows.md
+
+sequenceDiagram
+    autonumber
+
+    actor Membro as Membro Familiar
+    participant Web as Web Client<br/>(Next.js 16)
+    participant API as Orquestrador<br/>(Rust + Axum 0.8)
+    participant Redis as Redis 7<br/>(Fila)
+    participant Worker as Media Worker<br/>(Rust + FFmpeg)
+    participant SDK as Core SDK<br/>(Crypto + Chunk)
+    participant DB as PostgreSQL 17<br/>(SQLx)
+    participant S3 as StorageProvider<br/>(S3/R2)
+
+    %% Upload
+    Membro ->>+ Web: Seleciona arquivo e clica Upload
+    Web ->>+ API: POST /files/upload (multipart, TLS 1.3)
+    API ->> API: Valida JWT + permissões
+    API ->>+ DB: INSERT files (status: processing)
+    DB -->>- API: file_id
+    API ->>+ Redis: Enfileira job {file_id, path}
+    Redis -->>- API: OK
+    API -->>- Web: 202 Accepted {file_id}
+    Web -->>- Membro: "Processando..."
+
+    %% Pipeline
+    Redis ->>+ Worker: Consome job
+    Worker ->> Worker: Analisa arquivo (resolução, formato, MIME)
+    Worker ->> Worker: Otimiza: foto→WebP 1920px / vídeo→1080p H.265
+    Worker ->> Worker: Gera preview (thumb 50KB / 480p 5MB)
+    Worker ->> Worker: Extrai EXIF metadata
+
+    Worker ->>+ SDK: Chunking + Encrypt
+    SDK ->> SDK: Divide em chunks ~4MB + SHA-256
+    SDK ->> SDK: Envelope encryption (master key → file key)
+    SDK ->> SDK: AES-256-GCM cada chunk
+    SDK ->> SDK: ConsistentHashRing → 3 nós destino
+    SDK -->>- Worker: chunks_encrypted[]
+
+    %% Distribuição
+    loop Para cada chunk (3 réplicas)
+        Worker ->>+ S3: PUT chunk (aws-sdk-s3)
+        S3 -->>- Worker: OK
+    end
+
+    Worker ->>+ DB: INSERT chunks + chunk_replicas (transação)
+    DB -->>- Worker: OK
+    Worker ->>+ DB: INSERT manifest (chunks_json + file_key_encrypted)
+    DB -->>- Worker: OK
+
+    %% Replicar manifest em nós adicionais
+    Worker ->>+ S3: PUT manifest (2+ nós)
+    S3 -->>- Worker: OK
+
+    Worker ->>+ DB: UPDATE files SET status = 'ready'
+    DB -->>- Worker: OK
+    Worker ->> Redis: PUBLISH file_ready {file_id}
+    deactivate Worker
+
+    %% Notificação
+    Redis -->> API: file_ready event
+    API -->> Web: SSE/Poll: arquivo pronto
+    Web -->> Membro: Exibe thumbnail na galeria
+
+    Note over Membro, S3: Arquivo processado, criptografado e distribuído com 3 réplicas por chunk

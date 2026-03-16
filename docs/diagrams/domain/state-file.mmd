@@ -1,0 +1,42 @@
+%% Máquina de Estados: Arquivo (File)
+%% Referência: docs/blueprint/09-state_models.md
+
+stateDiagram-v2
+    direction TB
+
+    [*] --> processing : Upload recebido
+
+    processing : Pipeline de mídia em execução
+    processing : Resize, transcode, preview
+    processing : Chunk, encrypt, distribute
+
+    ready : Pipeline concluído
+    ready : 3+ réplicas confirmadas
+    ready : Thumbnail disponível na galeria
+
+    error : Pipeline falhou
+    error : Requer ação (retry ou intervenção)
+
+    corrupted : Chunks irrecuperáveis
+    corrupted : Estado terminal
+
+    processing --> ready : Pipeline OK + replicação 3x
+    processing --> error : FFmpeg falha / nós insuficientes / timeout
+    error --> processing : Retry (manual ou automático)
+    ready --> corrupted : Scrubbing: chunks sem réplica saudável
+    corrupted --> [*]
+
+    note right of processing
+        Arquivo não visível na galeria
+        durante processamento.
+    end note
+
+    note right of ready
+        Imutável após ready.
+        Não volta para processing.
+    end note
+
+    note left of corrupted
+        Estado terminal. Dados perdidos.
+        Alerta critical gerado.
+    end note

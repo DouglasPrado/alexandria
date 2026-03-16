@@ -1,0 +1,66 @@
+%% Fluxo: Criação de Cluster e Onboarding
+%% Referência: docs/blueprint/07-critical_flows.md
+
+sequenceDiagram
+    autonumber
+
+    actor Admin as Admin Familiar
+    participant Web as Web Client<br/>(Next.js 16)
+    participant API as Orquestrador<br/>(Rust + Axum 0.8)
+    participant SDK as Core SDK<br/>(CryptoEngine + BIP-39)
+    participant Vault as Vault<br/>(AES-256-GCM)
+    participant DB as PostgreSQL 17<br/>(SQLx)
+    actor Membro as Membro Convidado
+
+    %% Criação do cluster
+    Admin ->>+ Web: Inicia criação de cluster (nome)
+    Web ->>+ API: POST /clusters {nome: "Família Prado"}
+
+    API ->>+ SDK: Gerar seed phrase (BIP-39, 12 palavras)
+    SDK ->> SDK: CSPRNG → entropia → mnemonic
+    SDK -->>- API: seed_phrase
+
+    API ->>+ SDK: Derivar master key
+    SDK -->>- API: master_key (em memória)
+
+    API ->>+ SDK: Gerar par de chaves (Ed25519/RSA)
+    SDK ->> SDK: cluster_id = SHA-256(public_key)
+    SDK ->> SDK: Criptografar private_key com master_key
+    SDK -->>- API: {cluster_id, public_key, encrypted_private_key}
+
+    API ->>+ Vault: Criar vault vazio, criptografado com master_key
+    Vault -->>- API: vault criado
+
+    API ->>+ DB: INSERT clusters + INSERT membros (admin)
+    DB -->>- API: OK
+
+    API -->>- Web: 201 {cluster_id, seed_phrase}
+    Web -->> Admin: Exibe seed phrase com instruções
+
+    Note over Admin, Web: "Anote estas 12 palavras em papel.<br/>Esta é a ÚNICA vez que serão exibidas."
+
+    Admin ->> Web: Confirma que anotou (checkbox)
+    Web ->> API: POST /clusters/:id/confirm-seed
+
+    %% Convite de membros
+    Admin ->>+ Web: Convidar membro (email, role)
+    Web ->>+ API: POST /clusters/:id/invite {email, role: "membro"}
+
+    API ->>+ SDK: Gerar token assinado (Ed25519 + expiração 7d)
+    SDK -->>- API: invite_token
+
+    API -->>- Web: {invite_url}
+    Web -->>- Admin: Link de convite copiado
+
+    Admin -->> Membro: Envia link de convite (WhatsApp/email)
+
+    %% Aceite
+    Membro ->>+ Web: Acessa link de convite
+    Web ->>+ API: POST /clusters/:id/join {invite_token, nome, email}
+    API ->> API: Verificar assinatura + expiração do token
+    API ->>+ DB: INSERT membros (role do convite)
+    DB -->>- API: OK
+    API -->>- Web: 201 {membro_id}
+    Web -->>- Membro: "Bem-vindo ao cluster Família Prado!"
+
+    Note over Admin, Membro: Cluster criado com admin + membros convidados

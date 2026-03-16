@@ -1,0 +1,43 @@
+---
+name: business-marketing
+description: Use when filling the marketing strategy section (08-estrategia-marketing.md) of the business blueprint. Defines positioning, go-to-market, ICP validation, marketing channels, growth loops, pricing communication, content strategy, and budget.
+---
+
+# Business Blueprint — Estrategia de Marketing
+
+Define o posicionamento, go-to-market, validacao de ICP, canais de marketing, growth loops, comunicacao de pricing, estrategia de conteudo e orcamento de marketing do negocio.
+
+## Leitura de Contexto
+
+1. Leia `docs/prd.md` — fonte primaria
+2. Leia `docs/business/08-estrategia-marketing.md` — template a preencher
+
+## Analise de Lacunas
+
+A partir do PRD, identifique o que esta disponivel para cada subsecao:
+
+- **Posicionamento**: como o produto se diferencia? Qual dos 3 frameworks se aplica (Anti-[Concorrente], Primeiro a [fazer X], Feito exclusivamente para [nicho])?
+- **Go-to-Market**: qual a estrategia de entrada no mercado e como conquistar os primeiros 10-50 clientes? (inclui lancamento + primeiros clientes)
+- **Validacao de ICP**: qual o ICP atual e quais sao os triggers de pivot (CAC, churn, NPS)?
+- **Canais de Marketing**: quais 3 canais serao usados para aquisicao, com orcamento e ROI esperado?
+- **Growth Loops**: qual o loop primario e secundario de crescimento auto-sustentavel?
+- **Comunicacao de Pricing**: como apresentar precos para maximizar conversao (plano destaque, ancoragem, trial)?
+- **Estrategia de Conteudo**: qual o formato principal de conteudo, frequencia, canal e pilares tematicos?
+- **Orcamento de Marketing**: qual o budget total e distribuicao entre atividades? (inclui orientacao pre-receita)
+
+Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 perguntas pontuais ao usuario antes de gerar.
+
+## Geracao
+
+Preencha `docs/business/08-estrategia-marketing.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+- Informacoes explicitas do PRD
+- Respostas do usuario (se houve perguntas)
+- Inferencias logicas quando seguro (marque com `<!-- inferido do PRD -->`)
+
+## Revisao
+
+Apresente o documento preenchido ao usuario. Aplique ajustes solicitados. Salve o arquivo final.
+
+## Proxima Etapa
+
+> "Estrategia de Marketing preenchida. Rode `/business-operacional` para definir o Plano Operacional."

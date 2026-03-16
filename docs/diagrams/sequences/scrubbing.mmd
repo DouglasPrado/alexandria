@@ -1,0 +1,70 @@
+%% Fluxo: Scrubbing e Verificação de Integridade
+%% Referência: docs/blueprint/07-critical_flows.md
+
+sequenceDiagram
+    autonumber
+
+    participant Sched as Scheduler<br/>(tokio::time)
+    participant API as Orquestrador<br/>(Rust + Axum 0.8)
+    participant DB as PostgreSQL 17<br/>(SQLx)
+    participant S3 as StorageProvider<br/>(nó com réplica)
+    participant SDK as Core SDK<br/>(SHA-256)
+
+    %% Início do ciclo
+    Sched ->> Sched: Trigger periódico (diário/semanal)
+
+    Sched ->>+ DB: SELECT chunk_replicas<br/>ORDER BY verified_at ASC NULLS FIRST<br/>LIMIT 1000
+    DB -->>- Sched: batch_replicas[]
+
+    loop Para cada réplica no batch
+        Sched ->>+ S3: GET chunk (do nó que armazena)
+
+        alt Nó online
+            S3 -->>- Sched: chunk_data
+
+            Sched ->>+ SDK: SHA-256(chunk_data)
+            SDK -->>- Sched: calculated_hash
+
+            alt calculated_hash == chunk_id
+                Note right of Sched: ✓ Chunk íntegro
+                Sched ->>+ DB: UPDATE chunk_replicas SET verified_at = NOW()
+                DB -->>- Sched: OK
+
+            else calculated_hash != chunk_id
+                Note right of Sched: ✗ Chunk corrompido!
+                Sched ->> API: Gerar alerta (warning: corrupção detectada)
+
+                %% Buscar réplica saudável
+                Sched ->>+ DB: SELECT node_id FROM chunk_replicas<br/>WHERE chunk_id = X AND node_id != corrupted_node
+                DB -->>- Sched: healthy_nodes[]
+
+                alt Réplica saudável existe
+                    Sched ->>+ S3: GET chunk (de nó saudável)
+                    S3 -->>- Sched: healthy_chunk
+
+                    Sched ->>+ SDK: SHA-256(healthy_chunk)
+                    SDK -->>- Sched: verify_hash
+
+                    alt verify_hash == chunk_id
+                        Sched ->>+ S3: PUT chunk (sobrescrever réplica corrompida)
+                        S3 -->>- Sched: OK
+                        Sched ->>+ DB: UPDATE chunk_replicas SET verified_at = NOW()
+                        DB -->>- Sched: OK
+                        Note right of Sched: ✓ Réplica reparada
+                    end
+
+                else Nenhuma réplica saudável
+                    Sched ->> API: Gerar alerta (critical: chunk irrecuperável)
+                    Sched ->>+ DB: UPDATE files SET status = 'corrupted'<br/>WHERE file has this chunk
+                    DB -->>- Sched: OK
+                end
+            end
+
+        else Nó offline
+            Note right of Sched: Skip — verificar no próximo ciclo
+        end
+    end
+
+    Sched ->> API: Relatório: {verificados, corrompidos, reparados, irrecuperáveis}
+
+    Note over Sched, S3: Scrubbing protege contra bit rot silencioso

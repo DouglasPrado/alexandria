@@ -1,0 +1,61 @@
+%% C4 Nivel 1: Contexto do Sistema
+%% Mostra o sistema, seus atores e sistemas externos
+%% Referencia: docs/blueprint/00-context.md
+
+graph TB
+    %% -------------------------------------------------------
+    %% Atores (Personas)
+    %% -------------------------------------------------------
+    Admin["👤 Administrador Familiar<br/>Cria cluster, convida membros,<br/>monitora saúde, executa recovery"]
+    Membro["👤 Membro Familiar<br/>Salva e visualiza fotos,<br/>vídeos e documentos"]
+    Fotografo["👤 Fotógrafo Amador<br/>Upload automático,<br/>libera espaço no celular"]
+    Guardiao["👤 Guardião de Memórias<br/>Acessa fotos antigas,<br/>navega por timeline"]
+
+    %% -------------------------------------------------------
+    %% Sistema Central
+    %% -------------------------------------------------------
+    System["🏢 Alexandria<br/>Sistema de armazenamento familiar<br/>distribuído e criptografado"]
+
+    %% -------------------------------------------------------
+    %% Sistemas Externos
+    %% -------------------------------------------------------
+    S3["📦 AWS S3 / Cloudflare R2 / B2<br/>Armazenamento de chunks<br/>criptografados (S3 API)"]
+    FFmpeg["📦 FFmpeg / libvips<br/>Transcodificação de mídia<br/>e conversão de imagens"]
+    Postgres["📦 PostgreSQL<br/>Banco de metadados<br/>(clusters, nós, chunks)"]
+    Redis["📦 Redis<br/>Fila de processamento<br/>do pipeline de mídia"]
+    DNS["📦 DNS Provider<br/>Descoberta do orquestrador<br/>pelos nós"]
+
+    %% -------------------------------------------------------
+    %% Dispositivos
+    %% -------------------------------------------------------
+    Devices["💻 Dispositivos da Família<br/>PCs, celulares, NAS, VPS<br/>(nós de armazenamento)"]
+
+    %% -------------------------------------------------------
+    %% Relacionamentos
+    %% -------------------------------------------------------
+    Admin -->|"Gerencia cluster,<br/>adiciona nós, recovery"| System
+    Membro -->|"Upload, visualiza<br/>galeria, download"| System
+    Fotografo -->|"Sync automático<br/>de fotos/vídeos"| System
+    Guardiao -->|"Navega timeline,<br/>busca fotos antigas"| System
+    System -->|"PUT/GET chunks<br/>via S3 API (HTTPS)"| S3
+    System -->|"Transcodifica vídeo,<br/>converte imagens"| FFmpeg
+    System -->|"CRUD metadados<br/>via driver nativo"| Postgres
+    System -->|"Enfileira jobs,<br/>pub/sub eventos"| Redis
+    System -->|"Resolve domínio<br/>do orquestrador"| DNS
+    Devices -->|"Heartbeat, armazena<br/>e serve chunks (TLS)"| System
+
+    %% -------------------------------------------------------
+    %% Estilos C4
+    %% Azul escuro = atores | Azul medio = sistema | Cinza = externo
+    %% -------------------------------------------------------
+    style System fill:#1168bd,stroke:#0b4884,color:#fff
+    style Admin fill:#08427b,stroke:#052e56,color:#fff
+    style Membro fill:#08427b,stroke:#052e56,color:#fff
+    style Fotografo fill:#08427b,stroke:#052e56,color:#fff
+    style Guardiao fill:#08427b,stroke:#052e56,color:#fff
+    style S3 fill:#999999,stroke:#6b6b6b,color:#fff
+    style FFmpeg fill:#999999,stroke:#6b6b6b,color:#fff
+    style Postgres fill:#999999,stroke:#6b6b6b,color:#fff
+    style Redis fill:#999999,stroke:#6b6b6b,color:#fff
+    style DNS fill:#999999,stroke:#6b6b6b,color:#fff
+    style Devices fill:#5a9bd5,stroke:#3a7bb5,color:#fff

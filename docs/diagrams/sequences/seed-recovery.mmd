@@ -1,0 +1,72 @@
+%% Fluxo: Recovery do Orquestrador via Seed Phrase
+%% Referência: docs/blueprint/07-critical_flows.md
+
+sequenceDiagram
+    autonumber
+
+    actor Admin as Admin Familiar
+    participant VPS as Nova VPS<br/>(Docker Compose)
+    participant API as Orquestrador (novo)<br/>(Rust + Axum 0.8)
+    participant SDK as Core SDK<br/>(CryptoEngine)
+    participant Vault as Vault<br/>(AES-256-GCM)
+    participant S3 as StorageProvider<br/>(S3/R2)
+    participant DB as PostgreSQL 17<br/>(novo, vazio)
+    participant Nodes as Agentes de Nó<br/>(existentes)
+    participant DNS as DNS Provider
+
+    %% Setup
+    Admin ->>+ VPS: docker compose up (orquestrador + pg + redis)
+    VPS -->>- Admin: Serviços online
+
+    %% Recovery
+    Admin ->>+ API: POST /recovery {seed_phrase: "12 palavras"}
+    API ->>+ SDK: Validar seed (BIP-39 wordlist)
+    SDK -->>- API: Seed válida
+
+    API ->>+ SDK: Derivar master key (PBKDF2/scrypt)
+    SDK -->>- API: master_key (em memória)
+
+    %% Vault
+    API ->>+ S3: GET vault.encrypted (busca nos nós conhecidos)
+    S3 -->>- API: vault_encrypted_bytes
+
+    API ->>+ SDK: Decrypt vault (AES-256-GCM + master_key)
+    SDK -->>- API: vault_data {credenciais S3, config cluster, lista nós}
+
+    %% Rebuild
+    API ->>+ S3: LIST manifests (scan buckets com credenciais do vault)
+    S3 -->>- API: manifest_list[]
+
+    loop Para cada manifest encontrado
+        API ->>+ S3: GET manifest
+        S3 -->>- API: manifest_data
+    end
+
+    API ->>+ DB: BULK INSERT (clusters, membros, files, manifests, chunks)
+    DB -->>- API: Índice reconstruído
+    API -->>- Admin: Recovery parcial OK — aguardando nós
+
+    %% DNS e reconexão
+    Admin ->> DNS: Atualiza A record → IP nova VPS
+    DNS -->> Nodes: TTL expira (300s)
+
+    loop Cada nó reconecta
+        Nodes ->>+ API: POST /nodes/:id/heartbeat
+        API ->>+ DB: UPDATE nodes SET status = 'online'
+        DB -->>- API: OK
+        API -->>- Nodes: 200 OK + config atualizada
+    end
+
+    %% Validação
+    API ->> API: Cruza manifests × chunks existentes nos nós
+    API ->>+ DB: Identifica chunks com replicas < 3
+    DB -->>- API: sub_replicated_chunks[]
+
+    alt Chunks sub-replicados encontrados
+        API ->> API: Agenda auto-healing no Scheduler
+    end
+
+    API -->> Admin: Recovery completo — relatório de integridade
+
+    Note over Admin, Nodes: Sistema reconstruído em <2h via seed phrase
+    Note over S3, DB: Manifests são a fonte de verdade para recovery

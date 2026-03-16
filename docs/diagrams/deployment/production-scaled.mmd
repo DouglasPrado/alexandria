@@ -1,0 +1,239 @@
+%% ============================================================
+%% Diagrama de Deploy Escalado: Produção
+%% Variante focada em aspectos de escalabilidade
+%% Referências:
+%%   - docs/14-scalability.md
+%%   - docs/06-system_architecture.md
+%% ============================================================
+%% Perguntas-guia:
+%%   - Qual é a configuração de auto-scaling de cada grupo?
+%%   - Quantas read replicas existem e em quais regiões/AZs?
+%%   - O sistema é multi-AZ ou multi-região?
+%%   - Como o CDN distribui tráfego entre edge locations?
+%%   - Os workers escalam independentemente da aplicação?
+%% ============================================================
+
+graph TB
+
+    %% ===========================================================
+    %% CAMADA: CDN / Edge Locations
+    %% Pergunta: Quantos edge locations? Qual cobertura geográfica?
+    %% ===========================================================
+    subgraph EDGE["☁️ CDN / Edge Locations"]
+        direction LR
+        CDN_EDGE1["Edge Location<br/>{{regiao-edge-1}}<br/>──────────<br/>Cache hit rate: {{hit-rate-1}}<br/>TTL estático: {{ttl-estatico}}"]
+        CDN_EDGE2["Edge Location<br/>{{regiao-edge-2}}<br/>──────────<br/>Cache hit rate: {{hit-rate-2}}<br/>TTL estático: {{ttl-estatico}}"]
+        CDN_EDGE3["Edge Location<br/>{{regiao-edge-3}}<br/>──────────<br/>Cache hit rate: {{hit-rate-3}}<br/>TTL estático: {{ttl-estatico}}"]
+        CDN_ORIGIN["Origin Shield<br/>──────────<br/>Reduz carga no origin<br/>Cache: {{ttl-origin-shield}}"]
+    end
+
+    %% ===========================================================
+    %% CAMADA: DNS + Global Load Balancing
+    %% Pergunta: O balanceamento é baseado em latência ou geolocalização?
+    %% ===========================================================
+    subgraph GLOBAL_LB["🌍 Global Traffic Management"]
+        direction LR
+        DNS["{{nome-dns}}<br/>DNS Provider<br/>──────────<br/>Roteamento: {{latency-based / geolocation}}<br/>Failover: {{ativo-ativo / ativo-passivo}}"]
+        GLOBAL_BALANCER["Global Load Balancer<br/>──────────<br/>Health check: {{intervalo-global-hc}}<br/>Failover automático: sim"]
+    end
+
+    %% ===========================================================
+    %% CAMADA: Multi-AZ / Multi-Region
+    %% Pergunta: Quantas AZs/regiões? Qual a estratégia de failover?
+    %% ===========================================================
+    subgraph REGION_PRIMARY["📍 Região Primária — {{nome-regiao-primaria}}"]
+        direction TB
+
+        %% --- Load Balancer Regional ---
+        subgraph LB_PRIMARY["⚖️ Load Balancer — AZ-a / AZ-b"]
+            LB1["{{nome-load-balancer}}<br/>──────────<br/>Tipo: {{tipo-lb}}<br/>Algoritmo: {{algoritmo-lb}}<br/>TLS: {{versao-tls}}"]
+        end
+
+        %% --- Auto-Scaling Group: Serviço Principal ---
+        subgraph ASG_APP["🔄 Auto-Scaling Group — {{nome-servico-principal}}"]
+            direction LR
+            ASG_APP_CONFIG["Scaling Policy<br/>──────────<br/>Min: {{min-instancias-app}}<br/>Max: {{max-instancias-app}}<br/>Desired: {{desired-instancias-app}}<br/>Métrica: {{metrica-escala-app}}<br/>Scale-up: {{threshold-up-app}}<br/>Scale-down: {{threshold-down-app}}<br/>Cooldown: {{cooldown-app}}"]
+            APP_AZ_A1["{{nome-servico-principal}}<br/>AZ-a — Inst. 1<br/>──────────<br/>CPU: {{cpu-app}} / RAM: {{ram-app}}"]
+            APP_AZ_A2["{{nome-servico-principal}}<br/>AZ-a — Inst. 2<br/>──────────<br/>CPU: {{cpu-app}} / RAM: {{ram-app}}"]
+            APP_AZ_B1["{{nome-servico-principal}}<br/>AZ-b — Inst. 1<br/>──────────<br/>CPU: {{cpu-app}} / RAM: {{ram-app}}"]
+            APP_AZ_B2["{{nome-servico-principal}}<br/>AZ-b — Inst. 2<br/>──────────<br/>CPU: {{cpu-app}} / RAM: {{ram-app}}"]
+        end
+
+        %% --- Auto-Scaling Group: Serviço Secundário ---
+        subgraph ASG_SVC2["🔄 Auto-Scaling Group — {{nome-servico-secundario}}"]
+            direction LR
+            ASG_SVC2_CONFIG["Scaling Policy<br/>──────────<br/>Min: {{min-instancias-svc2}}<br/>Max: {{max-instancias-svc2}}<br/>Desired: {{desired-instancias-svc2}}<br/>Métrica: {{metrica-escala-svc2}}<br/>Scale-up: {{threshold-up-svc2}}<br/>Scale-down: {{threshold-down-svc2}}"]
+            SVC2_AZ_A["{{nome-servico-secundario}}<br/>AZ-a<br/>──────────<br/>CPU: {{cpu-svc2}} / RAM: {{ram-svc2}}"]
+            SVC2_AZ_B["{{nome-servico-secundario}}<br/>AZ-b<br/>──────────<br/>CPU: {{cpu-svc2}} / RAM: {{ram-svc2}}"]
+        end
+
+        %% --- Cache Cluster ---
+        subgraph CACHE_CLUSTER["⚡ Cache Cluster — Multi-AZ"]
+            direction LR
+            CACHE_PRIMARY["{{nome-cache}}<br/>Primary — AZ-a<br/>──────────<br/>Memória: {{ram-cache}}<br/>Eviction: {{politica-eviction}}"]
+            CACHE_REPLICA_A["{{nome-cache}}<br/>Replica — AZ-b<br/>──────────<br/>Modo: read-replica<br/>Failover automático: sim"]
+        end
+
+        %% --- Database Cluster com Read Replicas ---
+        subgraph DB_CLUSTER["🗄️ Database Cluster — {{nome-sgbd}}"]
+            direction LR
+            DB_PRIMARY["{{nome-sgbd}}<br/>Primary (Write)<br/>──────────<br/>AZ-a<br/>Versão: {{versao-sgbd}}<br/>Storage: {{storage-db}}<br/>IOPS: {{iops-db}}<br/>Conexões max: {{max-conexoes-db}}"]
+            DB_READ1["{{nome-sgbd}}<br/>Read Replica 1<br/>──────────<br/>AZ-b<br/>Lag máximo: {{lag-maximo}}<br/>Uso: leituras da aplicação"]
+            DB_READ2["{{nome-sgbd}}<br/>Read Replica 2<br/>──────────<br/>AZ-a<br/>Lag máximo: {{lag-maximo}}<br/>Uso: relatórios / analytics"]
+            DB_READ3["{{nome-sgbd}}<br/>Read Replica 3<br/>──────────<br/>AZ-b<br/>Lag máximo: {{lag-maximo}}<br/>Uso: leituras dos workers"]
+        end
+
+        %% --- Queue + Worker Scaling ---
+        subgraph ASYNC_SCALED["📨 Message Queue + Scaled Workers"]
+            direction LR
+            QUEUE["{{nome-broker}}<br/>Cluster<br/>──────────<br/>Nós: {{num-nos-broker}}<br/>Partições: {{num-particoes}}<br/>Replicação: {{fator-replicacao}}"]
+
+            subgraph WORKER_ASG["🔄 Auto-Scaling Group — Workers"]
+                WORKER_CONFIG["Scaling Policy<br/>──────────<br/>Min: {{min-workers}}<br/>Max: {{max-workers}}<br/>Métrica: queue depth<br/>Scale-up: > {{threshold-queue-depth}} msgs<br/>Scale-down: < {{threshold-queue-low}} msgs"]
+                WORKER1["Worker 1<br/>──────────<br/>Tarefa: {{tarefa-worker-1}}<br/>Concorrência: {{concorrencia-1}}"]
+                WORKER2["Worker 2<br/>──────────<br/>Tarefa: {{tarefa-worker-2}}<br/>Concorrência: {{concorrencia-2}}"]
+                WORKER3["Worker N<br/>──────────<br/>Escala conforme<br/>profundidade da fila"]
+            end
+
+            DLQ["Dead Letter Queue<br/>──────────<br/>Retenção: {{retencao-dlq}}<br/>Alerta: {{alerta-dlq}}"]
+        end
+
+        BACKUP["Backup Service<br/>──────────<br/>Frequência: {{frequencia-backup}}<br/>Retenção: {{retencao-backup}}<br/>Destino: {{destino-backup}}<br/>Cross-region: {{backup-cross-region}}"]
+    end
+
+    %% ===========================================================
+    %% REGIÃO SECUNDÁRIA (Failover / Multi-Region)
+    %% Pergunta: O sistema precisa de failover multi-região?
+    %% ===========================================================
+    subgraph REGION_SECONDARY["📍 Região Secundária — {{nome-regiao-secundaria}} (Failover)"]
+        direction LR
+        LB_SECONDARY["{{nome-load-balancer}}<br/>Standby LB<br/>──────────<br/>Modo: {{hot-standby / warm-standby}}"]
+        APP_STANDBY["{{nome-servico-principal}}<br/>Standby Pool<br/>──────────<br/>Min: {{min-standby}}<br/>Ativação: automática via health check"]
+        DB_CROSS_REGION["{{nome-sgbd}}<br/>Cross-Region Replica<br/>──────────<br/>Lag máximo: {{lag-cross-region}}<br/>Promoção: {{manual / automática}}"]
+    end
+
+    %% ===========================================================
+    %% CONEXÕES
+    %% ===========================================================
+
+    %% CDN Edge → Origin
+    CDN_EDGE1 & CDN_EDGE2 & CDN_EDGE3 -->|"Cache miss"| CDN_ORIGIN
+    CDN_ORIGIN -->|"HTTPS :443"| GLOBAL_BALANCER
+
+    %% DNS → Global LB → Regiões
+    DNS -->|"Resolução"| GLOBAL_BALANCER
+    GLOBAL_BALANCER -->|"Tráfego primário"| LB1
+    GLOBAL_BALANCER -.->|"Failover"| LB_SECONDARY
+
+    %% LB → App instances (Multi-AZ)
+    LB1 -->|"{{protocolo-interno}} :{{porta-app}}"| APP_AZ_A1 & APP_AZ_A2
+    LB1 -->|"{{protocolo-interno}} :{{porta-app}}"| APP_AZ_B1 & APP_AZ_B2
+    LB1 -->|"{{protocolo-interno}} :{{porta-svc2}}"| SVC2_AZ_A & SVC2_AZ_B
+
+    %% Auto-scaler monitora instâncias
+    ASG_APP_CONFIG -.->|"Monitora/Escala"| APP_AZ_A1 & APP_AZ_A2 & APP_AZ_B1 & APP_AZ_B2
+    ASG_SVC2_CONFIG -.->|"Monitora/Escala"| SVC2_AZ_A & SVC2_AZ_B
+
+    %% App → Cache
+    APP_AZ_A1 & APP_AZ_A2 & APP_AZ_B1 & APP_AZ_B2 -->|"{{protocolo-cache}} :{{porta-cache}}"| CACHE_PRIMARY
+    SVC2_AZ_A & SVC2_AZ_B -->|"{{protocolo-cache}} :{{porta-cache}}"| CACHE_REPLICA_A
+    CACHE_PRIMARY -.->|"Replicação"| CACHE_REPLICA_A
+
+    %% App → Database (Write/Read split)
+    APP_AZ_A1 & APP_AZ_A2 & APP_AZ_B1 & APP_AZ_B2 -->|"Write"| DB_PRIMARY
+    APP_AZ_A1 & APP_AZ_A2 -.->|"Read"| DB_READ1
+    APP_AZ_B1 & APP_AZ_B2 -.->|"Read"| DB_READ2
+    SVC2_AZ_A & SVC2_AZ_B -.->|"Read"| DB_READ2
+
+    %% Database replication
+    DB_PRIMARY -.->|"Replicação async"| DB_READ1
+    DB_PRIMARY -.->|"Replicação async"| DB_READ2
+    DB_PRIMARY -.->|"Replicação async"| DB_READ3
+    DB_PRIMARY -.->|"Cross-region replication"| DB_CROSS_REGION
+    DB_PRIMARY -.->|"{{frequencia-backup}}"| BACKUP
+
+    %% App → Queue → Workers
+    APP_AZ_A1 & APP_AZ_A2 & APP_AZ_B1 & APP_AZ_B2 -->|"{{protocolo-broker}}"| QUEUE
+    SVC2_AZ_A & SVC2_AZ_B -->|"{{protocolo-broker}}"| QUEUE
+    QUEUE --> WORKER1 & WORKER2 & WORKER3
+    QUEUE -.->|"Falhas após {{max-retentativas}}"| DLQ
+    WORKER_CONFIG -.->|"Monitora/Escala"| WORKER1 & WORKER2 & WORKER3
+
+    %% Workers → Database
+    WORKER1 & WORKER2 & WORKER3 -->|"Write"| DB_PRIMARY
+    WORKER1 & WORKER2 & WORKER3 -.->|"Read"| DB_READ3
+
+    %% Failover region
+    LB_SECONDARY -.->|"Ativa sob failover"| APP_STANDBY
+    APP_STANDBY -.->|"Promove replica"| DB_CROSS_REGION
+
+    %% ===========================================================
+    %% ESTILOS — C4-style colors
+    %% Azul (#438DD5): Componentes de aplicação
+    %% Verde (#67BE4B): Componentes de dados
+    %% Laranja (#F5A623): Componentes de infraestrutura
+    %% Roxo (#9B59B6): Componentes de scaling/policies
+    %% Vermelho claro: Failover / DLQ
+    %% ===========================================================
+
+    %% CDN / Edge (laranja)
+    style EDGE fill:#FFF3E0,stroke:#F5A623,stroke-width:2px,color:#333
+    style CDN_EDGE1 fill:#F5A623,stroke:#E09100,color:#fff
+    style CDN_EDGE2 fill:#F5A623,stroke:#E09100,color:#fff
+    style CDN_EDGE3 fill:#F5A623,stroke:#E09100,color:#fff
+    style CDN_ORIGIN fill:#F5A623,stroke:#E09100,color:#fff
+
+    %% Global LB (laranja)
+    style GLOBAL_LB fill:#FFF3E0,stroke:#F5A623,stroke-width:2px,color:#333
+    style DNS fill:#F5A623,stroke:#E09100,color:#fff
+    style GLOBAL_BALANCER fill:#F5A623,stroke:#E09100,color:#fff
+
+    %% Região Primária
+    style REGION_PRIMARY fill:#F5F5F5,stroke:#999,stroke-width:2px,color:#333
+
+    %% Load Balancer (laranja)
+    style LB_PRIMARY fill:#FFF3E0,stroke:#F5A623,stroke-width:1px,color:#333
+    style LB1 fill:#F5A623,stroke:#E09100,color:#fff
+
+    %% App Auto-Scaling Groups (azul)
+    style ASG_APP fill:#E3F2FD,stroke:#438DD5,stroke-width:2px,color:#333
+    style ASG_SVC2 fill:#E3F2FD,stroke:#438DD5,stroke-width:2px,color:#333
+    style APP_AZ_A1 fill:#438DD5,stroke:#2B6CB0,color:#fff
+    style APP_AZ_A2 fill:#438DD5,stroke:#2B6CB0,color:#fff
+    style APP_AZ_B1 fill:#438DD5,stroke:#2B6CB0,color:#fff
+    style APP_AZ_B2 fill:#438DD5,stroke:#2B6CB0,color:#fff
+    style SVC2_AZ_A fill:#438DD5,stroke:#2B6CB0,color:#fff
+    style SVC2_AZ_B fill:#438DD5,stroke:#2B6CB0,color:#fff
+
+    %% Scaling Policies (roxo)
+    style ASG_APP_CONFIG fill:#9B59B6,stroke:#7D3C98,color:#fff
+    style ASG_SVC2_CONFIG fill:#9B59B6,stroke:#7D3C98,color:#fff
+    style WORKER_CONFIG fill:#9B59B6,stroke:#7D3C98,color:#fff
+
+    %% Cache (verde)
+    style CACHE_CLUSTER fill:#E8F5E9,stroke:#67BE4B,stroke-width:2px,color:#333
+    style CACHE_PRIMARY fill:#67BE4B,stroke:#4A9A35,color:#fff
+    style CACHE_REPLICA_A fill:#A5D6A7,stroke:#4A9A35,color:#333
+
+    %% Database (verde)
+    style DB_CLUSTER fill:#E8F5E9,stroke:#67BE4B,stroke-width:2px,color:#333
+    style DB_PRIMARY fill:#67BE4B,stroke:#4A9A35,color:#fff
+    style DB_READ1 fill:#A5D6A7,stroke:#4A9A35,color:#333
+    style DB_READ2 fill:#A5D6A7,stroke:#4A9A35,color:#333
+    style DB_READ3 fill:#A5D6A7,stroke:#4A9A35,color:#333
+    style BACKUP fill:#A5D6A7,stroke:#4A9A35,color:#333
+
+    %% Async / Workers (laranja + azul)
+    style ASYNC_SCALED fill:#FFF3E0,stroke:#F5A623,stroke-width:2px,color:#333
+    style WORKER_ASG fill:#E3F2FD,stroke:#438DD5,stroke-width:1px,color:#333
+    style QUEUE fill:#F5A623,stroke:#E09100,color:#fff
+    style WORKER1 fill:#438DD5,stroke:#2B6CB0,color:#fff
+    style WORKER2 fill:#438DD5,stroke:#2B6CB0,color:#fff
+    style WORKER3 fill:#438DD5,stroke:#2B6CB0,color:#fff
+    style DLQ fill:#FFCDD2,stroke:#E53935,color:#333
+
+    %% Região Secundária (vermelho claro)
+    style REGION_SECONDARY fill:#FFF8E1,stroke:#F5A623,stroke-width:2px,stroke-dasharray:5 5,color:#333
+    style LB_SECONDARY fill:#FFCDD2,stroke:#E53935,color:#333
+    style APP_STANDBY fill:#FFCDD2,stroke:#E53935,color:#333
+    style DB_CROSS_REGION fill:#FFCDD2,stroke:#E53935,color:#333
