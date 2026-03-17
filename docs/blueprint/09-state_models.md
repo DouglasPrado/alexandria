@@ -23,13 +23,13 @@ Este documento cataloga todas as entidades com ciclo de vida, seus estados poss�
 
 | De | Para | Gatilho | Condição | Ação |
 |----|------|---------|----------|------|
-| — (novo) | online | Registro do nó (POST /nodes/register) | Conectividade testada com sucesso | Adicionar ao ConsistentHashRing; gerar evento NóRegistrado |
-| online | suspeito | Scheduler detecta heartbeat ausente | last_heartbeat < NOW() - 30min | Gerar alerta (warning); evento NóSuspeito |
-| suspeito | perdido | Scheduler detecta heartbeat ainda ausente | last_heartbeat < NOW() - 1h | Gerar alerta (critical); disparar auto-healing; evento NóPerdido |
-| suspeito | online | Heartbeat recebido | Nó envia heartbeat válido | Resolver alerta; evento NóOnline |
+| — (novo) | online | Registro do nó (POST /nodes/register) | Conectividade testada com sucesso | Adicionar ao ConsistentHashRing; gerar evento NodeRegistered |
+| online | suspeito | Scheduler detecta heartbeat ausente | last_heartbeat < NOW() - 30min | Gerar alerta (warning); evento NodeSuspected |
+| suspeito | perdido | Scheduler detecta heartbeat ainda ausente | last_heartbeat < NOW() - 1h | Gerar alerta (critical); disparar auto-healing; evento NodeLost |
+| suspeito | online | Heartbeat recebido | Nó envia heartbeat válido | Resolver alerta; evento NodeOnline |
 | perdido | online | Heartbeat recebido após período perdido | Nó reconecta e envia heartbeat | Resolver alerta; cancelar auto-healing pendente; revalidar chunks |
-| online | draining | Admin inicia desconexão (POST /nodes/:id/drain) | Admin autenticado com role admin | Bloquear novos chunks; iniciar migração; evento NóDrainIniciado |
-| draining | — (removido) | Drain completo | Todos os chunks migrados com sucesso | Remover do ConsistentHashRing; remover de `nodes`; evento NóDesconectado |
+| online | draining | Admin inicia desconexão (POST /nodes/:id/drain) | Admin autenticado com role admin | Bloquear novos chunks; iniciar migração; evento NodeDrainStarted |
+| draining | — (removido) | Drain completo | Todos os chunks migrados com sucesso | Remover do ConsistentHashRing; remover de `nodes`; evento NodeDisconnected |
 
 #### Transições Proibidas
 
@@ -60,11 +60,11 @@ Este documento cataloga todas as entidades com ciclo de vida, seus estados poss�
 
 | De | Para | Gatilho | Condição | Ação |
 |----|------|---------|----------|------|
-| — (novo) | processing | Upload recebido (POST /files/upload) | Arquivo válido; membro autenticado | Criar registro em files; enfileirar job no Redis; evento ArquivoRecebido |
-| processing | ready | Pipeline concluído + replicação 3x confirmada | Todos os chunks distribuídos e confirmados | Atualizar status; publicar evento ArquivoPronto; thumbnail visível |
-| processing | error | Pipeline falha | FFmpeg erro, nós insuficientes, timeout | Gerar alerta ao membro; evento ArquivoComErro |
-| error | processing | Retry solicitado (manual ou automático) | Causa do erro resolvida (nó adicionado, arquivo corrigido) | Re-enfileirar job; evento ArquivoRecebido |
-| ready | corrupted | Scrubbing detecta chunks irrecuperáveis | Todas as réplicas de pelo menos 1 chunk perdidas | Gerar alerta (critical); evento ArquivoCorrompido |
+| — (novo) | processing | Upload recebido (POST /files/upload) | Arquivo válido; membro autenticado | Criar registro em files; enfileirar job no Redis; evento FileReceived |
+| processing | ready | Pipeline concluído + replicação 3x confirmada | Todos os chunks distribuídos e confirmados | Atualizar status; publicar evento FileReady; thumbnail visível |
+| processing | error | Pipeline falha | FFmpeg erro, nós insuficientes, timeout | Gerar alerta ao membro; evento FileError |
+| error | processing | Retry solicitado (manual ou automático) | Causa do erro resolvida (nó adicionado, arquivo corrigido) | Re-enfileirar job; evento FileReceived |
+| ready | corrupted | Scrubbing detecta chunks irrecuperáveis | Todas as réplicas de pelo menos 1 chunk perdidas | Gerar alerta (critical); evento FileCorrupted |
 
 #### Transições Proibidas
 

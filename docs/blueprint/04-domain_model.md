@@ -63,8 +63,8 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 **Eventos de Domínio:**
 
-- `ClusterCriado` — dispara geração de seed phrase e criação do vault
-- `ClusterRecuperado` — dispara reconexão de nós e rebuild do índice de metadados
+- `ClusterCreated` — dispara geração de seed phrase e criação do vault
+- `ClusterRecovered` — dispara reconexão de nós e rebuild do índice de metadados
 
 ---
 
@@ -93,9 +93,9 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 **Eventos de Domínio:**
 
-- `MembroConvidado` — token de convite gerado e enviado
-- `MembroIngressou` — membro aceitou convite e foi adicionado ao cluster
-- `MembroRemovido` — membro desconectado do cluster
+- `MemberInvited` — token de convite gerado e enviado
+- `MemberJoined` — membro aceitou convite e foi adicionado ao cluster
+- `MemberRemoved` — membro desconectado do cluster
 
 ---
 
@@ -129,12 +129,12 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 **Eventos de Domínio:**
 
-- `NóRegistrado` — nó adicionado ao cluster, visível e reportando capacidade
-- `NóOnline` — heartbeat recebido após período offline
-- `NóSuspeito` — heartbeat ausente por >30 minutos
-- `NóPerdido` — heartbeat ausente por >1 hora; dispara auto-healing
-- `NóDrainIniciado` — migração de chunks começou
-- `NóDesconectado` — drain completo, nó removido do cluster
+- `NodeRegistered` — nó adicionado ao cluster, visível e reportando capacidade
+- `NodeOnline` — heartbeat recebido após período offline
+- `NodeSuspected` — heartbeat ausente por >30 minutos
+- `NodeLost` — heartbeat ausente por >1 hora; dispara auto-healing
+- `NodeDrainStarted` — migração de chunks começou
+- `NodeDisconnected` — drain completo, nó removido do cluster
 
 ---
 
@@ -168,10 +168,10 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 **Eventos de Domínio:**
 
-- `ArquivoRecebido` — upload iniciado, job enfileirado no pipeline
-- `ArquivoProcessado` — pipeline concluído, chunks distribuídos
-- `ArquivoPronto` — replicação mínima atingida (3x), visível na galeria
-- `ArquivoComErro` — pipeline falhou, requer ação do usuário ou retry
+- `FileReceived` — upload iniciado, job enfileirado no pipeline
+- `FileProcessed` — pipeline concluído, chunks distribuídos
+- `FileReady` — replicação mínima atingida (3x), visível na galeria
+- `FileError` — pipeline falhou, requer ação do usuário ou retry
 
 ---
 
@@ -200,9 +200,9 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 **Eventos de Domínio:**
 
-- `ManifestCriado` — manifest gerado após distribuição dos chunks
-- `ManifestReplicado` — cópia do manifest confirmada em nó adicional
-- `ManifestValidado` — assinatura verificada com sucesso durante scrubbing
+- `ManifestCreated` — manifest gerado após distribuição dos chunks
+- `ManifestReplicated` — cópia do manifest confirmada em nó adicional
+- `ManifestValidated` — assinatura verificada com sucesso durante scrubbing
 
 ---
 
@@ -230,11 +230,11 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 **Eventos de Domínio:**
 
-- `ChunkCriado` — chunk gerado pelo pipeline e pronto para distribuição
-- `ChunkReplicado` — réplica confirmada em nó adicional
-- `ChunkCorrompido` — hash inconsistente detectado pelo scrubbing
-- `ChunkReparado` — chunk corrompido restaurado de outra réplica
-- `ChunkÓrfão` — chunk identificado sem referência em manifests
+- `ChunkCreated` — chunk gerado pelo pipeline e pronto para distribuição
+- `ChunkReplicated` — réplica confirmada em nó adicional
+- `ChunkCorrupted` — hash inconsistente detectado pelo scrubbing
+- `ChunkRepaired` — chunk corrompido restaurado de outra réplica
+- `ChunkOrphaned` — chunk identificado sem referência em manifests
 
 ---
 
@@ -280,10 +280,10 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 **Eventos de Domínio:**
 
-- `VaultCriado` — vault inicializado na criação do cluster
-- `VaultDesbloqueado` — senha do usuário validada com sucesso (ou master key em recovery)
-- `VaultAtualizado` — credencial, senha ou token adicionado ou modificado
-- `VaultReplicado` — cópia atualizada confirmada em nó
+- `VaultCreated` — vault inicializado na criação do cluster
+- `VaultUnlocked` — senha do usuário validada com sucesso (ou master key em recovery)
+- `VaultUpdated` — credencial, senha ou token adicionado ou modificado
+- `VaultReplicated` — cópia atualizada confirmada em nó
 
 ---
 
