@@ -24,12 +24,17 @@ A partir do PRD e do modelo de dominio, identifique:
 
 Se o PRD nao especificar a tecnologia de banco ou volumes esperados, pergunte ao usuario (max 3 perguntas).
 
+## Regra de Nomenclatura
+
+- **Nomes de tabelas, campos, indices e constraints**: sempre em ingles
+- **Comentarios e descricoes**: sempre em portugues
+
 ## Geracao
 
 Preencha `docs/blueprint/05-data_model.md`:
 
 - **Banco de Dados**: tecnologia escolhida e justificativa
-- **Tabelas/Collections**: para cada uma, liste campos com tipo, constraint e descricao
+- **Tabelas/Collections**: para cada uma, liste campos com tipo, constraint e descricao (nomes em ingles, descricoes em portugues)
 - **Estrategia de Migracao**: ferramenta e abordagem
 - **Indices e Otimizacoes**: indices criticos por tabela
 - **Queries Criticas**: tabela com query, frequencia e SLA esperado

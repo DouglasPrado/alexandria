@@ -1,154 +1,144 @@
-# Relacionamento com Cliente
+# Relacionamento com Usuário
 
-Esta secao define **como o produto constroi e mantem relacoes duradouras com os clientes**. Abrange ativacao, ciclo de vida, retencao, expansao e recuperacao de clientes. Um bom relacionamento transforma usuarios em promotores.
+Esta seção define **como o Alexandria constrói e mantém relações duradouras com seus usuários**. Abrange ativação, ciclo de vida, retenção, expansão e recuperação. Como projeto open-source sem receita, o foco é em **engajamento**, **confiança** e **contribuição da comunidade**.
+
+> **Nota:** O Alexandria não tem clientes pagantes. "Retenção" significa manter o sistema rodando e a família usando. "Expansão" significa adicionar nós, membros e contribuir com a comunidade. "Churn" significa abandonar o sistema.
 
 ---
 
-## Definicao de Ativacao
+## Definição de Ativação
 
-> O que significa um usuario "ativo"? Defina criterios claros para medir se o cliente atingiu o primeiro valor.
-
-| Aspecto | Descricao |
+| Aspecto | Descrição |
 | --- | --- |
-| **Criterio de ativacao** | {{Ex.: "Completou 3 agendamentos na primeira semana"}} |
-| **Momento "aha!"** | {{Ex.: "Quando recebe o primeiro agendamento feito pelo link, sem trocar mensagens"}} |
-| **Prazo esperado** | {{Ex.: "Ate 7 dias apos cadastro"}} |
-| **Taxa de ativacao alvo** | {{Ex.: "60% dos novos cadastros"}} |
+| **Critério de ativação (admin)** | Completou setup do cluster + fez primeiro upload + confirmou 3 réplicas saudáveis |
+| **Critério de ativação (membro)** | Acessou web client + visualizou fotos da família + sync automático configurado no celular |
+| **Momento "aha!" (admin)** | Quando vê no dashboard "3/3 réplicas saudáveis" e percebe que seus dados estão genuinamente distribuídos e protegidos |
+| **Momento "aha!" (membro)** | Quando abre o navegador e vê as fotos de todos os celulares da família em uma timeline unificada, carregando instantaneamente |
+| **Prazo esperado** | Admin: até 48h após instalação. Membro: até 24h após convite. |
+| **Taxa de ativação alvo** | 70% dos que instalam (admin); 80% dos convidados (membros) <!-- inferido do PRD --> |
 
-> Todo o onboarding deve ser desenhado para chegar no momento "aha!" o mais rapido possivel.
+> Todo o onboarding deve ser desenhado para chegar no "3/3 réplicas saudáveis" o mais rápido possível. Se o admin não vê isso nas primeiras 2 horas, algo deu errado.
 
 ---
 
-## Ciclo de Vida e Estrategia
+## Ciclo de Vida e Estratégia
 
-> Quais sao as fases do ciclo de vida e como o produto atua em cada uma?
-
-| Fase | Objetivo | Modelo | Acao Principal | Metrica |
+| Fase | Objetivo | Modelo | Ação Principal | Métrica |
 | --- | --- | --- | --- | --- |
-| **Aquisicao** | {{Converter visitante em usuario}} | {{Self-service / Assistido / Automatizado}} | {{Ex.: "Trial gratuito, onboarding guiado"}} | {{Ex.: "Taxa de cadastro"}} |
-| **Ativacao** | {{Fazer usuario atingir primeiro valor}} | {{Self-service / Assistido / Automatizado}} | {{Ex.: "Checklist de setup, primeiro agendamento"}} | {{Ex.: "Taxa de ativacao"}} |
-| **Retencao** | {{Manter uso recorrente}} | {{Self-service / Assistido / Automatizado}} | {{Ex.: "Features de engajamento, relatorios de valor"}} | {{Ex.: "Retencao mensal"}} |
-| **Receita** | {{Converter em pagante, expandir}} | {{Self-service / Assistido / Automatizado}} | {{Ex.: "Comunicacao de valor, oferta de upgrade"}} | {{Ex.: "Conversao trial→pago"}} |
-| **Indicacao** | {{Transformar em promotor}} | {{Self-service / Assistido / Automatizado}} | {{Ex.: "Programa de indicacao"}} | {{Ex.: "Taxa de indicacao"}} |
+| **Aquisição** | Converter visitante em instalação | Self-service | README claro, `docker compose up` de 1 comando, demo screenshots | GitHub stars → Docker pulls |
+| **Ativação** | Admin atingir "3/3 réplicas saudáveis" | Self-service + Docs | Wizard de setup em 5 etapas; docs de cada provedor cloud | Taxa de ativação: 70% |
+| **Retenção** | Manter sistema rodando e família usando | Automatizado | Dashboard de saúde; alertas automáticos; sync contínuo | Uptime do cluster; fotos/semana |
+| **Contribuição** | Transformar usuário em contribuidor | Comunidade | CONTRIBUTING.md claro; issues "good first issue"; roadmap público | PRs/mês; issues resolvidas pela comunidade |
+| **Advocacia** | Transformar em promotor | Orgânico | Disaster drills públicos; métricas de durabilidade; blog posts | Menções em Reddit/HN; forks; indicações |
 
-> Na fase Growth, considere tambem **comunidade**: espacos para troca de experiencias entre clientes (WhatsApp, Discord, forum) como alavanca de retencao e aquisicao organica.
-
-<details>
-<summary>Exemplo</summary>
-
-| Fase | Objetivo | Modelo | Acao Principal | Metrica |
-| --- | --- | --- | --- | --- |
-| Aquisicao | Converter visitante em usuario | Self-service | Trial de 14 dias, landing page otimizada | Taxa de cadastro: 8% |
-| Ativacao | Atingir primeiro agendamento real | Automatizado | Checklist de setup + wizard | Taxa de ativacao: 55% |
-| Retencao | Manter uso semanal | Automatizado | Relatorio semanal de valor, lembretes | Retencao M1: 80% |
-| Receita | Converter trial em pagante | Self-service | E-mail de valor no dia 10, oferta no dia 12 | Conversao: 35% |
-| Indicacao | Gerar boca-a-boca | Automatizado | Link de indicacao apos 45 dias | 15% indicam |
-
-</details>
+> **Comunidade como motor de retenção:** Discord/GitHub Discussions para troca de experiências entre admins familiares. Quando um usuário resolve um problema e posta a solução, o valor da comunidade cresce para todos.
 
 ---
 
-## Retencao
+## Retenção
 
-**Sinais de risco de churn:**
+**Sinais de risco de abandono:**
 
-| Sinal | Acao Preventiva | Automacao |
+| Sinal | Ação Preventiva | Automação |
 | --- | --- | --- |
-| {{Sinal 1 — ex.: "Login caiu 50% na ultima semana"}} | {{Ex.: "E-mail automatico + oferta de ajuda"}} | {{Sim / Nao}} |
-| {{Sinal 2 — ex.: "Nao usou feature principal em 14 dias"}} | {{Ex.: "Push notification com dica de uso"}} | {{Sim / Nao}} |
-| {{Sinal 3 — ex.: "Abriu ticket de reclamacao"}} | {{Ex.: "Contato proativo do CS em 24h"}} | {{Nao}} |
+| Orquestrador offline por >24h sem motivo planejado | Alerta por e-mail/push ao admin: "Seu cluster está offline" | Sim — heartbeat monitoring (RF-008) |
+| Replicação degradada (<3 réplicas em >5% dos chunks) por >48h | Alerta: "X chunks com replicação abaixo do mínimo" + guia de resolução | Sim — auto-healing (RF-040) + alerta (RF-071) |
+| Nenhum upload novo em 30 dias (família parou de usar) | Notificação: "Dica: configure o sync automático no celular" + link para docs | Sim — telemetria opt-in |
+| Issue/discussão aberta sem resposta em >7 dias | Mantenedor responde; se for bug, prioriza fix | Não — requer atenção manual |
+| Token OAuth expirado sem renovação automática | Alerta: "Conta X precisa re-autorizar" + botão de re-auth | Sim — RF-020 |
 
-**Estrategias de retencao:**
+**Estratégias de retenção:**
 
-- {{Estrategia 1 — ex.: "Onboarding progressivo que desbloqueia features conforme uso"}}
-- {{Estrategia 2 — ex.: "Relatorios semanais mostrando valor gerado (tempo economizado, agendamentos)"}}
-- {{Estrategia 3 — ex.: "Check-in proativo no dia 7, 30 e 60 apos cadastro"}}
+- **Confiança pelo dashboard:** Dashboard de saúde sempre visível mostrando "seus dados estão seguros: X réplicas, Y nós online, Z% integridade"
+- **Disaster drills automáticos:** Mensalmente, o sistema reconstrói um arquivo aleatório de réplicas para provar que o recovery funciona — admin recebe relatório
+- **Relatório mensal de valor:** "Este mês: X fotos preservadas, Y GB otimizados, Z% de economia vs cloud pago"
+- **Onboarding progressivo:** Após ativação básica, sugerir: "Próximo passo: adicionar um segundo provedor cloud para diversidade de nós"
 
-**Meta de retencao:**
+**Meta de retenção:**
 
-| Metrica | Meta | Benchmark do Mercado |
+| Métrica | Meta | Benchmark (open-source self-hosted) |
 | --- | --- | --- |
-| Retencao mensal (M1) | {{Ex.: 80%}} | {{Ex.: 70-75% para SaaS SMB}} |
-| Retencao trimestral (M3) | {{Ex.: 60%}} | {{Ex.: 50-55% para SaaS SMB}} |
-| Churn mensal | {{Ex.: < 5%}} | {{Ex.: 5-7% para SaaS SMB}} |
+| Instalações ativas após 1 mês (M1) | 80% | ~60-70% para projetos self-hosted <!-- inferido do PRD --> |
+| Instalações ativas após 3 meses (M3) | 60% | ~40-50% para projetos self-hosted <!-- inferido do PRD --> |
+| Instalações ativas após 12 meses (M12) | 40% | ~20-30% para projetos self-hosted <!-- inferido do PRD --> |
+| Abandono mensal | < 8% | ~10-15% para projetos self-hosted <!-- inferido do PRD --> |
 
 ---
 
-## Expansion Revenue
+## Expansão de Uso
 
-> Como expandir a receita de clientes existentes?
+> Como expandir o uso de clusters existentes?
 
-| Aspecto | Descricao |
+| Aspecto | Descrição |
 | --- | --- |
-| **Path de upgrade** | {{Ex.: Free → Starter (R$ 29/mes) → Pro (R$ 79/mes)}} |
-| **Sinais de readiness** | {{Ex.: "Atingiu limite de agendamentos do plano, usa 3+ integracoes, tem 2+ profissionais"}} |
-| **Meta de expansion revenue** | {{Ex.: "20% da receita recorrente vem de upgrades e add-ons"}} |
+| **Path de expansão** | 1 nó local → +1 bucket cloud → +2 membros da família → +2 nós cloud → todos os membros → nós em casas de parentes |
+| **Sinais de readiness** | Cluster com >50% de capacidade usada; admin acessando docs de novos provedores; membros da família pedindo acesso |
+| **Meta de expansão** | Clusters ativos passam de média 3 nós (mês 1) para 5+ nós (mês 6) <!-- inferido do PRD --> |
 
-> Expansion revenue saudavel indica que clientes estao crescendo com o produto.
+> Cada nó adicionado é um sinal de confiança. Se o admin adiciona um 4º e 5º nó, ele "comprou" a visão de longo prazo do Alexandria.
 
 ---
 
-## Health Score
+## Health Score do Cluster
 
-> Como medir a saude de cada cliente de forma simples e acionavel?
+> Como medir a saúde de cada instalação de forma simples e acionável?
 
-**Formula sugerida:**
+**Fórmula:**
 
 | Componente | Peso | Como medir |
 | --- | --- | --- |
-| Uso do produto | {{Ex.: 40%}} | {{Ex.: Frequencia de login + uso de features-chave}} |
-| Satisfacao | {{Ex.: 30%}} | {{Ex.: Ultimo CSAT ou NPS coletado}} |
-| Tickets de suporte | {{Ex.: 30%}} | {{Ex.: Volume e severidade dos tickets abertos}} |
+| Saúde de replicação | 40% | % de chunks com 3+ réplicas (RF-042) |
+| Atividade da família | 30% | Uploads/visualizações nos últimos 30 dias (telemetria opt-in) |
+| Nós online | 20% | % de nós com heartbeat ativo vs total registrado |
+| Integridade | 10% | Resultado do último scrubbing (RF-043) — 0 erros = 100% |
 
-**Faixas:** Saudavel (>80) / Atencao (50-80) / Risco (<50)
+**Faixas:** Saudável (>80) / Atenção (50-80) / Risco (<50)
 
-> Como tickets de suporte alimentam o backlog de produto?
+> Health Score visível no dashboard do admin. Quando cai abaixo de 80, mostrar banner com ação sugerida. Abaixo de 50, alerta por e-mail.
 
 ---
 
 ## Suporte
 
-> Quais canais de suporte serao oferecidos?
-
-| Canal | Disponibilidade | Tempo de Primeira Resposta | Publico |
+| Canal | Disponibilidade | Tempo de Primeira Resposta | Público |
 | --- | --- | --- | --- |
-| {{Canal 1 — ex.: "Central de ajuda (FAQ)"}} | {{Ex.: "24/7"}} | {{Imediato (self-service)}} | {{Todos}} |
-| {{Canal 2 — ex.: "Chat in-app"}} | {{Ex.: "Seg-Sex, 9h-18h"}} | {{Ex.: "< 2 horas"}} | {{Todos}} |
-| {{Canal 3 — ex.: "WhatsApp / E-mail"}} | {{Ex.: "Seg-Sex, 9h-18h"}} | {{Ex.: "< 4 horas"}} | {{Plano pago}} |
+| Documentação (docs site) | 24/7 | Imediato (self-service) | Todos |
+| GitHub Discussions (Q&A) | Assíncrono | < 48h (comunidade + mantenedores) | Todos |
+| GitHub Issues (bugs/features) | Assíncrono | < 7 dias (mantenedores) | Todos |
+| Discord (chat da comunidade) | Assíncrono | < 24h (comunidade) | Todos |
 
 **Tiers de suporte:**
 
-| Tier | Descricao | Exemplos de Chamados | Escalacao |
+| Tier | Descrição | Exemplos | Resolução |
 | --- | --- | --- | --- |
-| **Self-service** | {{Ex.: "Duvidas gerais, problemas simples"}} | {{Ex.: "Como configurar horarios, resetar senha"}} | {{FAQ, base de conhecimento, chatbot}} |
-| **Assistido** | {{Ex.: "Problemas tecnicos, bugs, questoes complexas"}} | {{Ex.: "Agendamento nao aparece, integracao falhou, perda de dados"}} | {{Time de suporte → Engenharia se necessario}} |
+| **Self-service** | Dúvidas de configuração, troubleshooting básico | "Como adicionar bucket R2", "Erro no Docker Compose", "Como configurar DNS" | Docs, FAQ, guias passo-a-passo |
+| **Comunidade** | Problemas intermediários, integrações, otimizações | "Sync não funciona com OneDrive", "Performance lenta com muitos chunks" | GitHub Discussions, Discord — resolvido pela comunidade |
+| **Mantenedor** | Bugs, falhas de segurança, perda de dados, design decisions | "Chunks corrompidos após scrubbing", "Seed phrase não recupera vault", "Vulnerabilidade de segurança" | GitHub Issues → fix pelo mantenedor; segurança via responsible disclosure |
 
 ---
 
-## Programa de Indicacao
+## Programa de Indicação
 
-> Como incentivar clientes satisfeitos a trazerem novos clientes?
-
-| Aspecto | Descricao |
+| Aspecto | Descrição |
 | --- | --- |
-| **Mecanica** | {{Como funciona — ex.: "Cliente compartilha link unico; quando indicado se cadastra e paga, ambos recebem beneficio"}} |
-| **Incentivo** | {{Ex.: "Quem indica: 1 mes gratis. Indicado: 30 dias de trial estendido."}} |
-| **Quando ativar** | {{Ex.: "Apos 30 dias de uso ativo e Health Score > 80"}} |
+| **Mecânica** | Orgânico — não há programa formal. Usuários satisfeitos compartilham naturalmente em comunidades (Reddit, Discord, blog pessoal). O README encoraja: "If you find Alexandria useful, tell a friend or star the repo." |
+| **Incentivo** | Reconhecimento: contributors listados no README; top contributors destacados em releases. Não há incentivo financeiro (open-source). |
+| **Quando ativar** | Naturalmente, após 3+ meses de uso estável. O disaster drill mensal gera confiança que motiva compartilhamento: "veja, funciona mesmo." |
+
+> Para open-source, a melhor indicação é um projeto que funciona bem. Investir em qualidade > investir em programas de referral.
 
 ---
 
-## Win-back
+## Win-back (Recuperação)
 
-> Como re-engajar clientes que cancelaram?
-
-| Aspecto | Descricao |
+| Aspecto | Descrição |
 | --- | --- |
-| **Periodo de espera** | {{Ex.: "30 dias apos cancelamento"}} |
-| **Estrategia** | {{Ex.: "E-mail com novidades desde o cancelamento + oferta de retorno (1 mes gratis)"}} |
-| **Oferta** | {{Ex.: "Desconto de 30% por 3 meses ou acesso a feature premium por 30 dias"}} |
+| **Período de espera** | 60 dias após última atividade do cluster |
+| **Estratégia** | E-mail (se opt-in) com changelog das últimas releases: "Desde que você parou de usar, adicionamos X, Y e Z. Seus dados ainda estão nos nós — basta reconectar o orquestrador." |
+| **Vantagem estrutural** | Os dados do usuário continuam nos nós cloud/dispositivos mesmo sem o orquestrador rodando. Isso reduz drasticamente a barreira de retorno — não precisa re-upload de TBs. |
 
-> Nem todo churn vale recuperar. Foque em clientes que cancelaram por motivos resolvidos.
+> O fato de os dados persistirem nos nós mesmo com orquestrador desligado é o maior trunfo de win-back: o custo de voltar é quase zero (subir o orquestrador de novo).
 
 ---
 
-> Metricas detalhadas de relacionamento: ver 07-metricas-kpis.md
+> Métricas detalhadas de relacionamento: ver [07-metricas-kpis.md](07-metricas-kpis.md)

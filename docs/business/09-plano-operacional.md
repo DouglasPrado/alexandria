@@ -1,56 +1,34 @@
 # Plano Operacional
 
-Esta seção detalha **como o negócio funciona no dia a dia**. Define processos, equipe, infraestrutura, timeline de lançamento, riscos e aspectos legais necessários para a operação.
+Esta seção detalha **como o Alexandria funciona no dia a dia**. Define processos, equipe, infraestrutura, timeline de lançamento, riscos e aspectos legais necessários para a operação.
+
+> **Nota:** O Alexandria é operado por um mantenedor solo (Douglas) na v1. A operação é minimalista: desenvolver, documentar, responder comunidade. Escala de equipe só acontece com receita (serviço gerenciado) ou massa crítica de contribuidores.
 
 ---
 
 ## Processos Core
 
-> Documente apenas processos que quebram o negócio se falharem. Se um processo falhar e a operação continua, ele não é core.
-
 | Processo | Responsável | Frequência | Ferramenta/Método |
 | --- | --- | --- | --- |
-| {{Processo 1 — ex.: Desenvolvimento e manutenção da plataforma}} | {{Quem executa}} | {{Contínua}} | {{Como é feito}} |
-| {{Processo 2 — ex.: Aquisição e onboarding de clientes}} | {{Quem executa}} | {{Diária}} | {{Como é feito}} |
-| {{Processo 3 — ex.: Suporte ao cliente}} | {{Quem executa}} | {{Diária}} | {{Como é feito}} |
+| Desenvolvimento e releases | Douglas + contribuidores | Contínua; release a cada 2-4 semanas | GitHub (PRs, CI/CD via Actions, tags semânticas) |
+| Triagem de issues e revisão de PRs | Douglas | Semanal (2-3h) | GitHub Issues + PR review; labels de prioridade |
+| Monitoramento de segurança | Douglas | Contínua (alertas) + revisão mensal | Dependabot, security advisories, responsible disclosure |
 
-<details>
-<summary>Exemplo</summary>
-
-| Processo | Responsável | Frequência | Ferramenta/Método |
-| --- | --- | --- | --- |
-| Desenvolvimento e manutenção da plataforma | Dev full-stack | Contínua | CI/CD via GitHub Actions |
-| Aquisição e onboarding de prestadores | Founder | Diária | Chamada de 15min + tutorial em vídeo |
-| Suporte ao cliente | Founder | Diária | Intercom + WhatsApp |
-
-</details>
+> Se qualquer um desses processos parar por >2 semanas, o projeto perde momentum e confiança da comunidade. O processo de segurança é especialmente crítico — uma vulnerabilidade não corrigida em sistema de storage criptografado destrói a reputação do projeto.
 
 ---
 
 ## Roadmap de Equipe
 
-> Qual a estrutura de time atual e futura? Defina triggers claros para cada contratação.
-
-| Cargo | Pessoa | Quando | Custo Mensal (R$) | Trigger de Contratação |
+| Cargo | Pessoa | Quando | Custo Mensal (R$) | Trigger de Contratação/Adição |
 | --- | --- | --- | --- | --- |
-| {{Cargo 1}} | {{Nome}} | Atual | {{R$ X}} | — |
-| {{Cargo 2}} | {{Nome}} | Atual | {{R$ X}} | — |
-| {{Cargo 3}} | aberto | {{Mês X}} | {{R$ X}} | {{Ex.: > 200 clientes ativos ou > 50 tickets/semana}} |
-| {{Cargo 4}} | aberto | {{Mês X}} | {{R$ X}} | {{Ex.: MRR > R$ 20.000 e canais pagos validados}} |
+| Mantenedor principal / Arquiteto | Douglas | Atual | R$ 0 (projeto pessoal) | — |
+| Co-maintainer | Aberto (contribuidor promovido) | Mês 6-9 | R$ 0 (voluntário) | >5 PRs mergeados + disponibilidade consistente; necessário para bus factor >1 |
+| Community manager (part-time) | Aberto | Mês 12+ | R$ 2.000-3.000 (se receita permitir) | >200 clusters ativos; >50 mensagens/semana no Discord; mantenedor não consegue responder tudo |
+| DevOps / SRE (serviço gerenciado) | Aberto | Ano 2+ | R$ 8.000-12.000 | Lançamento do serviço gerenciado; >50 famílias cloud |
+| Suporte técnico (serviço gerenciado) | Aberto | Ano 2+ | R$ 4.000-6.000 | >100 famílias cloud; >20 tickets/semana |
 
-<details>
-<summary>Exemplo</summary>
-
-| Cargo | Pessoa | Quando | Custo Mensal (R$) | Trigger de Contratação |
-| --- | --- | --- | --- | --- |
-| Founder / CEO | João | Atual | R$ 0 (pró-labore após break-even) | — |
-| Dev Full-stack | Maria | Atual | R$ 8.000 | — |
-| Designer / PM | Pedro (part-time) | Atual | R$ 6.000 | — |
-| Customer Success | aberto | Mês 6 | R$ 3.500 | > 200 prestadores ativos ou > 50 tickets/semana |
-| Dev Backend | aberto | Mês 8 | R$ 9.000 | Backlog técnico > 3 sprints |
-| Growth Marketer | aberto | Mês 10 | R$ 7.000 | MRR > R$ 20.000 |
-
-</details>
+> **Prioridade #1 de equipe:** encontrar um co-maintainer. Bus factor = 1 é o maior risco operacional do projeto. Investir em documentação interna e mentoria de contribuidores para viabilizar isso.
 
 > Fornecedores e infraestrutura: ver [06-estrutura-custos.md](06-estrutura-custos.md)
 
@@ -58,112 +36,98 @@ Esta seção detalha **como o negócio funciona no dia a dia**. Define processos
 
 ## Infraestrutura Digital
 
-> Qual infraestrutura digital é necessária para operar o negócio?
-
 | Componente | Ferramenta / Serviço | Custo Mensal (R$) | Finalidade |
 | --- | --- | --- | --- |
-| {{Componente 1 — ex.: Hospedagem}} | {{Ferramenta}} | {{R$ X}} | {{Para que serve}} |
-| {{Componente 2 — ex.: Monitoramento}} | {{Ferramenta}} | {{R$ X}} | {{Para que serve}} |
-| {{Componente 3 — ex.: Analytics}} | {{Ferramenta}} | {{R$ X}} | {{Para que serve}} |
-| {{Componente 4 — ex.: Comunicação}} | {{Ferramenta}} | {{R$ X}} | {{Para que serve}} |
+| Hospedagem (orquestrador demo) | Hetzner VPS (CX22, 4GB RAM) | R$ 30 | Demo pública + CI runners |
+| Repositório + CI/CD | GitHub (free for open-source) | R$ 0 | Código, issues, PRs, Actions, Discussions, Packages |
+| DNS + CDN + Storage | Cloudflare (free tier + R2) | R$ 0 | DNS, cache, proteção DDoS, storage para assets |
+| Monitoramento | Grafana Cloud (free tier) | R$ 0 | Dashboard público de saúde; métricas de telemetria opt-in |
+| Documentação | Vercel ou Netlify (free tier) | R$ 0 | Site de docs (Docusaurus ou similar) |
+| Comunicação da comunidade | Discord (free) + GitHub Discussions | R$ 0 | Suporte, feedback, coordenação de contribuidores |
+| E-mail transacional | Resend (free tier: 3K/mês) | R$ 0 | Alertas de segurança, notificações de release |
 
 **Infraestrutura Física:**
 
-{{Descreva a infraestrutura física necessária, ou "Operação 100% remota — sem infraestrutura física necessária nesta fase."}}
+Operação 100% remota e cloud-native. Sem infraestrutura física necessária. O desenvolvimento acontece no laptop pessoal do Douglas; testes rodam em CI (GitHub Actions) e na VPS de demo.
 
 ---
 
 ## Disaster Recovery
 
-> Defina os alvos de recuperação e a estratégia de backup para garantir continuidade da operação.
+> Disaster recovery do **projeto** (infra de desenvolvimento e comunidade), não do **produto** (que tem seu próprio DR via seed phrase — ver PRD seção de Recuperação).
 
 | Parâmetro | Alvo | Detalhes |
 | --- | --- | --- |
-| RTO (Recovery Time Objective) | {{Ex.: 4 horas}} | {{Tempo máximo aceitável para restaurar o serviço}} |
-| RPO (Recovery Point Objective) | {{Ex.: 1 hora}} | {{Perda máxima aceitável de dados (janela desde último backup)}} |
+| RTO (Recovery Time Objective) | 4 horas | Tempo máximo para restaurar CI/CD, docs site e demo |
+| RPO (Recovery Point Objective) | 0 (código) / 24h (configs) | Código no GitHub = cópia implícita; configs de infra em repo privado |
 
 **Estratégia de backup:**
 
-- {{Ex.: Backup automático do banco de dados a cada 1 hora (RDS automated backups)}}
-- {{Ex.: Snapshots diários da infraestrutura}}
-- {{Ex.: Código versionado no GitHub (cópia implícita)}}
+- Código-fonte versionado no GitHub (replicado para GitLab mirror automático como backup)
+- Secrets e configs de infra em repositório privado separado (encrypted)
+- VPS de demo reconstruível via Docker Compose em <30 minutos
+- Domínio e DNS gerenciados via Cloudflare (IaC quando possível)
+- Banco de metadados da demo: backup diário automatizado para R2
 
-> Teste o restore pelo menos 1x por trimestre. Backup que nunca foi testado não é backup.
+> Teste de restore: 1x por trimestre, reconstruir a VPS de demo do zero e confirmar que tudo funciona.
 
 ---
 
 ## Plano de Escala
 
-> O que precisa mudar à medida que a base de usuários cresce? Identifique gargalos antes que eles aconteçam.
-
-| Área | 1K Usuários | 10K Usuários | 100K Usuários |
+| Área | 100 Clusters (Ano 1) | 1.000 Clusters (Ano 1-2) | 10.000 Clusters (Ano 2-3) |
 | --- | --- | --- | --- |
-| Infraestrutura | {{Ex.: 1 servidor, deploy manual}} | {{Ex.: Auto-scaling, CDN, cache}} | {{Ex.: Multi-region, microservices}} |
-| Equipe | {{Ex.: 3 pessoas}} | {{Ex.: 8-10 pessoas}} | {{Ex.: 25+ pessoas, squads}} |
-| Processos | {{Ex.: Manual, founder faz tudo}} | {{Ex.: Suporte tier 1/2, CS dedicado}} | {{Ex.: SRE, DevOps, compliance}} |
-| Custo/usuário | {{R$ X}} | {{R$ X}} | {{R$ X}} |
+| Infraestrutura | 1 VPS demo; telemetria opt-in básica | Grafana Cloud; telemetria agregada; infra do serviço gerenciado | Multi-region; auto-scaling; CDN dedicada para assets |
+| Equipe | 1 mantenedor (Douglas) | 1 mantenedor + 1 co-maintainer + comunidade | 3-5 pessoas (eng + DevOps + suporte + community) |
+| Processos | Manual; founder faz tudo; issues respondidas em <48h | Triagem estruturada; labels automatizados; contributing guidelines maduros | SRE on-call; suporte tier 1/2; release manager; governance de código |
+| Custo/cluster | R$ 0 para o projeto (self-hosted) | R$ 0 self-hosted / R$18 gerenciado | R$ 0 self-hosted / R$14,50 gerenciado |
 
 ---
 
 ## Timeline de Lançamento
 
-> Cronograma de execução com marcos claros e critérios go/no-go para cada etapa.
-
 | Marco | Data Prevista | Responsável | Critério de Sucesso | Critério Go/No-Go |
 | --- | --- | --- | --- | --- |
-| {{Marco 1}} | {{DD/MM/AAAA}} | {{Quem}} | {{Como saber que foi atingido}} | {{Se < X, fazer Y}} |
-| {{Marco 2}} | {{DD/MM/AAAA}} | {{Quem}} | {{Como saber que foi atingido}} | {{Se < X, fazer Y}} |
-| {{Marco 3}} | {{DD/MM/AAAA}} | {{Quem}} | {{Como saber que foi atingido}} | {{Se < X, fazer Y}} |
-| {{Marco 4}} | {{DD/MM/AAAA}} | {{Quem}} | {{Como saber que foi atingido}} | {{Se < X, fazer Y}} |
-
-> Marcos devem ser verificáveis — "sistema funcionando" é vago, "20 prestadores com agendamentos ativos" é concreto.
-
-<details>
-<summary>Exemplo</summary>
-
-| Marco | Data Prevista | Responsável | Critério de Sucesso | Critério Go/No-Go |
-| --- | --- | --- | --- | --- |
-| MVP funcional | 15/04/2026 | Dev + Designer | Fluxo completo end-to-end | Se < 80% dos fluxos funcionando, adiar lançamento |
-| Beta fechado (20 usuários) | 01/05/2026 | Founder | 10 agendamentos reais na 1ª semana | Se < 5 agendamentos, revisar proposta de valor |
-| Monetização ativada | 01/06/2026 | Dev + Founder | 10 assinaturas pagas no 1º mês | Se < 5 pagantes, pivotar pricing |
-| PMF checkpoint | 01/08/2026 | Founder | Retenção D30 > 50%, NPS > 30 | Se < 40% retenção, pausar growth e focar em produto |
-
-</details>
+| **Alpha funcional** (core pipeline: upload → otimizar → criptografar → replicar → recovery) | 2026-06-15 | Douglas | Pipeline end-to-end funciona; 1 disaster drill bem-sucedido; Família Prado usando | Se pipeline falha em >5% dos uploads, não avançar para beta |
+| **Beta pública** (Docker Compose + README + Show HN) | 2026-08-01 | Douglas | 50 stars; 20 Docker pulls/semana; 10 clusters de early adopters | Se <5 clusters ativos após 2 semanas do Show HN, revisar docs/UX |
+| **v1.0 estável** (todos os Must-have implementados) | 2026-11-01 | Douglas + contribuidores | 200+ clusters ativos; 0 bugs críticos abertos; 0 perdas de dados reportadas | Se >2 bugs de perda de dados, reverter para beta; priorizar estabilidade |
+| **Serviço gerenciado (beta)** | 2027-03-01 | Douglas + equipe | 20 famílias pagantes no primeiro mês; break-even em 3 meses | Se <10 famílias após lista de espera, validar demanda antes de investir mais |
 
 ---
 
 ## Riscos e Mitigações
 
-> Quais são os principais riscos que podem impactar o negócio?
-
-| Risco | Probabilidade | Impacto | Mitigação |
-| --- | --- | --- | --- |
-| {{Risco 1}} | {{Alta / Média / Baixa}} | {{Crítico / Alto / Médio}} | {{Ação preventiva ou plano de contingência}} |
-| {{Risco 2}} | {{Alta / Média / Baixa}} | {{Crítico / Alto / Médio}} | {{Ação preventiva ou plano de contingência}} |
-| {{Risco 3}} | {{Alta / Média / Baixa}} | {{Crítico / Alto / Médio}} | {{Ação preventiva ou plano de contingência}} |
-| {{Risco 4}} | {{Alta / Média / Baixa}} | {{Crítico / Alto / Médio}} | {{Ação preventiva ou plano de contingência}} |
-| {{Risco 5}} | {{Alta / Média / Baixa}} | {{Crítico / Alto / Médio}} | {{Ação preventiva ou plano de contingência}} |
-
-> Categorias: **Mercado** (concorrência, regulação), **Produto** (tecnologia, escalabilidade), **Time** (dependência, burnout), **Financeiro** (runway, custos inesperados).
+| Risco | Categoria | Probabilidade | Impacto | Mitigação |
+| --- | --- | --- | --- | --- |
+| **Bus factor = 1** — Douglas fica indisponível (doença, burnout, mudança de prioridade) | Time | Média | Crítico | Documentação excelente; buscar co-maintainer ativamente; código legível e bem testado; seed phrase garante que dados dos usuários sobrevivem independentemente |
+| **Perda de dados de usuário** — bug no replicação, criptografia ou recovery | Produto | Baixa | Crítico | Testes extensivos; disaster drills mensais; scrubbing automático; alpha com dados próprios (Família Prado) antes de abrir; responsible disclosure policy |
+| **Provedores cloud mudam free tiers** — Google, Cloudflare, etc. removem ou reduzem planos gratuitos | Mercado | Média | Alto | StorageProvider interface permite trocar provedores facilmente; diversificação obrigatória (3+ provedores); alertas de mudança de pricing |
+| **Concorrente forte surge** — Immich adiciona distribuição, ou Google lança "family vault" | Mercado | Média | Médio | Diferencial é a combinação completa (distribuição + criptografia + recovery + otimização); comunidade e switching cost protegem; foco em durabilidade vs features |
+| **Burnout do mantenedor** — projeto pessoal exige tempo constante sem remuneração | Time | Alta | Alto | Limitar a 15-20h/semana; aceitar que progresso será lento; celebrar milestones; buscar sponsors para motivação; se burnout iminente, pausar features e manter apenas segurança |
+| **Vulnerabilidade de segurança** — falha na criptografia ou no vault compromete dados | Produto | Baixa | Crítico | Usar primitivas criptográficas padrão (AES-256-GCM, BIP-39); não reinventar crypto; code review rigoroso em código de segurança; responsible disclosure; auditoria quando houver recursos |
+| **Adoção insuficiente** — <50 clusters após 6 meses | Mercado | Média | Médio | Validar com Show HN e Reddit antes de investir meses; se adoção baixa, investigar: setup complexo? Docs ruins? Problema errado? Pivotar antes de insistir |
 
 ---
 
 ## Aspectos Legais e Regulatórios
 
-> Checklist dos itens legais essenciais para operar. Detalhes jurídicos completos devem ser documentados em documento específico.
-
-- [ ] Termos de Uso
-- [ ] Política de Privacidade
-- [ ] Consentimento de dados (LGPD)
-- [ ] Regime tributário definido
-- [ ] Contratos com fornecedores
+- [x] Licença open-source definida (AGPL-3.0 ou similar — protege contra uso comercial sem contribuição)
+- [ ] Termos de Uso (para site e serviço gerenciado futuro)
+- [ ] Política de Privacidade (para telemetria opt-in e serviço gerenciado)
+- [ ] LGPD/GDPR compliance (telemetria opt-in; dados do usuário ficam nos dispositivos/nós dele, não nos nossos)
+- [ ] Responsible Disclosure Policy (segurança)
+- [ ] CONTRIBUTING.md + CLA ou DCO (contribuições de código)
+- [ ] Regime tributário (quando houver receita — MEI se <R$81K/ano, ME/Simples se acima)
+- [ ] Contratos com fornecedores (quando serviço gerenciado)
 
 **Estrutura jurídica:**
 
 | Item | Status |
 | --- | --- |
-| Tipo de empresa | {{MEI / ME / LTDA / SAS / Ainda não constituída}} |
-| Regime tributário | {{Simples Nacional / Lucro Presumido / Lucro Real}} |
-| CNPJ | {{Ativo / Em processo / Não constituído}} |
+| Tipo de empresa | Não constituída (projeto pessoal open-source) |
+| Regime tributário | N/A — sem receita na v1. MEI quando iniciar doações; Simples Nacional para serviço gerenciado |
+| CNPJ | Não constituído — constituir quando receita recorrente >R$1.000/mês |
 
-> Detalhes jurídicos completos devem ser documentados em documento específico. Esta seção serve como checklist mínimo para não esquecer o essencial.
+> **Nota sobre LGPD:** O Alexandria armazena dados nos dispositivos e nós do próprio usuário. O projeto não hospeda, processa ou acessa dados pessoais de terceiros na v1 (self-hosted). A telemetria é opt-in e anonimizada. Para o serviço gerenciado (ano 2+), será necessário DPO, políticas formais e adequação completa à LGPD/GDPR.
+
+> **Nota sobre licença:** A escolha de licença (AGPL vs MIT vs Apache) tem impacto direto na defensabilidade do negócio. AGPL protege contra competidores que usam o código sem contribuir; MIT/Apache maximizam adoção mas permitem forks comerciais. Decisão pendente — avaliar com base na estratégia de monetização.

@@ -1,220 +1,164 @@
 # Estratégia de Marketing
 
-Esta seção define **como o negócio atrai, engaja e converte clientes**. Cobre posicionamento, go-to-market, canais de aquisição, growth loops, conteúdo e orçamento.
+Esta seção define **como o Alexandria atrai, engaja e converte usuários**. Cobre posicionamento, go-to-market, canais de aquisição, growth loops, conteúdo e orçamento.
+
+> **Nota:** O Alexandria é open-source com orçamento de marketing zero. A estratégia é 100% orgânica: código de qualidade + documentação excelente + presença em comunidades. "Marketing" aqui é produção de conteúdo e participação ativa em comunidades, não anúncios pagos.
 
 ---
 
 ## Posicionamento
 
-> Como o produto será percebido no mercado? Escolha o framework que melhor se aplica ao seu caso.
-
-**Framework de posicionamento** (escolha um):
-
-1. **Anti-[Concorrente]:** "Somos o anti-{{concorrente}}. Enquanto eles {{fazem X}}, nós {{fazemos Y}}."
-   - Ex.: "Somos o anti-Calendly. Enquanto eles servem qualquer pessoa, nós fomos feitos para quem vive de atender clientes."
-
-2. **Primeiro a [fazer X]:** "O primeiro {{categoria}} que {{benefício único}}."
-   - Ex.: "O primeiro sistema de agendamento que reduz no-shows automaticamente com IA."
-
-3. **Feito exclusivamente para [nicho]:** "{{Produto}} feito exclusivamente para {{público específico}}."
-   - Ex.: "Agendamento online feito exclusivamente para barbeiros e profissionais de beleza."
+**Framework de posicionamento:** Anti-[Concorrente] + Feito exclusivamente para [nicho]
 
 **Declaração de posicionamento:**
 
-{{Escreva sua declaração usando o framework escolhido}}
+"Somos o anti-Google Photos. Enquanto eles centralizam suas memórias em um único provedor que vê tudo, cobra cada vez mais e pode encerrar sua conta a qualquer momento, o Alexandria distribui seus dados criptografados entre seus próprios dispositivos e provedores — com recovery completo via 12 palavras."
+
+"Alexandria: armazenamento familiar distribuído feito exclusivamente para famílias que querem preservar memórias por décadas sem depender de Big Tech."
 
 **Atributos da marca:**
 
 | Atributo | Descrição |
 | --- | --- |
-| Personalidade | {{Ex.: Acessível, profissional, moderno, confiável}} |
-| Tom de voz | {{Ex.: Informal mas competente, sem jargões técnicos}} |
-| Valores | {{Ex.: Simplicidade, transparência, empoderamento do profissional}} |
+| Personalidade | Técnico mas acessível, confiável, transparente, resiliente |
+| Tom de voz | Direto e honesto; usa analogias (biblioteca, bibliotecário); sem hype; reconhece limitações |
+| Valores | Durabilidade acima de tudo, privacidade por design, código aberto, autonomia do usuário |
 
-**Tagline / Slogan:** {{Uma frase curta que captura a essência do produto}}
+**Tagline / Slogan:** "Suas memórias, seus dispositivos, suas regras. Recovery em 12 palavras."
+
+**Alternativas de tagline:**
+- "Lots of Copies Keep Stuff Safe — para sua família."
+- "O Google Drive familiar que ninguém pode encerrar."
+- "Armazenamento distribuído que sobrevive a qualquer desastre."
 
 ---
 
 ## Go-to-Market
 
-> Qual é o plano para colocar o produto no mercado? Inclua estratégia de lançamento e como conquistar os primeiros clientes.
+**Estratégia de GTM:** Bottom-up / Community-led growth
 
-**Estratégia de GTM:** {{Top-down (enterprise) / Bottom-up (usuários individuais) / Comunidade / Product-led growth / Sales-led}}
-
-**Mercado inicial:** {{Segmento específico que será atacado primeiro — ex.: "Barbeiros independentes em São Paulo"}}
+**Mercado inicial:** Self-hosters técnicos com família (r/selfhosted, r/datahoarder, Hacker News)
 
 **Plano de Lançamento:**
 
 | Fase | Período | Ações | Meta |
 | --- | --- | --- | --- |
-| Pré-lançamento | {{Semanas 1-2}} | {{Ex.: Landing page, lista de espera, outreach manual}} | {{Ex.: 100 inscritos}} |
-| Soft Launch | {{Semanas 3-4}} | {{Ex.: Onboarding dos primeiros 20 usuários, coleta de feedback}} | {{Ex.: 20 prestadores ativos}} |
-| Primeiros 30 dias | {{Semanas 5-8}} | {{Ex.: Iteração no produto, início de conteúdo}} | {{Ex.: 50 prestadores, 200 agendamentos}} |
-| Primeiros 90 dias | {{Semanas 9-12}} | {{Ex.: Canais pagos, programa de indicação}} | {{Ex.: 150 prestadores, 1.000 agendamentos/semana}} |
+| Pré-lançamento | Semanas 1-2 | README polido, screenshots reais, Docker Compose funcional, demo GIF. Submeter ao awesome-selfhosted. | README com "Quick Start" em <5 minutos |
+| Show HN | Semana 3 | Post "Show HN: Alexandria — distributed family storage with 12-word recovery". Estar disponível 24h para responder comments. | Front page; 100+ upvotes; 50+ stars |
+| Primeiros 30 dias | Semanas 4-8 | Post em r/selfhosted e r/datahoarder. Responder toda issue em <24h. Blog post técnico sobre a arquitetura. | 200 stars; 50 Docker pulls/semana; 10 clusters ativos |
+| Primeiros 90 dias | Semanas 9-16 | Disaster drill público (vídeo). CONTRIBUTING.md + "good first issue". Segundo blog post. Cross-post em Dev.to/Medium. | 1.000 stars; 50 clusters ativos; 5 contribuidores |
 
-**Primeiros clientes (como conquistar os 10-50 iniciais):**
+**Primeiros usuários (como conquistar os 10-50 iniciais):**
 
-> Nos estágios iniciais, estratégias que não escalam são aceitáveis e até desejáveis.
-
-- {{Tática 1 — ex.: "Visitar pessoalmente barbearias e oferecer 3 meses grátis"}}
-- {{Tática 2 — ex.: "Postar em grupos de Facebook de profissionais autônomos"}}
-- {{Tática 3 — ex.: "Pedir indicações para cada prestador que se cadastrar"}}
-
-<details>
-<summary>Exemplo</summary>
-
-**Estratégia de GTM:** Bottom-up com product-led growth
-
-**Mercado inicial:** Barbeiros e cabeleireiros independentes na zona sul de São Paulo
-
-| Fase | Período | Ações | Meta |
-| --- | --- | --- | --- |
-| Pré-lançamento | Semanas 1-2 | Landing page com vídeo demo, formulário de early access | 100 inscritos |
-| Soft Launch | Semanas 3-4 | Onboarding 1:1 dos 20 primeiros barbeiros | 20 prestadores com agenda configurada |
-| Primeiros 30 dias | Semanas 5-8 | Blog com SEO, melhorias de UX, programa "Indique e ganhe" | 50 prestadores, 200 agendamentos/semana |
-| Primeiros 90 dias | Semanas 9-12 | Google Ads local, parceria com distribuidora de produtos | 150 prestadores, 1.000 agendamentos/semana |
-
-**Primeiros clientes:**
-
-- Visitar 30 barbearias pessoalmente na zona sul de SP, oferecendo setup gratuito
-- Participar de 3 feiras do setor de beleza e estética
-- Criar grupo de WhatsApp "Beta Testers" com os 20 primeiros
-
-</details>
+- Usar o próprio Alexandria para a Família Prado — ser o primeiro case real
+- Postar "Show HN" com dados reais de disaster drill e otimização de fotos
+- Responder a todo post em r/selfhosted que pergunte "how do you backup family photos?" com link para o Alexandria
+- Criar issue "Early Adopter Feedback" no GitHub e convidar os primeiros 50 instaladores para contribuir
+- Oferecer suporte 1:1 via Discord para os primeiros 20 instaladores (tática que não escala, mas gera feedback profundo)
 
 ---
 
 ## Validação de ICP
 
-> Defina triggers claros para saber se o ICP (Ideal Customer Profile) está correto. Se os números não fecham, pivote cedo.
-
-**ICP atual:** {{Descrição do cliente ideal — ex.: "Barbeiros autônomos, 25-45 anos, > 20 atendimentos/semana"}}
+**ICP atual:** Desenvolvedor/SRE com família, 30-45 anos, >500GB de fotos/vídeos, já usa Docker/VPS, insatisfeito com soluções atuais de backup
 
 **Triggers de pivot:**
 
-- Se CAC > {{R$ X}} após {{X meses}}, pivotar para segmento {{alternativa}}
-- Se churn > {{X%}} nos primeiros 30 dias, revisar proposta de valor para o segmento
-- Se NPS < {{X}} após {{X clientes}}, investigar se o problema é ICP ou produto
+- Se <30% dos instaladores completam setup em 48h após 50 tentativas → setup está complexo demais; simplificar antes de escalar
+- Se retenção M3 <40% após 100 clusters → investigar: produto não resolve a dor? Instabilidade? Setup complexo?
+- Se NPS <40 após 30 respostas → o produto não está entregando o valor prometido; priorizar estabilidade e UX antes de growth
 
-> Valide com pelo menos 20-30 clientes antes de concluir que o ICP está errado. Amostras pequenas mentem.
+> Validar com pelo menos 50 instalações antes de concluir que o ICP está errado. Amostras pequenas mentem.
 
 ---
 
 ## Comunicação de Pricing
 
-> Como apresentar os preços para maximizar conversão e percepção de valor?
+**Princípios (para o serviço gerenciado futuro):**
 
-**Princípios:**
+- Liderar com o plano gratuito: "O software é 100% open-source e sempre será."
+- Posicionar o serviço gerenciado como conveniência, não como limitação: "Não quer configurar? A gente cuida para você."
+- Comparação de custo: "Google One 2TB: R$35/mês para 2TB. Alexandria Cloud: R$49/mês para storage ilimitado + privacidade total."
+- Mostrar economia anualizada: "Economize R$120/ano vs Google One com storage 5x maior"
+- Sem trial com cartão — open-source é o "trial infinito"
 
-- Destaque o plano recomendado visualmente (badge "Mais popular")
-- Mostre o preço anual com desconto ao lado do mensal: "R$ {{X}}/mês — economize {{X%}} no plano anual"
-- {{Se free trial}}: "Teste grátis por {{X}} dias. Sem cartão de crédito."
-- Ancoragem: mostre o plano mais caro primeiro para que o intermediário pareça mais acessível
-
-> Para SaaS com trial: a mensagem de upgrade deve chegar quando o usuário está usando o produto ativamente, não quando está inativo.
+**Mensagem central:** "Use grátis para sempre (self-hosted) ou pague pela conveniência (gerenciado). Seus dados, suas regras, em qualquer caso."
 
 ---
 
 ## Canais de Marketing
 
-> Quais canais serão usados para atrair e converter clientes? Comece com 1 canal, valide o ROI, depois expanda.
-
-| Canal | Objetivo | Orçamento Mensal (R$) | ROI Esperado |
+| Canal | Objetivo | Investimento (Tempo/mês) | ROI Esperado |
 | --- | --- | --- | --- |
-| {{Canal 1 — principal}} | {{Awareness / Aquisição / Conversão}} | {{R$ X}} | {{Ex.: 3:1}} |
-| {{Canal 2}} | {{Awareness / Aquisição / Conversão}} | {{R$ X}} | {{Ex.: 5:1}} |
-| {{Canal 3}} | {{Awareness / Aquisição / Conversão}} | {{R$ X}} | {{Ex.: 10:1}} |
+| GitHub + README | Aquisição + Conversão (instalação) | 4h (manter docs, responder issues) | Alto — principal vitrine do projeto; stars virais |
+| Reddit (r/selfhosted, r/datahoarder) | Awareness + Aquisição | 4h (posts, respostas, engajamento) | Alto — público-alvo exato; custo zero |
+| Blog técnico (Dev.to / site próprio) | Awareness + SEO | 8h (1 post técnico/mês) | Médio-Alto — conteúdo evergreen; SEO de longa cauda |
 
-> Comece com 1 canal, valide o ROI, depois expanda. Para cada canal, defina um experimento pequeno com orçamento limitado (R$ 500-1.000). Dobre apenas nos canais que provarem funcionar.
+> **Regra:** 1 canal por vez. Validar GitHub + Reddit primeiro. Só adicionar blog quando os dois primeiros estiverem gerando tração consistente.
 
 ---
 
 ## Growth Loops
 
-> Quais loops de crescimento auto-sustentáveis podem ser criados? Foque em 1 loop primário + 1 secundário.
+### Loop Primário (Viral Familiar)
 
-### Loop Primário
-
-{{Descreva o loop principal de crescimento}}
+Admin instala o Alexandria → Adiciona família ao cluster → Membros da família usam diariamente → Membros comentam com amigos/família estendida ("como vocês guardam fotos?") → Amigo técnico instala para sua família → Ciclo repete.
 
 ```
-{{Etapa 1}} → {{Etapa 2}} → {{Etapa 3}} → {{Volta para Etapa 1}}
+Admin instala → Família usa → Família comenta → Amigo técnico descobre → Instala para sua família
 ```
 
-### Loop Secundário
+> **Motor do loop:** A família é o canal de distribuição. Cada admin "converte" 3-6 membros da família que se tornam evangelistas involuntários.
 
-{{Descreva o loop de suporte}}
+### Loop Secundário (Conteúdo + Comunidade)
 
-```
-{{Etapa 1}} → {{Etapa 2}} → {{Etapa 3}} → {{Volta para Etapa 1}}
-```
-
-> **Se o modelo é PLG (Product-Led Growth):** o loop primário deve incluir o onboarding como etapa crítica. Monitore a taxa de conversão trial → paid. Benchmark: > 5% para self-serve, > 15% para trial com suporte.
-
-<details>
-<summary>Exemplo</summary>
-
-### Loop Primário (Viral)
-Prestador compartilha link de agendamento → Clientes acessam e veem a marca → Prestadores entre os clientes se cadastram → Novos prestadores compartilham com seus clientes.
+Mantenedor publica post técnico (arquitetura, disaster drill, benchmark) → Post rankeia no Google/HN/Reddit → Dev técnico descobre → Instala e contribui código/issues → Melhorias geram novo conteúdo → Ciclo repete.
 
 ```
-Prestador compartilha link → Clientes agendam → Veem a marca → Novos prestadores se cadastram
+Post técnico → Tráfego orgânico → Instalação → Contribuição → Melhoria → Novo conteúdo
 ```
 
-### Loop Secundário (Conteúdo)
-Blog posts sobre gestão de agenda → Ranking no Google → Prestadores descobrem a plataforma → Cases viram novos posts.
-
-```
-Blog post SEO → Tráfego orgânico → Cadastros → Cases de sucesso → Mais conteúdo
-```
-
-**Loop prioritário:** Viral — custo zero e já acontece naturalmente.
-
-</details>
+> **Loop prioritário:** Viral familiar — custo zero e já acontece naturalmente quando o produto funciona bem. O loop de conteúdo acelera mas não é pré-requisito.
 
 ---
 
 ## Estratégia de Conteúdo
 
-> Escolha UM formato principal que você consegue manter consistentemente. Adicione outros apenas quando o primeiro estiver rodando.
+**Formato principal:** Blog post técnico (long-form, 1.500-3.000 palavras)
 
-**Formato principal:** {{Ex.: Blog post SEO / Vídeo curto / Newsletter / Podcast}}
+**Frequência:** 1 por mês (sustentável para mantenedor solo)
 
-**Frequência:** {{Ex.: 2 por semana}}
-
-**Canal:** {{Ex.: Site / YouTube / Instagram}}
+**Canal:** Dev.to + cross-post no blog próprio (SEO)
 
 **Pilares de conteúdo:**
 
 | Pilar | Objetivo | Exemplo de Temas |
 | --- | --- | --- |
-| {{Pilar 1}} | {{Awareness / Educação / Conversão}} | {{2-3 temas}} |
-| {{Pilar 2}} | {{Awareness / Educação / Conversão}} | {{2-3 temas}} |
-| {{Pilar 3}} | {{Awareness / Educação / Conversão}} | {{2-3 temas}} |
+| Arquitetura e decisões técnicas | Awareness (comunidade técnica) | "Como funciona o consistent hashing do Alexandria", "Por que escolhemos envelope encryption", "Erasure coding vs replicação 3x" |
+| Durabilidade e disaster recovery | Awareness + Confiança | "Disaster drill público: destruímos o servidor e recuperamos tudo em 47 minutos", "Bit rot é real: como o scrubbing nos salvou" |
+| Comparativos e migração | Aquisição | "Alexandria vs Immich vs Syncthing: qual o certo para você?", "Migrei 500GB do Google Photos para o Alexandria — o que aprendi" |
 
 **Formatos opcionais (adicionar quando o principal estiver estável):**
 
-- {{Formato 2 — ex.: Carrossel Instagram, 3x/semana}}
-- {{Formato 3 — ex.: Newsletter semanal}}
+- Vídeo demo/tutorial no YouTube (1x/trimestre) — setup, disaster drill, comparativo visual
+- Thread no Twitter/Mastodon com highlights dos posts (amplificação)
 
 ---
 
 ## Orçamento de Marketing
 
-> Quanto será investido em marketing e como será distribuído?
+**Orçamento total mensal de marketing:** R$ 0 (investimento = tempo do mantenedor)
 
-> Pré-receita: R$ 1.000-3.000/mês é típico para validação. Ajuste com base no runway.
+**Tempo alocado para marketing:** ~16h/mês (4h/semana)
 
-**Orçamento total mensal de marketing:** {{R$ X/mês}}
-
-**% da receita alocada para marketing:** {{X%}}
-
-| Atividade / Canal | Orçamento Mensal (R$) | % do Total | Resultado Esperado |
+| Atividade / Canal | Tempo Mensal | % do Total | Resultado Esperado |
 | --- | --- | --- | --- |
-| {{Atividade 1}} | {{R$ X}} | {{X%}} | {{Ex.: 100 leads qualificados}} |
-| {{Atividade 2}} | {{R$ X}} | {{X%}} | {{Ex.: 5.000 visitantes orgânicos}} |
-| {{Atividade 3}} | {{R$ X}} | {{X%}} | {{Ex.: 50 novos cadastros por indicação}} |
-| **Total** | **{{R$ X}}** | **100%** | |
+| GitHub (README, issues, docs) | 4h | 25% | README sempre atualizado; issues respondidas em <24h |
+| Reddit + HN (posts, respostas) | 4h | 25% | 2-4 participações relevantes/mês; tráfego para GitHub |
+| Blog post técnico | 6h | 37,5% | 1 post/mês; SEO de longa cauda; material para compartilhar |
+| Discord/comunidade (suporte, engajamento) | 2h | 12,5% | Comunidade ativa; feedback direto; retenção |
+| **Total** | **16h** | **100%** | |
 
-> Regra geral para startups early-stage: invista 15-25% da receita em marketing. Se não há receita, defina um valor fixo mensal que o runway suporta.
+> **Princípio:** para projeto open-source solo, 4h/semana de "marketing" é o máximo sustentável sem comprometer o desenvolvimento. Se a tração justificar, aumentar para 8h/semana após o mês 6.
 
+> **Quando investir dinheiro:** Somente se/quando o serviço gerenciado gerar receita (ano 2+). Nesse caso, alocar 15-20% do MRR para marketing pago (Reddit Ads, Google Ads, sponsorships em newsletters de self-hosting).

@@ -1,200 +1,221 @@
 # Estrutura de Custos
 
-Esta seção mapeia **quanto custa operar o negócio**, separando custos fixos e variáveis, identificando recursos e atividades-chave, e calculando métricas essenciais como burn rate, break-even e runway.
+Esta seção mapeia **quanto custa operar o Alexandria**, separando custos fixos e variáveis, identificando recursos e atividades-chave, e projetando sustentabilidade financeira.
+
+> **Nota:** O Alexandria é um projeto open-source pessoal/familiar na v1. Os custos são mínimos — tempo do mantenedor + infraestrutura básica. Não há salários, escritório ou equipe paga. A seção inclui projeções para a fase de serviço gerenciado (ano 2+).
 
 ---
 
 ## Custos Fixos
 
-> Quais custos existem independentemente do volume de vendas ou usuários? Inclua salários, ferramentas, infraestrutura base, escritório, contabilidade, etc.
+### Ano 1 — Fase Open-Source
 
 | Item | Valor Mensal (R$) | Categoria | Observações |
 | --- | --- | --- | --- |
-| {{Item 1}} | {{R$ X}} | {{Pessoas / Infraestrutura / Ferramentas / Administrativo}} | {{Detalhes relevantes}} |
-| {{Item 2}} | {{R$ X}} | {{Pessoas / Infraestrutura / Ferramentas / Administrativo}} | {{Detalhes relevantes}} |
-| {{Item 3}} | {{R$ X}} | {{Pessoas / Infraestrutura / Ferramentas / Administrativo}} | {{Detalhes relevantes}} |
-| **Total Custos Fixos** | **{{R$ X}}** | | |
+| VPS do orquestrador (Hetzner/Contabo) | R$ 30 | Infraestrutura | VPS ~4GB RAM, suficiente para orquestrador + demo |
+| Domínio (alexandria.dev ou similar) | R$ 5 | Infraestrutura | Registro anual ~R$60, rateado |
+| GitHub Pro (CI/CD minutes, packages) | R$ 0 | Ferramentas | Free tier suficiente para open-source |
+| Cloudflare (DNS, CDN, R2 free tier) | R$ 0 | Infraestrutura | Free tier generoso |
+| Docs site (Vercel/Netlify) | R$ 0 | Infraestrutura | Free tier para projetos open-source |
+| Claude Code / Copilot (ferramentas de dev) | R$ 100 | Ferramentas | Assinatura pessoal do mantenedor <!-- inferido do PRD --> |
+| **Total Custos Fixos (Ano 1)** | **R$ 135** | | |
 
-<details>
-<summary>Exemplo</summary>
+### Ano 2+ — Fase Serviço Gerenciado (projeção)
 
 | Item | Valor Mensal (R$) | Categoria | Observações |
 | --- | --- | --- | --- |
-| Salário — Dev Full-stack | R$ 8.000 | Pessoas | CLT, inclui encargos |
-| Salário — Designer/Produto | R$ 6.000 | Pessoas | PJ meio período |
-| AWS / Infraestrutura base | R$ 800 | Infraestrutura | Servidores, banco, CDN |
-| Ferramentas SaaS (GitHub, Figma, Slack) | R$ 350 | Ferramentas | 3 licenças |
-| Contabilidade | R$ 400 | Administrativo | Escritório terceirizado |
-| **Total Custos Fixos** | **R$ 15.550** | | |
-
-</details>
+| Infraestrutura base (controle, API, dashboard) | R$ 500 | Infraestrutura | VPS dedicada + banco + monitoring <!-- inferido do PRD --> |
+| Domínio + SSL + CDN | R$ 50 | Infraestrutura | Cloudflare Pro ou similar |
+| Ferramentas SaaS (CI/CD, monitoring, e-mail) | R$ 200 | Ferramentas | GitHub Actions, Grafana Cloud, Resend |
+| Contabilidade (MEI → ME) | R$ 200 | Administrativo | Quando houver receita recorrente |
+| Marketing de conteúdo (hosting de blog, vídeos) | R$ 50 | Marketing | Plataformas gratuitas + edição própria |
+| **Total Custos Fixos (Ano 2)** | **R$ 1.000** | | |
 
 ---
 
 ## Custos Variáveis
 
-> Quais custos aumentam proporcionalmente ao volume de uso, vendas ou usuários? Inclua custos por transação, APIs, suporte incremental, comissões, etc.
+### Ano 1 — Custo por instalação self-hosted: R$0 para o projeto
+
+O software é self-hosted — cada usuário paga sua própria infraestrutura. O custo para o projeto é apenas suporte via comunidade (tempo do mantenedor).
+
+### Ano 2+ — Serviço Gerenciado (por família)
 
 | Item | Custo Unitário (R$) | Driver de Volume | Observações |
 | --- | --- | --- | --- |
-| {{Item 1}} | {{R$ X por unidade}} | {{Nº de usuários / transações / requisições}} | {{Detalhes relevantes}} |
-| {{Item 2}} | {{R$ X por unidade}} | {{Nº de usuários / transações / requisições}} | {{Detalhes relevantes}} |
-| {{Item 3}} | {{R$ X por unidade}} | {{Nº de usuários / transações / requisições}} | {{Detalhes relevantes}} |
-
-> Dica: custos variáveis definem sua margem bruta. Quanto menor o custo variável por cliente, mais escalável é o modelo.
+| VPS compartilhada por família | R$ 8-15/família | Nº de famílias | Multi-tenant; compartilha recursos |
+| Storage em provedores cloud (R2, S3) | R$ 2-5/família | GB armazenados | Otimização 10-20x reduz drasticamente |
+| Bandwidth (egress) | R$ 1-3/família | Downloads/visualizações | CDN + cache de thumbnails minimiza |
+| Suporte (tempo de atendimento) | R$ 2-5/família | Tickets abertos | Self-service reduz volume |
+| **Custo variável total por família** | **R$ 13-28** | | Média estimada: R$18/família <!-- inferido do PRD --> |
 
 ---
 
 ## COGS vs OpEx
 
-> Separe os custos de entrega do produto (COGS) dos custos operacionais (OpEx). Essa distinção é fundamental para calcular a margem bruta.
-
-**COGS (Custo de Entrega):** custos diretamente ligados a servir clientes — hosting, APIs de terceiros, ferramentas de suporte, custos de transação.
+### Ano 1 — Open-Source
 
 | Item COGS | Valor Mensal (R$) |
 | --- | --- |
-| {{Hosting / Infraestrutura}} | {{R$ X}} |
-| {{APIs e serviços de terceiros}} | {{R$ X}} |
-| {{Ferramentas de suporte}} | {{R$ X}} |
-| **Total COGS** | **{{R$ X}}** |
-
-**OpEx (Custos Operacionais):** salários, marketing, administrativo, escritório.
+| VPS demo/CI | R$ 30 |
+| **Total COGS** | **R$ 30** |
 
 | Item OpEx | Valor Mensal (R$) |
 | --- | --- |
-| {{Salários e equipe}} | {{R$ X}} |
-| {{Marketing}} | {{R$ X}} |
-| {{Administrativo}} | {{R$ X}} |
-| **Total OpEx** | **{{R$ X}}** |
+| Ferramentas de desenvolvimento | R$ 100 |
+| Domínio | R$ 5 |
+| **Total OpEx** | **R$ 105** |
 
-**Margem Bruta** = (Receita - COGS) / Receita × 100 = **{{X%}}**
+**Margem Bruta (Ano 1):** N/A — sem receita direta. Se considerar doações como receita:
+- Com R$500/mês em doações: (500 - 30) / 500 × 100 = **94%**
 
-> Benchmark SaaS: margem bruta > 70% é considerada saudável. Se abaixo de 60%, revise os custos de entrega.
+### Ano 2+ — Serviço Gerenciado (projeção com 100 famílias)
+
+| Item COGS | Valor Mensal (R$) |
+| --- | --- |
+| Infra por família (100 × R$18) | R$ 1.800 |
+| **Total COGS** | **R$ 1.800** |
+
+| Item OpEx | Valor Mensal (R$) |
+| --- | --- |
+| Custos fixos (conforme acima) | R$ 1.000 |
+| **Total OpEx** | **R$ 1.000** |
+
+**Receita estimada (100 famílias):** R$6.500/mês (mix de planos)
+
+**Margem Bruta** = (6.500 - 1.800) / 6.500 × 100 = **72%** <!-- inferido do PRD -->
 
 ---
 
-## Curva de Escala
+## Curva de Escala (Serviço Gerenciado)
 
-> Como os custos se comportam à medida que o número de usuários cresce? Identifique gargalos antes que eles aconteçam.
-
-| Métrica | 1K Usuários | 10K Usuários | 100K Usuários |
+| Métrica | 100 Famílias | 500 Famílias | 2.000 Famílias |
 | --- | --- | --- | --- |
-| Custo de infraestrutura/mês | {{R$ X}} | {{R$ X}} | {{R$ X}} |
-| Custo de suporte/mês | {{R$ X}} | {{R$ X}} | {{R$ X}} |
-| Custo por usuário | {{R$ X}} | {{R$ X}} | {{R$ X}} |
-| Equipe necessária | {{X pessoas}} | {{X pessoas}} | {{X pessoas}} |
+| Custo de infraestrutura/mês | R$ 1.800 | R$ 7.500 | R$ 24.000 |
+| Custo fixo/mês | R$ 1.000 | R$ 2.000 | R$ 5.000 |
+| Custo total/mês | R$ 2.800 | R$ 9.500 | R$ 29.000 |
+| Custo por família | R$ 28 | R$ 19 | R$ 14,50 |
+| Receita estimada/mês | R$ 6.500 | R$ 32.500 | R$ 130.000 |
+| Margem operacional | 57% | 71% | 78% |
+| Equipe necessária | 1 (mantenedor) | 1-2 (+ suporte part-time) | 3-4 (eng + suporte + DevOps) |
 
-> O custo por usuário deve cair com escala. Se não cai, o modelo tem problema de escalabilidade.
+> O custo por família cai de R$28 para R$14,50 com escala — economia de ~48%. O driver é a diluição dos custos fixos e eficiência de multi-tenancy.
 
 ---
 
 ## Recursos Críticos
 
-> Quais são os recursos essenciais para o negócio funcionar? (Componente do Business Model Canvas)
-
 | Recurso | Categoria | Custo Mensal (R$) | Essencial para |
 | --- | --- | --- | --- |
-| {{Ex.: Dev full-stack}} | Pessoa | {{R$ X}} | {{Desenvolvimento e manutenção da plataforma}} |
-| {{Ex.: Plataforma web (Next.js + PostgreSQL)}} | Tecnologia | {{R$ X}} | {{Entrega do produto ao usuário}} |
-| {{Ex.: Algoritmo proprietário de matching}} | IP | {{—}} | {{Diferencial competitivo}} |
-| {{Ex.: Infraestrutura cloud (AWS)}} | Tecnologia | {{R$ X}} | {{Disponibilidade e performance}} |
+| Douglas (mantenedor/dev) | Pessoa | Tempo próprio (não monetizado) | Desenvolvimento, arquitetura, decisões técnicas, suporte |
+| Código-fonte open-source (Elixir/Phoenix) | Tecnologia | R$ 0 | Entrega do produto; contribuições da comunidade |
+| Protocolo FSP (Family Storage Protocol) | IP/Conhecimento | — | Diferencial técnico; distribuição + criptografia + recovery |
+| Infraestrutura cloud (VPS + provedores) | Tecnologia | R$ 30-500 | Disponibilidade do orquestrador e storage |
+| Comunidade de contribuidores | Pessoa/Rede | R$ 0 | Desenvolvimento distribuído, testes, feedback, suporte |
 
 ---
 
 ## Atividades-Chave
 
-> Quais são as top 3 atividades que param o negócio se não forem executadas? (Componente do Business Model Canvas)
-
 | Atividade | Responsável | Frequência |
 | --- | --- | --- |
-| {{Atividade 1 — ex.: Desenvolvimento e manutenção da plataforma}} | {{Quem executa}} | {{Contínua}} |
-| {{Atividade 2 — ex.: Aquisição e onboarding de clientes}} | {{Quem executa}} | {{Diária}} |
-| {{Atividade 3 — ex.: Suporte ao cliente}} | {{Quem executa}} | {{Diária}} |
+| Desenvolvimento e manutenção do core (orquestrador, pipeline, replicação) | Douglas + comunidade | Contínua |
+| Revisão de PRs, triagem de issues, release management | Douglas | Semanal |
+| Documentação e onboarding (docs, guias, README) | Douglas + comunidade | Contínua |
 
-> Se não consegue listar em 3, priorize. Tudo além disso é importante, mas não crítico.
+> Se Douglas ficar indisponível por >1 mês, o projeto precisa de pelo menos 1 co-maintainer com contexto suficiente para manter releases e segurança. **Risco: bus factor = 1.**
 
 ---
 
 ## Fornecedores e Parceiros
 
-> Quais fornecedores e parceiros são essenciais para a operação? Avalie o risco de dependência e o custo de troca de cada um.
-
 | Fornecedor | Serviço | Custo Mensal (R$) | Criticidade | Alternativa | Custo de Troca |
 | --- | --- | --- | --- | --- | --- |
-| {{Fornecedor 1}} | {{O que fornece}} | {{R$ X}} | {{Crítico / Alto / Médio}} | {{Alternativa}} | {{Ex.: 2 semanas / R$ 5.000}} |
-| {{Fornecedor 2}} | {{O que fornece}} | {{R$ X}} | {{Crítico / Alto / Médio}} | {{Alternativa}} | {{Ex.: 1 dia / R$ 0}} |
-| {{Fornecedor 3}} | {{O que fornece}} | {{R$ X}} | {{Crítico / Alto / Médio}} | {{Alternativa}} | {{Ex.: 1 mês / R$ 10.000}} |
+| Hetzner / Contabo | VPS (orquestrador) | R$ 30 | Alto | DigitalOcean, Vultr, OVH | < 1 dia (Docker) |
+| Cloudflare | DNS, CDN, R2 (storage) | R$ 0 | Alto | AWS CloudFront + Route53, Backblaze B2 | ~1 semana |
+| GitHub | Repositório, CI/CD, Issues, Discussions | R$ 0 | Crítico | GitLab, Codeberg | ~2 semanas |
+| Docker Hub / GHCR | Registry de containers | R$ 0 | Médio | GHCR, quay.io | < 1 dia |
+| Provedores cloud dos usuários (Google Drive, S3, etc.) | Storage de chunks | R$ 0 (custo do usuário) | Crítico (para o usuário) | StorageProvider interface garante portabilidade (RF-022) | Minutos (adicionar novo nó) |
 
-> Para fornecedores com criticidade "Crítico", tenha sempre um plano B documentado. Custo de Troca alto = risco de vendor lock-in.
+> **Nenhum fornecedor é insubstituível.** A arquitetura Docker + StorageProvider interface garante que trocar qualquer fornecedor leva no máximo dias. O maior risco é GitHub (centraliza código + CI + comunidade).
 
 ---
 
 ## Burn Rate
 
-> Qual o custo mensal total de operação do negócio? O burn rate é a velocidade com que o dinheiro está sendo gasto.
+### Ano 1 — Open-Source
 
 | Componente | Valor Mensal (R$) |
 | --- | --- |
-| Total Custos Fixos | {{R$ X}} |
-| Total Custos Variáveis (estimativa para volume atual) | {{R$ X}} |
-| **Burn Rate Bruto** | **{{R$ X}}** |
-| (-) Receita atual (MRR) | {{R$ X}} |
-| **Burn Rate Líquido** | **{{R$ X}}** |
+| Total Custos Fixos | R$ 135 |
+| Total Custos Variáveis | R$ 0 |
+| **Burn Rate Bruto** | **R$ 135** |
+| (-) Doações estimadas (após mês 6) | R$ 500 |
+| **Burn Rate Líquido** | **R$ 0 (ou positivo após mês 6)** |
 
-> Burn Rate Bruto = tudo que é gasto por mês. Burn Rate Líquido = gasto menos a receita. Quando o burn rate líquido chega a zero, você atingiu o break-even.
+### Ano 2 — Serviço Gerenciado (primeiros meses)
+
+| Componente | Valor Mensal (R$) |
+| --- | --- |
+| Total Custos Fixos | R$ 1.000 |
+| Total Custos Variáveis (20 famílias × R$18) | R$ 360 |
+| **Burn Rate Bruto** | **R$ 1.360** |
+| (-) Receita (20 famílias × R$65 ARPU) | R$ 1.300 |
+| **Burn Rate Líquido** | **R$ 60** |
+
+> Burn rate extremamente baixo — projeto pessoal com custos mínimos. O maior "custo" é o tempo do Douglas, que não é monetizado na v1.
 
 ---
 
 ## Break-even
 
-> Em que ponto a receita cobre todos os custos? Calcule quantos clientes pagantes ou qual MRR é necessário para atingir o equilíbrio.
+### Cenário Open-Source (doações cobrem infra)
 
-**MRR necessário para break-even:** {{R$ X/mês}}
+**MRR necessário para break-even:** R$135/mês (custos fixos)
 
-**Número de clientes pagantes necessário:** {{X clientes}} (com ticket médio de {{R$ X/mês}})
+**Estimativa:** ~15 sponsors a R$10/mês ou ~3 sponsors a R$50/mês
 
-**Previsão de quando atingir break-even:** {{Mês X — ex.: "Mês 8 com as premissas atuais"}}
+**Previsão:** Mês 3-6 após lançamento (se adoção mínima ocorrer) <!-- inferido do PRD -->
 
-**Cálculo:**
+### Cenário Serviço Gerenciado
 
-{{Custos fixos / (Ticket médio - Custo variável por cliente) = Nº de clientes para break-even}}
+**MRR necessário para break-even:** R$1.000/mês (custos fixos) / (R$65 ARPU - R$18 custo variável) = **~22 famílias pagantes**
+
+**Previsão:** Mês 2-3 do serviço gerenciado (com 22+ famílias convertidas da base self-hosted) <!-- inferido do PRD -->
 
 ---
 
 ## Runway
 
-> Com o capital disponível e o burn rate atual, por quanto tempo o negócio sobrevive sem receita adicional ou investimento?
+### Ano 1
 
 | Item | Valor |
 | --- | --- |
-| Capital disponível | {{R$ X}} |
-| Burn Rate Líquido mensal | {{R$ X}} |
-| **Runway** | **{{X meses}}** |
-| Data estimada de fim do runway | {{Mês/Ano}} |
+| Capital necessário (investimento pessoal) | R$ 1.620 (12 meses × R$135) |
+| Burn Rate Líquido mensal | R$ 135 (sem doações) → R$0 (com doações após mês 6) |
+| **Runway** | **Ilimitado** — custo baixo o suficiente para ser absorvido como despesa pessoal |
+| Risco financeiro | Mínimo — R$135/mês é equivalente a 1 jantar fora |
 
-> Regra geral: mantenha pelo menos 6 meses de runway. Com menos de 3 meses, a prioridade absoluta deve ser captação ou geração de receita.
+> O runway do Alexandria é efetivamente ilimitado na v1 porque o custo é desprezível. O recurso escasso é **tempo do mantenedor**, não dinheiro.
 
 ---
 
 ## Análise de Sensibilidade
 
-> O que acontece com o runway se as premissas mudarem? Modele 3 cenários para se preparar.
+### Ano 1 (Open-Source)
 
 | Cenário | Burn Rate (R$) | Runway | Premissa Principal |
 | --- | --- | --- | --- |
-| Otimista | {{R$ X}} | {{X meses}} | {{Ex.: MRR cresce 40%/mês, break-even no mês 6}} |
-| Base | {{R$ X}} | {{X meses}} | {{Ex.: MRR cresce 25%/mês conforme projetado}} |
-| Pessimista | {{R$ X}} | {{X meses}} | {{Ex.: MRR estagna, sem crescimento de receita}} |
+| Otimista | R$ 0 (doações > custos) | Ilimitado | 500+ stars, 30+ sponsors, R$300+/mês em doações a partir do mês 4 |
+| Base | R$ 135 | Ilimitado (custo pessoal) | Crescimento moderado; doações cobrem infra após mês 6 |
+| Pessimista | R$ 135 | Ilimitado (custo pessoal) | Pouca adoção; sem doações; mas custo é desprezível |
 
-> Para o cenário pessimista, defina um plano de ação: corte de custos, captação de emergência ou pivot.
+### Ano 2 (Serviço Gerenciado)
 
-<details>
-<summary>Exemplo</summary>
-
-| Cenário | Burn Rate (R$) | Runway | Premissa Principal |
+| Cenário | Burn Rate Líquido (R$) | Break-even em | Premissa Principal |
 | --- | --- | --- | --- |
-| Otimista | R$ 5.500 (média) | 14,5 meses | MRR cresce 40%/mês |
-| Base | R$ 8.200 (média) | 9,8 meses | MRR cresce 25%/mês |
-| Pessimista | R$ 11.900 | 6,7 meses | MRR estagna em R$ 4.900 |
+| Otimista | R$ 0 (break-even imediato) | Mês 1 | 30+ famílias convertem da base self-hosted no lançamento |
+| Base | R$ 500 | Mês 3 | 5-10 famílias/mês; break-even com 22 famílias |
+| Pessimista | R$ 1.000 | Mês 8+ | Conversão lenta; <5 famílias/mês; precisa de mais marketing |
 
-</details>
+> **Plano de ação para cenário pessimista (Ano 2):** Se o serviço gerenciado não atingir break-even em 6 meses, reavaliar: (a) pricing muito alto? (b) mercado não quer gerenciado? (c) onboarding do cloud muito complexo? Pivotar para modelo de suporte premium se necessário, mantendo software open-source.
