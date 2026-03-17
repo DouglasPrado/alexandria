@@ -11,7 +11,7 @@ Esta seção define **como o sistema é construído**: quais tecnologias são us
 | Core SDK               | Rust (stable)                       | Performance de IO, concorrência nativa, binário único sem runtime          |
 | Backend (Orquestrador) | Rust + Axum 0.8 + SQLx              | Async-first (Tokio/Tower); compile-time checked SQL; API REST              |
 | Frontend (Web Client)  | Next.js 16 (Turbopack)              | SSR para galeria, deploy simples, responsivo para mobile                   |
-| Banco de dados         | PostgreSQL 17                       | Relacional com integridade referencial; JSONB para metadata flexível       |
+| Banco de dados         | PostgreSQL 18                       | Relacional com integridade referencial; JSONB para metadata flexível       |
 | Fila                   | Redis 7                             | Fila de processamento do pipeline de mídia; pub/sub para eventos internos  |
 | Processamento de mídia | FFmpeg 7+ (CLI)                     | Transcodificação de vídeo H.265/AV1; conversão de imagens via libvips/WebP |
 | Criptografia           | AES-256-GCM + BIP-39                | Padrões auditados e amplamente adotados                                    |
@@ -32,9 +32,9 @@ Esta seção define **como o sistema é construído**: quais tecnologias são us
 
 ### Orquestrador (API Server)
 
-**Responsabilidade:** Coordena o cluster: gerencia metadados (PostgreSQL 17), distribui chunks, monitora heartbeats, executa scheduler de tarefas periódicas (scrubbing, GC, rebalancing, auto-healing), serve API para clientes.
+**Responsabilidade:** Coordena o cluster: gerencia metadados (PostgreSQL 18), distribui chunks, monitora heartbeats, executa scheduler de tarefas periódicas (scrubbing, GC, rebalancing, auto-healing), serve API para clientes.
 
-**Tecnologia:** Rust + Axum 0.8 + SQLx (PostgreSQL 17) + Redis 7.
+**Tecnologia:** Rust + Axum 0.8 + SQLx (PostgreSQL 18) + Redis 7.
 
 **Comunicação:** API REST (TLS 1.3) para clientes e agentes de nó; SQLx async para PostgreSQL; TCP para Redis.
 
@@ -131,7 +131,7 @@ Esta seção define **como o sistema é construído**: quais tecnologias são us
 | Axum 0.8 como web framework       | Actix-web                     | Async-first, integração natural com Tokio/Tower; middleware composável; comunidade ativa                     |
 | SQLx como DB driver                | Diesel / SeaORM               | Compile-time checked queries; async nativo com Tokio; sem ORM overhead                                       |
 | Orquestrador centralizado          | P2P puro / DHT                | Complexidade excessiva para POC; orquestrador é descartável (recovery via seed)                              |
-| PostgreSQL 17 para metadados       | SQLite / MongoDB              | Integridade referencial necessária; queries complexas (joins chunk-replica-node); JSONB melhorado no 17      |
+| PostgreSQL 18 para metadados       | SQLite / MongoDB              | Integridade referencial necessária; queries complexas (joins chunk-replica-node); JSONB melhorado no 17      |
 | Redis 7 para filas                 | RabbitMQ / Kafka              | Pipeline de mídia precisa de fila simples; Redis já resolve pub/sub; sem overhead operacional extra          |
 | aws-sdk-s3 como interface cloud    | APIs específicas por provedor | Interface S3-compatible unificada; SDK Rust oficial; R2 e B2 compatíveis nativamente                         |
 | FFmpeg 7+ para transcodificação    | HandBrake / cloud transcoding | Grátis, amplamente suportado, controle total de parâmetros (CRF, codec, resolução); AV1 estável             |

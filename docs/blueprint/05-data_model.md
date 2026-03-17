@@ -8,7 +8,7 @@ Enquanto o [Modelo de Domínio](./04-domain_model.md) descreve entidades e regra
 
 ## Banco de Dados
 
-- **Tecnologia principal:** PostgreSQL 16+
+- **Tecnologia principal:** PostgreSQL 18
 - **Justificativa:** Dados altamente relacionais com integridade referencial necessária (clusters → membros → nós → arquivos → chunks → réplicas). Suporte nativo a JSONB para metadata flexível (EXIF, configurações). Transações ACID garantem consistência em operações críticas (criação de manifest + chunks + réplicas deve ser atômica). Ecossistema maduro de migrações e tooling em Rust.
 
 - **Tecnologia auxiliar:** Redis 7+
@@ -294,6 +294,6 @@ Enquanto o [Modelo de Domínio](./04-domain_model.md) descreve entidades e regra
 
 ## Referências
 
-- [PostgreSQL 16 Documentation](https://www.postgresql.org/docs/16/)
+- [PostgreSQL 18 Documentation](https://www.postgresql.org/docs/18/)
 - [sqlx — Rust SQL toolkit](https://github.com/launchbadge/sqlx)
 - [Redis 7 Documentation](https://redis.io/docs/)

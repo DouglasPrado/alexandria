@@ -187,7 +187,7 @@ Verifica se o orquestrador está pronto para receber tráfego (dependências con
 
 - **Endpoint:** `GET /health/ready`
 - **Intervalo de verificação:** 30s
-- **Dependências verificadas:** PostgreSQL 17 (ping), Redis 7 (ping), Vaults dos membros (desbloqueados)
+- **Dependências verificadas:** PostgreSQL 18 (ping), Redis 7 (ping), Vaults dos membros (desbloqueados)
 
 ### Resposta esperada
 

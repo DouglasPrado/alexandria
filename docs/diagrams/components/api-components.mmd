@@ -25,7 +25,7 @@ graph TB
             SchedulerService["📋 SchedulerService<br/>Scrubbing, GC, rebalance,<br/>heartbeat timeout, alertas"]
         end
 
-        subgraph DataLayer["Camada de Acesso a Dados (SQLx + PostgreSQL 17)"]
+        subgraph DataLayer["Camada de Acesso a Dados (SQLx + PostgreSQL 18)"]
             direction LR
             ClusterRepo["🗃️ ClusterRepository<br/>CRUD clusters + members"]
             FileRepo["🗃️ FileRepository<br/>CRUD files + manifests"]
@@ -44,7 +44,7 @@ graph TB
     end
 
     %% Dependências Externas
-    DB[("🗄️ PostgreSQL 17<br/>Metadados")]
+    DB[("🗄️ PostgreSQL 18<br/>Metadados")]
     RedisQ["📨 Redis 7<br/>Fila + pub/sub"]
     S3Ext["📦 S3 / R2<br/>Chunk storage"]
 

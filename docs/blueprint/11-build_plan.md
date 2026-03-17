@@ -21,7 +21,7 @@
 - StorageProvider implementação S3 (aws-sdk-s3) para S3/R2/B2
 - Manifest structure: criação, serialização, validação de assinatura
 - Vault: criação por membro, criptografia/descriptografia, serialização, gerenciamento de senhas
-- Modelo de dados PostgreSQL 17: migrações iniciais (sqlx-cli)
+- Modelo de dados PostgreSQL 18: migrações iniciais (sqlx-cli)
 - Setup do workspace Rust (cargo workspaces: core-sdk, orchestrator, node-agent)
 - CI: GitHub Actions com cargo test + clippy + fmt
 
@@ -62,7 +62,7 @@
 - Seed phrase recovery: rebuild do orquestrador em nova VPS
 - Web client básico (Next.js 16): upload, galeria com thumbnails, download
 - Alertas de saúde: nó offline, replicação baixa, integridade
-- Docker Compose para deploy (orquestrador + PostgreSQL 17 + Redis 7 + web client + Caddy)
+- Docker Compose para deploy (orquestrador + PostgreSQL 18 + Redis 7 + web client + Caddy)
 - Cluster creation + member invitation + permission management
 
 **Dependências:**

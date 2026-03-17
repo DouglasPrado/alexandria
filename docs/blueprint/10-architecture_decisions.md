@@ -7,7 +7,7 @@
 | ADR-001 | Rust como linguagem principal do backend | Aceita | 2026-03-16 |
 | ADR-002 | Axum como web framework | Aceita | 2026-03-16 |
 | ADR-003 | Orquestrador centralizado vs P2P | Aceita | 2026-03-16 |
-| ADR-004 | PostgreSQL 17 para metadados | Aceita | 2026-03-16 |
+| ADR-004 | PostgreSQL 18 para metadados | Aceita | 2026-03-16 |
 | ADR-005 | Envelope encryption com seed phrase BIP-39 | Aceita | 2026-03-16 |
 | ADR-006 | Consistent hashing para distribuição de chunks | Aceita | 2026-03-16 |
 | ADR-007 | Otimização destrutiva de mídia (sem preservar originais) | Aceita | 2026-03-16 |
@@ -60,13 +60,13 @@
 
 ---
 
-### ADR-004: PostgreSQL 17 para metadados
+### ADR-004: PostgreSQL 18 para metadados
 
 **Data:** 2026-03-16 | **Status:** Aceita
 
 **Contexto:** Orquestrador precisa de banco para metadados: clusters, membros, nós, arquivos, chunks, réplicas. Dados altamente relacionais com integridade referencial necessária.
 
-**Decisão:** PostgreSQL 17 + SQLx (compile-time checked, async) — ACID para transações críticas (criar arquivo + chunks + réplicas atomicamente), JSONB para metadata flexível (EXIF), ecossistema maduro de migrações.
+**Decisão:** PostgreSQL 18 + SQLx (compile-time checked, async) — ACID para transações críticas (criar arquivo + chunks + réplicas atomicamente), JSONB para metadata flexível (EXIF), ecossistema maduro de migrações.
 
 **Alternativas descartadas:** SQLite (sem concorrência; limitações em queries complexas com joins), MongoDB (sem integridade referencial; equipe sem experiência), CockroachDB (overkill para escala familiar).
 

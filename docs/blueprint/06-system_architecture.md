@@ -13,7 +13,7 @@ Esta seção descreve a arquitetura de alto nível do **Alexandria**, incluindo 
 | Rust | Stable (latest) | context7.com/rust-lang/rust | Trust 9/10; zero-cost abstractions, memory safety sem GC |
 | Axum | 0.8.4 | context7.com/tokio-rs/axum | Framework web async-first; Tokio + Tower + Hyper |
 | Next.js | 16.1.6 | context7.com/vercel/next.js | Turbopack nativo (Rust), App Router, React Server Components |
-| PostgreSQL | 17.6 | context7.com/postgres/postgres | Melhorias em JSONB performance, particionamento, ACID |
+| PostgreSQL | 18 | context7.com/postgres/postgres | Melhorias em JSONB performance, particionamento, ACID |
 | Redis | 7+ | redis.io | Sem dados atualizados no context7; manter 7+ |
 | FFmpeg | 7+ | ffmpeg.org | Sem dados atualizados no context7; suporte AV1/H.265 estável |
 | Docker | 27+ | docker.com | Sem dados atualizados no context7; compose v2 estável |
@@ -36,7 +36,7 @@ Esta seção descreve a arquitetura de alto nível do **Alexandria**, incluindo 
 | Campo            | Descrição                                      |
 | ---------------- | ---------------------------------------------- |
 | **Nome**         | Orquestrador                                   |
-| **Responsabilidade** | Coordena o cluster: serve API REST para clientes, gerencia metadados (PostgreSQL 17), distribui chunks, monitora heartbeats, executa scheduler de tarefas periódicas (scrubbing, GC, rebalancing, auto-healing), gerencia vaults dos membros |
+| **Responsabilidade** | Coordena o cluster: serve API REST para clientes, gerencia metadados (PostgreSQL 18), distribui chunks, monitora heartbeats, executa scheduler de tarefas periódicas (scrubbing, GC, rebalancing, auto-healing), gerencia vaults dos membros |
 | **Tecnologia**   | Rust + Axum 0.8 + SQLx (PostgreSQL) + Redis   |
 | **Interface**    | API REST (HTTPS/TLS 1.3) para clientes e agentes de nó |
 
@@ -109,7 +109,7 @@ Esta seção descreve a arquitetura de alto nível do **Alexandria**, incluindo 
 | De | Para | Protocolo | Tipo (sync/async) | Descrição |
 | -- | ---- | --------- | ----------------- | --------- |
 | Web Client | Orquestrador | HTTPS/REST (TLS 1.3) | Sync | Upload de arquivos, listagem de galeria, download, administração |
-| Orquestrador | PostgreSQL 17 | TCP (SQLx driver nativo, async) | Sync | CRUD de metadados: clusters, membros, nós, arquivos, chunks, réplicas |
+| Orquestrador | PostgreSQL 18 | TCP (SQLx driver nativo, async) | Sync | CRUD de metadados: clusters, membros, nós, arquivos, chunks, réplicas |
 | Orquestrador | Redis 7 | TCP (driver nativo) | Async | Enfileirar jobs de processamento de mídia; pub/sub de eventos internos |
 | Media Workers | Redis 7 | TCP (driver nativo) | Async | Consumir jobs da fila de processamento |
 | Media Workers | StorageProvider | HTTPS (S3 API) | Sync | Gravar chunks criptografados nos nós cloud |
@@ -117,7 +117,7 @@ Esta seção descreve a arquitetura de alto nível do **Alexandria**, incluindo 
 | Agente de Nó | Orquestrador | HTTPS/REST (TLS 1.3) | Sync | Heartbeat, reportar capacidade, receber comandos (drain, scrub) |
 | Orquestrador | Agente de Nó | HTTPS/REST (TLS 1.3) | Sync | Enviar/recuperar chunks, comandar drain e scrubbing |
 | Orquestrador | StorageProvider (S3/R2) | HTTPS (S3 API via aws-sdk-s3) | Sync | Put/get/delete chunks em buckets cloud |
-| Scheduler | PostgreSQL 17 | TCP (SQLx) | Sync | Queries de manutenção: chunks sub-replicados, heartbeats atrasados, réplicas não verificadas |
+| Scheduler | PostgreSQL 18 | TCP (SQLx) | Sync | Queries de manutenção: chunks sub-replicados, heartbeats atrasados, réplicas não verificadas |
 | Scheduler | Redis 7 | TCP (driver nativo) | Async | Enfileirar jobs de auto-healing, rebalanceamento e scrubbing |
 | Nós (via DNS) | Orquestrador | DNS + HTTPS | Sync | Descoberta do orquestrador após troca de VPS; reconexão automática |
 
@@ -129,7 +129,7 @@ Esta seção descreve a arquitetura de alto nível do **Alexandria**, incluindo 
 
 | Ambiente | Finalidade | URL / Endpoint | Observações |
 | -------- | ---------- | -------------- | ----------- |
-| **Dev** | Desenvolvimento e testes locais | http://localhost:8080 (API), http://localhost:3000 (Web) | Docker Compose com PostgreSQL 17, Redis 7 e orquestrador; storage local |
+| **Dev** | Desenvolvimento e testes locais | http://localhost:8080 (API), http://localhost:3000 (Web) | Docker Compose com PostgreSQL 18, Redis 7 e orquestrador; storage local |
 | **Prod** | Ambiente de produção (alpha familiar) | https://alexandria.{domínio} | VPS única (Contabo); Docker Compose; DNS fixo para discovery |
 
 > Staging não é necessário na POC — time de 1 pessoa com deploy direto em produção após testes locais.
@@ -139,17 +139,17 @@ Esta seção descreve a arquitetura de alto nível do **Alexandria**, incluindo 
 | Aspecto | Escolha |
 | ------- | ------- |
 | **Provedor Cloud (VPS)** | Contabo — VPS barata (~€5-10/mês), SLA 99.9%, datacenters na Europa |
-| **Orquestração** | Docker Compose v2 — um arquivo para orquestrador + PostgreSQL 17 + Redis 7; sem Kubernetes (overkill para POC) |
+| **Orquestração** | Docker Compose v2 — um arquivo para orquestrador + PostgreSQL 18 + Redis 7; sem Kubernetes (overkill para POC) |
 | **CI/CD** | GitHub Actions — build, test (cargo test), push Docker image; deploy manual via SSH para VPS |
 | **Monitoramento** | Logs estruturados (stdout/JSON via tracing crate) + alertas internos do orquestrador; Grafana/Prometheus em fase 2 |
-| **Banco de Dados** | PostgreSQL 17 — container Docker com volume persistente; backup diário via pg_dump para bucket S3 |
+| **Banco de Dados** | PostgreSQL 18 — container Docker com volume persistente; backup diário via pg_dump para bucket S3 |
 | **Cache/Fila** | Redis 7 — container Docker; usado como fila de processamento e pub/sub; sem persistência (jobs são recuperáveis) |
 | **Storage Cloud** | AWS S3 + Cloudflare R2 — via aws-sdk-s3 (S3-compatible); Backblaze B2 como alternativa futura |
 | **DNS** | Domínio fixo apontando para IP da VPS; TTL baixo (~300s) para facilitar troca durante recovery |
 | **TLS** | Let's Encrypt — certificado gratuito auto-renovável via Caddy |
 | **Backup do orquestrador** | pg_dump diário → S3 bucket; vaults dos membros criptografados e replicados nos nós de storage |
 | **Web Framework (Rust)** | Axum 0.8 — async-first, built on Tokio/Tower/Hyper; middleware composável via Tower; preferido sobre Actix-web por integração natural com ecossistema Tokio |
-| **DB Driver (Rust)** | SQLx — compile-time checked queries; async nativo com Tokio; suporte a PostgreSQL 17 |
+| **DB Driver (Rust)** | SQLx — compile-time checked queries; async nativo com Tokio; suporte a PostgreSQL 18 |
 | **Observabilidade (Rust)** | tracing + tracing-subscriber — logs estruturados; integração futura com OpenTelemetry |
 
 ### Ecossistema Rust — Crates Principais
@@ -177,7 +177,7 @@ Esta seção descreve a arquitetura de alto nível do **Alexandria**, incluindo 
 │                                                     │
 │  ┌─────────────┐  ┌──────────┐  ┌──────────────┐   │
 │  │ Orquestrador│  │PostgreSQL│  │    Redis      │   │
-│  │ Rust + Axum │  │   17     │  │    7          │   │
+│  │ Rust + Axum │  │   18     │  │    7          │   │
 │  │ :8080       │  │ :5432    │  │  :6379        │   │
 │  │             │  │          │  │               │   │
 │  │ ┌─────────┐ │  │  Volume  │  │               │   │

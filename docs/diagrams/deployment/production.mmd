@@ -1,7 +1,7 @@
 %% ============================================================
 %% Diagrama de Deploy: Produção — Alexandria
 %% Referências: docs/blueprint/06-system_architecture.md
-%% Stack: Rust + Axum 0.8, Next.js 16, PostgreSQL 17, Redis 7
+%% Stack: Rust + Axum 0.8, Next.js 16, PostgreSQL 18, Redis 7
 %% ============================================================
 
 graph TB
@@ -32,7 +32,7 @@ graph TB
 
         subgraph DATA_TIER["Docker Compose v2 — Data"]
             direction LR
-            DB_PRIMARY["PostgreSQL 17<br/>──────────<br/>Porta: 5432<br/>Driver: SQLx (async)<br/>Volume: /data/postgres<br/>Backup: pg_dump diário → S3"]
+            DB_PRIMARY["PostgreSQL 18<br/>──────────<br/>Porta: 5432<br/>Driver: SQLx (async)<br/>Volume: /data/postgres<br/>Backup: pg_dump diário → S3"]
             Redis_P["Redis 7<br/>──────────<br/>Porta: 6379<br/>Sem persistência<br/>(jobs são recuperáveis)"]
         end
 

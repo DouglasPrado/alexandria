@@ -53,7 +53,7 @@ O Alexandria é projetado para escala familiar (1-10 usuários, 50 nós, 100TB).
 | Componente | Limite Atual | Gargalo | Ação quando atingir |
 |---|---|---|---|
 | Orquestrador (API) | ~1000 req/s (Axum em 2 vCPU) | CPU (criptografia em requests) | Escala vertical: VPS maior; ou separar media workers em processo próprio |
-| PostgreSQL 17 | ~500 conexões; ~1M registros em chunk_replicas | Conexões (SQLx pool); disco para índices | Connection pooling (SQLx max 20); VACUUM periódico; escala vertical |
+| PostgreSQL 18 | ~500 conexões; ~1M registros em chunk_replicas | Conexões (SQLx pool); disco para índices | Connection pooling (SQLx max 20); VACUUM periódico; escala vertical |
 | Redis 7 | ~50k msg/s; 1GB RAM | Memória (se acumular jobs) | Jobs são pequenos (~1KB); limitar fila a 10k jobs; alertar se crescer |
 | Storage por nó (S3/R2) | Free tier: ~10-20GB por conta | Espaço | Adicionar mais contas/provedores; alertar em 80% |
 | Storage total cluster | 100TB (limite v1) | Nós × capacidade | Adicionar nós; erasure coding na Fase 3 (economia ~40%) |

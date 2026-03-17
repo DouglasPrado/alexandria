@@ -10,7 +10,7 @@
 
 **Criticidade:** Máxima — exercita pipeline completo (upload → optimize → chunk → encrypt → distribute → replicate)
 
-**Atores envolvidos:** Membro, Web Client, Orquestrador (Axum), Media Workers, Core SDK, StorageProvider, Redis, PostgreSQL 17
+**Atores envolvidos:** Membro, Web Client, Orquestrador (Axum), Media Workers, Core SDK, StorageProvider, Redis, PostgreSQL 18
 
 ### Passos
 
@@ -69,7 +69,7 @@
 
 **Criticidade:** Máxima — sem recovery funcional, o sistema é tão frágil quanto um HD externo
 
-**Atores envolvidos:** Admin, Nova VPS, Orquestrador (novo), Core SDK (CryptoEngine), Vault, StorageProvider (S3/R2), Agentes de Nó, DNS, PostgreSQL 17
+**Atores envolvidos:** Admin, Nova VPS, Orquestrador (novo), Core SDK (CryptoEngine), Vault, StorageProvider (S3/R2), Agentes de Nó, DNS, PostgreSQL 18
 
 ### Passos
 
@@ -81,7 +81,7 @@
 6. **Core SDK** descriptografa vaults dos membros com master key → libera credenciais S3/R2, senhas dos membros, config do cluster, lista de nós
 7. **Orquestrador** conecta aos buckets cloud (S3/R2) usando credenciais dos vaults dos membros via aws-sdk-s3
 8. **Orquestrador** escaneia nós cloud em busca de manifests replicados
-9. **Orquestrador** reconstrói banco de metadados PostgreSQL 17 a partir dos manifests (bulk insert via SQLx)
+9. **Orquestrador** reconstrói banco de metadados PostgreSQL 18 a partir dos manifests (bulk insert via SQLx)
 10. **Admin** atualiza registro DNS para apontar para IP da nova VPS (TTL: 300s)
 11. **Agentes de Nó** detectam novo Orquestrador via DNS lookup e reconectam com retry + backoff
 12. **Orquestrador** recebe heartbeats dos nós e atualiza status em `nodes`
@@ -122,7 +122,7 @@
 
 **Criticidade:** Alta — sem auto-healing, perda de um nó degrada progressivamente a durabilidade
 
-**Atores envolvidos:** Scheduler (tokio::time), Orquestrador, Core SDK (ConsistentHashRing), StorageProvider, PostgreSQL 17, Nós restantes
+**Atores envolvidos:** Scheduler (tokio::time), Orquestrador, Core SDK (ConsistentHashRing), StorageProvider, PostgreSQL 18, Nós restantes
 
 ### Passos
 
@@ -171,7 +171,7 @@
 
 **Criticidade:** Alta — executado uma única vez mas é pré-requisito para todo o sistema
 
-**Atores envolvidos:** Admin, Web Client, Orquestrador (Axum), Core SDK (CryptoEngine, BIP-39), Vault, PostgreSQL 17
+**Atores envolvidos:** Admin, Web Client, Orquestrador (Axum), Core SDK (CryptoEngine, BIP-39), Vault, PostgreSQL 18
 
 ### Passos
 
@@ -221,7 +221,7 @@
 
 **Criticidade:** Alta — sem scrubbing, corrupção passa despercebida e pode se propagar
 
-**Atores envolvidos:** Scheduler (tokio::time), Orquestrador, StorageProvider, Core SDK, PostgreSQL 17
+**Atores envolvidos:** Scheduler (tokio::time), Orquestrador, StorageProvider, Core SDK, PostgreSQL 18
 
 ### Passos
 
