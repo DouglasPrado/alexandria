@@ -71,7 +71,7 @@ O modelo de domínio representa os **conceitos centrais do negócio**, suas regr
 | type | enum | Sim | local, s3, r2, vps |
 | total_capacity | integer | Sim | Espaço total em bytes |
 | used_capacity | integer | Sim | Espaço usado em bytes |
-| status | enum | Sim | online, suspeito, perdido, draining |
+| status | enum | Sim | online, suspect, lost, draining |
 | last_heartbeat | datetime | Sim | Último heartbeat recebido |
 | owner | referência | Sim | Membro que registrou o nó |
 

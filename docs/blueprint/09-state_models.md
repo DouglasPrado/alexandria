@@ -15,8 +15,8 @@ Este documento cataloga todas as entidades com ciclo de vida, seus estados poss�
 | Estado | Descrição |
 |--------|-----------|
 | online | Nó saudável, enviando heartbeats regularmente, recebendo e servindo chunks |
-| suspeito | Heartbeat ausente por >30 minutos; pode ser instabilidade temporária |
-| perdido | Heartbeat ausente por >1 hora; considerado indisponível; auto-healing disparado |
+| suspect | Heartbeat ausente por >30 minutos; pode ser instabilidade temporária |
+| lost | Heartbeat ausente por >1 hora; considerado indisponível; auto-healing disparado |
 | draining | Admin iniciou desconexão; chunks sendo migrados para outros nós; não recebe novos chunks |
 
 #### Transições
@@ -24,17 +24,17 @@ Este documento cataloga todas as entidades com ciclo de vida, seus estados poss�
 | De | Para | Gatilho | Condição | Ação |
 |----|------|---------|----------|------|
 | — (novo) | online | Registro do nó (POST /nodes/register) | Conectividade testada com sucesso | Adicionar ao ConsistentHashRing; gerar evento NodeRegistered |
-| online | suspeito | Scheduler detecta heartbeat ausente | last_heartbeat < NOW() - 30min | Gerar alerta (warning); evento NodeSuspected |
-| suspeito | perdido | Scheduler detecta heartbeat ainda ausente | last_heartbeat < NOW() - 1h | Gerar alerta (critical); disparar auto-healing; evento NodeLost |
-| suspeito | online | Heartbeat recebido | Nó envia heartbeat válido | Resolver alerta; evento NodeOnline |
-| perdido | online | Heartbeat recebido após período perdido | Nó reconecta e envia heartbeat | Resolver alerta; cancelar auto-healing pendente; revalidar chunks |
+| online | suspect | Scheduler detecta heartbeat ausente | last_heartbeat < NOW() - 30min | Gerar alerta (warning); evento NodeSuspected |
+| suspect | lost | Scheduler detecta heartbeat ainda ausente | last_heartbeat < NOW() - 1h | Gerar alerta (critical); disparar auto-healing; evento NodeLost |
+| suspect | online | Heartbeat recebido | Nó envia heartbeat válido | Resolver alerta; evento NodeOnline |
+| lost | online | Heartbeat recebido após período perdido | Nó reconecta e envia heartbeat | Resolver alerta; cancelar auto-healing pendente; revalidar chunks |
 | online | draining | Admin inicia desconexão (POST /nodes/:id/drain) | Admin autenticado com role admin | Bloquear novos chunks; iniciar migração; evento NodeDrainStarted |
 | draining | — (removido) | Drain completo | Todos os chunks migrados com sucesso | Remover do ConsistentHashRing; remover de `nodes`; evento NodeDisconnected |
 
 #### Transições Proibidas
 
 - **draining → online**: Uma vez iniciado o drain, não pode ser cancelado (chunks já em migração)
-- **perdido → draining**: Nó perdido não pode ser drenado (não acessível); auto-healing já cuida dos chunks
+- **lost → draining**: Nó lost não pode ser drenado (não acessível); auto-healing já cuida dos chunks
 - **qualquer → online (sem heartbeat)**: Status online requer heartbeat válido recebido
 
 #### Diagrama

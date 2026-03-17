@@ -112,7 +112,7 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 | name | string | Sim | Nome descritivo (ex.: "MacBook do Douglas", "R2 Bucket Principal") |
 | total_capacity | integer (bytes) | Sim | Espaço total disponível no nó |
 | used_capacity | integer (bytes) | Sim | Espaço atualmente ocupado por chunks |
-| status | enum | Sim | online, suspeito, perdido, draining |
+| status | enum | Sim | online, suspect, lost, draining |
 | endpoint | string | Não | URL ou endereço de conexão (para nós remotos) |
 | config_encrypted | bytes | Não | Credenciais de acesso criptografadas (S3 keys, OAuth tokens) |
 | last_heartbeat | datetime | Sim | Timestamp do último heartbeat recebido |
@@ -120,8 +120,8 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 **Regras de Negócio:**
 
-- **RN-N1:** Nó sem heartbeat por >30 min é marcado como "suspeito"; sem heartbeat por >1h é marcado como "perdido"
-- **RN-N2:** Nó marcado como "perdido" dispara auto-healing de todos os seus chunks
+- **RN-N1:** Nó sem heartbeat por >30 min é marcado como "suspect"; sem heartbeat por >1h é marcado como "lost"
+- **RN-N2:** Nó marcado como "lost" dispara auto-healing de todos os seus chunks
 - **RN-N3:** Um nó só pode ser desconectado após drain completo — todos os chunks migrados para outros nós
 - **RN-N4:** Credenciais de acesso (S3 keys, tokens OAuth) são armazenadas criptografadas; nunca em texto puro
 - **RN-N5:** Capacidade usada não pode exceder capacidade total; uploads são rejeitados quando nó está cheio
@@ -254,7 +254,7 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 **Regras de Negócio:**
 
 - **RN-R1:** Não pode existir duas réplicas do mesmo chunk no mesmo nó
-- **RN-R2:** Quando um nó é marcado como perdido, todas as réplicas nele são invalidadas e auto-healing é disparado
+- **RN-R2:** Quando um nó é marcado como lost, todas as réplicas nele são invalidadas e auto-healing é disparado
 - **RN-R3:** Réplica não verificada por scrubbing há mais de X dias deve ser priorizada para verificação
 
 ---

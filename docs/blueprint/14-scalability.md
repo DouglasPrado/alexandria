@@ -92,7 +92,7 @@ O Alexandria é projetado para escala familiar (1-10 usuários, 50 nós, 100TB).
 | Thumbnails/previews (filesystem) | Indefinido | Invalidar quando arquivo deletado |
 | Metadata de galeria (últimos N arquivos) | 30s | Ao criar/deletar arquivo (Redis pub/sub) |
 | ConsistentHashRing | Indefinido | Recalcular quando nó entra/sai/muda capacidade |
-| Status de nós (online/suspeito/perdido) | 1 min | Atualizar a cada heartbeat recebido |
+| Status de nós (online/suspect/lost) | 1 min | Atualizar a cada heartbeat recebido |
 | Contagem de réplicas por chunk | 5 min | Invalidar em auto-healing e scrubbing |
 | Assets estáticos do web client (JS, CSS) | 30 dias (Caddy) | Cache busting via hash no filename (Next.js 16 build) |
 | JWT decoded (claims) | Duração do JWT (24h) | Invalidar ao revogar sessão |

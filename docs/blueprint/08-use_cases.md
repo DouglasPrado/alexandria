@@ -186,7 +186,7 @@ Cada caso de uso descreve uma interação completa entre um ator e o sistema par
 
 **Ator:** Administrador Familiar
 
-**Pré-condição:** Admin autenticado. Nó está online ou suspeito. Cluster tem nós suficientes para manter replicação 3x após remoção.
+**Pré-condição:** Admin autenticado. Nó está online ou suspect. Cluster tem nós suficientes para manter replicação 3x após remoção.
 
 #### Fluxo Principal
 

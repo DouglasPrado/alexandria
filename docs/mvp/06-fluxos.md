@@ -110,9 +110,9 @@ Esta seção documenta os **2-3 fluxos mais importantes** da POC — aqueles que
 ### Caminho feliz
 
 1. **Scheduler** detecta que um nó não enviou heartbeat por mais de 30 minutos
-2. **Orquestrador** marca nó como "suspeito" e gera alerta
+2. **Orquestrador** marca nó como "suspect" e gera alerta
 3. **Scheduler** aguarda mais 30 minutos (total 1h sem heartbeat)
-4. **Orquestrador** marca nó como "perdido" e gera alerta crítico ao admin
+4. **Orquestrador** marca nó como "lost" e gera alerta crítico ao admin
 5. **Orquestrador** consulta `chunk_replicas` para listar todos os chunks que tinham réplica no nó perdido
 6. **Orquestrador** identifica chunks que agora têm menos de 3 réplicas
 7. **Core SDK** para cada chunk sub-replicado, seleciona novo nó destino via consistent hashing (excluindo nó perdido)

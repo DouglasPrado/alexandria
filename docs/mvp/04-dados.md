@@ -57,7 +57,7 @@ Esta seção define **como e onde os dados são armazenados** na POC. Traduz o m
 | name | varchar(255) | Sim | Nome descritivo do nó |
 | total_capacity | bigint | Sim | Espaço total em bytes |
 | used_capacity | bigint | Sim | Espaço usado em bytes |
-| status | varchar(20) | Sim | online, suspeito, perdido, draining |
+| status | varchar(20) | Sim | online, suspect, lost, draining |
 | endpoint | text | Não | URL/endereço de conexão |
 | config_encrypted | bytea | Não | Credenciais criptografadas (S3 keys, etc.) |
 | last_heartbeat | timestamp | Sim | Último heartbeat recebido |

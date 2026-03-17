@@ -95,7 +95,7 @@ Enquanto o [Modelo de Domínio](./04-domain_model.md) descreve entidades e regra
 | name | VARCHAR(255) | NOT NULL | Nome descritivo |
 | total_capacity | BIGINT | NOT NULL | Espaço total em bytes |
 | used_capacity | BIGINT | NOT NULL, DEFAULT 0 | Espaço usado em bytes |
-| status | VARCHAR(20) | NOT NULL, DEFAULT 'online', CHECK (status IN ('online', 'suspeito', 'perdido', 'draining')) | Estado atual |
+| status | VARCHAR(20) | NOT NULL, DEFAULT 'online', CHECK (status IN ('online', 'suspect', 'lost', 'draining')) | Estado atual |
 | endpoint | TEXT | NULL | URL/endereço de conexão |
 | config_encrypted | BYTEA | NULL | Credenciais criptografadas (S3 keys, etc.) |
 | last_heartbeat | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Último heartbeat recebido |

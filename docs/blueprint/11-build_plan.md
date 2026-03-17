@@ -53,7 +53,7 @@
 - Preview generation: thumbnail ~50KB (fotos), 480p ~5MB (vídeos)
 - Replicação 3x com monitoramento contínuo
 - Auto-healing: re-replicação quando nó é perdido
-- Heartbeat monitoring de nós com detecção offline (suspeito/perdido)
+- Heartbeat monitoring de nós com detecção offline (suspect/lost)
 - Scrubbing periódico (verificação de integridade SHA-256)
 - Garbage collection de chunks órfãos
 - Scheduler interno (tokio::time) para tarefas periódicas

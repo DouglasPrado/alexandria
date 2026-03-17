@@ -15,21 +15,21 @@ sequenceDiagram
     Sched ->>+ DB: SELECT nodes WHERE last_heartbeat < NOW() - 30min
     DB -->>- Sched: suspect_nodes[]
 
-    loop Para cada nó suspeito
-        Sched ->>+ DB: UPDATE nodes SET status = 'suspeito'
+    loop Para cada nó suspect
+        Sched ->>+ DB: UPDATE nodes SET status = 'suspect'
         DB -->>- Sched: OK
-        Sched ->> API: Gerar alerta (warning: nó suspeito)
+        Sched ->> API: Gerar alerta (warning: nó suspect)
     end
 
     Note over Sched: Aguarda mais 30 min (total 1h)
 
-    Sched ->>+ DB: SELECT nodes WHERE status = 'suspeito' AND last_heartbeat < NOW() - 1h
+    Sched ->>+ DB: SELECT nodes WHERE status = 'suspect' AND last_heartbeat < NOW() - 1h
     DB -->>- Sched: lost_nodes[]
 
-    loop Para cada nó perdido
-        Sched ->>+ DB: UPDATE nodes SET status = 'perdido'
+    loop Para cada nó lost
+        Sched ->>+ DB: UPDATE nodes SET status = 'lost'
         DB -->>- Sched: OK
-        Sched ->> API: Gerar alerta (critical: nó perdido)
+        Sched ->> API: Gerar alerta (critical: nó lost)
 
         %% Identificar chunks afetados
         Sched ->>+ DB: SELECT chunk_id FROM chunk_replicas WHERE node_id = lost_node
@@ -52,7 +52,7 @@ sequenceDiagram
                 Sched ->>+ S3dst: PUT chunk (no novo nó)
                 S3dst -->>- Sched: OK
 
-                Sched ->>+ DB: INSERT chunk_replicas + DELETE replica nó perdido
+                Sched ->>+ DB: INSERT chunk_replicas + DELETE replica nó lost
                 DB -->>- Sched: OK
             else Hash corrompido
                 Sched ->> Sched: Tentar próxima réplica

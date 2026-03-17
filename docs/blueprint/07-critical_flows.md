@@ -127,9 +127,9 @@
 ### Passos
 
 1. **Scheduler** executa check periódico: query `nodes WHERE last_heartbeat < NOW() - INTERVAL '30 min'`
-2. **Orquestrador** marca nó como "suspeito" em `nodes` e gera alerta (severidade: warning)
+2. **Orquestrador** marca nó como "suspect" em `nodes` e gera alerta (severidade: warning)
 3. **Scheduler** aguarda mais 30 minutos (total 1h sem heartbeat)
-4. **Orquestrador** marca nó como "perdido" e gera alerta (severidade: critical)
+4. **Orquestrador** marca nó como "lost" e gera alerta (severidade: critical)
 5. **Orquestrador** consulta `chunk_replicas WHERE node_id = {nó_perdido}` para listar todos os chunks afetados
 6. **Orquestrador** identifica chunks com COUNT(replicas) < 3 via query agregada
 7. **Core SDK (ConsistentHashRing)** seleciona novos nós destino para cada chunk sub-replicado (excluindo nó perdido)
@@ -158,8 +158,8 @@
 
 | Métrica | Valor esperado |
 |---------|---------------|
-| Detecção de nó suspeito | < 30 minutos após último heartbeat |
-| Detecção de nó perdido | < 1 hora após último heartbeat |
+| Detecção de nó suspect | < 30 minutos após último heartbeat |
+| Detecção de nó lost | < 1 hora após último heartbeat |
 | Re-replicação completa | < 2 horas para nó com 10GB de chunks |
 | Throughput de cópia | Limitado pela banda do provedor mais lento |
 

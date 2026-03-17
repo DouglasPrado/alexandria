@@ -35,8 +35,8 @@ Logs estruturados em JSON via `tracing` crate (Rust) + `tracing-subscriber` com 
 |-------|-------------|
 | DEBUG | Detalhes de chunking, hashing, consistent hashing ring — apenas em dev |
 | INFO | Upload concluído, nó registrado, heartbeat recebido, recovery iniciado, scrubbing ciclo completo |
-| WARN | Nó suspeito (heartbeat atrasado), réplica não verificada há >7 dias, espaço >80%, token próximo de expirar |
-| ERROR | Pipeline falhou (FFmpeg erro), chunk corrompido detectado, transação PostgreSQL falhou, nó perdido |
+| WARN | Nó suspect (heartbeat atrasado), réplica não verificada há >7 dias, espaço >80%, token próximo de expirar |
+| ERROR | Pipeline falhou (FFmpeg erro), chunk corrompido detectado, transação PostgreSQL falhou, nó lost |
 | FATAL | Vault do membro não descriptografa (senha incorreta ou master key errada em recovery), PostgreSQL inacessível no startup, seed phrase inválida |
 
 ### Retenção
@@ -52,7 +52,7 @@ Logs estruturados em JSON via `tracing` crate (Rust) + `tracing-subscriber` com 
 
 - Criação de cluster (seed gerada)
 - Recovery iniciado/concluído
-- Nó marcado como perdido + auto-healing disparado
+- Nó marcado como lost + auto-healing disparado
 - Chunk corrompido detectado + reparado/irrecuperável
 - Upload concluído (com métricas de tamanho e duração)
 - Alerta gerado/resolvido
@@ -78,7 +78,7 @@ Logs estruturados em JSON via `tracing` crate (Rust) + `tracing-subscriber` com 
 |---------|-----------|---------------------|
 | replication_health | % de chunks com 3+ réplicas | <99% → warn; <95% → error |
 | nodes_online | Nós com status "online" | <3 → error (replicação mínima impossível) |
-| nodes_suspect | Nós com status "suspeito" | >0 → warn |
+| nodes_suspect | Nós com status "suspect" | >0 → warn |
 | chunks_sub_replicated | Chunks com <3 réplicas | >0 por >1h → error (auto-healing falhou) |
 | chunks_corrupted | Chunks detectados como corrompidos pelo scrubbing | >0 → warn (reparado) ou error (irrecuperável) |
 | pipeline_queue_depth | Jobs pendentes na fila Redis | >100 → warn; >1000 → error |
@@ -119,7 +119,7 @@ Logs estruturados em JSON via `tracing` crate (Rust) + `tracing-subscriber` com 
 | `process_media` | Media Worker | Pipeline completo: optimize → chunk → encrypt → distribute |
 | `replicate_chunk` | Orquestrador | Envio de chunk para nó destino |
 | `scrub_chunk` | Scheduler | Verificação de integridade de uma réplica |
-| `auto_heal` | Scheduler | Re-replicação de chunks de nó perdido |
+| `auto_heal` | Scheduler | Re-replicação de chunks de nó lost |
 | `recovery` | Orquestrador | seed → vaults dos membros → rebuild completo |
 | `heartbeat` | Agente de Nó | Envio e processamento de heartbeat |
 
@@ -132,10 +132,10 @@ Logs estruturados em JSON via `tracing` crate (Rust) + `tracing-subscriber` com 
 | Chunk irrecuperável (todas réplicas corrompidas) | P1 | chunks_corrupted > 0 AND sem réplica saudável | Investigar nós afetados; verificar logs de scrubbing; arquivo marcado como corrupted |
 | Recovery falhou | P1 | recovery retorna erro | Verificar seed phrase; verificar vaults dos membros nos nós; logs do orquestrador |
 | Replicação abaixo do mínimo por >2h | P1 | replication_health <95% por >2h | Verificar auto-healing; verificar nós disponíveis; adicionar nós se necessário |
-| Nó perdido (>1h sem heartbeat) | P2 | node.status = 'perdido' | Auto-healing automático; verificar se nó voltará online; considerar drain se permanente |
+| Nó lost (>1h sem heartbeat) | P2 | node.status = 'lost' | Auto-healing automático; verificar se nó voltará online; considerar drain se permanente |
 | Pipeline de mídia parado | P2 | pipeline_queue_depth crescendo + 0 jobs processados em 10min | Verificar Redis; verificar media workers; restart se necessário |
 | Espaço do cluster >90% | P2 | storage_usage_percent >90% em qualquer nó | Adicionar nó/bucket; limpar chunks órfãos manualmente |
-| Nó suspeito (>30min sem heartbeat) | P3 | node.status = 'suspeito' | Monitorar; geralmente volta online sozinho |
+| Nó suspect (>30min sem heartbeat) | P3 | node.status = 'suspect' | Monitorar; geralmente volta online sozinho |
 | Token OAuth próximo de expirar | P3 | token.expires_at < NOW() + 7 dias | Re-autenticar provedor cloud; atualizar vault do membro |
 | Scrubbing não executou em >7 dias | P3 | scrubbing_last_run > 7 dias | Verificar scheduler; executar manualmente se necessário |
 | Espaço do cluster >80% | P4 | storage_usage_percent >80% | Planejar adição de nós; informativo |
@@ -145,7 +145,7 @@ Logs estruturados em JSON via `tracing` crate (Rust) + `tracing-subscriber` com 
 | Severidade | Significado | Tempo de resposta |
 |------------|-------------|-------------------|
 | P1 | Perda de dados real ou iminente; recovery falhou | <1h (verificar imediatamente) |
-| P2 | Funcionalidade crítica degradada (upload parado, nó perdido) | <4h (verificar no mesmo dia) |
+| P2 | Funcionalidade crítica degradada (upload parado, nó lost) | <4h (verificar no mesmo dia) |
 | P3 | Problema que requer atenção mas não impacta uso atual | <24h (verificar no próximo dia útil) |
 | P4 | Informativo; tendência que pode virar problema | <1 semana (próxima manutenção) |
 

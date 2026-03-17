@@ -10,22 +10,22 @@ stateDiagram-v2
     online : Recebe e serve chunks
     online : Reporta capacidade
 
-    suspeito : Heartbeat ausente >30min
-    suspeito : Pode ser instabilidade temporária
-    suspeito : Alerta warning gerado
+    suspect : Heartbeat ausente >30min
+    suspect : Pode ser instabilidade temporária
+    suspect : Alerta warning gerado
 
-    perdido : Heartbeat ausente >1h
-    perdido : Alerta critical gerado
-    perdido : Auto-healing disparado
+    lost : Heartbeat ausente >1h
+    lost : Alerta critical gerado
+    lost : Auto-healing disparado
 
     draining : Chunks sendo migrados
     draining : Não recebe novos chunks
     draining : Admin iniciou desconexão
 
-    online --> suspeito : Heartbeat ausente >30min (Scheduler)
-    suspeito --> perdido : Heartbeat ausente >1h (Scheduler)
-    suspeito --> online : Heartbeat recebido
-    perdido --> online : Heartbeat recebido (reconexão)
+    online --> suspect : Heartbeat ausente >30min (Scheduler)
+    suspect --> lost : Heartbeat ausente >1h (Scheduler)
+    suspect --> online : Heartbeat recebido
+    lost --> online : Heartbeat recebido (reconexão)
     online --> draining : Admin inicia drain
     draining --> [*] : Drain completo → nó removido
 
@@ -34,7 +34,7 @@ stateDiagram-v2
         Heartbeat a cada 1 minuto.
     end note
 
-    note right of perdido
+    note right of lost
         Auto-healing re-replica todos
         os chunks deste nó em até 1h.
     end note
