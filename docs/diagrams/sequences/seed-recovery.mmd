@@ -31,7 +31,7 @@ sequenceDiagram
     S3 -->>- API: vault_encrypted_bytes
 
     API ->>+ SDK: Decrypt vault (AES-256-GCM + master_key)
-    SDK -->>- API: vault_data {credenciais S3, config cluster, lista nós}
+    SDK -->>- API: vault_data {credenciais S3, senhas do usuário, config cluster, lista nós}
 
     %% Rebuild
     API ->>+ S3: LIST manifests (scan buckets com credenciais do vault)

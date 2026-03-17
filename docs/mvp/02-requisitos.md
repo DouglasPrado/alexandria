@@ -22,7 +22,7 @@ Esta seção lista **o que a POC precisa fazer** para ter valor, organizado por 
 - [ ] Auto-healing: re-replicar chunks quando nó é perdido
 - [ ] Scrubbing periódico (recalcular hashes, detectar corrupção, restaurar de réplica)
 - [ ] Garbage collection de chunks órfãos
-- [ ] Vault criptografado para tokens e credenciais (desbloqueado via chave derivada da seed)
+- [ ] Vault criptografado para tokens, credenciais e senhas do usuário (desbloqueado via senha do usuário)
 - [ ] Recuperar orquestrador com seed phrase em nova VPS
 - [ ] Manifests replicados em múltiplos nós
 - [ ] Placeholder files com download sob demanda
@@ -67,6 +67,6 @@ Esta seção lista **o que a POC precisa fazer** para ter valor, organizado por 
 | Performance | Tempo de resposta API de metadata | p95 < 500ms |
 | Segurança | Criptografia de dados em repouso | AES-256-GCM em todos os chunks |
 | Segurança | Criptografia em trânsito | TLS 1.3 em todas as comunicações |
-| Segurança | Tokens OAuth/credenciais | Nunca em texto puro; vault criptografado |
+| Segurança | Tokens OAuth/credenciais/senhas | Nunca em texto puro; vault criptografado |
 | Disponibilidade | Uptime do orquestrador | >99.5% |
 | Recuperabilidade | Reconstrução via seed phrase | <2 horas em nova VPS |

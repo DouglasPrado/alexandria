@@ -64,7 +64,7 @@ Esta seção define **como o sistema é construído**: quais tecnologias são us
 
 ### Vault
 
-**Responsabilidade:** Armazena credenciais e chaves criptografadas. Desbloqueado em memória com chave derivada da seed.
+**Responsabilidade:** Armazena credenciais, chaves e senhas do usuário criptografadas. Desbloqueado em memória via senha do usuário.
 
 **Tecnologia:** Arquivo criptografado (AES-256-GCM) no filesystem do orquestrador.
 
@@ -137,5 +137,5 @@ Esta seção define **como o sistema é construído**: quais tecnologias são us
 | FFmpeg 7+ para transcodificação    | HandBrake / cloud transcoding | Grátis, amplamente suportado, controle total de parâmetros (CRF, codec, resolução); AV1 estável             |
 | Next.js 16 para web client         | SvelteKit / Remix             | Turbopack (Rust) para builds rápidos; App Router maduro; React Server Components                             |
 | Docker Compose v2 para deploy      | Bare metal / Kubernetes       | Reprodutibilidade sem complexidade de orquestração; compose para PostgreSQL + Redis + orquestrador           |
-| Vault como arquivo criptografado   | HashiCorp Vault / cloud KMS   | Simples; sem dependência externa; desbloqueado pela master key derivada da seed                              |
+| Vault como arquivo criptografado   | HashiCorp Vault / cloud KMS   | Simples; sem dependência externa; desbloqueado pela senha do usuário; master key usada em recovery           |
 | Sem cache/CDN na POC               | Cloudflare / Redis cache      | Volume não justifica; adicionar quando necessário                                                            |

@@ -78,7 +78,7 @@
 3. **Core SDK (CryptoEngine)** valida seed phrase contra wordlist BIP-39
 4. **Core SDK** deriva master key da seed via PBKDF2/scrypt
 5. **Orquestrador** busca vault criptografado nos nós conhecidos (lista bootstrap hardcoded ou último DNS)
-6. **Core SDK** descriptografa vault com master key → libera credenciais S3/R2, config do cluster, lista de nós
+6. **Core SDK** descriptografa vault com master key → libera credenciais S3/R2, senhas do usuário, config do cluster, lista de nós
 7. **Orquestrador** conecta aos buckets cloud (S3/R2) usando credenciais do vault via aws-sdk-s3
 8. **Orquestrador** escaneia nós cloud em busca de manifests replicados
 9. **Orquestrador** reconstrói banco de metadados PostgreSQL 17 a partir dos manifests (bulk insert via SQLx)
@@ -182,7 +182,7 @@
 5. **Core SDK** gera par de chaves (public_key + private_key) para o cluster
 6. **Core SDK** calcula cluster_id = SHA-256(public_key)
 7. **Core SDK** criptografa private_key com master key
-8. **Orquestrador** cria vault vazio, criptografado com master key
+8. **Orquestrador** cria vault vazio, criptografado com senha do admin
 9. **Orquestrador** persiste cluster em PostgreSQL (cluster_id, nome, public_key, encrypted_private_key)
 10. **Orquestrador** cria membro admin (role: "admin") para o criador
 11. **Web Client** exibe seed phrase de 12 palavras com instruções para anotar em papel

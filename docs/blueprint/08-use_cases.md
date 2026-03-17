@@ -174,7 +174,7 @@ Cada caso de uso descreve uma interação completa entre um ator e o sistema par
 
 - **E1.** Chunk indisponível (nó offline): Sistema tenta próxima réplica; se todas offline → mensagem "Arquivo temporariamente indisponível"
 - **E2.** Chunk corrompido durante download: Core SDK verifica hash; se falha → tenta outra réplica
-- **E3.** Master key não disponível (vault bloqueado): Impossível descriptografar; pedir admin para desbloquear vault
+- **E3.** Senha do usuário incorreta (vault bloqueado): Impossível descriptografar; pedir usuário para informar senha correta
 
 **Pós-condição:** Membro visualizou preview ou baixou arquivo otimizado completo.
 

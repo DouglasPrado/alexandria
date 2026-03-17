@@ -20,7 +20,7 @@
 - StorageProvider trait + implementação local (filesystem)
 - StorageProvider implementação S3 (aws-sdk-s3) para S3/R2/B2
 - Manifest structure: criação, serialização, validação de assinatura
-- Vault: criação, criptografia/descriptografia, serialização
+- Vault: criação, criptografia/descriptografia, serialização, gerenciamento de senhas
 - Modelo de dados PostgreSQL 17: migrações iniciais (sqlx-cli)
 - Setup do workspace Rust (cargo workspaces: core-sdk, orchestrator, node-agent)
 - CI: GitHub Actions com cargo test + clippy + fmt
@@ -33,7 +33,7 @@
 
 - Arquivo de teste passa pelo pipeline completo: chunk → encrypt → distribute (local) → reassemble → decrypt → verify hash
 - Seed phrase gera master key deterministicamente (mesma seed = mesma key)
-- Vault criptografa/descriptografa com master key corretamente
+- Vault criptografa/descriptografa com senha do usuário corretamente
 - Consistent hashing distribui chunks proporcionalmente à capacidade dos nós de teste
 - Migrações PostgreSQL aplicam sem erro; schema completo criado
 - Todos os testes passando no CI

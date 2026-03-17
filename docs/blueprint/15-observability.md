@@ -37,7 +37,7 @@ Logs estruturados em JSON via `tracing` crate (Rust) + `tracing-subscriber` com 
 | INFO | Upload concluído, nó registrado, heartbeat recebido, recovery iniciado, scrubbing ciclo completo |
 | WARN | Nó suspeito (heartbeat atrasado), réplica não verificada há >7 dias, espaço >80%, token próximo de expirar |
 | ERROR | Pipeline falhou (FFmpeg erro), chunk corrompido detectado, transação PostgreSQL falhou, nó perdido |
-| FATAL | Vault não descriptografa (master key errada), PostgreSQL inacessível no startup, seed phrase inválida |
+| FATAL | Vault não descriptografa (senha incorreta ou master key errada em recovery), PostgreSQL inacessível no startup, seed phrase inválida |
 
 ### Retenção
 

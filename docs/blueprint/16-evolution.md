@@ -81,7 +81,7 @@ Orquestrador deve ser capaz de ler manifests de todas as versões anteriores (ba
 
 ### Versionamento de Vault
 
-Vault inclui campo `version` no header criptografado. Novas versões podem mudar estrutura interna sem afetar desbloqueio (master key permanece mesma derivação).
+Vault inclui campo `version` no header criptografado. Novas versões podem mudar estrutura interna sem afetar desbloqueio (mecanismo de desbloqueio via senha do usuário permanece compatível).
 
 ---
 

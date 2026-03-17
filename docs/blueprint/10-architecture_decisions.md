@@ -80,7 +80,7 @@
 
 **Contexto:** Dados familiares (fotos, vídeos) são sensíveis. Criptografia ponta-a-ponta é requisito. Sistema precisa ser recuperável com um único segredo (seed phrase).
 
-**Decisão:** Hierarquia: seed (12 palavras BIP-39) → master key (PBKDF2) → file keys (derivação) → chunk keys (AES-256-GCM). Vault criptografado para tokens/credenciais. Master key nunca persistida.
+**Decisão:** Hierarquia: seed (12 palavras BIP-39) → master key (PBKDF2) → file keys (derivação) → chunk keys (AES-256-GCM). Vault criptografado com senha do usuário para tokens/credenciais/senhas. Master key nunca persistida; usada apenas em recovery do orquestrador.
 
 **Alternativas descartadas:** Chave simétrica única (comprometimento de uma chave = comprometimento total), KMS cloud (dependência de provedor; custo; contradiz princípio de independência), PGP/GPG (complexo de gerenciar para família não-técnica).
 

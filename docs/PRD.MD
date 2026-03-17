@@ -247,7 +247,7 @@ Um ecossistema composto por:
 | ------ | ----------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------ |
 | RF-047 | Gerar seed phrase de 12 palavras (padrão BIP-39) na criação do cluster        | Must       | Seed gera master key deterministicamente; usuário anota e guarda com segurança                         |
 | RF-048 | Envelope encryption (seed → master key → file keys → chunk keys)              | Must       | Cada arquivo possui sua própria chave derivada; comprometimento de uma chave não afeta outros arquivos |
-| RF-049 | Vault criptografado para tokens, credenciais e chaves (modelo tipo 1Password) | Must       | Vault desbloqueado somente com chave derivada da seed; inacessível sem seed                            |
+| RF-049 | Vault criptografado para tokens, credenciais, chaves e senhas do usuário (modelo tipo 1Password) | Must       | Vault desbloqueado via senha do usuário; em recovery, desbloqueado via master key derivada da seed     |
 | RF-050 | Tokens OAuth nunca em texto puro; usados somente em memória                   | Must       | Tokens criptografados no vault; descriptografados em memória somente durante uso                       |
 | RF-051 | Autenticação mútua entre nós (mutual TLS ou Ed25519)                          | Should     | Nós não autorizados rejeitados automaticamente                                                         |
 | RF-052 | Assinatura criptográfica de manifests                                         | Should     | Manifests falsificados ou alterados rejeitados na validação                                            |
@@ -482,7 +482,7 @@ Um ecossistema composto por:
 | ------------------------- | ------------------------------------------------------------------- | -------- | ---------------------------------------- |
 | Core SDK                  | API client, criptografia, chunking, upload/download                 | Pendente | Bloqueia todos os clientes e integrações |
 | StorageProvider interface | Abstrações para S3, R2, local, OAuth clouds                         | Pendente | Bloqueia integração com provedores       |
-| Vault implementation      | Key management, envelope encryption, armazenamento seguro de tokens | Pendente | Bloqueia segurança e recuperação         |
+| Vault implementation      | Key management, envelope encryption, armazenamento seguro de tokens e senhas | Pendente | Bloqueia segurança e recuperação         |
 | Consistent hashing        | Algoritmo de distribuição de chunks                                 | Pendente | Bloqueia pipeline de upload              |
 
 ### 12.2 Dependências externas
@@ -574,6 +574,7 @@ Um ecossistema composto por:
 | Fotos e vídeos familiares            | Pessoal / Sensível | Criptografia AES-256-GCM no cliente, acesso restrito por cluster_id  |
 | Documentos                           | Pessoal            | Criptografia ponta-a-ponta, acesso por permissão                     |
 | Tokens OAuth (Google, Dropbox, etc.) | Sensível           | Vault criptografado, nunca em texto puro, uso somente em memória     |
+| Senhas do usuário                    | Sensível           | Vault criptografado, nunca em texto puro, uso somente em memória     |
 | Seed phrase (12 palavras)            | Crítico            | Nunca armazenada digitalmente pelo sistema; somente com o usuário    |
 | Master key                           | Crítico            | Derivada da seed em memória; nunca persistida em disco               |
 | Metadados de arquivos (nomes, datas) | Interno            | Criptografados no orquestrador                                       |
@@ -590,7 +591,7 @@ Um ecossistema composto por:
 
 - **Zero-knowledge**: orquestrador e provedores cloud nunca veem dados em texto puro
 - **Envelope encryption**: seed → master key → file keys → chunk keys (comprometimento de uma chave não afeta outros arquivos)
-- **Vault criptografado**: tokens e credenciais protegidos por chave derivada da seed
+- **Vault criptografado**: tokens, credenciais e senhas do usuário protegidos por senha do usuário; master key usada apenas em recovery
 - **Mutual TLS ou Ed25519**: autenticação entre nós do cluster
 - **Assinatura criptográfica de manifests**: proteção contra manifests falsificados
 - **Rate limiting**: proteção contra abuso de API

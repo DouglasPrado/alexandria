@@ -21,7 +21,7 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 | Seed Phrase | Frase de 12 palavras (padrão BIP-39) que gera deterministicamente a master key do cluster. Nunca armazenada digitalmente pelo sistema. |
 | Master Key | Chave criptográfica raiz derivada da seed phrase. Existe apenas em memória, nunca persistida em disco. |
 | File Key | Chave de criptografia específica de um arquivo, derivada da master key via envelope encryption. |
-| Vault | Cofre criptografado que armazena tokens OAuth, credenciais de provedores e chaves. Desbloqueado exclusivamente via master key. |
+| Vault | Cofre criptografado que armazena tokens OAuth, credenciais de provedores, chaves e senhas do usuário. Desbloqueado via senha do usuário; em recovery, desbloqueado via master key derivada da seed. |
 | Réplica | Cópia de um chunk armazenada em um nó específico. Cada chunk deve ter pelo menos 3 réplicas em nós diferentes. |
 | Heartbeat | Sinal periódico que um nó envia ao orquestrador para indicar que está online e reportar capacidade. |
 | Scrubbing | Verificação periódica de integridade: recalcula hashes de chunks e repara corrompidos a partir de réplicas. |
@@ -58,7 +58,7 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 - **RN-C1:** Um cluster é criado junto com uma seed phrase de 12 palavras (BIP-39) que gera a master key deterministicamente
 - **RN-C2:** O cluster_id é imutável após criação — é derivado do par de chaves e serve como identidade criptográfica
-- **RN-C3:** A chave privada do cluster é armazenada criptografada no vault; a master key que a desbloqueia existe apenas em memória
+- **RN-C3:** A chave privada do cluster é armazenada criptografada no vault; a senha do usuário que a desbloqueia é validada em memória
 - **RN-C4:** Todo cluster deve ter pelo menos 1 membro com role admin
 
 **Eventos de Domínio:**
@@ -261,28 +261,28 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 ### Vault
 
-**Descrição:** Cofre criptografado que armazena tokens OAuth, credenciais de provedores cloud, chaves de criptografia e configuração sensível do cluster. Existe como arquivo criptografado replicado nos nós.
+**Descrição:** Cofre criptografado que armazena tokens OAuth, credenciais de provedores cloud, chaves de criptografia, senhas do usuário e configuração sensível do cluster. Existe como arquivo criptografado replicado nos nós.
 
 **Atributos:**
 
 | Nome | Tipo | Obrigatório | Descrição |
 |------|------|:-----------:|-----------|
-| vault_data | bytes | Sim | Conteúdo criptografado (tokens, credenciais, config) |
+| vault_data | bytes | Sim | Conteúdo criptografado (tokens, credenciais, senhas, config) |
 | encryption_algorithm | string | Sim | AES-256-GCM |
 | replicated_to | lista(Node) | Sim | Nós que possuem cópia do vault |
 
 **Regras de Negócio:**
 
-- **RN-V1:** O vault é desbloqueado exclusivamente pela master key derivada da seed phrase — sem seed, vault é inacessível
-- **RN-V2:** Tokens OAuth e credenciais S3 existem em texto puro apenas em memória, nunca em disco
+- **RN-V1:** O vault é desbloqueado via senha do usuário; em cenário de recovery, a master key derivada da seed phrase também pode desbloquear o vault
+- **RN-V2:** Tokens OAuth, credenciais S3 e senhas do usuário existem em texto puro apenas em memória, nunca em disco
 - **RN-V3:** O vault é replicado em múltiplos nós para permitir recovery sem orquestrador
-- **RN-V4:** Qualquer modificação no vault (novo token, credencial atualizada) dispara re-criptografia e re-replicação
+- **RN-V4:** Qualquer modificação no vault (novo token, credencial atualizada, senha adicionada) dispara re-criptografia e re-replicação
 
 **Eventos de Domínio:**
 
 - `VaultCriado` — vault inicializado na criação do cluster
-- `VaultDesbloqueado` — master key derivada da seed com sucesso
-- `VaultAtualizado` — credencial adicionada ou modificada
+- `VaultDesbloqueado` — senha do usuário validada com sucesso (ou master key em recovery)
+- `VaultAtualizado` — credencial, senha ou token adicionado ou modificado
 - `VaultReplicado` — cópia atualizada confirmada em nó
 
 ---

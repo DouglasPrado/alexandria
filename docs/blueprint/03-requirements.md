@@ -99,7 +99,7 @@
 |----|-----------|------------|--------|----------|
 | RF-047 | Gerar seed phrase de 12 palavras (padrão BIP-39) na criação do cluster | Must | Proposto | OBJ-02 |
 | RF-048 | Envelope encryption (seed → master key → file keys → chunk keys) | Must | Proposto | OBJ-01 |
-| RF-049 | Vault criptografado para tokens, credenciais e chaves | Must | Proposto | OBJ-01 |
+| RF-049 | Vault criptografado para tokens, credenciais, chaves e senhas do usuário | Must | Proposto | OBJ-01 |
 | RF-050 | Tokens OAuth nunca em texto puro; usados somente em memória | Must | Proposto | OBJ-01 |
 | RF-051 | Autenticação mútua entre nós (mutual TLS ou Ed25519) | Should | Proposto | OBJ-01 |
 | RF-052 | Assinatura criptográfica de manifests | Should | Proposto | OBJ-01 |
@@ -184,7 +184,7 @@
 | Performance | Upload paralelo de chunks | Throughput | Saturar banda disponível |
 | Segurança | Criptografia de dados em repouso | Algoritmo | AES-256-GCM em todos os chunks |
 | Segurança | Criptografia em trânsito | Protocolo | TLS 1.3 em todas as comunicações |
-| Segurança | Proteção de credenciais | Armazenamento | Vault criptografado; nunca em texto puro |
+| Segurança | Proteção de credenciais e senhas | Armazenamento | Vault criptografado; nunca em texto puro |
 | Escalabilidade | Nós suportados por cluster | Máximo | Até 50 nós |
 | Escalabilidade | Usuários por cluster | Máximo | Até 10 usuários |
 | Escalabilidade | Armazenamento total por cluster | Capacidade | Até 100TB |

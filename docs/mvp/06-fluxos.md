@@ -67,7 +67,7 @@ Esta seção documenta os **2-3 fluxos mais importantes** da POC — aqueles que
 2. **Admin** inicia processo de recovery e insere seed phrase de 12 palavras
 3. **Orquestrador** deriva master key da seed via BIP-39
 4. **Orquestrador** descriptografa vault (arquivo criptografado replicado nos nós) com a master key
-5. **Vault** libera: credenciais S3/R2, chaves de criptografia, configuração do cluster, lista de nós conhecidos
+5. **Vault** libera: credenciais S3/R2, chaves de criptografia, senhas do usuário, configuração do cluster, lista de nós conhecidos
 6. **Orquestrador** conecta aos nós cloud (S3/R2) usando credenciais do vault
 7. **Orquestrador** escaneia nós em busca de manifests replicados
 8. **Orquestrador** reconstrói banco de metadados (PostgreSQL) a partir dos manifests encontrados
@@ -93,7 +93,7 @@ Esta seção documenta os **2-3 fluxos mais importantes** da POC — aqueles que
 
 - **RN3:** Seed phrase nunca armazenada digitalmente pelo sistema
 - **RN4:** Master key derivada em memória, nunca persistida
-- **RN5:** Tokens e credenciais vivem exclusivamente no vault criptografado
+- **RN5:** Tokens, credenciais e senhas do usuário vivem exclusivamente no vault criptografado
 - **RN10:** Manifests replicados em múltiplos nós para permitir recovery
 - **RN1:** Auto-healing restaura fator de replicação 3x
 

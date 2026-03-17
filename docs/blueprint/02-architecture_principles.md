@@ -43,7 +43,7 @@ Liste 3 a 7 princípios que guiam todas as decisões técnicas do sistema. Esses
 **Implicações:**
 - Criptografia AES-256-GCM acontece no cliente, antes de qualquer upload
 - Envelope encryption (seed → master key → file keys → chunk keys) isola comprometimento
-- Tokens OAuth e credenciais de provedores vivem exclusivamente no vault criptografado, nunca em texto puro
+- Tokens OAuth, credenciais de provedores e senhas do usuário vivem exclusivamente no vault criptografado, nunca em texto puro
 - Master key é derivada em memória e nunca persistida em disco
 - TLS 1.3 obrigatório em toda comunicação entre componentes
 

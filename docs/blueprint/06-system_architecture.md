@@ -81,7 +81,7 @@ Esta seção descreve a arquitetura de alto nível do **Alexandria**, incluindo 
 | Campo            | Descrição                                      |
 | ---------------- | ---------------------------------------------- |
 | **Nome**         | Vault                                          |
-| **Responsabilidade** | Armazena tokens OAuth, credenciais de provedores cloud e chaves criptografadas. Desbloqueado em memória via master key derivada da seed phrase |
+| **Responsabilidade** | Armazena tokens OAuth, credenciais de provedores cloud, chaves criptografadas e senhas do usuário. Desbloqueado em memória via senha do usuário; master key usada apenas em recovery do orquestrador |
 | **Tecnologia**   | Arquivo criptografado (AES-256-GCM) no filesystem do orquestrador |
 | **Interface**    | API interna (módulo do orquestrador); nunca exposto externamente |
 
