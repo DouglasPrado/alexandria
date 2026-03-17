@@ -8,7 +8,7 @@ classDiagram
 
     class Cluster {
         +String cluster_id
-        +String nome
+        +String name
         +Bytes public_key
         +Bytes encrypted_private_key
         +DateTime created_at
@@ -18,8 +18,8 @@ classDiagram
     }
 
     class Membro {
-        +String membro_id
-        +String nome
+        +String member_id
+        +String name
         +String email
         +Role role
         +DateTime joined_at
@@ -30,10 +30,10 @@ classDiagram
 
     class Nó {
         +String node_id
-        +TipoNó tipo
-        +String nome
-        +Long capacidade_total
-        +Long capacidade_usada
+        +TipoNó type
+        +String name
+        +Long total_capacity
+        +Long used_capacity
         +StatusNó status
         +String endpoint
         +Bytes config_encrypted
@@ -46,11 +46,11 @@ classDiagram
 
     class Arquivo {
         +String file_id
-        +String nome_original
-        +TipoMidia tipo_midia
-        +Long tamanho_original
-        +Long tamanho_otimizado
-        +String hash_conteudo
+        +String original_name
+        +TipoMidia media_type
+        +Long original_size
+        +Long optimized_size
+        +String content_hash
         +StatusArquivo status
         +JSON metadata
         +DateTime created_at
@@ -62,7 +62,7 @@ classDiagram
         +String manifest_id
         +List~ChunkRef~ chunks
         +Bytes file_key_encrypted
-        +Bytes assinatura
+        +Bytes signature
         +List~String~ replicated_to
         +validarAssinatura() Boolean
         +replicar(nó) void
@@ -71,7 +71,7 @@ classDiagram
     class Chunk {
         +String chunk_id
         +Int chunk_index
-        +Int tamanho
+        +Int size
         +verificarIntegridade() Boolean
     }
 
@@ -91,10 +91,10 @@ classDiagram
     }
 
     class Alerta {
-        +String alerta_id
-        +TipoAlerta tipo
-        +String mensagem
-        +Severidade severidade
+        +String alert_id
+        +TipoAlerta type
+        +String message
+        +Severidade severity
         +Boolean resolved
         +DateTime created_at
         +DateTime resolved_at

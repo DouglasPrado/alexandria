@@ -49,7 +49,7 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 | Nome | Tipo | Obrigatório | Descrição |
 |------|------|:-----------:|-----------|
 | cluster_id | string | Sim | Hash da chave pública — identificador único e imutável |
-| nome | string | Sim | Nome legível do cluster (ex.: "Família Prado") |
+| name | string | Sim | Nome legível do cluster (ex.: "Família Prado") |
 | public_key | bytes | Sim | Chave pública do cluster para verificação de assinaturas |
 | encrypted_private_key | bytes | Sim | Chave privada criptografada com master key |
 | created_at | datetime | Sim | Data de criação |
@@ -76,8 +76,8 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 | Nome | Tipo | Obrigatório | Descrição |
 |------|------|:-----------:|-----------|
-| membro_id | string | Sim | Identificador único |
-| nome | string | Sim | Nome completo |
+| member_id | string | Sim | Identificador único |
+| name | string | Sim | Nome completo |
 | email | string | Sim | E-mail para identificação e notificações |
 | role | enum | Sim | admin, membro, leitura |
 | invited_by | referência(Membro) | Não | Membro que convidou (null para o criador do cluster) |
@@ -108,10 +108,10 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 | Nome | Tipo | Obrigatório | Descrição |
 |------|------|:-----------:|-----------|
 | node_id | string | Sim | Identificador único |
-| tipo | enum | Sim | local, s3, r2, vps |
-| nome | string | Sim | Nome descritivo (ex.: "MacBook do Douglas", "R2 Bucket Principal") |
-| capacidade_total | integer (bytes) | Sim | Espaço total disponível no nó |
-| capacidade_usada | integer (bytes) | Sim | Espaço atualmente ocupado por chunks |
+| type | enum | Sim | local, s3, r2, vps |
+| name | string | Sim | Nome descritivo (ex.: "MacBook do Douglas", "R2 Bucket Principal") |
+| total_capacity | integer (bytes) | Sim | Espaço total disponível no nó |
+| used_capacity | integer (bytes) | Sim | Espaço atualmente ocupado por chunks |
 | status | enum | Sim | online, suspeito, perdido, draining |
 | endpoint | string | Não | URL ou endereço de conexão (para nós remotos) |
 | config_encrypted | bytes | Não | Credenciais de acesso criptografadas (S3 keys, OAuth tokens) |
@@ -147,11 +147,11 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 | Nome | Tipo | Obrigatório | Descrição |
 |------|------|:-----------:|-----------|
 | file_id | string | Sim | Identificador único |
-| nome_original | string | Sim | Nome do arquivo como enviado pelo usuário |
-| tipo_midia | enum | Sim | foto, video, documento |
-| tamanho_original | integer (bytes) | Sim | Tamanho antes da otimização |
-| tamanho_otimizado | integer (bytes) | Sim | Tamanho após pipeline de mídia |
-| hash_conteudo | string | Sim | SHA-256 do conteúdo otimizado (para deduplicação) |
+| original_name | string | Sim | Nome do arquivo como enviado pelo usuário |
+| media_type | enum | Sim | foto, video, documento |
+| original_size | integer (bytes) | Sim | Tamanho antes da otimização |
+| optimized_size | integer (bytes) | Sim | Tamanho após pipeline de mídia |
+| content_hash | string | Sim | SHA-256 do conteúdo otimizado (para deduplicação) |
 | status | enum | Sim | processing, ready, error |
 | metadata | json | Não | EXIF e outros metadados extraídos (data, GPS, câmera) |
 | uploaded_by | referência(Membro) | Sim | Membro que fez upload |
@@ -162,7 +162,7 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 - **RN-F1:** Todo arquivo passa pelo pipeline de mídia antes de ser armazenado: fotos → WebP max 1920px; vídeos → 1080p H.265/AV1
 - **RN-F2:** Originais não são preservados — decisão explícita; apenas versão otimizada + preview
 - **RN-F3:** Metadados EXIF são extraídos e preservados separadamente, nunca perdidos
-- **RN-F4:** Dois arquivos com o mesmo hash_conteudo são considerados duplicatas; chunks são compartilhados (deduplicação)
+- **RN-F4:** Dois arquivos com o mesmo content_hash são considerados duplicatas; chunks são compartilhados (deduplicação)
 - **RN-F5:** Arquivo com status "processing" não está visível na galeria; se pipeline falhar, status muda para "error"
 - **RN-F6:** Um arquivo só está "ready" quando todos os seus chunks têm 3+ réplicas confirmadas
 
@@ -185,9 +185,9 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 |------|------|:-----------:|-----------|
 | manifest_id | string | Sim | Identificador único |
 | file_id | referência(Arquivo) | Sim | Arquivo descrito por este manifest |
-| chunks | lista | Sim | Lista ordenada de {chunk_id, index, hash, tamanho} |
+| chunks | lista | Sim | Lista ordenada de {chunk_id, index, hash, size} |
 | file_key_encrypted | bytes | Sim | Chave do arquivo criptografada com master key |
-| assinatura | bytes | Não | Assinatura criptográfica para verificação de integridade |
+| signature | bytes | Não | Assinatura criptográfica para verificação de integridade |
 | replicated_to | lista(Node) | Sim | Nós que possuem cópia do manifest |
 
 **Regras de Negócio:**
@@ -217,7 +217,7 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 | chunk_id | string | Sim | SHA-256 do conteúdo criptografado — funciona como ID e prova de integridade |
 | file_id | referência(Arquivo) | Sim | Arquivo ao qual pertence |
 | chunk_index | integer | Sim | Posição dentro do arquivo (0-based) |
-| tamanho | integer (bytes) | Sim | Tamanho do chunk criptografado |
+| size | integer (bytes) | Sim | Tamanho do chunk criptografado |
 
 **Regras de Negócio:**
 
@@ -295,10 +295,10 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 | Nome | Tipo | Obrigatório | Descrição |
 |------|------|:-----------:|-----------|
-| alerta_id | string | Sim | Identificador único |
-| tipo | enum | Sim | node_offline, low_replication, integrity_error, token_expired, space_low |
-| mensagem | string | Sim | Descrição legível do problema |
-| severidade | enum | Sim | info, warning, critical |
+| alert_id | string | Sim | Identificador único |
+| type | enum | Sim | node_offline, low_replication, integrity_error, token_expired, space_low |
+| message | string | Sim | Descrição legível do problema |
+| severity | enum | Sim | info, warning, critical |
 | resolved | boolean | Sim | Se o problema foi resolvido |
 | created_at | datetime | Sim | Quando o alerta foi gerado |
 | resolved_at | datetime | Não | Quando foi resolvido |

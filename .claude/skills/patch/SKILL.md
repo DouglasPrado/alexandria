@@ -1,13 +1,13 @@
 ---
 name: patch
-description: Aplica uma alteracao em cascata por todos os documentos dos 4 blueprints (tecnico, frontend, business, MVP). Busca todas as ocorrencias e aplica patches com Edit.
+description: Aplica uma alteracao em cascata por todos os documentos dos 4 blueprints (tecnico, frontend, business, MVP) e diagramas. Busca todas as ocorrencias e aplica patches com Edit.
 ---
 
 # Patch — Edicao Propagada em Todos os Blueprints
 
 Aplica uma alteracao (renomear, atualizar, corrigir) em cascata por todos os
-48 documentos dos 4 blueprints. Faz varredura global, mostra impacto, e aplica
-patches cirurgicos com Edit tool — nunca Write.
+documentos dos 4 blueprints e diagramas Mermaid. Faz varredura global, mostra
+impacto, e aplica patches cirurgicos com Edit tool — nunca Write.
 
 ## Passo 1: Receber a Alteracao
 
@@ -33,13 +33,14 @@ Aguarde a resposta. Extraia:
 
 ## Passo 2: Varredura Global
 
-Use a **Grep tool** para buscar TODAS as ocorrencias do termo nos 4 diretorios:
+Use a **Grep tool** para buscar TODAS as ocorrencias do termo nos 5 diretorios:
 
 ```
 docs/blueprint/*.md
 docs/frontend/*.md
 docs/business/*.md
 docs/mvp/*.md
+docs/diagrams/**/*.mmd
 ```
 
 Busque tambem variacoes de case do termo:
@@ -95,6 +96,7 @@ Apresente resumo e peca confirmacao:
 > | frontend/ | {{n}} | {{x}} |
 > | business/ | {{n}} | {{x}} |
 > | mvp/ | {{n}} | {{x}} |
+> | diagrams/ | {{n}} | {{x}} |
 >
 > Deseja prosseguir? Quer excluir algum arquivo ou ocorrencia?"
 
@@ -121,6 +123,13 @@ Para CADA ocorrencia confirmada:
 | Prefixo use | `useBooking` | `useAppointment` |
 | Path | `/api/booking` | `/api/appointment` |
 | Feature dir | `features/booking/` | `features/appointment/` |
+
+### Diagramas Mermaid (.mmd)
+
+Arquivos `.mmd` em `docs/diagrams/` contem diagramas Mermaid (ER, classes, sequencias, contexto, componentes, deployment). Aplicar as mesmas regras de substituicao, respeitando a sintaxe Mermaid:
+- Nomes de entidades, participantes, componentes
+- Labels de relacionamentos e setas
+- Notas e comentarios descritivos
 
 ### Regras criticas — NUNCA violar:
 
@@ -152,6 +161,7 @@ Apresente resumo final:
 > | frontend/ | {{N}} | {{X}} |
 > | business/ | {{N}} | {{X}} |
 > | mvp/ | {{N}} | {{X}} |
+> | diagrams/ | {{N}} | {{X}} |
 > | **Total** | **{{N}}** | **{{X}}** |
 >
 > **{{Z}} referencias indiretas** marcadas com `<!-- PATCH-REVIEW -->` para revisao manual:

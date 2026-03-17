@@ -26,22 +26,22 @@ Esta seção define **como e onde os dados são armazenados** na POC. Traduz o m
 | --- | --- | :-: | --- |
 | id | uuid | PK | Identificador único |
 | cluster_id | varchar(64) | Sim, único | Hash da chave pública |
-| nome | varchar(255) | Sim | Nome do cluster familiar |
+| name | varchar(255) | Sim | Nome do cluster familiar |
 | public_key | bytea | Sim | Chave pública do cluster |
 | encrypted_private_key | bytea | Sim | Chave privada criptografada com master key |
 | created_at | timestamp | Sim | Data de criação |
 | updated_at | timestamp | Sim | Última atualização |
 
-### membros
+### members
 
 | Campo | Tipo | Obrigatório | Descrição |
 | --- | --- | :-: | --- |
 | id | uuid | PK | Identificador único |
 | cluster_id | uuid | FK → clusters | Cluster ao qual pertence |
-| nome | varchar(255) | Sim | Nome do membro |
+| name | varchar(255) | Sim | Nome do membro |
 | email | varchar(255) | Sim | E-mail para identificação |
 | role | varchar(20) | Sim | admin, membro, leitura |
-| invited_by | uuid | FK → membros | Quem convidou (null para criador) |
+| invited_by | uuid | FK → members | Quem convidou (null para criador) |
 | joined_at | timestamp | Sim | Data de ingresso |
 | created_at | timestamp | Sim | Data de criação |
 | updated_at | timestamp | Sim | Última atualização |
@@ -52,11 +52,11 @@ Esta seção define **como e onde os dados são armazenados** na POC. Traduz o m
 | --- | --- | :-: | --- |
 | id | uuid | PK | Identificador único |
 | cluster_id | uuid | FK → clusters | Cluster ao qual pertence |
-| owner_id | uuid | FK → membros | Membro que registrou |
-| tipo | varchar(20) | Sim | local, s3, r2, vps |
-| nome | varchar(255) | Sim | Nome descritivo do nó |
-| capacidade_total | bigint | Sim | Espaço total em bytes |
-| capacidade_usada | bigint | Sim | Espaço usado em bytes |
+| owner_id | uuid | FK → members | Membro que registrou |
+| type | varchar(20) | Sim | local, s3, r2, vps |
+| name | varchar(255) | Sim | Nome descritivo do nó |
+| total_capacity | bigint | Sim | Espaço total em bytes |
+| used_capacity | bigint | Sim | Espaço usado em bytes |
 | status | varchar(20) | Sim | online, suspeito, perdido, draining |
 | endpoint | text | Não | URL/endereço de conexão |
 | config_encrypted | bytea | Não | Credenciais criptografadas (S3 keys, etc.) |
@@ -70,12 +70,12 @@ Esta seção define **como e onde os dados são armazenados** na POC. Traduz o m
 | --- | --- | :-: | --- |
 | id | uuid | PK | Identificador único |
 | cluster_id | uuid | FK → clusters | Cluster ao qual pertence |
-| uploaded_by | uuid | FK → membros | Membro que fez upload |
-| nome_original | varchar(500) | Sim | Nome do arquivo original |
-| tipo_midia | varchar(20) | Sim | foto, video, documento |
-| tamanho_original | bigint | Sim | Tamanho antes de otimização |
-| tamanho_otimizado | bigint | Sim | Tamanho após otimização |
-| hash_conteudo | varchar(64) | Sim | SHA-256 do conteúdo otimizado |
+| uploaded_by | uuid | FK → members | Membro que fez upload |
+| original_name | varchar(500) | Sim | Nome do arquivo original |
+| media_type | varchar(20) | Sim | foto, video, documento |
+| original_size | bigint | Sim | Tamanho antes de otimização |
+| optimized_size | bigint | Sim | Tamanho após otimização |
+| content_hash | varchar(64) | Sim | SHA-256 do conteúdo otimizado |
 | metadata | jsonb | Não | EXIF e outros metadados extraídos |
 | preview_chunk_id | varchar(64) | Não | Chunk ID do preview/thumbnail |
 | status | varchar(20) | Sim | processing, ready, error |
@@ -90,7 +90,7 @@ Esta seção define **como e onde os dados são armazenados** na POC. Traduz o m
 | file_id | uuid | FK → files, único | Arquivo descrito |
 | chunks_json | jsonb | Sim | Lista ordenada: [{chunk_id, index, hash, size}] |
 | file_key_encrypted | bytea | Sim | Chave do arquivo criptografada |
-| assinatura | bytea | Não | Assinatura criptográfica |
+| signature | bytea | Não | Assinatura criptográfica |
 | replicated_to | jsonb | Sim | Lista de node_ids que possuem cópia do manifest |
 | created_at | timestamp | Sim | Data de criação |
 | updated_at | timestamp | Sim | Última atualização |
@@ -102,7 +102,7 @@ Esta seção define **como e onde os dados são armazenados** na POC. Traduz o m
 | id | varchar(64) | PK | SHA-256 do conteúdo criptografado |
 | file_id | uuid | FK → files | Arquivo ao qual pertence |
 | chunk_index | integer | Sim | Posição dentro do arquivo |
-| tamanho | integer | Sim | Tamanho em bytes |
+| size | integer | Sim | Tamanho em bytes |
 | created_at | timestamp | Sim | Data de criação |
 
 ### chunk_replicas
@@ -121,8 +121,8 @@ Esta seção define **como e onde os dados são armazenados** na POC. Traduz o m
 | --- | --- | :-: | --- |
 | id | uuid | PK | Identificador único |
 | cluster_id | uuid | FK → clusters | Cluster relacionado |
-| tipo | varchar(50) | Sim | node_offline, low_replication, integrity_error, etc. |
-| mensagem | text | Sim | Descrição do alerta |
+| type | varchar(50) | Sim | node_offline, low_replication, integrity_error, etc. |
+| message | text | Sim | Descrição do alerta |
 | resolved | boolean | Sim | Se já foi resolvido |
 | created_at | timestamp | Sim | Data de criação |
 | resolved_at | timestamp | Não | Data de resolução |
@@ -138,10 +138,10 @@ Esta seção define **como e onde os dados são armazenados** na POC. Traduz o m
 | chunk_replicas | node_id | btree | Listar todos os chunks de um nó (para drain) |
 | chunk_replicas | chunk_id, node_id | unique | Evitar réplica duplicada no mesmo nó |
 | files | cluster_id, created_at | composite | Listar arquivos por data (galeria/timeline) |
-| files | hash_conteudo | btree | Deduplicação por conteúdo |
+| files | content_hash | btree | Deduplicação por conteúdo |
 | nodes | cluster_id, status | composite | Listar nós ativos de um cluster |
 | nodes | last_heartbeat | btree | Identificar nós com heartbeat atrasado |
-| membros | cluster_id, email | unique | Um email por cluster |
+| members | cluster_id, email | unique | Um email por cluster |
 | alerts | cluster_id, resolved | composite | Listar alertas ativos de um cluster |
 
 ---

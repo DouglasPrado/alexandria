@@ -42,7 +42,7 @@ sequenceDiagram
         S3 -->>- API: manifest_data
     end
 
-    API ->>+ DB: BULK INSERT (clusters, membros, files, manifests, chunks)
+    API ->>+ DB: BULK INSERT (clusters, members, files, manifests, chunks)
     DB -->>- API: Índice reconstruído
     API -->>- Admin: Recovery parcial OK — aguardando nós
 

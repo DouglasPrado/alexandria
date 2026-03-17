@@ -39,7 +39,7 @@ Enquanto o [Modelo de Domínio](./04-domain_model.md) descreve entidades e regra
 |-------|------|-----------|-----------|
 | id | UUID | PK, NOT NULL | Identificador interno |
 | cluster_id | VARCHAR(64) | UNIQUE, NOT NULL | Hash da chave pública — identidade criptográfica |
-| nome | VARCHAR(255) | NOT NULL | Nome legível do cluster |
+| name | VARCHAR(255) | NOT NULL | Nome legível do cluster |
 | public_key | BYTEA | NOT NULL | Chave pública para verificação de assinaturas |
 | encrypted_private_key | BYTEA | NOT NULL | Chave privada criptografada com master key |
 | created_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Data de criação |
@@ -53,7 +53,7 @@ Enquanto o [Modelo de Domínio](./04-domain_model.md) descreve entidades e regra
 
 ---
 
-### membros
+### members
 
 **Descrição:** Pessoas autorizadas no cluster com nível de permissão.
 
@@ -63,10 +63,10 @@ Enquanto o [Modelo de Domínio](./04-domain_model.md) descreve entidades e regra
 |-------|------|-----------|-----------|
 | id | UUID | PK, NOT NULL | Identificador único |
 | cluster_id | UUID | FK → clusters(id), NOT NULL | Cluster ao qual pertence |
-| nome | VARCHAR(255) | NOT NULL | Nome completo |
+| name | VARCHAR(255) | NOT NULL | Nome completo |
 | email | VARCHAR(255) | NOT NULL | E-mail para identificação |
 | role | VARCHAR(20) | NOT NULL, CHECK (role IN ('admin', 'membro', 'leitura')) | Nível de permissão |
-| invited_by | UUID | FK → membros(id), NULL | Quem convidou (null para criador) |
+| invited_by | UUID | FK → members(id), NULL | Quem convidou (null para criador) |
 | joined_at | TIMESTAMPTZ | NOT NULL | Data de ingresso |
 | created_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Data de criação |
 | updated_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Última atualização |
@@ -75,8 +75,8 @@ Enquanto o [Modelo de Domínio](./04-domain_model.md) descreve entidades e regra
 
 | Nome do Índice | Campos | Tipo | Justificativa |
 |---------------|--------|------|---------------|
-| membros_cluster_email_key | cluster_id, email | UNIQUE BTREE | Um email por cluster |
-| membros_cluster_id_idx | cluster_id | BTREE | Listar membros de um cluster |
+| members_cluster_email_key | cluster_id, email | UNIQUE BTREE | Um email por cluster |
+| members_cluster_id_idx | cluster_id | BTREE | Listar membros de um cluster |
 
 ---
 
@@ -90,11 +90,11 @@ Enquanto o [Modelo de Domínio](./04-domain_model.md) descreve entidades e regra
 |-------|------|-----------|-----------|
 | id | UUID | PK, NOT NULL | Identificador único |
 | cluster_id | UUID | FK → clusters(id), NOT NULL | Cluster ao qual pertence |
-| owner_id | UUID | FK → membros(id), NOT NULL | Membro que registrou |
-| tipo | VARCHAR(20) | NOT NULL, CHECK (tipo IN ('local', 's3', 'r2', 'vps')) | Tipo de nó |
-| nome | VARCHAR(255) | NOT NULL | Nome descritivo |
-| capacidade_total | BIGINT | NOT NULL | Espaço total em bytes |
-| capacidade_usada | BIGINT | NOT NULL, DEFAULT 0 | Espaço usado em bytes |
+| owner_id | UUID | FK → members(id), NOT NULL | Membro que registrou |
+| type | VARCHAR(20) | NOT NULL, CHECK (type IN ('local', 's3', 'r2', 'vps')) | Tipo de nó |
+| name | VARCHAR(255) | NOT NULL | Nome descritivo |
+| total_capacity | BIGINT | NOT NULL | Espaço total em bytes |
+| used_capacity | BIGINT | NOT NULL, DEFAULT 0 | Espaço usado em bytes |
 | status | VARCHAR(20) | NOT NULL, DEFAULT 'online', CHECK (status IN ('online', 'suspeito', 'perdido', 'draining')) | Estado atual |
 | endpoint | TEXT | NULL | URL/endereço de conexão |
 | config_encrypted | BYTEA | NULL | Credenciais criptografadas (S3 keys, etc.) |
@@ -122,12 +122,12 @@ Enquanto o [Modelo de Domínio](./04-domain_model.md) descreve entidades e regra
 |-------|------|-----------|-----------|
 | id | UUID | PK, NOT NULL | Identificador único |
 | cluster_id | UUID | FK → clusters(id), NOT NULL | Cluster ao qual pertence |
-| uploaded_by | UUID | FK → membros(id), NOT NULL | Membro que fez upload |
-| nome_original | VARCHAR(500) | NOT NULL | Nome do arquivo original |
-| tipo_midia | VARCHAR(20) | NOT NULL, CHECK (tipo_midia IN ('foto', 'video', 'documento')) | Tipo de mídia |
-| tamanho_original | BIGINT | NOT NULL | Tamanho antes de otimização (bytes) |
-| tamanho_otimizado | BIGINT | NOT NULL | Tamanho após otimização (bytes) |
-| hash_conteudo | VARCHAR(64) | NOT NULL | SHA-256 do conteúdo otimizado |
+| uploaded_by | UUID | FK → members(id), NOT NULL | Membro que fez upload |
+| original_name | VARCHAR(500) | NOT NULL | Nome do arquivo original |
+| media_type | VARCHAR(20) | NOT NULL, CHECK (media_type IN ('foto', 'video', 'documento')) | Tipo de mídia |
+| original_size | BIGINT | NOT NULL | Tamanho antes de otimização (bytes) |
+| optimized_size | BIGINT | NOT NULL | Tamanho após otimização (bytes) |
+| content_hash | VARCHAR(64) | NOT NULL | SHA-256 do conteúdo otimizado |
 | metadata | JSONB | NULL | EXIF e metadados extraídos |
 | preview_chunk_id | VARCHAR(64) | NULL | Chunk ID do preview/thumbnail |
 | status | VARCHAR(20) | NOT NULL, DEFAULT 'processing', CHECK (status IN ('processing', 'ready', 'error')) | Estado do pipeline |
@@ -139,7 +139,7 @@ Enquanto o [Modelo de Domínio](./04-domain_model.md) descreve entidades e regra
 | Nome do Índice | Campos | Tipo | Justificativa |
 |---------------|--------|------|---------------|
 | files_cluster_created_idx | cluster_id, created_at DESC | BTREE | Galeria: listar arquivos por data (query mais frequente) |
-| files_hash_conteudo_idx | hash_conteudo | BTREE | Deduplicação por conteúdo |
+| files_content_hash_idx | content_hash | BTREE | Deduplicação por conteúdo |
 | files_cluster_status_idx | cluster_id, status | BTREE | Listar arquivos pendentes/com erro |
 | files_uploaded_by_idx | uploaded_by | BTREE | Listar arquivos de um membro |
 
@@ -157,7 +157,7 @@ Enquanto o [Modelo de Domínio](./04-domain_model.md) descreve entidades e regra
 | file_id | UUID | FK → files(id), UNIQUE, NOT NULL | Arquivo descrito (1:1) |
 | chunks_json | JSONB | NOT NULL | Lista ordenada: [{chunk_id, index, hash, size}] |
 | file_key_encrypted | BYTEA | NOT NULL | Chave do arquivo criptografada com master key |
-| assinatura | BYTEA | NULL | Assinatura criptográfica do manifest |
+| signature | BYTEA | NULL | Assinatura criptográfica do manifest |
 | replicated_to | JSONB | NOT NULL, DEFAULT '[]' | Lista de node_ids com cópia do manifest |
 | created_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Data de criação |
 | updated_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Última atualização |
@@ -181,7 +181,7 @@ Enquanto o [Modelo de Domínio](./04-domain_model.md) descreve entidades e regra
 | id | VARCHAR(64) | PK, NOT NULL | SHA-256 do conteúdo criptografado |
 | file_id | UUID | FK → files(id), NOT NULL | Arquivo ao qual pertence |
 | chunk_index | INTEGER | NOT NULL | Posição dentro do arquivo (0-based) |
-| tamanho | INTEGER | NOT NULL | Tamanho em bytes |
+| size | INTEGER | NOT NULL | Tamanho em bytes |
 | created_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Data de criação |
 
 **Índices:**
@@ -228,9 +228,9 @@ Enquanto o [Modelo de Domínio](./04-domain_model.md) descreve entidades e regra
 |-------|------|-----------|-----------|
 | id | UUID | PK, NOT NULL | Identificador único |
 | cluster_id | UUID | FK → clusters(id), NOT NULL | Cluster relacionado |
-| tipo | VARCHAR(50) | NOT NULL | node_offline, low_replication, integrity_error, token_expired, space_low |
-| mensagem | TEXT | NOT NULL | Descrição legível do problema |
-| severidade | VARCHAR(20) | NOT NULL, CHECK (severidade IN ('info', 'warning', 'critical')) | Nível de severidade |
+| type | VARCHAR(50) | NOT NULL | node_offline, low_replication, integrity_error, token_expired, space_low |
+| message | TEXT | NOT NULL | Descrição legível do problema |
+| severity | VARCHAR(20) | NOT NULL, CHECK (severity IN ('info', 'warning', 'critical')) | Nível de severidade |
 | resolved | BOOLEAN | NOT NULL, DEFAULT FALSE | Se o problema foi resolvido |
 | resource_type | VARCHAR(50) | NULL | Tipo do recurso afetado (node, chunk, file) |
 | resource_id | VARCHAR(64) | NULL | ID do recurso afetado |
@@ -256,7 +256,7 @@ Enquanto o [Modelo de Domínio](./04-domain_model.md) descreve entidades e regra
 ## Estratégia de Migração
 
 - **Ferramenta:** [sqlx-cli](https://github.com/launchbadge/sqlx) (Rust) ou [refinery](https://github.com/rust-db/refinery) — migrações versionadas em SQL puro
-- **Convenção de nomes:** `V001__create_clusters_table.sql`, `V002__create_membros_table.sql`, etc. — numeração sequencial + descrição em snake_case
+- **Convenção de nomes:** `V001__create_clusters_table.sql`, `V002__create_members_table.sql`, etc. — numeração sequencial + descrição em snake_case
 - **Estratégia de rollback:** Cada migração tem arquivo `up.sql` e `down.sql`. Rollback é manual via CLI; migrações destrutivas requerem confirmação explícita.
 - **Migrações destrutivas:** Colunas são marcadas como deprecated (comentário na migration) por pelo menos 1 release antes de serem removidas. `ALTER DROP` nunca é executado em produção sem backup prévio verificado.
 - **Ambiente de teste:** Migrações são validadas em PostgreSQL local (Docker) antes de aplicar em produção.

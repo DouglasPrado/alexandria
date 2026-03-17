@@ -40,7 +40,7 @@ O modelo de domínio representa os **conceitos centrais do negócio**, suas regr
 | Atributo | Tipo | Obrigatório | Descrição |
 | --- | --- | :-: | --- |
 | cluster_id | string | Sim | Hash da chave pública do cluster |
-| nome | string | Sim | Nome do cluster (ex.: "Família Prado") |
+| name | string | Sim | Nome do cluster (ex.: "Família Prado") |
 | public_key | bytes | Sim | Chave pública do cluster |
 | created_at | datetime | Sim | Data de criação |
 
@@ -52,8 +52,8 @@ O modelo de domínio representa os **conceitos centrais do negócio**, suas regr
 
 | Atributo | Tipo | Obrigatório | Descrição |
 | --- | --- | :-: | --- |
-| membro_id | string | Sim | Identificador único |
-| nome | string | Sim | Nome do membro |
+| member_id | string | Sim | Identificador único |
+| name | string | Sim | Nome do membro |
 | email | string | Sim | E-mail para identificação |
 | role | enum | Sim | admin, membro, leitura |
 | invited_by | referência | Sim | Membro que convidou |
@@ -68,9 +68,9 @@ O modelo de domínio representa os **conceitos centrais do negócio**, suas regr
 | Atributo | Tipo | Obrigatório | Descrição |
 | --- | --- | :-: | --- |
 | node_id | string | Sim | Identificador único |
-| tipo | enum | Sim | local, s3, r2, vps |
-| capacidade_total | integer | Sim | Espaço total em bytes |
-| capacidade_usada | integer | Sim | Espaço usado em bytes |
+| type | enum | Sim | local, s3, r2, vps |
+| total_capacity | integer | Sim | Espaço total em bytes |
+| used_capacity | integer | Sim | Espaço usado em bytes |
 | status | enum | Sim | online, suspeito, perdido, draining |
 | last_heartbeat | datetime | Sim | Último heartbeat recebido |
 | owner | referência | Sim | Membro que registrou o nó |
@@ -84,11 +84,11 @@ O modelo de domínio representa os **conceitos centrais do negócio**, suas regr
 | Atributo | Tipo | Obrigatório | Descrição |
 | --- | --- | :-: | --- |
 | file_id | string | Sim | Identificador único |
-| nome_original | string | Sim | Nome do arquivo original |
-| tipo_midia | enum | Sim | foto, video, documento |
-| tamanho_original | integer | Sim | Tamanho antes de otimização |
-| tamanho_otimizado | integer | Sim | Tamanho após otimização |
-| hash_conteudo | string | Sim | SHA-256 do conteúdo otimizado |
+| original_name | string | Sim | Nome do arquivo original |
+| media_type | enum | Sim | foto, video, documento |
+| original_size | integer | Sim | Tamanho antes de otimização |
+| optimized_size | integer | Sim | Tamanho após otimização |
+| content_hash | string | Sim | SHA-256 do conteúdo otimizado |
 | uploaded_by | referência | Sim | Membro que fez upload |
 | metadata | json | Não | EXIF e outros metadados extraídos |
 
@@ -103,7 +103,7 @@ O modelo de domínio representa os **conceitos centrais do negócio**, suas regr
 | chunk_id | string | Sim | Hash SHA-256 do conteúdo criptografado |
 | file_id | referência | Sim | Arquivo ao qual pertence |
 | chunk_index | integer | Sim | Posição dentro do arquivo |
-| tamanho | integer | Sim | Tamanho em bytes |
+| size | integer | Sim | Tamanho em bytes |
 | replicas | lista | Sim | Nós que armazenam este chunk |
 
 ### Manifest
@@ -118,7 +118,7 @@ O modelo de domínio representa os **conceitos centrais do negócio**, suas regr
 | file_id | referência | Sim | Arquivo descrito |
 | chunks | lista | Sim | Lista ordenada de chunk_ids com hashes |
 | file_key_encrypted | bytes | Sim | Chave do arquivo criptografada com master key |
-| assinatura | bytes | Não | Assinatura criptográfica do manifest |
+| signature | bytes | Não | Assinatura criptográfica do manifest |
 
 ---
 

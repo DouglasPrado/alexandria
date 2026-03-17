@@ -14,7 +14,7 @@ sequenceDiagram
 
     %% Criação do cluster
     Admin ->>+ Web: Inicia criação de cluster (nome)
-    Web ->>+ API: POST /clusters {nome: "Família Prado"}
+    Web ->>+ API: POST /clusters {name: "Família Prado"}
 
     API ->>+ SDK: Gerar seed phrase (BIP-39, 12 palavras)
     SDK ->> SDK: CSPRNG → entropia → mnemonic
@@ -31,7 +31,7 @@ sequenceDiagram
     API ->>+ Vault: Criar vault vazio, criptografado com senha do admin
     Vault -->>- API: vault criado
 
-    API ->>+ DB: INSERT clusters + INSERT membros (admin)
+    API ->>+ DB: INSERT clusters + INSERT members (admin)
     DB -->>- API: OK
 
     API -->>- Web: 201 {cluster_id, seed_phrase}
@@ -56,11 +56,11 @@ sequenceDiagram
 
     %% Aceite
     Membro ->>+ Web: Acessa link de convite
-    Web ->>+ API: POST /clusters/:id/join {invite_token, nome, email}
+    Web ->>+ API: POST /clusters/:id/join {invite_token, name, email}
     API ->> API: Verificar assinatura + expiração do token
-    API ->>+ DB: INSERT membros (role do convite)
+    API ->>+ DB: INSERT members (role do convite)
     DB -->>- API: OK
-    API -->>- Web: 201 {membro_id}
+    API -->>- Web: 201 {member_id}
     Web -->>- Membro: "Bem-vindo ao cluster Família Prado!"
 
-    Note over Admin, Membro: Cluster criado com admin + membros convidados
+    Note over Admin, Membro: Cluster criado com admin + members convidados
