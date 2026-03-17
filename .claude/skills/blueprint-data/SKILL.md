@@ -31,6 +31,11 @@ Se o PRD nao especificar a tecnologia de banco ou volumes esperados, pergunte ao
 
 ## Geracao
 
+> **Modo de escrita:**
+> - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
+> - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
+> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-incrementar`.
+
 Preencha `docs/blueprint/05-data_model.md`:
 
 - **Banco de Dados**: tecnologia escolhida e justificativa

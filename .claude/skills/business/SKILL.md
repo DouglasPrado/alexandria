@@ -69,6 +69,10 @@ Diga ao usuario:
 
 > "PRD analisado. Rode `/business-contexto` para comecar pelo Contexto de Negocio."
 
+## Regra Critica: Nunca Inventar Numeros
+
+**NUNCA invente, estime ou fabrique dados numericos** (valores financeiros, percentuais, projecoes, metricas, precos, TAM/SAM/SOM, CAC, LTV, burn rate, etc.). Se o PRD nao fornecer um numero especifico, **pergunte ao usuario** antes de preencher. Use `{{placeholder}}` ou `[PREENCHER]` para campos numericos sem dados. Esta regra se aplica a TODAS as sub-skills de business.
+
 ## Nota sobre Complementaridade
 
 O Business Blueprint complementa o Blueprint Tecnico (`/blueprint`). Enquanto o blueprint tecnico documenta **como o sistema sera construido**, o business blueprint documenta **como o negocio vai operar**. Recomende ao usuario preencher ambos para ter uma visao completa do produto.

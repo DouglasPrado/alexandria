@@ -15,16 +15,6 @@ Voce vai preencher a secao de Arquitetura do Sistema do blueprint. Esta secao de
 4. Leia `docs/blueprint/05-data_model.md` — tecnologias de persistencia
 5. Leia `docs/blueprint/06-system_architecture.md` — template a preencher
 
-## Pesquisa de Tecnologias Atualizadas
-
-Antes de preencher a arquitetura, pesquise as versoes e melhores praticas atuais de cada tecnologia da stack no https://context7.com/. Para cada tecnologia principal mencionada no PRD ou nas secoes anteriores:
-
-1. Use `WebFetch` para consultar `https://context7.com/` buscando a documentacao atualizada de cada tecnologia (ex: Rust, Next.js, PostgreSQL, Redis, FFmpeg, Docker, etc.)
-2. Verifique: versao estavel mais recente, breaking changes relevantes, melhores praticas atuais, features novas que impactam a arquitetura
-3. Atualize as decisoes tecnologicas com base nas informacoes encontradas (ex: versao especifica, APIs novas, padroes recomendados)
-
-Documente as versoes confirmadas e eventuais mudancas em relacao ao que o PRD especificava.
-
 ## Analise de Lacunas
 
 Identifique a partir do PRD e secoes anteriores:
@@ -37,6 +27,11 @@ Identifique a partir do PRD e secoes anteriores:
 Se o PRD nao especificar stack tecnologico ou infraestrutura, proponha opcoes e pergunte ao usuario (max 3 perguntas).
 
 ## Geracao
+
+> **Modo de escrita:**
+> - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
+> - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
+> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-incrementar`.
 
 Preencha `docs/blueprint/06-system_architecture.md`:
 

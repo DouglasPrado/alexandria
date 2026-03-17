@@ -25,10 +25,17 @@ Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 pergun
 
 ## Geracao
 
+> **Modo de escrita:**
+> - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
+> - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
+> - Para adicionar uma feature especifica sem reescrever, prefira `/business-incrementar`.
+
 Preencha `docs/business/01-proposta-valor.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
 - Informacoes explicitas do PRD
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- inferido do PRD -->`)
+
+**REGRA CRITICA: NUNCA invente numeros.** Valores financeiros, percentuais, projecoes, metricas ou qualquer dado numerico que NAO esteja explicitamente no PRD devem ser perguntados ao usuario. Use `{{placeholder}}` para campos numericos sem dados.
 
 ## Revisao
 

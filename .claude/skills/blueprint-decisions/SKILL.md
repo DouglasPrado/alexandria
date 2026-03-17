@@ -30,6 +30,11 @@ Para cada decisao, voce precisa de contexto, alternativas consideradas e justifi
 
 ## Geracao
 
+> **Modo de escrita:**
+> - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
+> - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
+> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-incrementar`.
+
 Preencha `docs/blueprint/10-architecture_decisions.md` com a lista de ADRs. Para cada ADR, crie tambem um arquivo individual em `docs/adr/` usando o template `adr-template.md`:
 
 - **Contexto**: problema e restricoes

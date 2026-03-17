@@ -28,6 +28,11 @@ Se o PRD nao definir fases ou prioridades claras, proponha uma divisao baseada n
 
 ## Geracao
 
+> **Modo de escrita:**
+> - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
+> - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
+> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-incrementar`.
+
 Preencha `docs/blueprint/11-build_plan.md`:
 
 - **Fases**: 2-4 fases com objetivo, entregas, dependencias e criterios de aceite. Estimativas em T-shirt (S/M/L/XL).
