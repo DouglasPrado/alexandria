@@ -12,7 +12,7 @@ Esta seção mapeia **quanto custa operar o Alexandria**, separando custos fixos
 
 | Item | Valor Mensal (R$) | Categoria | Observações |
 | --- | --- | --- | --- |
-| VPS do orquestrador (Hetzner/Contabo) | R$ 30 | Infraestrutura | VPS ~4GB RAM, suficiente para orquestrador + demo |
+| VPS do orquestrador (Contabo) | R$ 30 | Infraestrutura | VPS ~4GB RAM, suficiente para orquestrador + demo |
 | Domínio (alexandria.dev ou similar) | R$ 5 | Infraestrutura | Registro anual ~R$60, rateado |
 | GitHub Pro (CI/CD minutes, packages) | R$ 0 | Ferramentas | Free tier suficiente para open-source |
 | Cloudflare (DNS, CDN, R2 free tier) | R$ 0 | Infraestrutura | Free tier generoso |
@@ -131,7 +131,7 @@ O software é self-hosted — cada usuário paga sua própria infraestrutura. O 
 
 | Fornecedor | Serviço | Custo Mensal (R$) | Criticidade | Alternativa | Custo de Troca |
 | --- | --- | --- | --- | --- | --- |
-| Hetzner / Contabo | VPS (orquestrador) | R$ 30 | Alto | DigitalOcean, Vultr, OVH | < 1 dia (Docker) |
+| Contabo | VPS (orquestrador) | R$ 30 | Alto | Hetzner, DigitalOcean, Vultr, OVH | < 1 dia (Docker) |
 | Cloudflare | DNS, CDN, R2 (storage) | R$ 0 | Alto | AWS CloudFront + Route53, Backblaze B2 | ~1 semana |
 | GitHub | Repositório, CI/CD, Issues, Discussions | R$ 0 | Crítico | GitLab, Codeberg | ~2 semanas |
 | Docker Hub / GHCR | Registry de containers | R$ 0 | Médio | GHCR, quay.io | < 1 dia |

@@ -91,7 +91,7 @@ Esta seção estabelece a visão de alto nível do sistema: quem o utiliza, com 
 | Técnica | Sem armazenamento de originais — somente versões otimizadas (WebP/H.265) + preview |
 | Técnica | Criptografia obrigatória em repouso (AES-256-GCM) e em trânsito (TLS 1.3) |
 | Escala | Cluster máximo: 10 usuários, 50 nós, 100TB de armazenamento total |
-| Negócio | Custo mínimo — priorizar free tiers de cloud e VPS barata (Hetzner/DigitalOcean) |
+| Negócio | Custo mínimo — priorizar free tiers de cloud e VPS barata (Contabo) |
 | Negócio | Sistema self-hosted — usuário é responsável pela operação do orquestrador |
 | Operacional | Time de 1 pessoa (Douglas Prado) como owner, tech lead e desenvolvedor |
 

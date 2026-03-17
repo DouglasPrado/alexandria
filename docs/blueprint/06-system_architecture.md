@@ -130,7 +130,7 @@ Esta seção descreve a arquitetura de alto nível do **Alexandria**, incluindo 
 | Ambiente | Finalidade | URL / Endpoint | Observações |
 | -------- | ---------- | -------------- | ----------- |
 | **Dev** | Desenvolvimento e testes locais | http://localhost:8080 (API), http://localhost:3000 (Web) | Docker Compose com PostgreSQL 17, Redis 7 e orquestrador; storage local |
-| **Prod** | Ambiente de produção (alpha familiar) | https://alexandria.{domínio} | VPS única (Hetzner/DigitalOcean); Docker Compose; DNS fixo para discovery |
+| **Prod** | Ambiente de produção (alpha familiar) | https://alexandria.{domínio} | VPS única (Contabo); Docker Compose; DNS fixo para discovery |
 
 > Staging não é necessário na POC — time de 1 pessoa com deploy direto em produção após testes locais.
 
@@ -138,7 +138,7 @@ Esta seção descreve a arquitetura de alto nível do **Alexandria**, incluindo 
 
 | Aspecto | Escolha |
 | ------- | ------- |
-| **Provedor Cloud (VPS)** | Hetzner ou DigitalOcean — VPS barata (~€5-10/mês), SLA 99.9%, datacenters na Europa |
+| **Provedor Cloud (VPS)** | Contabo — VPS barata (~€5-10/mês), SLA 99.9%, datacenters na Europa |
 | **Orquestração** | Docker Compose v2 — um arquivo para orquestrador + PostgreSQL 17 + Redis 7; sem Kubernetes (overkill para POC) |
 | **CI/CD** | GitHub Actions — build, test (cargo test), push Docker image; deploy manual via SSH para VPS |
 | **Monitoramento** | Logs estruturados (stdout/JSON via tracing crate) + alertas internos do orquestrador; Grafana/Prometheus em fase 2 |
@@ -173,7 +173,7 @@ Esta seção descreve a arquitetura de alto nível do **Alexandria**, incluindo 
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  VPS (Hetzner/DigitalOcean)                         │
+│  VPS (Contabo)                                       │
 │                                                     │
 │  ┌─────────────┐  ┌──────────┐  ┌──────────────┐   │
 │  │ Orquestrador│  │PostgreSQL│  │    Redis      │   │

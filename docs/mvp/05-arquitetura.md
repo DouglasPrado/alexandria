@@ -16,7 +16,7 @@ Esta seção define **como o sistema é construído**: quais tecnologias são us
 | Processamento de mídia | FFmpeg 7+ (CLI)                     | Transcodificação de vídeo H.265/AV1; conversão de imagens via libvips/WebP |
 | Criptografia           | AES-256-GCM + BIP-39                | Padrões auditados e amplamente adotados                                    |
 | Storage cloud          | aws-sdk-s3 (S3-compatible)          | Interface unificada para AWS S3, Cloudflare R2, Backblaze B2               |
-| Infra / Deploy         | VPS (Hetzner/DigitalOcean) + Docker | Custo baixo; Docker Compose v2 para setup reprodutível do orquestrador     |
+| Infra / Deploy         | VPS (Contabo) + Docker | Custo baixo; Docker Compose v2 para setup reprodutível do orquestrador     |
 
 ---
 

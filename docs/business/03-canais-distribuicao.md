@@ -79,7 +79,7 @@ Esta seção define **como o Alexandria chega até o usuário** e como ele desco
 | --- | --- | --- | --- | --- |
 | awesome-selfhosted | Diretório / Listagem | Descoberta passiva por público-alvo exato (~180K stars no GitHub) | Mais uma opção de qualidade na lista | A submeter |
 | Cloudflare (R2) | Integração técnica | Free tier generoso (10GB grátis/mês); CDN global; S3-compatible | Showcase de uso inovador; potencial conversão para planos pagos | Integração planejada (RF-018) |
-| Hetzner / Contabo | Conteúdo / Guia | VPS barata para guias de instalação (~€5/mês); público self-hoster | Tráfego e conversões via guias de setup | A prospectar |
+| Contabo | Conteúdo / Guia | VPS barata para guias de instalação (~€5/mês); público self-hoster | Tráfego e conversões via guias de setup | A prospectar |
 | Immich / PhotoPrism | Integração / Complementar | Import de bibliotecas existentes; migração facilitada | Opção de backup distribuído para seus usuários | A prospectar |
 | LinuxServer.io | Distribuição / Container | Container oficial mantido pela comunidade; credibilidade | Mais um container popular no portfólio | A prospectar |
 

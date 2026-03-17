@@ -38,7 +38,7 @@ Esta seção detalha **como o Alexandria funciona no dia a dia**. Define process
 
 | Componente | Ferramenta / Serviço | Custo Mensal (R$) | Finalidade |
 | --- | --- | --- | --- |
-| Hospedagem (orquestrador demo) | Hetzner VPS (CX22, 4GB RAM) | R$ 30 | Demo pública + CI runners |
+| Hospedagem (orquestrador demo) | Contabo VPS (4GB RAM) | R$ 30 | Demo pública + CI runners |
 | Repositório + CI/CD | GitHub (free for open-source) | R$ 0 | Código, issues, PRs, Actions, Discussions, Packages |
 | DNS + CDN + Storage | Cloudflare (free tier + R2) | R$ 0 | DNS, cache, proteção DDoS, storage para assets |
 | Monitoramento | Grafana Cloud (free tier) | R$ 0 | Dashboard público de saúde; métricas de telemetria opt-in |

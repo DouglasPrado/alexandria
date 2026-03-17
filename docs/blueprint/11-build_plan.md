@@ -68,7 +68,7 @@
 **Dependências:**
 
 - Fase 0 concluída (Core SDK funcional e testado)
-- VPS provisionada (Hetzner/DigitalOcean)
+- VPS provisionada (Contabo)
 - Domínio DNS configurado
 - Pelo menos 1 bucket S3 ou R2 criado
 
@@ -186,7 +186,7 @@
 
 | Dependência | Tipo | Responsável | Status | Impacto se Atrasar |
 |-------------|------|-------------|--------|---------------------|
-| VPS Hetzner/DigitalOcean | Infra | Douglas Prado | Pendente | Bloqueia deploy de Fase 1 |
+| VPS Contabo | Infra | Douglas Prado | Pendente | Bloqueia deploy de Fase 1 |
 | Domínio DNS | Infra | Douglas Prado | Pendente | Bloqueia discovery de nós e TLS |
 | Bucket AWS S3 ou Cloudflare R2 | Serviço | Douglas Prado | Pendente | Bloqueia storage cloud na Fase 1 |
 | FFmpeg 7+ | Biblioteca | Open source | Disponível | Bloqueia pipeline de vídeo |
