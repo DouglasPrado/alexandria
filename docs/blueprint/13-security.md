@@ -14,7 +14,7 @@
 | Adulteração de chunks durante transporte ou armazenamento | Tampering | Alto — corrupção silenciosa de dados | SHA-256 hash por chunk (content-addressable); scrubbing periódico recalcula e verifica; chunks criptografados com AES-256-GCM (autenticado — detecta adulteração) |
 | Adulteração de manifests | Tampering | Alto — redirecionamento de chunks, perda de integridade | Assinatura criptográfica de manifests; manifests com assinatura inválida são rejeitados |
 | Provedor cloud lê dados armazenados | Information Disclosure | Alto — fotos de família, dados de localização GPS expostos | Zero-knowledge: criptografia AES-256-GCM no cliente antes do upload; nem provedor, nem orquestrador veem dados em claro |
-| Vazamento de tokens OAuth/credenciais S3/senhas do usuário | Information Disclosure | Alto — acesso a buckets cloud e contas do usuário | Vault criptografado com senha do usuário; tokens e senhas em texto puro apenas em memória, nunca em disco; vault replicado criptografado |
+| Vazamento de tokens OAuth/credenciais S3/senhas do membro | Information Disclosure | Alto — acesso a buckets cloud e contas do membro | Vault criptografado individual por membro com sua senha; tokens e senhas em texto puro apenas em memória, nunca em disco; vaults replicados criptografados |
 | Comprometimento da master key | Information Disclosure | Crítico — acesso a todos os dados do cluster | Master key derivada da seed em memória; nunca persistida em disco; envelope encryption limita blast radius por file key |
 | Perda/roubo da seed phrase | Information Disclosure | Crítico — acesso total ao cluster | Seed nunca armazenada digitalmente pelo sistema; instruções claras ao admin; recovery guardians em fase futura |
 | DDoS no orquestrador (API pública) | Denial of Service | Médio — uploads e galeria indisponíveis | Rate limiting via Tower middleware; Caddy com rate limit; nós continuam servindo chunks cached localmente |
@@ -95,8 +95,8 @@ O Alexandria usa autenticação em duas camadas: **membros** (pessoas) e **nós*
 ### Dados em Repouso
 
 - **Criptografia:** AES-256-GCM em todos os chunks (encrypt-before-upload, zero-knowledge)
-- **Gerenciamento de chaves:** Envelope encryption próprio — seed → master key → file keys → chunk keys. Vault criptografado local (não KMS externo)
-- **Backups criptografados:** pg_dump criptografado antes de enviar ao S3; vault já criptografado por design
+- **Gerenciamento de chaves:** Envelope encryption próprio — seed → master key → file keys → chunk keys. Vault criptografado individual por membro (não KMS externo)
+- **Backups criptografados:** pg_dump criptografado antes de enviar ao S3; vaults dos membros já criptografados por design
 
 ### Dados Sensíveis (PII)
 
@@ -104,8 +104,8 @@ O Alexandria usa autenticação em duas camadas: **membros** (pessoas) e **nós*
 |------|---------------|----------|----------|
 | Fotos e vídeos familiares | Pessoal / Sensível | AES-256-GCM em repouso; TLS 1.3 em trânsito; acesso restrito por cluster_id e role | Indefinida (até exclusão pelo membro) |
 | Metadados EXIF (GPS, data) | PII | Criptografados dentro do manifest; GPS pode revelar localização de casa/escola | Indefinida; excluídos com o arquivo |
-| Tokens OAuth (Google, S3) | Sensível | Vault criptografado; texto puro apenas em memória | Até revogação ou troca de credenciais |
-| Senhas do usuário | Sensível | Vault criptografado; texto puro apenas em memória | Até exclusão ou atualização pelo usuário |
+| Tokens OAuth (Google, S3) | Sensível | Vault do membro criptografado; texto puro apenas em memória | Até revogação ou troca de credenciais |
+| Senhas do membro | Sensível | Vault do membro criptografado; texto puro apenas em memória | Até exclusão ou atualização pelo membro |
 | Seed phrase (12 palavras) | Crítico | NUNCA armazenada digitalmente pelo sistema; apenas com o usuário (papel, cofre) | N/A (offline) |
 | Master key | Crítico | Derivada da seed em memória (RAM); nunca persistida em disco | Duração da sessão do orquestrador |
 | E-mail de membros | PII | Armazenado em PostgreSQL; criptografado em trânsito | Até remoção do membro |

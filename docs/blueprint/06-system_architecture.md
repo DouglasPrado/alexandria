@@ -36,7 +36,7 @@ Esta seção descreve a arquitetura de alto nível do **Alexandria**, incluindo 
 | Campo            | Descrição                                      |
 | ---------------- | ---------------------------------------------- |
 | **Nome**         | Orquestrador                                   |
-| **Responsabilidade** | Coordena o cluster: serve API REST para clientes, gerencia metadados (PostgreSQL 17), distribui chunks, monitora heartbeats, executa scheduler de tarefas periódicas (scrubbing, GC, rebalancing, auto-healing), gerencia vault |
+| **Responsabilidade** | Coordena o cluster: serve API REST para clientes, gerencia metadados (PostgreSQL 17), distribui chunks, monitora heartbeats, executa scheduler de tarefas periódicas (scrubbing, GC, rebalancing, auto-healing), gerencia vaults dos membros |
 | **Tecnologia**   | Rust + Axum 0.8 + SQLx (PostgreSQL) + Redis   |
 | **Interface**    | API REST (HTTPS/TLS 1.3) para clientes e agentes de nó |
 
@@ -81,7 +81,7 @@ Esta seção descreve a arquitetura de alto nível do **Alexandria**, incluindo 
 | Campo            | Descrição                                      |
 | ---------------- | ---------------------------------------------- |
 | **Nome**         | Vault                                          |
-| **Responsabilidade** | Armazena tokens OAuth, credenciais de provedores cloud, chaves criptografadas e senhas do usuário. Desbloqueado em memória via senha do usuário; master key usada apenas em recovery do orquestrador |
+| **Responsabilidade** | Armazena tokens OAuth, credenciais de provedores cloud, chaves criptografadas e senhas de cada membro individualmente. Cada membro possui seu próprio vault. Desbloqueado em memória via senha do membro; master key usada apenas em recovery do orquestrador |
 | **Tecnologia**   | Arquivo criptografado (AES-256-GCM) no filesystem do orquestrador |
 | **Interface**    | API interna (módulo do orquestrador); nunca exposto externamente |
 
@@ -147,7 +147,7 @@ Esta seção descreve a arquitetura de alto nível do **Alexandria**, incluindo 
 | **Storage Cloud** | AWS S3 + Cloudflare R2 — via aws-sdk-s3 (S3-compatible); Backblaze B2 como alternativa futura |
 | **DNS** | Domínio fixo apontando para IP da VPS; TTL baixo (~300s) para facilitar troca durante recovery |
 | **TLS** | Let's Encrypt — certificado gratuito auto-renovável via Caddy |
-| **Backup do orquestrador** | pg_dump diário → S3 bucket; vault criptografado replicado nos nós de storage |
+| **Backup do orquestrador** | pg_dump diário → S3 bucket; vaults dos membros criptografados e replicados nos nós de storage |
 | **Web Framework (Rust)** | Axum 0.8 — async-first, built on Tokio/Tower/Hyper; middleware composável via Tower; preferido sobre Actix-web por integração natural com ecossistema Tokio |
 | **DB Driver (Rust)** | SQLx — compile-time checked queries; async nativo com Tokio; suporte a PostgreSQL 17 |
 | **Observabilidade (Rust)** | tracing + tracing-subscriber — logs estruturados; integração futura com OpenTelemetry |

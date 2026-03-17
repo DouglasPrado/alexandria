@@ -19,7 +19,7 @@ Cada caso de uso descreve uma interação completa entre um ator e o sistema par
 3. Admin preenche nome (ex.: "Família Prado") e confirma
 4. Sistema gera seed phrase de 12 palavras (BIP-39) e deriva master key
 5. Sistema gera par de chaves criptográficas e calcula cluster_id
-6. Sistema cria vault criptografado vazio
+6. Sistema cria vault individual do admin, criptografado com sua senha
 7. Sistema persiste cluster e cria membro admin
 8. Sistema exibe seed phrase com instruções: "Anote em papel. Esta é a ÚNICA vez."
 9. Admin confirma que anotou (checkbox obrigatório)
@@ -34,7 +34,7 @@ Cada caso de uso descreve uma interação completa entre um ator e o sistema par
 - **E1.** Falha na geração de entropia (CSPRNG): Sistema retorna erro 500; não cria cluster com entropia fraca
 - **E2.** PostgreSQL indisponível no passo 7: Retorna 503; seed phrase NÃO é exibida (cluster não criado)
 
-**Pós-condição:** Cluster criado com identidade criptográfica; admin registrado; seed phrase exibida uma única vez; vault inicializado.
+**Pós-condição:** Cluster criado com identidade criptográfica; admin registrado; seed phrase exibida uma única vez; vault do admin inicializado.
 
 **Regras de Negócio:** RN-C1, RN-C2, RN-C3, RN-C4 | **Requisitos:** RF-001, RF-047, RF-048, RF-049
 
@@ -87,7 +87,7 @@ Cada caso de uso descreve uma interação completa entre um ator e o sistema par
 1. Admin acessa painel de nós e clica "Adicionar Nó"
 2. Sistema exibe opções: Local (PC/NAS), S3, R2, VPS
 3. Admin seleciona tipo e preenche configuração (endpoint, credenciais, nome descritivo)
-4. Sistema criptografa credenciais e armazena no vault
+4. Sistema criptografa credenciais e armazena no vault do membro
 5. Sistema testa conectividade (PUT/GET de chunk de teste)
 6. Sistema reporta capacidade total e usada
 7. Sistema registra nó em `nodes` (status: online)
@@ -174,7 +174,7 @@ Cada caso de uso descreve uma interação completa entre um ator e o sistema par
 
 - **E1.** Chunk indisponível (nó offline): Sistema tenta próxima réplica; se todas offline → mensagem "Arquivo temporariamente indisponível"
 - **E2.** Chunk corrompido durante download: Core SDK verifica hash; se falha → tenta outra réplica
-- **E3.** Senha do usuário incorreta (vault bloqueado): Impossível descriptografar; pedir usuário para informar senha correta
+- **E3.** Senha do membro incorreta (vault do membro bloqueado): Impossível descriptografar; pedir membro para informar senha correta
 
 **Pós-condição:** Membro visualizou preview ou baixou arquivo otimizado completo.
 
@@ -230,8 +230,8 @@ Cada caso de uso descreve uma interação completa entre um ator e o sistema par
 3. Admin insere seed phrase de 12 palavras
 4. Sistema valida palavras contra wordlist BIP-39
 5. Sistema deriva master key
-6. Sistema busca e descriptografa vault dos nós de storage
-7. Sistema conecta a S3/R2 com credenciais do vault
+6. Sistema busca e descriptografa vaults dos membros dos nós de storage
+7. Sistema conecta a S3/R2 com credenciais dos vaults dos membros
 8. Sistema escaneia e coleta manifests replicados
 9. Sistema reconstrói banco PostgreSQL a partir dos manifests
 10. Admin atualiza DNS para nova VPS
@@ -240,12 +240,12 @@ Cada caso de uso descreve uma interação completa entre um ator e o sistema par
 
 #### Fluxos Alternativos
 
-- **6a.** Vault não encontrado: Admin insere credenciais S3/R2 manualmente; recovery parcial
+- **6a.** Vaults não encontrados: Admin insere credenciais S3/R2 manualmente; recovery parcial
 - **11a.** Nós locais offline: Reconectarão quando voltarem online; recovery continua sem eles
 
 #### Fluxo de Exceção
 
-- **E1.** Seed phrase incorreta: Vault não descriptografa; mensagem clara "Seed incorreta"
+- **E1.** Seed phrase incorreta: Vaults não descriptografam; mensagem clara "Seed incorreta"
 - **E2.** Nenhum manifest encontrado: Recovery impossível; alerta crítico
 
 **Pós-condição:** Sistema operacional com metadados reconstruídos, nós reconectados, replicação restaurada.

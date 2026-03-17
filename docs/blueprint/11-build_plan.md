@@ -20,7 +20,7 @@
 - StorageProvider trait + implementação local (filesystem)
 - StorageProvider implementação S3 (aws-sdk-s3) para S3/R2/B2
 - Manifest structure: criação, serialização, validação de assinatura
-- Vault: criação, criptografia/descriptografia, serialização, gerenciamento de senhas
+- Vault: criação por membro, criptografia/descriptografia, serialização, gerenciamento de senhas
 - Modelo de dados PostgreSQL 17: migrações iniciais (sqlx-cli)
 - Setup do workspace Rust (cargo workspaces: core-sdk, orchestrator, node-agent)
 - CI: GitHub Actions com cargo test + clippy + fmt
@@ -33,7 +33,7 @@
 
 - Arquivo de teste passa pelo pipeline completo: chunk → encrypt → distribute (local) → reassemble → decrypt → verify hash
 - Seed phrase gera master key deterministicamente (mesma seed = mesma key)
-- Vault criptografa/descriptografa com senha do usuário corretamente
+- Vault criptografa/descriptografa com senha do membro corretamente
 - Consistent hashing distribui chunks proporcionalmente à capacidade dos nós de teste
 - Migrações PostgreSQL aplicam sem erro; schema completo criado
 - Todos os testes passando no CI
@@ -170,7 +170,7 @@
 
 | Risco | Impacto | Probabilidade | Mitigação |
 |-------|---------|---------------|-----------|
-| Recovery via seed falha em cenário real | Alto | Média | Disaster drills mensais desde Fase 1; testes automatizados de recovery; vault replicado em 3+ nós |
+| Recovery via seed falha em cenário real | Alto | Média | Disaster drills mensais desde Fase 1; testes automatizados de recovery; vaults dos membros replicados em 3+ nós |
 | Consistent hashing distribui chunks de forma desigual com poucos nós (<5) | Médio | Média | Virtual nodes com fator alto; rebalanceamento periódico; monitoramento de distribuição |
 | FFmpeg falha em formatos de vídeo inesperados | Médio | Alta | Whitelist de formatos suportados; fallback para codec genérico; arquivo marcado como error com retry |
 | Performance de criptografia AES-256-GCM insuficiente | Alto | Baixa | Benchmark na Fase 0; usar hardware AES-NI (presente em CPUs modernas); paralelizar chunks |

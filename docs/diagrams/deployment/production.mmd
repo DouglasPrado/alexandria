@@ -26,7 +26,7 @@ graph TB
 
         subgraph APP_TIER["Docker Compose v2 — Application"]
             direction LR
-            Orchestrator["Orquestrador<br/>──────────<br/>Runtime: Rust + Axum 0.8<br/>Porta: 8080<br/>CPU: 2 vCPU / RAM: 2GB<br/>Inclui: Scheduler (tokio::time)<br/>+ Media Workers + Vault"]
+            Orchestrator["Orquestrador<br/>──────────<br/>Runtime: Rust + Axum 0.8<br/>Porta: 8080<br/>CPU: 2 vCPU / RAM: 2GB<br/>Inclui: Scheduler (tokio::time)<br/>+ Media Workers + Vaults"]
             WebClient["Web Client<br/>──────────<br/>Runtime: Next.js 16 (Turbopack)<br/>Porta: 3000<br/>CPU: 0.5 vCPU / RAM: 512MB"]
         end
 

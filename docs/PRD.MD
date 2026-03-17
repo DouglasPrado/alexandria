@@ -56,7 +56,7 @@ Um ecossistema composto por:
 - **Nós de armazenamento** — computadores, celulares, NAS, VPS, buckets cloud (S3, R2, Google Drive, Dropbox, OneDrive) — guardam chunks criptografados e manifests
 - **Clientes** (Web, Desktop, Mobile) — interface para upload, visualização e sincronização automática
 - **Pipeline de otimização** — fotos convertidas para Full HD WebP (~300-600KB), vídeos para 1080p H.265/AV1 (~400-600MB)
-- **Sistema de recuperação** — seed phrase de 12 palavras + vault criptografado permitem reconstruir o orquestrador e reconectar todos os nós
+- **Sistema de recuperação** — seed phrase de 12 palavras + vaults criptografados dos membros permitem reconstruir o orquestrador e reconectar todos os nós
 
 ### 3.3 Princípios de design
 
@@ -189,7 +189,7 @@ Um ecossistema composto por:
 
 | ID     | Requisito                                                                 | Prioridade | Critério de aceitação                                                                       |
 | ------ | ------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------- |
-| RF-016 | Conectar contas cloud via OAuth (Google Drive, Dropbox, OneDrive)         | Must       | Token de acesso + refresh token obtidos e armazenados criptografados no vault               |
+| RF-016 | Conectar contas cloud via OAuth (Google Drive, Dropbox, OneDrive)         | Must       | Token de acesso + refresh token obtidos e armazenados criptografados no vault do membro     |
 | RF-017 | Suporte a múltiplas contas do mesmo provedor                              | Must       | 3+ contas Google Drive funcionam como nós separados com capacidade independente             |
 | RF-018 | Integração S3-compatible (AWS S3, Cloudflare R2, Backblaze B2)            | Must       | Chunks armazenados e recuperados via API S3 standard                                        |
 | RF-019 | Monitoramento de espaço livre por conta/bucket cloud                      | Must       | Dashboard mostra espaço total, usado e livre por nó cloud                                   |
@@ -247,8 +247,8 @@ Um ecossistema composto por:
 | ------ | ----------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------ |
 | RF-047 | Gerar seed phrase de 12 palavras (padrão BIP-39) na criação do cluster        | Must       | Seed gera master key deterministicamente; usuário anota e guarda com segurança                         |
 | RF-048 | Envelope encryption (seed → master key → file keys → chunk keys)              | Must       | Cada arquivo possui sua própria chave derivada; comprometimento de uma chave não afeta outros arquivos |
-| RF-049 | Vault criptografado para tokens, credenciais, chaves e senhas do usuário (modelo tipo 1Password) | Must       | Vault desbloqueado via senha do usuário; em recovery, desbloqueado via master key derivada da seed     |
-| RF-050 | Tokens OAuth nunca em texto puro; usados somente em memória                   | Must       | Tokens criptografados no vault; descriptografados em memória somente durante uso                       |
+| RF-049 | Vault criptografado individual por membro para tokens, credenciais, chaves e senhas (modelo tipo 1Password) | Must       | Cada membro tem seu próprio vault desbloqueado via sua senha; em recovery, desbloqueado via master key derivada da seed |
+| RF-050 | Tokens OAuth nunca em texto puro; usados somente em memória                   | Must       | Tokens criptografados no vault do membro; descriptografados em memória somente durante uso             |
 | RF-051 | Autenticação mútua entre nós (mutual TLS ou Ed25519)                          | Should     | Nós não autorizados rejeitados automaticamente                                                         |
 | RF-052 | Assinatura criptográfica de manifests                                         | Should     | Manifests falsificados ou alterados rejeitados na validação                                            |
 | RF-053 | TLS 1.3 para toda comunicação entre componentes                               | Must       | Nenhuma comunicação sem criptografia                                                                   |
@@ -257,7 +257,7 @@ Um ecossistema composto por:
 
 | ID     | Requisito                                                                      | Prioridade | Critério de aceitação                                                                              |
 | ------ | ------------------------------------------------------------------------------ | ---------- | -------------------------------------------------------------------------------------------------- |
-| RF-054 | Recuperar orquestrador com seed phrase em nova VPS                             | Must       | seed → master key → vault descriptografado → reconectar nós → rebuild índice → sistema operacional |
+| RF-054 | Recuperar orquestrador com seed phrase em nova VPS                             | Must       | seed → master key → vaults dos membros descriptografados → reconectar nós → rebuild índice → sistema operacional |
 | RF-055 | Metadata mínimo embutido em cada chunk (file_id, chunk_index, hash, timestamp) | Must       | Chunks são auto-descritivos; sistema pode ser reconstruído escaneando chunks                       |
 | RF-056 | Manifests replicados em múltiplos nós (não apenas no orquestrador)             | Must       | Manifests disponíveis para reconstrução mesmo sem orquestrador                                     |
 | RF-057 | Reconexão automática de nós via DNS fixo + retry com backoff                   | Must       | Nós reconectam quando novo orquestrador sobe no mesmo domínio                                      |
@@ -356,7 +356,7 @@ Um ecossistema composto por:
 | US-006 | Admin     | Como admin, quero desconectar um nó com segurança, para que dados não se percam                              | Drain completo antes da desconexão; replicação mantida             |
 | US-007 | Sistema   | Como sistema, quero replicar chunks automaticamente, para manter redundância mínima                          | Chunks com <3 réplicas re-replicados automaticamente em <1h        |
 | US-008 | Fotógrafo | Como fotógrafo amador, quero que meu celular não fique cheio, para continuar tirando fotos                   | Placeholder + quota respeitada; espaço liberado automaticamente    |
-| US-009 | Admin     | Como admin, quero recuperar o sistema com 12 palavras após desastre, para que a perda seja recuperável       | seed → vault → nós → índice reconstruído em <2h                    |
+| US-009 | Admin     | Como admin, quero recuperar o sistema com 12 palavras após desastre, para que a perda seja recuperável       | seed → vaults dos membros → nós → índice reconstruído em <2h       |
 | US-010 | Sistema   | Como sistema, quero otimizar fotos para WebP Full HD, para economizar 70%+ de espaço                         | Foto 5-8MB → 300-600KB sem perda perceptível de qualidade          |
 
 ### 9.2 Cenários detalhados
@@ -430,7 +430,7 @@ Um ecossistema composto por:
 - Upload com pipeline completo (resize, compress, chunk, encrypt, distribute)
 - Replicação 3x com auto-healing
 - Download/visualização com placeholder
-- Seed phrase + vault + recuperação do orquestrador
+- Seed phrase + vaults dos membros + recuperação do orquestrador
 - Web client básico (upload, galeria, download)
 - Alertas de saúde do cluster (nó offline, replicação baixa)
 
@@ -482,7 +482,7 @@ Um ecossistema composto por:
 | ------------------------- | ------------------------------------------------------------------- | -------- | ---------------------------------------- |
 | Core SDK                  | API client, criptografia, chunking, upload/download                 | Pendente | Bloqueia todos os clientes e integrações |
 | StorageProvider interface | Abstrações para S3, R2, local, OAuth clouds                         | Pendente | Bloqueia integração com provedores       |
-| Vault implementation      | Key management, envelope encryption, armazenamento seguro de tokens e senhas | Pendente | Bloqueia segurança e recuperação         |
+| Vault implementation      | Key management, envelope encryption, armazenamento seguro de tokens e senhas por membro | Pendente | Bloqueia segurança e recuperação         |
 | Consistent hashing        | Algoritmo de distribuição de chunks                                 | Pendente | Bloqueia pipeline de upload              |
 
 ### 12.2 Dependências externas
@@ -573,8 +573,8 @@ Um ecossistema composto por:
 | ------------------------------------ | ------------------ | -------------------------------------------------------------------- |
 | Fotos e vídeos familiares            | Pessoal / Sensível | Criptografia AES-256-GCM no cliente, acesso restrito por cluster_id  |
 | Documentos                           | Pessoal            | Criptografia ponta-a-ponta, acesso por permissão                     |
-| Tokens OAuth (Google, Dropbox, etc.) | Sensível           | Vault criptografado, nunca em texto puro, uso somente em memória     |
-| Senhas do usuário                    | Sensível           | Vault criptografado, nunca em texto puro, uso somente em memória     |
+| Tokens OAuth (Google, Dropbox, etc.) | Sensível           | Vault do membro criptografado, nunca em texto puro, uso somente em memória |
+| Senhas do membro                     | Sensível           | Vault do membro criptografado, nunca em texto puro, uso somente em memória |
 | Seed phrase (12 palavras)            | Crítico            | Nunca armazenada digitalmente pelo sistema; somente com o usuário    |
 | Master key                           | Crítico            | Derivada da seed em memória; nunca persistida em disco               |
 | Metadados de arquivos (nomes, datas) | Interno            | Criptografados no orquestrador                                       |
@@ -591,7 +591,7 @@ Um ecossistema composto por:
 
 - **Zero-knowledge**: orquestrador e provedores cloud nunca veem dados em texto puro
 - **Envelope encryption**: seed → master key → file keys → chunk keys (comprometimento de uma chave não afeta outros arquivos)
-- **Vault criptografado**: tokens, credenciais e senhas do usuário protegidos por senha do usuário; master key usada apenas em recovery
+- **Vault criptografado individual por membro**: tokens, credenciais e senhas protegidos pela senha de cada membro; master key usada apenas em recovery
 - **Mutual TLS ou Ed25519**: autenticação entre nós do cluster
 - **Assinatura criptográfica de manifests**: proteção contra manifests falsificados
 - **Rate limiting**: proteção contra abuso de API

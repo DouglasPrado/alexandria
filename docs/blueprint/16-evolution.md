@@ -52,7 +52,7 @@
 
 O projeto segue o padrão **MAJOR.MINOR.PATCH**:
 
-- **MAJOR** — mudanças incompatíveis: formato de manifest, protocolo de comunicação entre nós, schema do vault
+- **MAJOR** — mudanças incompatíveis: formato de manifest, protocolo de comunicação entre nós, schema dos vaults
 - **MINOR** — novas funcionalidades: novo StorageProvider, novo tipo de alerta, novo endpoint de API
 - **PATCH** — correções de bugs e melhorias de performance sem breaking changes
 
@@ -81,7 +81,7 @@ Orquestrador deve ser capaz de ler manifests de todas as versões anteriores (ba
 
 ### Versionamento de Vault
 
-Vault inclui campo `version` no header criptografado. Novas versões podem mudar estrutura interna sem afetar desbloqueio (mecanismo de desbloqueio via senha do usuário permanece compatível).
+Vault inclui campo `version` no header criptografado. Novas versões podem mudar estrutura interna sem afetar desbloqueio (mecanismo de desbloqueio via senha do membro permanece compatível). Cada membro possui seu próprio vault.
 
 ---
 

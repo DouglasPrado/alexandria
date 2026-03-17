@@ -37,7 +37,7 @@ graph TB
         subgraph IntegrationLayer["Camada de Integrações (Core SDK)"]
             direction LR
             StorageClient["🔌 StorageProvider<br/>aws-sdk-s3 adapter<br/>put/get/exists/delete/list"]
-            VaultClient["🔌 VaultManager<br/>Encrypt/decrypt vault,<br/>manage credentials"]
+            VaultClient["🔌 VaultManager<br/>Encrypt/decrypt vault por membro,<br/>manage credentials"]
             CryptoEngine["🔌 CryptoEngine<br/>aes-gcm, sha2, bip39<br/>Envelope encryption"]
             HashRing["🔌 ConsistentHashRing<br/>Distribuição de chunks,<br/>seleção de nós destino"]
         end

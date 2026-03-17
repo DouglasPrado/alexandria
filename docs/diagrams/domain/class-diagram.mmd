@@ -82,10 +82,11 @@ classDiagram
     }
 
     class Vault {
+        +String member_id
         +Bytes vault_data
         +String encryption_algorithm
         +List~String~ replicated_to
-        +desbloquear(master_key) void
+        +desbloquear(senha_membro) void
         +armazenarCredencial(key, value) void
         +replicar(nó) void
     }
@@ -104,7 +105,7 @@ classDiagram
     %% --- Relacionamentos ---
     Cluster "1" --> "*" Membro : possui
     Cluster "1" --> "*" Nó : gerencia
-    Cluster "1" --> "1" Vault : protege credenciais
+    Membro "1" --> "1" Vault : protege credenciais
     Cluster "1" --> "*" Alerta : gera
     Membro "1" --> "*" Nó : registra
     Membro "1" --> "*" Arquivo : faz upload

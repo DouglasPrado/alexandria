@@ -66,9 +66,9 @@ Esta seção documenta os **2-3 fluxos mais importantes** da POC — aqueles que
 1. **Admin** provisiona nova VPS e instala orquestrador via Docker
 2. **Admin** inicia processo de recovery e insere seed phrase de 12 palavras
 3. **Orquestrador** deriva master key da seed via BIP-39
-4. **Orquestrador** descriptografa vault (arquivo criptografado replicado nos nós) com a master key
-5. **Vault** libera: credenciais S3/R2, chaves de criptografia, senhas do usuário, configuração do cluster, lista de nós conhecidos
-6. **Orquestrador** conecta aos nós cloud (S3/R2) usando credenciais do vault
+4. **Orquestrador** descriptografa vaults dos membros (arquivos criptografados replicados nos nós) com a master key
+5. **Vaults** liberam: credenciais S3/R2, chaves de criptografia, senhas dos membros, configuração do cluster, lista de nós conhecidos
+6. **Orquestrador** conecta aos nós cloud (S3/R2) usando credenciais dos vaults dos membros
 7. **Orquestrador** escaneia nós em busca de manifests replicados
 8. **Orquestrador** reconstrói banco de metadados (PostgreSQL) a partir dos manifests encontrados
 9. **Admin** atualiza DNS para apontar para nova VPS
@@ -83,8 +83,8 @@ Esta seção documenta os **2-3 fluxos mais importantes** da POC — aqueles que
 
 | Passo | Falha possível | Comportamento do sistema |
 | --- | --- | --- |
-| 3 | Seed phrase incorreta | Master key errada → vault não descriptografa; mensagem clara ao admin |
-| 5 | Vault corrompido ou não encontrado nos nós | Recovery parcial: admin precisa re-inserir credenciais S3/R2 manualmente |
+| 3 | Seed phrase incorreta | Master key errada → vaults não descriptografam; mensagem clara ao admin |
+| 5 | Vaults corrompidos ou não encontrados nos nós | Recovery parcial: admin precisa re-inserir credenciais S3/R2 manualmente |
 | 7 | Manifests não encontrados em nenhum nó | Recovery impossível sem manifests; alerta crítico; chunks existem mas não podem ser reassemblados sem manifest |
 | 10 | Nó local não consegue resolver DNS ou está offline | Nó reconectará quando voltar online; chunks desse nó temporariamente indisponíveis |
 | 12 | Chunks faltando (nós destruídos durante downtime) | Auto-healing re-replica a partir de nós restantes; se chunk sem réplica → arquivo marcado como corrompido |
@@ -93,7 +93,7 @@ Esta seção documenta os **2-3 fluxos mais importantes** da POC — aqueles que
 
 - **RN3:** Seed phrase nunca armazenada digitalmente pelo sistema
 - **RN4:** Master key derivada em memória, nunca persistida
-- **RN5:** Tokens, credenciais e senhas do usuário vivem exclusivamente no vault criptografado
+- **RN5:** Tokens, credenciais e senhas vivem exclusivamente no vault criptografado de cada membro
 - **RN10:** Manifests replicados em múltiplos nós para permitir recovery
 - **RN1:** Auto-healing restaura fator de replicação 3x
 

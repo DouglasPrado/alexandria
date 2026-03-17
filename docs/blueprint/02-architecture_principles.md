@@ -28,8 +28,8 @@ Liste 3 a 7 princípios que guiam todas as decisões técnicas do sistema. Esses
 
 **Implicações:**
 - O orquestrador nunca é a única cópia de nenhum dado ou metadado
-- Manifests, vault e configuração do cluster são replicados nos nós de storage
-- Recovery via seed phrase deve ser testável e funcional: seed → master key → vault → reconectar nós → rebuild índice
+- Manifests, vaults dos membros e configuração do cluster são replicados nos nós de storage
+- Recovery via seed phrase deve ser testável e funcional: seed → master key → vaults dos membros → reconectar nós → rebuild índice
 - Toda informação no PostgreSQL deve ser reconstruível a partir dos manifests distribuídos
 
 ---
@@ -43,7 +43,7 @@ Liste 3 a 7 princípios que guiam todas as decisões técnicas do sistema. Esses
 **Implicações:**
 - Criptografia AES-256-GCM acontece no cliente, antes de qualquer upload
 - Envelope encryption (seed → master key → file keys → chunk keys) isola comprometimento
-- Tokens OAuth, credenciais de provedores e senhas do usuário vivem exclusivamente no vault criptografado, nunca em texto puro
+- Tokens OAuth, credenciais de provedores e senhas vivem exclusivamente no vault criptografado de cada membro, nunca em texto puro
 - Master key é derivada em memória e nunca persistida em disco
 - TLS 1.3 obrigatório em toda comunicação entre componentes
 
@@ -89,7 +89,7 @@ Liste 3 a 7 princípios que guiam todas as decisões técnicas do sistema. Esses
 - Monólito (orquestrador único) em vez de microserviços — um binário, um deploy, um docker-compose
 - Dependências externas minimizadas: PostgreSQL + Redis + FFmpeg, sem message brokers complexos ou service meshes
 - Deploy via Docker em VPS barata — sem Kubernetes, sem cloud proprietário
-- Vault como arquivo criptografado local — sem HashiCorp Vault ou cloud KMS
+- Vault individual por membro como arquivo criptografado local — sem HashiCorp Vault ou cloud KMS
 - Preferir soluções que funcionam "out of the box" sem configuração avançada
 
 ---

@@ -17,7 +17,7 @@ O modelo de domínio representa os **conceitos centrais do negócio**, suas regr
 | Seed Phrase | Frase de 12 palavras (BIP-39) que gera deterministicamente a master key do cluster |
 | Master Key | Chave raiz derivada da seed; nunca persistida em disco |
 | File Key | Chave de criptografia específica de um arquivo, derivada da master key via envelope encryption |
-| Vault | Cofre criptografado que armazena tokens, credenciais, chaves e senhas do usuário; desbloqueado via senha do usuário |
+| Vault | Cofre criptografado individual por membro que armazena tokens, credenciais, chaves e senhas; desbloqueado via senha do membro |
 | Placeholder | Arquivo leve (thumbnail) que substitui o original no dispositivo; download sob demanda do otimizado |
 | Preview | Versão leve para navegação rápida: thumbnail ~50KB para fotos, 480p ~5MB para vídeos |
 | Heartbeat | Sinal periódico que um nó envia ao orquestrador para indicar que está online e saudável |
@@ -141,7 +141,7 @@ O modelo de domínio representa os **conceitos centrais do negócio**, suas regr
 - **RN2:** Nenhum dado sai do dispositivo sem criptografia AES-256-GCM (zero-knowledge)
 - **RN3:** A seed phrase nunca é armazenada digitalmente pelo sistema; somente o usuário a possui
 - **RN4:** A master key é derivada da seed em memória e nunca persistida em disco
-- **RN5:** Tokens OAuth, credenciais de provedores e senhas do usuário vivem exclusivamente no vault criptografado
+- **RN5:** Tokens OAuth, credenciais de provedores e senhas vivem exclusivamente no vault criptografado de cada membro
 - **RN6:** Um nó só pode ser desconectado após drain completo (migrar todos os chunks para outros nós)
 - **RN7:** Chunks corrompidos detectados pelo scrubbing são restaurados automaticamente a partir de réplicas
 - **RN8:** Chunks órfãos (sem referência em nenhum manifest) são removidos pelo garbage collector

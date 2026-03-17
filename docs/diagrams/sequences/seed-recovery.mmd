@@ -8,7 +8,7 @@ sequenceDiagram
     participant VPS as Nova VPS<br/>(Docker Compose)
     participant API as Orquestrador (novo)<br/>(Rust + Axum 0.8)
     participant SDK as Core SDK<br/>(CryptoEngine)
-    participant Vault as Vault<br/>(AES-256-GCM)
+    participant Vault as Vaults dos Membros<br/>(AES-256-GCM)
     participant S3 as StorageProvider<br/>(S3/R2)
     participant DB as PostgreSQL 17<br/>(novo, vazio)
     participant Nodes as Agentes de Nó<br/>(existentes)
@@ -27,14 +27,14 @@ sequenceDiagram
     SDK -->>- API: master_key (em memória)
 
     %% Vault
-    API ->>+ S3: GET vault.encrypted (busca nos nós conhecidos)
-    S3 -->>- API: vault_encrypted_bytes
+    API ->>+ S3: GET vaults.encrypted (busca nos nós conhecidos)
+    S3 -->>- API: vaults_encrypted_bytes
 
-    API ->>+ SDK: Decrypt vault (AES-256-GCM + master_key)
-    SDK -->>- API: vault_data {credenciais S3, senhas do usuário, config cluster, lista nós}
+    API ->>+ SDK: Decrypt vaults dos membros (AES-256-GCM + master_key)
+    SDK -->>- API: vaults_data {credenciais S3, senhas dos membros, config cluster, lista nós}
 
     %% Rebuild
-    API ->>+ S3: LIST manifests (scan buckets com credenciais do vault)
+    API ->>+ S3: LIST manifests (scan buckets com credenciais dos vaults)
     S3 -->>- API: manifest_list[]
 
     loop Para cada manifest encontrado

@@ -56,7 +56,7 @@ Esta seção estabelece a visão de alto nível do sistema: quem o utiliza, com 
 - Scrubbing periódico para detecção e correção de corrupção (bit rot)
 - Garbage collection de chunks órfãos
 - Rebalanceamento de chunks quando nós entram ou saem
-- Vault criptografado para tokens, credenciais de provedores cloud e senhas do usuário
+- Vault criptografado individual por membro para tokens, credenciais de provedores cloud e senhas
 - Recovery completo do sistema via seed phrase de 12 palavras
 - Geração de previews e placeholders para navegação leve
 - Web client para upload, galeria e download sob demanda

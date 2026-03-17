@@ -21,7 +21,7 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 | Seed Phrase | Frase de 12 palavras (padrão BIP-39) que gera deterministicamente a master key do cluster. Nunca armazenada digitalmente pelo sistema. |
 | Master Key | Chave criptográfica raiz derivada da seed phrase. Existe apenas em memória, nunca persistida em disco. |
 | File Key | Chave de criptografia específica de um arquivo, derivada da master key via envelope encryption. |
-| Vault | Cofre criptografado que armazena tokens OAuth, credenciais de provedores, chaves e senhas do usuário. Desbloqueado via senha do usuário; em recovery, desbloqueado via master key derivada da seed. |
+| Vault | Cofre criptografado **individual por membro** que armazena tokens OAuth, credenciais de provedores, chaves e senhas do membro. Cada membro registra seus próprios nós e credenciais. Desbloqueado via senha do membro; em recovery, desbloqueado via master key derivada da seed. |
 | Réplica | Cópia de um chunk armazenada em um nó específico. Cada chunk deve ter pelo menos 3 réplicas em nós diferentes. |
 | Heartbeat | Sinal periódico que um nó envia ao orquestrador para indicar que está online e reportar capacidade. |
 | Scrubbing | Verificação periódica de integridade: recalcula hashes de chunks e repara corrompidos a partir de réplicas. |
@@ -58,12 +58,12 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 - **RN-C1:** Um cluster é criado junto com uma seed phrase de 12 palavras (BIP-39) que gera a master key deterministicamente
 - **RN-C2:** O cluster_id é imutável após criação — é derivado do par de chaves e serve como identidade criptográfica
-- **RN-C3:** A chave privada do cluster é armazenada criptografada no vault; a senha do usuário que a desbloqueia é validada em memória
+- **RN-C3:** A chave privada do cluster é armazenada criptografada no vault do membro admin; a senha do membro que a desbloqueia é validada em memória
 - **RN-C4:** Todo cluster deve ter pelo menos 1 membro com role admin
 
 **Eventos de Domínio:**
 
-- `ClusterCreated` — dispara geração de seed phrase e criação do vault
+- `ClusterCreated` — dispara geração de seed phrase e criação do vault do membro admin
 - `ClusterRecovered` — dispara reconexão de nós e rebuild do índice de metadados
 
 ---
@@ -94,8 +94,8 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 **Eventos de Domínio:**
 
 - `MemberInvited` — token de convite gerado e enviado
-- `MemberJoined` — membro aceitou convite e foi adicionado ao cluster
-- `MemberRemoved` — membro desconectado do cluster
+- `MemberJoined` — membro aceitou convite e foi adicionado ao cluster; dispara criação do vault do membro
+- `MemberRemoved` — membro desconectado do cluster; vault do membro é marcado para exclusão
 
 ---
 
@@ -261,26 +261,27 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 ### Vault
 
-**Descrição:** Cofre criptografado que armazena tokens OAuth, credenciais de provedores cloud, chaves de criptografia, senhas do usuário e configuração sensível do cluster. Existe como arquivo criptografado replicado nos nós.
+**Descrição:** Cofre criptografado **individual por membro** que armazena tokens OAuth, credenciais de provedores cloud, chaves de criptografia, senhas e configuração sensível do membro. Cada membro possui seu próprio vault para registrar nós e credenciais individualmente. Existe como arquivo criptografado replicado nos nós.
 
 **Atributos:**
 
 | Nome | Tipo | Obrigatório | Descrição |
 |------|------|:-----------:|-----------|
-| vault_data | bytes | Sim | Conteúdo criptografado (tokens, credenciais, senhas, config) |
+| member_id | referência(Membro) | Sim | Membro dono deste vault |
+| vault_data | bytes | Sim | Conteúdo criptografado (tokens, credenciais, senhas, config do membro) |
 | encryption_algorithm | string | Sim | AES-256-GCM |
 | replicated_to | lista(Node) | Sim | Nós que possuem cópia do vault |
 
 **Regras de Negócio:**
 
-- **RN-V1:** O vault é desbloqueado via senha do usuário; em cenário de recovery, a master key derivada da seed phrase também pode desbloquear o vault
+- **RN-V1:** O vault é desbloqueado via senha do membro; em cenário de recovery, a master key derivada da seed phrase também pode desbloquear os vaults
 - **RN-V2:** Tokens OAuth, credenciais S3 e senhas do usuário existem em texto puro apenas em memória, nunca em disco
-- **RN-V3:** O vault é replicado em múltiplos nós para permitir recovery sem orquestrador
-- **RN-V4:** Qualquer modificação no vault (novo token, credencial atualizada, senha adicionada) dispara re-criptografia e re-replicação
+- **RN-V3:** Cada vault de membro é replicado em múltiplos nós para permitir recovery sem orquestrador
+- **RN-V4:** Qualquer modificação no vault do membro (novo token, credencial atualizada, senha adicionada) dispara re-criptografia e re-replicação
 
 **Eventos de Domínio:**
 
-- `VaultCreated` — vault inicializado na criação do cluster
+- `VaultCreated` — vault inicializado quando membro entra no cluster (ou na criação do cluster para o admin)
 - `VaultUnlocked` — senha do usuário validada com sucesso (ou master key em recovery)
 - `VaultUpdated` — credencial, senha ou token adicionado ou modificado
 - `VaultReplicated` — cópia atualizada confirmada em nó
@@ -319,7 +320,7 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 |------------|:-------------:|------------|----------------------------|
 | Cluster | 1:N | Membro | Um cluster tem múltiplos membros; membro pertence a exatamente 1 cluster |
 | Cluster | 1:N | Nó | Um cluster tem múltiplos nós de armazenamento |
-| Cluster | 1:1 | Vault | Cada cluster tem exatamente 1 vault criptografado |
+| Membro | 1:1 | Vault | Cada membro tem exatamente 1 vault criptografado individual |
 | Cluster | 1:N | Alerta | Um cluster pode ter múltiplos alertas ativos |
 | Membro | 1:N | Nó | Um membro pode registrar múltiplos nós |
 | Membro | 1:N | Arquivo | Um membro pode fazer upload de múltiplos arquivos |

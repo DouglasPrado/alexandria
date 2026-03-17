@@ -337,7 +337,7 @@ O que ela representa.
   **Relacionamentos**
   | Relacionamento | Tipo | Cardinalidade | Regra |
   |---------------|------|---------------|------|
-  | User -> Vault | possui | 1:N | |
+  | Membro -> Vault | possui | 1:1 | Cada membro tem exatamente 1 vault individual |
 
   **Invariantes**
   Regras que nunca podem ser violadas.

@@ -39,11 +39,11 @@ Proporção alvo: **70% unitários, 20% integração, 10% E2E/sistema**. O Alexa
 | Item | Descrição |
 |---|---|
 | **Objetivo** | Validar comunicação entre componentes: Orquestrador ↔ PostgreSQL 17 (SQLx), Orquestrador ↔ Redis 7, Orquestrador ↔ StorageProvider (S3/local), Pipeline de mídia (FFmpeg/libvips) |
-| **Escopo — O que testar** | Queries SQLx contra PostgreSQL real (CRUD de todas as tabelas); transações atômicas (file + chunks + replicas); fila Redis (enqueue/dequeue jobs); StorageProvider: put/get/exists/delete contra filesystem local e MinIO (S3-compatible); pipeline de mídia: foto JPEG → WebP 1920px; vídeo MP4 → 1080p H.265; heartbeat flow completo; recovery: seed → vault → rebuild metadados |
+| **Escopo — O que testar** | Queries SQLx contra PostgreSQL real (CRUD de todas as tabelas); transações atômicas (file + chunks + replicas); fila Redis (enqueue/dequeue jobs); StorageProvider: put/get/exists/delete contra filesystem local e MinIO (S3-compatible); pipeline de mídia: foto JPEG → WebP 1920px; vídeo MP4 → 1080p H.265; heartbeat flow completo; recovery: seed → vaults dos membros → rebuild metadados |
 | **Ferramentas** | `cargo test` com `testcontainers-rs` (PostgreSQL, Redis, MinIO em Docker); `sqlx::test` para migrações automáticas por teste; fixtures com arquivos de teste (fotos/vídeos sample) |
 | **Critérios de sucesso** | Contratos SQLx validados em compile-time; pipeline processa foto e vídeo de teste sem erro; recovery reconstrói banco a partir de manifests; tempo total <5 min |
 
-> **Integrações críticas:** SQLx ↔ PostgreSQL (transações atômicas), StorageProvider ↔ S3 (put/get chunks), FFmpeg (transcodificação), Recovery (seed → vault → rebuild)
+> **Integrações críticas:** SQLx ↔ PostgreSQL (transações atômicas), StorageProvider ↔ S3 (put/get chunks), FFmpeg (transcodificação), Recovery (seed → vaults dos membros → rebuild)
 
 ---
 
@@ -52,7 +52,7 @@ Proporção alvo: **70% unitários, 20% integração, 10% E2E/sistema**. O Alexa
 | Item | Descrição |
 |---|---|
 | **Objetivo** | Validar fluxos completos do sistema do ponto de vista do usuário: upload → galeria → download; cluster creation → invite → join; recovery via seed |
-| **Escopo — O que testar** | UC-001: Criar cluster (seed phrase gerada, vault criado); UC-004: Upload de foto (aparece na galeria com thumbnail); UC-005: Download de arquivo (descriptografa e reassembla); UC-007: Recovery via seed (nova VPS → sistema operacional); Auto-healing: remover nó → chunks re-replicados |
+| **Escopo — O que testar** | UC-001: Criar cluster (seed phrase gerada, vault do admin criado); UC-004: Upload de foto (aparece na galeria com thumbnail); UC-005: Download de arquivo (descriptografa e reassembla); UC-007: Recovery via seed (nova VPS → sistema operacional); Auto-healing: remover nó → chunks re-replicados |
 | **Ferramentas** | `cargo test` com setup Docker Compose completo (orquestrador + pg + redis + minio); Playwright para testes do Web Client (Next.js 16); scripts shell para disaster drill automatizado |
 | **Critérios de sucesso** | Todos os 5 fluxos críticos passam; flaky rate <5%; tempo total <15 min; zero perda de dados nos cenários de recovery e auto-healing |
 

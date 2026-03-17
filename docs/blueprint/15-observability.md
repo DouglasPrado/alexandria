@@ -37,7 +37,7 @@ Logs estruturados em JSON via `tracing` crate (Rust) + `tracing-subscriber` com 
 | INFO | Upload concluído, nó registrado, heartbeat recebido, recovery iniciado, scrubbing ciclo completo |
 | WARN | Nó suspeito (heartbeat atrasado), réplica não verificada há >7 dias, espaço >80%, token próximo de expirar |
 | ERROR | Pipeline falhou (FFmpeg erro), chunk corrompido detectado, transação PostgreSQL falhou, nó perdido |
-| FATAL | Vault não descriptografa (senha incorreta ou master key errada em recovery), PostgreSQL inacessível no startup, seed phrase inválida |
+| FATAL | Vault do membro não descriptografa (senha incorreta ou master key errada em recovery), PostgreSQL inacessível no startup, seed phrase inválida |
 
 ### Retenção
 
@@ -120,7 +120,7 @@ Logs estruturados em JSON via `tracing` crate (Rust) + `tracing-subscriber` com 
 | `replicate_chunk` | Orquestrador | Envio de chunk para nó destino |
 | `scrub_chunk` | Scheduler | Verificação de integridade de uma réplica |
 | `auto_heal` | Scheduler | Re-replicação de chunks de nó perdido |
-| `recovery` | Orquestrador | seed → vault → rebuild completo |
+| `recovery` | Orquestrador | seed → vaults dos membros → rebuild completo |
 | `heartbeat` | Agente de Nó | Envio e processamento de heartbeat |
 
 ---
@@ -130,13 +130,13 @@ Logs estruturados em JSON via `tracing` crate (Rust) + `tracing-subscriber` com 
 | Alerta | Severidade | Condição | Ação / Runbook |
 |--------|------------|----------|----------------|
 | Chunk irrecuperável (todas réplicas corrompidas) | P1 | chunks_corrupted > 0 AND sem réplica saudável | Investigar nós afetados; verificar logs de scrubbing; arquivo marcado como corrupted |
-| Recovery falhou | P1 | recovery retorna erro | Verificar seed phrase; verificar vault nos nós; logs do orquestrador |
+| Recovery falhou | P1 | recovery retorna erro | Verificar seed phrase; verificar vaults dos membros nos nós; logs do orquestrador |
 | Replicação abaixo do mínimo por >2h | P1 | replication_health <95% por >2h | Verificar auto-healing; verificar nós disponíveis; adicionar nós se necessário |
 | Nó perdido (>1h sem heartbeat) | P2 | node.status = 'perdido' | Auto-healing automático; verificar se nó voltará online; considerar drain se permanente |
 | Pipeline de mídia parado | P2 | pipeline_queue_depth crescendo + 0 jobs processados em 10min | Verificar Redis; verificar media workers; restart se necessário |
 | Espaço do cluster >90% | P2 | storage_usage_percent >90% em qualquer nó | Adicionar nó/bucket; limpar chunks órfãos manualmente |
 | Nó suspeito (>30min sem heartbeat) | P3 | node.status = 'suspeito' | Monitorar; geralmente volta online sozinho |
-| Token OAuth próximo de expirar | P3 | token.expires_at < NOW() + 7 dias | Re-autenticar provedor cloud; atualizar vault |
+| Token OAuth próximo de expirar | P3 | token.expires_at < NOW() + 7 dias | Re-autenticar provedor cloud; atualizar vault do membro |
 | Scrubbing não executou em >7 dias | P3 | scrubbing_last_run > 7 dias | Verificar scheduler; executar manualmente se necessário |
 | Espaço do cluster >80% | P4 | storage_usage_percent >80% | Planejar adição de nós; informativo |
 
@@ -187,7 +187,7 @@ Verifica se o orquestrador está pronto para receber tráfego (dependências con
 
 - **Endpoint:** `GET /health/ready`
 - **Intervalo de verificação:** 30s
-- **Dependências verificadas:** PostgreSQL 17 (ping), Redis 7 (ping), Vault (desbloqueado)
+- **Dependências verificadas:** PostgreSQL 17 (ping), Redis 7 (ping), Vaults dos membros (desbloqueados)
 
 ### Resposta esperada
 
@@ -197,7 +197,7 @@ Verifica se o orquestrador está pronto para receber tráfego (dependências con
   "checks": {
     "postgresql": "connected",
     "redis": "connected",
-    "vault": "unlocked",
+    "vaults": "unlocked",
     "scheduler": "running"
   },
   "version": "0.1.0",

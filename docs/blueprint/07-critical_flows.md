@@ -77,9 +77,9 @@
 2. **Admin** acessa interface de recovery e insere seed phrase de 12 palavras
 3. **Core SDK (CryptoEngine)** valida seed phrase contra wordlist BIP-39
 4. **Core SDK** deriva master key da seed via PBKDF2/scrypt
-5. **Orquestrador** busca vault criptografado nos nós conhecidos (lista bootstrap hardcoded ou último DNS)
-6. **Core SDK** descriptografa vault com master key → libera credenciais S3/R2, senhas do usuário, config do cluster, lista de nós
-7. **Orquestrador** conecta aos buckets cloud (S3/R2) usando credenciais do vault via aws-sdk-s3
+5. **Orquestrador** busca vaults criptografados dos membros nos nós conhecidos (lista bootstrap hardcoded ou último DNS)
+6. **Core SDK** descriptografa vaults dos membros com master key → libera credenciais S3/R2, senhas dos membros, config do cluster, lista de nós
+7. **Orquestrador** conecta aos buckets cloud (S3/R2) usando credenciais dos vaults dos membros via aws-sdk-s3
 8. **Orquestrador** escaneia nós cloud em busca de manifests replicados
 9. **Orquestrador** reconstrói banco de metadados PostgreSQL 17 a partir dos manifests (bulk insert via SQLx)
 10. **Admin** atualiza registro DNS para apontar para IP da nova VPS (TTL: 300s)
@@ -98,8 +98,8 @@
 | Passo | Falha possível | Comportamento esperado |
 |-------|---------------|----------------------|
 | 3 | Seed phrase inválida (palavra fora do wordlist) | Mensagem clara "Palavra X não faz parte do dicionário BIP-39"; pedir correção |
-| 4 | Seed phrase incorreta (válida mas errada) | Master key errada → vault não descriptografa (AEAD auth tag falha); mensagem "Seed incorreta" |
-| 5 | Vault não encontrado em nenhum nó | Recovery parcial: admin precisa re-inserir credenciais S3/R2 manualmente; alerta |
+| 4 | Seed phrase incorreta (válida mas errada) | Master key errada → vaults não descriptografam (AEAD auth tag falha); mensagem "Seed incorreta" |
+| 5 | Vaults não encontrados em nenhum nó | Recovery parcial: admin precisa re-inserir credenciais S3/R2 manualmente; alerta |
 | 8 | Manifests não encontrados em nenhum nó | Recovery impossível sem manifests; alerta crítico; chunks existem mas não podem ser reassemblados |
 | 9 | PostgreSQL falha durante bulk insert | Retry por lotes; transação parcial; progresso salvo para continuar de onde parou |
 | 11 | Nó local não resolve DNS ou está offline | Nó reconectará quando voltar online; chunks temporariamente indisponíveis; não bloqueia recovery |
@@ -167,7 +167,7 @@
 
 ## Fluxo: Criação de Cluster e Onboarding
 
-**Descrição:** Admin cria o cluster familiar pela primeira vez: gera identidade criptográfica, seed phrase, vault e convida membros. É o ponto de entrada — sem cluster, nada funciona.
+**Descrição:** Admin cria o cluster familiar pela primeira vez: gera identidade criptográfica, seed phrase, vault do admin e convida membros (cada um receberá seu próprio vault). É o ponto de entrada — sem cluster, nada funciona.
 
 **Criticidade:** Alta — executado uma única vez mas é pré-requisito para todo o sistema
 
@@ -182,14 +182,14 @@
 5. **Core SDK** gera par de chaves (public_key + private_key) para o cluster
 6. **Core SDK** calcula cluster_id = SHA-256(public_key)
 7. **Core SDK** criptografa private_key com master key
-8. **Orquestrador** cria vault vazio, criptografado com senha do admin
+8. **Orquestrador** cria vault individual do admin, criptografado com senha do admin
 9. **Orquestrador** persiste cluster em PostgreSQL (cluster_id, nome, public_key, encrypted_private_key)
 10. **Orquestrador** cria membro admin (role: "admin") para o criador
 11. **Web Client** exibe seed phrase de 12 palavras com instruções para anotar em papel
 12. **Admin** confirma que anotou a seed phrase (checkbox obrigatório)
 13. **Orquestrador** marca cluster como ativo
 14. **Admin** convida membros via POST /clusters/:id/invite (gera token assinado com expiração)
-15. **Membro** recebe link de convite, aceita e é adicionado ao cluster com role configurada
+15. **Membro** recebe link de convite, aceita, é adicionado ao cluster com role configurada e recebe seu vault individual criptografado com sua senha
 
 ### Diagrama de Sequência
 

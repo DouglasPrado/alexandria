@@ -28,8 +28,8 @@ sequenceDiagram
     SDK ->> SDK: Criptografar private_key com master_key
     SDK -->>- API: {cluster_id, public_key, encrypted_private_key}
 
-    API ->>+ Vault: Criar vault vazio, criptografado com senha do admin
-    Vault -->>- API: vault criado
+    API ->>+ Vault: Criar vault individual do admin, criptografado com sua senha
+    Vault -->>- API: vault do admin criado
 
     API ->>+ DB: INSERT clusters + INSERT members (admin)
     DB -->>- API: OK

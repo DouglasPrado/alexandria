@@ -44,7 +44,7 @@ Sistema de armazenamento familiar distribuído que permite guardar fotos, vídeo
 - Upload com pipeline completo (resize → compress → chunk → encrypt → distribute)
 - Replicação 3x com auto-healing
 - Download e visualização com placeholder files
-- Recovery do orquestrador via seed phrase + vault
+- Recovery do orquestrador via seed phrase + vaults dos membros
 - Web client básico (upload, galeria, download)
 - Alertas de saúde do cluster (nó offline, replicação baixa)
 - Heartbeat monitoring de nós

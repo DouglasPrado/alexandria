@@ -113,7 +113,7 @@ Esta seção define **como o Alexandria constrói e mantém relações duradoura
 | --- | --- | --- | --- |
 | **Self-service** | Dúvidas de configuração, troubleshooting básico | "Como adicionar bucket R2", "Erro no Docker Compose", "Como configurar DNS" | Docs, FAQ, guias passo-a-passo |
 | **Comunidade** | Problemas intermediários, integrações, otimizações | "Sync não funciona com OneDrive", "Performance lenta com muitos chunks" | GitHub Discussions, Discord — resolvido pela comunidade |
-| **Mantenedor** | Bugs, falhas de segurança, perda de dados, design decisions | "Chunks corrompidos após scrubbing", "Seed phrase não recupera vault", "Vulnerabilidade de segurança" | GitHub Issues → fix pelo mantenedor; segurança via responsible disclosure |
+| **Mantenedor** | Bugs, falhas de segurança, perda de dados, design decisions | "Chunks corrompidos após scrubbing", "Seed phrase não recupera vaults dos membros", "Vulnerabilidade de segurança" | GitHub Issues → fix pelo mantenedor; segurança via responsible disclosure |
 
 ---
 
