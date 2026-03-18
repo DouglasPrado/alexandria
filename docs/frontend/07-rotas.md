@@ -16,6 +16,8 @@ Define a estrutura de rotas da aplicacao, a estrategia de protecao de rotas e os
 | `/recovery` | Publica | `AuthLayout` | RecoveryPage — entrada da seed phrase para recuperacao do orquestrador |
 | `/gallery` | Protegida | `AppLayout` | GalleryPage — galeria de fotos/videos com timeline cronologica e busca |
 | `/gallery/[fileId]` | Protegida | `AppLayout` | FileDetailPage — visualizacao de foto/video com metadados EXIF, download sob demanda |
+| `/documents` | Protegida | `AppLayout` | DocumentsPage — lista de documentos (PDFs, Office, texto, archives) com busca, filtros por tipo e upload |
+| `/documents/[fileId]` | Protegida | `AppLayout` | DocumentDetailPage — detalhes do documento, metadados, download e preview (PDF) |
 | `/nodes` | Protegida | `AppLayout` | NodesPage — lista de nos do cluster, heartbeat status, quotas e capacidade |
 | `/nodes/add` | Protegida | `AppLayout` | AddNodePage — registro de novo no (local, S3, R2, Google Drive, Dropbox, OneDrive) |
 | `/nodes/[nodeId]` | Protegida | `AppLayout` | NodeDetailPage — detalhes do no, chunks armazenados, drain, configuracao de quota |
@@ -49,6 +51,9 @@ app/
     gallery/
       page.tsx                        # /gallery
       [fileId]/page.tsx               # /gallery/[fileId]
+    documents/
+      page.tsx                        # /documents
+      [fileId]/page.tsx               # /documents/[fileId]
     nodes/
       page.tsx                        # /nodes
       add/page.tsx                    # /nodes/add
@@ -110,7 +115,7 @@ app/
 | `RootLayout` | Todas | ThemeProvider, QueryClientProvider, FontLoader, Toaster |
 | `MainLayout` | `/` | Navbar (publico), Hero, Footer |
 | `AuthLayout` | `/login`, `/invite/[token]`, `/recovery` | Logo centralizado, Card de formulario, fundo minimalista |
-| `AppLayout` | `/gallery`, `/nodes/*`, `/health/*`, `/vault`, `/settings`, `/cluster/*` | Sidebar, Header (com user menu, notificacoes, status de sync), MainContent area |
+| `AppLayout` | `/gallery`, `/documents/*`, `/nodes/*`, `/health/*`, `/vault`, `/settings`, `/cluster/*` | Sidebar, Header (com user menu, notificacoes, status de sync), MainContent area |
 | `MinimalLayout` | `/nodes/[nodeId]/oauth/callback` | Spinner de loading, sem navegacao (pagina transitoria de callback OAuth) |
 
 <!-- APPEND:layouts -->
@@ -150,7 +155,7 @@ RootLayout (app/layout.tsx)
 | Elemento | Visivel em | Comportamento |
 |----------|-----------|---------------|
 | Navbar (publica) | Landing page (`/`) | Links: Login, Sobre, logo Alexandria |
-| Sidebar | Area logada (desktop/tablet) | Itens: Gallery, Nodes, Health, Vault, Settings. Colapsavel. Badge de alertas em Health. Indicador de sync na Gallery |
+| Sidebar | Area logada (desktop/tablet) | Itens: Gallery, Documents, Nodes, Health, Vault, Settings. Colapsavel. Badge de alertas em Health. Indicador de sync na Gallery |
 | Header | Area logada | Breadcrumbs (caminho clicavel), SyncStatusIndicator, NotificationBell (alertas do cluster), UserMenu (perfil, settings, logout) |
 | Breadcrumbs | Paginas internas | Caminho hierarquico clicavel (ex: `Nodes > meu-nas > Detalhes`) |
 | Drawer | Mobile (<768px) | Menu hamburger com mesmos itens da Sidebar, fecha ao navegar |
@@ -163,6 +168,7 @@ RootLayout (app/layout.tsx)
 │  ◆ Alexandria       │  ← Logo/nome, clicavel → /gallery
 ├─────────────────────┤
 │  📷 Galeria         │  → /gallery (badge: N pendentes de sync)
+│  📄 Documentos      │  → /documents
 │  🖥️ Nos            │  → /nodes
 │  💚 Saude           │  → /health (badge: N alertas)
 │  🔐 Vault           │  → /vault

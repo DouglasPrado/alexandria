@@ -124,9 +124,11 @@ Enquanto o [Modelo de Domínio](./04-domain_model.md) descreve entidades e regra
 | cluster_id | UUID | FK → clusters(id), NOT NULL | Cluster ao qual pertence |
 | uploaded_by | UUID | FK → members(id), NOT NULL | Membro que fez upload |
 | original_name | VARCHAR(500) | NOT NULL | Nome do arquivo original |
-| media_type | VARCHAR(20) | NOT NULL, CHECK (media_type IN ('foto', 'video', 'documento')) | Tipo de mídia |
+| media_type | VARCHAR(20) | NOT NULL, CHECK (media_type IN ('foto', 'video', 'documento')) | Tipo de mídia (classificado via MIME type) |
+| mime_type | VARCHAR(127) | NOT NULL | MIME type detectado (ex: image/jpeg, application/pdf, text/plain) |
+| file_extension | VARCHAR(20) | NOT NULL | Extensão original do arquivo sem ponto (ex: pdf, docx, zip) |
 | original_size | BIGINT | NOT NULL | Tamanho antes de otimização (bytes) |
-| optimized_size | BIGINT | NOT NULL | Tamanho após otimização (bytes) |
+| optimized_size | BIGINT | NOT NULL | Tamanho após otimização — igual a original_size para documentos (bytes) |
 | content_hash | VARCHAR(64) | NOT NULL | SHA-256 do conteúdo otimizado |
 | metadata | JSONB | NULL | EXIF e metadados extraídos |
 | preview_chunk_id | VARCHAR(64) | NULL | Chunk ID do preview/thumbnail |
@@ -142,6 +144,7 @@ Enquanto o [Modelo de Domínio](./04-domain_model.md) descreve entidades e regra
 | files_content_hash_idx | content_hash | BTREE | Deduplicação por conteúdo |
 | files_cluster_status_idx | cluster_id, status | BTREE | Listar arquivos pendentes/com erro |
 | files_uploaded_by_idx | uploaded_by | BTREE | Listar arquivos de um membro |
+| files_cluster_media_type_idx | cluster_id, media_type | BTREE | Filtrar galeria por tipo (fotos, videos, documentos) |
 
 ---
 
@@ -244,6 +247,48 @@ Enquanto o [Modelo de Domínio](./04-domain_model.md) descreve entidades e regra
 | alerts_cluster_resolved_idx | cluster_id, resolved | BTREE | Listar alertas ativos de um cluster |
 | alerts_resource_idx | resource_type, resource_id | BTREE | Encontrar alertas de um recurso específico (deduplicação) |
 | alerts_created_idx | created_at DESC | BTREE | Listar alertas recentes |
+
+---
+
+### vaults
+
+**Descrição:** Cofre criptografado individual por membro. Armazena tokens OAuth, credenciais de provedores cloud, chaves e senhas pessoais do membro. O conteúdo é um blob criptografado com AES-256-GCM; a estrutura interna (JSON) só é acessível após desbloqueio com senha do membro ou master key em recovery.
+
+**Campos:**
+
+| Campo | Tipo | Constraint | Descrição |
+|-------|------|-----------|-----------|
+| id | UUID | PK, NOT NULL | Identificador único |
+| member_id | UUID | FK → members(id), UNIQUE, NOT NULL | Membro dono do vault (1:1) |
+| vault_data | BYTEA | NOT NULL | Conteúdo criptografado (tokens OAuth, credenciais S3, senhas pessoais, config) |
+| encryption_algorithm | VARCHAR(20) | NOT NULL, DEFAULT 'AES-256-GCM' | Algoritmo de criptografia usado |
+| version | INTEGER | NOT NULL, DEFAULT 1 | Versão do formato interno para migrações futuras |
+| created_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Data de criação |
+| updated_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Última atualização (re-criptografia) |
+
+**Índices:**
+
+| Nome do Índice | Campos | Tipo | Justificativa |
+|---------------|--------|------|---------------|
+| vaults_member_id_key | member_id | UNIQUE BTREE | Lookup rápido por membro (1:1) |
+
+**Estrutura interna do vault_data (após descriptografia):**
+
+```json
+{
+  "oauth_tokens": [
+    { "provider": "google_drive", "node_name": "...", "access_token": "...", "refresh_token": "...", "expires_at": "..." }
+  ],
+  "node_credentials": [
+    { "node_name": "...", "type": "s3", "endpoint": "...", "access_key": "...", "secret_key": "...", "bucket": "..." }
+  ],
+  "passwords": [
+    { "id": "uuid", "title": "...", "username": "...", "password_encrypted": "...", "notes": "...", "created_at": "...", "updated_at": "..." }
+  ]
+}
+```
+
+> **Nota:** A estrutura JSON acima é ilustrativa. O conteúdo real é serializado e criptografado como blob binário. Senhas dentro do vault usam criptografia adicional (envelope encryption) para isolamento — comprometimento de um token OAuth não expõe senhas pessoais.
 
 ---
 

@@ -74,6 +74,17 @@
 | RF-036 | Fila de processamento com workers paralelos para transcodificação | Should | Proposto | OBJ-03 |
 | RF-037 | Controle de qualidade perceptual para vídeo (CRF ~30, bitrate alvo ~4Mbps) | Should | Proposto | OBJ-03 |
 
+### Processamento de Documentos
+
+| ID | Descrição | Prioridade | Status | Objetivo |
+|----|-----------|------------|--------|----------|
+| RF-062 | Documentos (não mídia) fazem bypass do pipeline de otimização — chunk e distribui diretamente | Must | Proposto | OBJ-01 |
+| RF-063 | Formatos aceitos para documentos: PDF, DOCX, XLSX, PPTX, TXT, MD, JSON, SQL, CSV, XML, ZIP, RAR, 7Z e qualquer arquivo genérico | Must | Proposto | OBJ-05 |
+| RF-064 | Gerar thumbnail/preview para documentos quando possível: PDF → imagem da primeira página; demais → ícone genérico por tipo | Should | Proposto | OBJ-05 |
+| RF-065 | Limite de tamanho por tipo: fotos até 50MB, vídeos até 10GB, documentos até 2GB, archives até 5GB | Must | Proposto | OBJ-03 |
+| RF-066 | Extrair metadados básicos de documentos: nome, extensão, MIME type, tamanho, número de páginas (PDF), encoding (texto) | Should | Proposto | OBJ-01 |
+| RF-067 | Classificação automática de media_type baseada em MIME type: image/* → foto, video/* → video, demais → documento | Must | Proposto | OBJ-01 |
+
 ### Replicação e Redundância
 
 | ID | Descrição | Prioridade | Status | Objetivo |

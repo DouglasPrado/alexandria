@@ -65,7 +65,7 @@ Documenta os fluxos criticos de interacao do usuario com o frontend. Cada fluxo 
 **Passos:**
 
 1. Membro arrasta arquivos para a area de upload na galeria ou clica em "Enviar Arquivos"
-2. Frontend valida tipo e tamanho dos arquivos (formatos suportados: JPEG, PNG, HEIC, MP4, MOV)
+2. Frontend valida tipo e tamanho dos arquivos (formatos suportados: fotos — JPEG, PNG, HEIC; videos — MP4, MOV; documentos — PDF, DOCX, XLSX, PPTX, TXT, MD, JSON, SQL, CSV, XML, ZIP, RAR, 7Z e outros). Limites: fotos ate 50MB, videos ate 10GB, documentos ate 2GB, archives ate 5GB
 3. Sistema inicia o pipeline — status muda para "Analisando"
 4. Pipeline otimiza midia (foto → WebP Full HD; video → 1080p H.265/AV1) — status "Otimizando"
 5. Sistema gera thumbnail/preview — status "Gerando Preview"
@@ -212,6 +212,41 @@ Documenta os fluxos criticos de interacao do usuario com o frontend. Cada fluxo 
 - Reconstrucao de indice incompleta → Dashboard exibe banner informativo com contagem de arquivos potencialmente nao indexados; sugere verificar nos offline
 
 > Diagrama: [fluxo-5-recovery.mmd](../diagrams/frontend/fluxo-5-recovery.mmd)
+
+### Fluxo 6: Gerenciamento de Senhas Pessoais no Vault
+
+> O membro acessa seu vault criptografado para visualizar, adicionar ou copiar senhas pessoais armazenadas com seguranca.
+
+**Passos:**
+
+1. Membro acessa "Vault" na sidebar
+2. Sistema exibe as 3 secoes: Tokens OAuth, Credenciais de nos, Senhas pessoais
+3. Membro clica em "Adicionar senha"
+4. Modal exibe formulario com campos: Titulo, Usuario ou email, Senha, Notas (opcional)
+5. Membro preenche e clica em "Salvar no vault"
+6. Sistema criptografa a senha com AES-256-GCM e re-criptografa o vault completo
+7. Vault atualizado e replicado nos nos (dispara evento VaultUpdated)
+8. Nova senha aparece na lista com mascara e botoes de acao (ver/copiar)
+9. Para revelar, membro clica no icone de olho — senha visivel por 10 segundos
+10. Para copiar, membro clica no icone de copiar — senha copiada para clipboard com auto-clear em 30 segundos
+
+**Componentes envolvidos:**
+
+| Componente | Responsabilidade |
+|------------|-----------------|
+| PasswordRow | Card individual de senha com titulo, usuario, data, mascara e acoes (ver/copiar) |
+| AddPasswordModal | Modal com formulario de 4 campos para adicionar nova senha |
+| TokenRow | Linha da tabela de tokens OAuth com status e acao de reconexao |
+| CredentialRow | Card de credencial S3/R2 com access key mascarada |
+| ReconnectOAuthModal | Modal de confirmacao para reconexao de token OAuth expirado |
+
+**Tratamento de Erros:**
+
+- Falha ao salvar senha (erro de criptografia ou rede) → Toast de erro com retry; dados do formulario preservados
+- Vault bloqueado (sessao expirada) → Redireciona para re-autenticacao; apos login, retorna ao vault
+- Falha na replicacao do vault atualizado → Banner informativo "Vault salvo localmente, replicacao pendente"; resolve automaticamente quando nos ficam online
+
+> Diagrama: [fluxo-6-vault-senhas.mmd](../diagrams/frontend/fluxo-6-vault-senhas.mmd)
 
 <!-- APPEND:fluxos -->
 

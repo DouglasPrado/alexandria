@@ -261,8 +261,10 @@ O tema segue a preferencia do sistema operacional (`prefers-color-scheme`) com o
 
 | Componente | Variantes | Props Chave | Uso no Alexandria |
 | --- | --- | --- | --- |
-| PhotoThumbnail | default, video, selected | `src`, `filename`, `type`, `selected` | Thumbnail 172x172 na grade de fotos |
-| MonthGroup | default | `month`, `year`, `children` | Agrupamento temporal de fotos na galeria |
+| PhotoThumbnail | default, video, document, selected | `src`, `filename`, `type`, `selected` | Thumbnail 172x172 na grade — fotos/videos com preview, documentos com icone |
+| MonthGroup | default | `month`, `year`, `children` | Agrupamento temporal na galeria |
+| FileTypeIcon | pdf, doc, xls, ppt, txt, code, archive, generic | `extension`, `size` | Icone representativo do tipo de arquivo para documentos sem preview visual |
+| DocumentCard | default, compact | `filename`, `extension`, `size`, `uploadedBy`, `date` | Card de documento na tela de documentos com icone, nome, metadados e acoes |
 
 **PhotoThumbnail — Especificacoes visuais:**
 - Dimensao: 172x172px (responsivo conforme breakpoint)
@@ -276,5 +278,31 @@ O tema segue a preferencia do sistema operacional (`prefers-color-scheme`) com o
 - Label do mes: Inter 600 / 14px / `--color-text`
 - Gap: `space-3` (12px) entre label e grid
 - Gap entre grupos: `space-6` (24px)
+
+### Vault
+
+| Componente | Variantes | Props Chave | Uso no Alexandria |
+| --- | --- | --- | --- |
+| TokenRow | active, expiring, expired | `provider`, `nodeName`, `connectedAt`, `status`, `onReconnect` | Linha da tabela de tokens OAuth no vault |
+| CredentialRow | validated, invalid | `provider`, `nodeName`, `accessKeyMasked`, `status` | Card de credencial S3/R2 no vault |
+| PasswordRow | default | `title`, `username`, `updatedAt`, `onReveal`, `onCopy` | Card de senha pessoal com acoes ver/copiar |
+| AddPasswordModal | default | `onSubmit`, `onCancel` | Modal de formulario para adicionar senha ao vault |
+| ReconnectOAuthModal | default | `provider`, `onConfirm`, `onCancel` | Modal de confirmacao para reconexao OAuth |
+
+**TokenRow — Especificacoes visuais:**
+- Layout: flex row, padding 14px 16px, gap 16px, border-bottom 1px solid `--color-border`
+- Icone do provedor: 36x36px, radius 8px, borda 1px solid `--color-border`
+- Nome: Inter 500 / 14px / `--color-text`, subtitle Inter 400 / 12px / `--color-text-muted`
+- Status active: dot 6px `--color-success` + texto Inter 500 / 13px / `--color-success`
+- Status expiring: dot 6px `--color-warning` + texto "Expira em Xd" Inter 500 / 13px / `--color-warning`, background `#FFFBEB`
+- Status expired: dot 6px `--color-error` + texto Inter 500 / 13px / `--color-error`, background `#FEF2F2`, botao "Reconectar"
+
+**PasswordRow — Especificacoes visuais:**
+- Layout: flex row, padding 14px 16px, gap 16px, border 1px solid `--color-border`, radius 8px
+- Icone por tipo: 36x36px com cor tematica (amarelo banco, azul email, verde wifi)
+- Titulo: Inter 500 / 14px / `--color-text`
+- Data: Inter 400 / 12px / `--color-text-muted`
+- Senha mascarada: JetBrains Mono 400 / 13px / `--color-text-muted`, letter-spacing 0.1em
+- Acoes: botoes 32x32px com borda, icones revelar (olho) e copiar
 
 > Documentacao completa dos componentes: (ver 04-componentes.md)

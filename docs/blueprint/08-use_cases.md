@@ -118,7 +118,7 @@ Cada caso de uso descreve uma interação completa entre um ator e o sistema par
 #### Fluxo Principal
 
 1. Membro acessa galeria e clica "Upload"
-2. Sistema exibe seletor de arquivos (aceita fotos, vídeos, documentos)
+2. Sistema exibe seletor de arquivos (aceita fotos, vídeos e documentos — JPEG, PNG, HEIC, MP4, MOV, PDF, DOCX, XLSX, PPTX, TXT, MD, JSON, SQL, CSV, XML, ZIP, RAR, 7Z e outros)
 3. Membro seleciona arquivo(s) e confirma
 4. Sistema faz upload do arquivo para o Orquestrador
 5. Sistema enfileira processamento no pipeline de mídia
@@ -131,7 +131,7 @@ Cada caso de uso descreve uma interação completa entre um ator e o sistema par
 #### Fluxos Alternativos
 
 - **3a.** Arquivo duplicado (hash idêntico já existe): Sistema notifica "Arquivo já existe no cluster"; chunks reutilizados; economia de espaço
-- **6a.** Documento (não mídia): Skip otimização; chunk e distribui diretamente
+- **6a.** Documento (não mídia): Skip otimização (optimized_size = original_size); classifica media_type via MIME type; gera preview quando possível (PDF → primeira página, demais → ícone por extensão); chunk e distribui diretamente
 - **5a.** Sync engine (upload automático): Passos 1-3 substituídos por detecção automática de novo arquivo em pasta monitorada
 
 #### Fluxo de Exceção

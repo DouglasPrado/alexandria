@@ -20,9 +20,19 @@
 4. **Orquestrador** registra arquivo em `files` (status: "processing") via SQLx e enfileira job no Redis
 5. **Media Worker** consome job da fila Redis
 6. **Media Worker** analisa arquivo (resolução, formato, tamanho, tipo MIME)
-7. **Media Worker** otimiza: foto → libvips resize max 1920px + WebP; vídeo → FFmpeg 1080p H.265/AV1
-8. **Media Worker** gera preview: thumbnail ~50KB (foto) ou 480p ~5MB (vídeo)
-9. **Media Worker** extrai metadados EXIF (data, GPS, câmera) e prepara JSON para metadata
+7. **Media Worker** otimiza conforme tipo:
+   - foto → libvips resize max 1920px + WebP
+   - vídeo → FFmpeg 1080p H.265/AV1
+   - documento → bypass de otimização (optimized_size = original_size); chunk diretamente
+8. **Media Worker** gera preview conforme tipo:
+   - foto → thumbnail ~50KB
+   - vídeo → 480p ~5MB
+   - documento PDF → imagem da primeira página via pdf-render
+   - documento genérico → ícone por extensão/MIME type (sem preview de conteúdo)
+9. **Media Worker** extrai metadados conforme tipo:
+   - foto → EXIF (data, GPS, câmera, lente)
+   - vídeo → duração, resolução, codec
+   - documento → páginas (PDF), encoding (texto), tamanho comprimido (archive)
 10. **Core SDK** divide conteúdo otimizado em chunks de ~4MB e calcula SHA-256 de cada
 11. **Core SDK** verifica deduplicação: se hash já existe em `chunks`, cria referência sem rearmazenar
 12. **Core SDK** gera file key via envelope encryption (master key → file key) e criptografa cada chunk com AES-256-GCM
@@ -59,6 +69,7 @@
 | Latência upload API (p95) | < 500ms (aceitar arquivo + enfileirar) |
 | Pipeline completo (foto 5MB) | < 10s (optimize + chunk + encrypt + distribute) |
 | Pipeline completo (vídeo 2GB) | < 5min (transcode é gargalo) |
+| Pipeline completo (documento 100MB) | < 30s (sem otimização — apenas chunk + encrypt + distribute) |
 | Throughput mínimo | 10 uploads concorrentes |
 
 ---

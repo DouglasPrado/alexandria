@@ -154,7 +154,7 @@ Define todos os textos e conteudos textuais das telas do frontend — labels, pl
 | Elemento | Chave i18n | Texto Padrao | Contexto |
 | --- | --- | --- | --- |
 | Dropzone titulo | `upload.dropzone.title` | Arraste arquivos aqui ou clique para selecionar | Texto da area de drag-and-drop na galeria |
-| Dropzone formatos | `upload.dropzone.formats` | Formatos aceitos: JPEG, PNG, HEIC, MP4, MOV | Descricao de formatos |
+| Dropzone formatos | `upload.dropzone.formats` | Fotos, videos, documentos e outros arquivos. Ate 50MB fotos, 10GB videos, 2GB documentos | Descricao de formatos |
 | Botao selecionar | `upload.dropzone.selectButton` | Selecionar arquivos | CTA do dropzone |
 | Fila titulo | `upload.queue.title` | Fila de upload | Titulo da secao de fila (inline na galeria) |
 | Status analisando | `upload.status.analyzing` | Analisando | Badge de status |
@@ -167,6 +167,33 @@ Define todos os textos e conteudos textuais das telas do frontend — labels, pl
 | Progresso global | `upload.progress.global` | {{completed}} de {{total}} arquivos enviados | Barra de progresso global |
 
 <!-- APPEND:copies-upload -->
+
+### Tela: Documentos (`/documents`)
+
+| Elemento | Chave i18n | Texto Padrao | Contexto |
+| --- | --- | --- | --- |
+| Titulo | `documents.title` | Documentos | Heading principal |
+| Subtitulo | `documents.subtitle` | Arquivos, PDFs, planilhas e outros documentos da familia | Descricao |
+| Busca placeholder | `documents.searchPlaceholder` | Buscar por nome ou tipo | Placeholder da barra de busca |
+| Filtro tipo | `documents.filter.type` | Tipo | Label do filtro |
+| Filtro PDF | `documents.filter.pdf` | PDFs | Opcao do filtro |
+| Filtro Office | `documents.filter.office` | Office | Opcao do filtro |
+| Filtro Texto | `documents.filter.text` | Texto | Opcao do filtro |
+| Filtro Archives | `documents.filter.archives` | Arquivos compactados | Opcao do filtro |
+| Filtro Todos | `documents.filter.all` | Todos | Opcao do filtro |
+| Botao upload | `documents.uploadButton` | Enviar documento | CTA principal |
+| Coluna nome | `documents.column.name` | Nome | Label de coluna |
+| Coluna tipo | `documents.column.type` | Tipo | Label de coluna |
+| Coluna tamanho | `documents.column.size` | Tamanho | Label de coluna |
+| Coluna enviado por | `documents.column.uploadedBy` | Enviado por | Label de coluna |
+| Coluna data | `documents.column.date` | Data | Label de coluna |
+| Botao baixar | `documents.download` | Baixar | Acao no documento |
+| Empty state | `documents.empty.title` | Nenhum documento por aqui | Empty state |
+| Empty state descricao | `documents.empty.description` | Envie PDFs, planilhas, documentos e outros arquivos para manter tudo organizado e seguro | Descricao |
+| Empty state CTA | `documents.empty.cta` | Enviar primeiro documento | CTA do empty state |
+| Busca sem resultado | `documents.search.noResults` | Nenhum documento encontrado para "{{termo}}" | Busca vazia |
+
+<!-- APPEND:copies-documents -->
 
 ### Tela: Nos de Armazenamento (`/nodes`)
 
@@ -343,6 +370,33 @@ Define todos os textos e conteudos textuais das telas do frontend — labels, pl
 | Botao reconectar | `vault.tokens.reconnectButton` | Reconectar | CTA de reconexao |
 | Empty state | `vault.empty.title` | Nenhuma credencial armazenada | Empty state |
 | Empty state descricao | `vault.empty.description` | Tokens OAuth e credenciais de nos aparecerao aqui quando voce conectar provedores | Descricao |
+| Token conectado em | `vault.tokens.connectedAt` | Conectado em | Label de coluna |
+| Token acao | `vault.tokens.action` | Acao | Label de coluna |
+| Token expirando | `vault.tokens.expiring` | Expira em {{days}}d | Badge de status warning |
+| Banner token expirando | `vault.tokens.expiringBanner` | O token do {{provider}} expira em {{days}} dias. Reconecte sua conta para evitar interrupcao. | Banner de warning |
+| Banner CTA | `vault.tokens.expiringBannerCta` | Reconectar agora | CTA do banner |
+| Modal reconectar titulo | `vault.reconnect.title` | Reconectar {{provider}} | Titulo do modal |
+| Modal reconectar descricao | `vault.reconnect.description` | O token OAuth do {{provider}} expirou. Para continuar usando este no de armazenamento, voce precisa autorizar o acesso novamente. | Descricao do modal |
+| Modal reconectar info | `vault.reconnect.info` | Voce sera redirecionado para o {{provider}} para autorizar o acesso. O novo token sera armazenado no seu vault. | Info box do modal |
+| Modal reconectar CTA | `vault.reconnect.cta` | Conectar com {{provider}} | CTA do modal |
+| Credenciais titulo | `vault.credentials.title` | Credenciais de nos | Secao de credenciais |
+| Credenciais contagem | `vault.credentials.count` | {{count}} credencial armazenada | Contador |
+| Credencial validada | `vault.credentials.validated` | Validada | Badge de status |
+| Credencial access key | `vault.credentials.accessKey` | Access Key: {{masked}} | Exibicao mascarada |
+| Senhas titulo | `vault.passwords.title` | Senhas pessoais | Secao de senhas |
+| Senhas botao adicionar | `vault.passwords.addButton` | Adicionar senha | CTA |
+| Senha mascara | `vault.passwords.masked` | ************ | Senha mascarada |
+| Senha atualizado em | `vault.passwords.updatedAt` | Atualizado em {{date}} | Data de atualizacao |
+| Modal adicionar titulo | `vault.addPassword.title` | Adicionar senha | Titulo do modal |
+| Modal adicionar descricao | `vault.addPassword.description` | A senha sera criptografada e armazenada no seu vault pessoal. | Descricao do modal |
+| Modal adicionar label titulo | `vault.addPassword.titleLabel` | Titulo | Label do campo |
+| Modal adicionar label usuario | `vault.addPassword.usernameLabel` | Usuario ou email | Label do campo |
+| Modal adicionar label senha | `vault.addPassword.passwordLabel` | Senha | Label do campo |
+| Modal adicionar label notas | `vault.addPassword.notesLabel` | Notas | Label do campo |
+| Modal adicionar notas opcional | `vault.addPassword.notesOptional` | (opcional) | Indicador |
+| Modal adicionar placeholder notas | `vault.addPassword.notesPlaceholder` | Anotacoes sobre esta senha... | Placeholder |
+| Modal adicionar CTA | `vault.addPassword.submitButton` | Salvar no vault | CTA do modal |
+| Nota seguranca | `vault.securityNote` | Todas as credenciais e senhas sao armazenadas com criptografia AES-256-GCM no seu vault pessoal. Apenas voce pode acessa-las com sua senha. | Info box |
 
 <!-- APPEND:copies-vault -->
 
@@ -510,6 +564,7 @@ Define todos os textos e conteudos textuais das telas do frontend — labels, pl
 | Elemento | Chave i18n | Texto Padrao |
 | --- | --- | --- |
 | Galeria | `global.sidebar.gallery` | Galeria |
+| Documentos | `global.sidebar.documents` | Documentos |
 | Nos | `global.sidebar.nodes` | Nos |
 | Saude | `global.sidebar.health` | Saude |
 | Saude badge | `global.sidebar.healthBadge` | {{count}} alertas |
