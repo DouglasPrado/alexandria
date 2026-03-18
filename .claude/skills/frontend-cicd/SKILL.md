@@ -29,11 +29,13 @@ Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 pergun
 ## Geracao
 
 > **Modo de escrita:**
+>
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-incrementar`.
 
 Preencha `docs/frontend/13-cicd-convencoes.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+
 - Informacoes explicitas do PRD
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- inferido do PRD -->`)
@@ -44,4 +46,4 @@ Apresente o documento preenchido ao usuario. Aplique ajustes solicitados. Salve 
 
 ## Proxima Etapa
 
-> "CI/CD e Convencoes preenchido. Todas as secoes do Frontend Blueprint estao completas! Revise os documentos em `docs/frontend/` e considere rodar `/blueprint` para complementar com a documentacao tecnica do backend."
+> "CI/CD e Convencoes preenchido. Rode `/frontend-copies` para preencher os textos e copies de todas as telas."
