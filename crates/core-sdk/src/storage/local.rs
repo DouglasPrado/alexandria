@@ -187,10 +187,7 @@ mod tests {
         let (provider, _dir) = setup().await;
         let result = provider.get("nonexistent").await;
         assert!(result.is_err());
-        assert!(matches!(
-            result.unwrap_err(),
-            StorageError::NotFound(_)
-        ));
+        assert!(matches!(result.unwrap_err(), StorageError::NotFound(_)));
     }
 
     // -- exists --

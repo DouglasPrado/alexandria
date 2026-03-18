@@ -7,8 +7,8 @@
 use super::{StorageCapacity, StorageError, StorageProvider};
 use async_trait::async_trait;
 use aws_credential_types::Credentials;
-use aws_sdk_s3::config::{BehaviorVersion, Region};
 use aws_sdk_s3::Client;
+use aws_sdk_s3::config::{BehaviorVersion, Region};
 
 /// Configuracao para conectar a um backend S3-compatible.
 #[derive(Debug, Clone)]
@@ -163,9 +163,7 @@ impl StorageProvider for S3StorageProvider {
                 if msg.contains("NotFound") || msg.contains("404") || msg.contains("NoSuchKey") {
                     Ok(false)
                 } else {
-                    Err(StorageError::ProviderError(format!(
-                        "S3 head falhou: {e}"
-                    )))
+                    Err(StorageError::ProviderError(format!("S3 head falhou: {e}")))
                 }
             }
         }
@@ -188,10 +186,7 @@ impl StorageProvider for S3StorageProvider {
         let mut continuation_token: Option<String> = None;
 
         loop {
-            let mut req = self
-                .client
-                .list_objects_v2()
-                .bucket(&self.bucket);
+            let mut req = self.client.list_objects_v2().bucket(&self.bucket);
 
             if let Some(prefix) = &self.prefix {
                 req = req.prefix(prefix);

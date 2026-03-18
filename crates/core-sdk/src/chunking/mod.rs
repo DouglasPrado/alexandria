@@ -177,7 +177,10 @@ mod tests {
         let data = vec![0xFFu8; 2048];
         let chunks = chunk_data(&data).unwrap();
         let expected_hash = hashing::sha256_hex(&data);
-        assert_eq!(chunks[0].hash, expected_hash, "RN-CH2: hash = SHA-256 do conteudo");
+        assert_eq!(
+            chunks[0].hash, expected_hash,
+            "RN-CH2: hash = SHA-256 do conteudo"
+        );
     }
 
     #[test]
@@ -186,7 +189,10 @@ mod tests {
         let mut data = vec![0xAAu8; CHUNK_TARGET_SIZE];
         data.extend(vec![0xBBu8; CHUNK_TARGET_SIZE]);
         let chunks = chunk_data(&data).unwrap();
-        assert_ne!(chunks[0].hash, chunks[1].hash, "chunks com conteudo diferente devem ter hashes diferentes");
+        assert_ne!(
+            chunks[0].hash, chunks[1].hash,
+            "chunks com conteudo diferente devem ter hashes diferentes"
+        );
     }
 
     // -- content-addressable (RN-CH3) --
@@ -196,7 +202,10 @@ mod tests {
         let data = vec![0x42u8; 8192];
         let chunks_a = chunk_data(&data).unwrap();
         let chunks_b = chunk_data(&data).unwrap();
-        assert_eq!(chunks_a[0].hash, chunks_b[0].hash, "RN-CH3: mesmo conteudo = mesmo hash");
+        assert_eq!(
+            chunks_a[0].hash, chunks_b[0].hash,
+            "RN-CH3: mesmo conteudo = mesmo hash"
+        );
     }
 
     // -- chunk_reader: streaming --

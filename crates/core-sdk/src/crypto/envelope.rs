@@ -63,31 +63,32 @@ impl Drop for FileKey {
 pub fn generate_seed_phrase() -> Result<SeedPhrase, CryptoError> {
     // 128 bits de entropia = 16 bytes = 12 palavras BIP-39
     let mut entropy = [0u8; 16];
-    ring::rand::SecureRandom::fill(
-        &ring::rand::SystemRandom::new(),
-        &mut entropy,
-    )
-    .map_err(|_| CryptoError::EncryptionFailed("falha ao gerar entropia".into()))?;
+    ring::rand::SecureRandom::fill(&ring::rand::SystemRandom::new(), &mut entropy)
+        .map_err(|_| CryptoError::EncryptionFailed("falha ao gerar entropia".into()))?;
 
     let mnemonic = bip39::Mnemonic::from_entropy(&entropy)
         .map_err(|e| CryptoError::EncryptionFailed(format!("falha ao gerar seed phrase: {e}")))?;
 
-    let words = mnemonic.words().map(|w: &'static str| w.to_string()).collect();
+    let words = mnemonic
+        .words()
+        .map(|w: &'static str| w.to_string())
+        .collect();
     Ok(SeedPhrase { words })
 }
 
 /// Valida seed phrase contra wordlist BIP-39.
 /// Retorna SeedPhrase se valida, erro caso contrario.
 pub fn validate_seed_phrase(phrase: &str) -> Result<SeedPhrase, CryptoError> {
-    let mnemonic: bip39::Mnemonic = phrase
-        .parse()
-        .map_err(|_| CryptoError::InvalidSeedPhrase)?;
+    let mnemonic: bip39::Mnemonic = phrase.parse().map_err(|_| CryptoError::InvalidSeedPhrase)?;
 
     if mnemonic.word_count() != 12 {
         return Err(CryptoError::InvalidSeedPhrase);
     }
 
-    let words = mnemonic.words().map(|w: &'static str| w.to_string()).collect();
+    let words = mnemonic
+        .words()
+        .map(|w: &'static str| w.to_string())
+        .collect();
     Ok(SeedPhrase { words })
 }
 
@@ -168,7 +169,8 @@ mod tests {
 
     #[test]
     fn validate_seed_phrase_rejects_invalid_words() {
-        let result = validate_seed_phrase("foo bar baz qux quux corge grault garply waldo fred plugh xyzzy");
+        let result =
+            validate_seed_phrase("foo bar baz qux quux corge grault garply waldo fred plugh xyzzy");
         assert!(result.is_err());
     }
 
@@ -185,7 +187,11 @@ mod tests {
         let seed = generate_seed_phrase().unwrap();
         let mk1 = derive_master_key(&seed);
         let mk2 = derive_master_key(&seed);
-        assert_eq!(mk1.as_bytes(), mk2.as_bytes(), "OBJ-02: mesma seed = mesma master key");
+        assert_eq!(
+            mk1.as_bytes(),
+            mk2.as_bytes(),
+            "OBJ-02: mesma seed = mesma master key"
+        );
     }
 
     #[test]
@@ -222,7 +228,11 @@ mod tests {
         let file_id = Uuid::new_v4();
         let fk1 = derive_file_key(&mk, &file_id);
         let fk2 = derive_file_key(&mk, &file_id);
-        assert_eq!(fk1.as_bytes(), fk2.as_bytes(), "mesma master key + file_id = mesma file key");
+        assert_eq!(
+            fk1.as_bytes(),
+            fk2.as_bytes(),
+            "mesma master key + file_id = mesma file key"
+        );
     }
 
     #[test]
@@ -233,7 +243,11 @@ mod tests {
         let f2 = Uuid::new_v4();
         let fk1 = derive_file_key(&mk, &f1);
         let fk2 = derive_file_key(&mk, &f2);
-        assert_ne!(fk1.as_bytes(), fk2.as_bytes(), "file keys devem ser isoladas por arquivo");
+        assert_ne!(
+            fk1.as_bytes(),
+            fk2.as_bytes(),
+            "file keys devem ser isoladas por arquivo"
+        );
     }
 
     #[test]
@@ -283,6 +297,9 @@ mod tests {
         let recovered_mk = derive_master_key(&recovered_seed);
         let recovered_fk = derive_file_key(&recovered_mk, &file_id);
         let recovered = crypto::decrypt(recovered_fk.as_bytes(), &ciphertext).unwrap();
-        assert_eq!(recovered, plaintext, "recovery via seed deve descriptografar dados");
+        assert_eq!(
+            recovered, plaintext,
+            "recovery via seed deve descriptografar dados"
+        );
     }
 }

@@ -1,4 +1,4 @@
-use axum::{routing::get, Router};
+use axum::{Router, routing::get};
 use sqlx::PgPool;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
@@ -6,6 +6,7 @@ use tower_http::trace::TraceLayer;
 mod health;
 
 #[derive(Clone)]
+#[allow(dead_code)] // db sera usado nas features da Fase 1
 pub struct AppState {
     pub db: PgPool,
 }

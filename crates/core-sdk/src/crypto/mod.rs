@@ -12,7 +12,7 @@
 pub mod envelope;
 
 use aes_gcm::aead::{Aead, KeyInit, OsRng};
-use aes_gcm::{Aes256Gcm, AeadCore, Nonce};
+use aes_gcm::{AeadCore, Aes256Gcm, Nonce};
 use thiserror::Error;
 
 /// Tamanho do nonce AES-256-GCM (96 bits)
@@ -37,8 +37,8 @@ pub enum CryptoError {
 /// Retorna: [nonce (12 bytes) | ciphertext + tag (16 bytes)]
 /// Nonce aleatorio gerado internamente — cada chamada produz output diferente.
 pub fn encrypt(key: &[u8; 32], plaintext: &[u8]) -> Result<Vec<u8>, CryptoError> {
-    let cipher = Aes256Gcm::new_from_slice(key)
-        .map_err(|e| CryptoError::EncryptionFailed(e.to_string()))?;
+    let cipher =
+        Aes256Gcm::new_from_slice(key).map_err(|e| CryptoError::EncryptionFailed(e.to_string()))?;
 
     let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
 
@@ -63,8 +63,8 @@ pub fn decrypt(key: &[u8; 32], data: &[u8]) -> Result<Vec<u8>, CryptoError> {
         ));
     }
 
-    let cipher = Aes256Gcm::new_from_slice(key)
-        .map_err(|e| CryptoError::DecryptionFailed(e.to_string()))?;
+    let cipher =
+        Aes256Gcm::new_from_slice(key).map_err(|e| CryptoError::DecryptionFailed(e.to_string()))?;
 
     let nonce = Nonce::from_slice(&data[..NONCE_SIZE]);
     let ciphertext = &data[NONCE_SIZE..];
@@ -142,7 +142,10 @@ mod tests {
         let plaintext = b"same data";
         let ct1 = encrypt(&key, plaintext).unwrap();
         let ct2 = encrypt(&key, plaintext).unwrap();
-        assert_ne!(ct1, ct2, "nonce aleatorio deve gerar ciphertexts diferentes");
+        assert_ne!(
+            ct1, ct2,
+            "nonce aleatorio deve gerar ciphertexts diferentes"
+        );
         // Mas ambos descriptografam para o mesmo plaintext
         assert_eq!(decrypt(&key, &ct1).unwrap(), plaintext);
         assert_eq!(decrypt(&key, &ct2).unwrap(), plaintext);
@@ -173,7 +176,10 @@ mod tests {
             ciphertext[mid] ^= 0xFF;
         }
         let result = decrypt(&key, &ciphertext);
-        assert!(result.is_err(), "ciphertext adulterado deve falhar (GCM auth tag)");
+        assert!(
+            result.is_err(),
+            "ciphertext adulterado deve falhar (GCM auth tag)"
+        );
     }
 
     #[test]

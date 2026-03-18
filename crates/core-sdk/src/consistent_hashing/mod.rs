@@ -103,8 +103,7 @@ impl HashRing {
         let bytes = hash.as_bytes();
         // Usa os primeiros 8 bytes do SHA-256 como u64
         u64::from_be_bytes([
-            bytes[0], bytes[1], bytes[2], bytes[3],
-            bytes[4], bytes[5], bytes[6], bytes[7],
+            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
         ])
     }
 }
@@ -232,7 +231,10 @@ mod tests {
             let nodes = ring.get_nodes(&format!("chunk_{i}"), 1);
             first_nodes.insert(nodes[0]);
         }
-        assert!(first_nodes.len() > 1, "chunks diferentes devem mapear para nos diferentes");
+        assert!(
+            first_nodes.len() > 1,
+            "chunks diferentes devem mapear para nos diferentes"
+        );
     }
 
     // -- Distribuicao proporcional a capacidade (RF-013) --
@@ -243,8 +245,8 @@ mod tests {
         let small_node = Uuid::from_u128(1);
         let large_node = Uuid::from_u128(2);
         // large_node tem 10x a capacidade
-        ring.add_node(small_node, 10_000_000_000);   // 10GB
-        ring.add_node(large_node, 100_000_000_000);  // 100GB
+        ring.add_node(small_node, 10_000_000_000); // 10GB
+        ring.add_node(large_node, 100_000_000_000); // 100GB
 
         let mut small_count = 0u32;
         let mut large_count = 0u32;
@@ -287,7 +289,9 @@ mod tests {
             .map(|i| ring.get_nodes(&format!("chunk_{i}"), 1))
             .collect();
 
-        let changed: usize = before.iter().zip(after.iter())
+        let changed: usize = before
+            .iter()
+            .zip(after.iter())
             .filter(|(b, a)| b[0] != a[0])
             .count();
 
@@ -319,7 +323,9 @@ mod tests {
             .map(|i| ring.get_nodes(&format!("chunk_{i}"), 1))
             .collect();
 
-        let changed: usize = before.iter().zip(after.iter())
+        let changed: usize = before
+            .iter()
+            .zip(after.iter())
             .filter(|(b, a)| b[0] != a[0])
             .count();
 

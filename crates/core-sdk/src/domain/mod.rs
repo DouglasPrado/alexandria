@@ -1,19 +1,19 @@
+pub mod alert;
+pub mod chunk;
 pub mod cluster;
-pub mod member;
-pub mod node;
 pub mod file;
 pub mod manifest;
-pub mod chunk;
+pub mod member;
+pub mod node;
 pub mod replica;
 pub mod vault;
-pub mod alert;
 
+pub use alert::*;
+pub use chunk::*;
 pub use cluster::*;
-pub use member::*;
-pub use node::*;
 pub use file::*;
 pub use manifest::*;
-pub use chunk::*;
+pub use member::*;
+pub use node::*;
 pub use replica::*;
 pub use vault::*;
-pub use alert::*;
