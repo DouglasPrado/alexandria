@@ -32,6 +32,12 @@ sqlx = { version = "0.8", features = [
     "json",
 ] }
 
+# Storage cloud (S3-compatible: AWS S3, Cloudflare R2, Backblaze B2)
+aws-sdk-s3 = "1"
+aws-config = { version = "1", features = ["behavior-version-latest"] }
+aws-credential-types = "1"
+aws-smithy-types = "1"
+
 # Redis
 redis = { version = "0.27", features = ["tokio-comp", "connection-manager"] }
 

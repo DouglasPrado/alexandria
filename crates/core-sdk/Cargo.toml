@@ -17,6 +17,10 @@ aes-gcm = { workspace = true }
 ring = { workspace = true }
 bip39 = { workspace = true }
 tokio = { workspace = true }
+aws-sdk-s3 = { workspace = true }
+aws-config = { workspace = true }
+aws-credential-types = { workspace = true }
+aws-smithy-types = { workspace = true }
 
 [dev-dependencies]
 tempfile = "3"
