@@ -23,7 +23,7 @@ Aguarde a resposta do usuario.
 
 **NAO leia o conteudo completo dos docs.** Leia apenas os headers (titulos e subtitulos) de cada documento para entender a estrutura. Use Bash com `grep` para extrair apenas as linhas que comecam com `#`:
 
-Para cada doc em `docs/blueprint/`, `docs/frontend/`, `docs/business/`, `docs/mvp/`:
+Para cada doc em `docs/blueprint/`, `docs/frontend/`, `docs/business/`:
 1. Extraia os headers (`# `, `## `, `### `)
 2. Identifique quais secoes contem conteudo real (nao apenas `{{placeholders}}`)
 3. Monte um mapa: `doc → secoes preenchidas`

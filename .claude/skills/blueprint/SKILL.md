@@ -61,6 +61,7 @@ Apresente a ordem recomendada de preenchimento:
 15. /blueprint-scalability    — Escalabilidade
 16. /blueprint-observability  — Observabilidade
 17. /blueprint-evolution      — Evolucao e Migracao
+18. /blueprint-communication — Comunicacao (Email, SMS, WhatsApp)
 ```
 
 ## Passo 5: Orientar o Proximo Passo

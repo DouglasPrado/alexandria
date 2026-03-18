@@ -12,7 +12,6 @@ Voce e o orquestrador do preenchimento do Frontend Blueprint. Sua funcao e receb
 Verifique se ja existe um PRD em `docs/prd.md`. Se sim, leia-o. Se nao, verifique se o usuario passou um argumento (caminho de arquivo). Se nao houver PRD disponivel, pergunte:
 
 > "Para iniciar o frontend blueprint, preciso do seu PRD (Product Requirements Document). Voce pode:
->
 > 1. Passar o caminho do arquivo: `/frontend docs/prd.md`
 > 2. Colar o conteudo do PRD aqui no chat
 >
@@ -34,23 +33,23 @@ Leia o PRD e analise a cobertura para cada secao do frontend blueprint. Para cad
 
 Apresente o resultado em tabela:
 
-| #   | Secao                   | Cobertura              | Observacao |
-| --- | ----------------------- | ---------------------- | ---------- |
-| 00  | Visao do Frontend       | Coberto/Parcial/Lacuna | breve nota |
-| 01  | Arquitetura             | ...                    | ...        |
-| 02  | Estrutura do Projeto    | ...                    | ...        |
-| 03  | Design System           | ...                    | ...        |
-| 04  | Componentes             | ...                    | ...        |
-| 05  | Gerenciamento de Estado | ...                    | ...        |
-| 06  | Data Layer              | ...                    | ...        |
-| 07  | Rotas e Navegacao       | ...                    | ...        |
-| 08  | Fluxos de Interface     | ...                    | ...        |
-| 09  | Estrategia de Testes    | ...                    | ...        |
-| 10  | Performance             | ...                    | ...        |
-| 11  | Seguranca               | ...                    | ...        |
-| 12  | Observabilidade         | ...                    | ...        |
-| 13  | CI/CD e Convencoes      | ...                    | ...        |
-| 14  | Copies                  | ...                    | ...        |
+| # | Secao | Cobertura | Observacao |
+|---|-------|-----------|------------|
+| 00 | Visao do Frontend | Coberto/Parcial/Lacuna | breve nota |
+| 01 | Arquitetura | ... | ... |
+| 02 | Estrutura do Projeto | ... | ... |
+| 03 | Design System | ... | ... |
+| 04 | Componentes | ... | ... |
+| 05 | Gerenciamento de Estado | ... | ... |
+| 06 | Data Layer | ... | ... |
+| 07 | Rotas e Navegacao | ... | ... |
+| 08 | Fluxos de Interface | ... | ... |
+| 09 | Estrategia de Testes | ... | ... |
+| 10 | Performance | ... | ... |
+| 11 | Seguranca | ... | ... |
+| 12 | Observabilidade | ... | ... |
+| 13 | CI/CD e Convencoes | ... | ... |
+| 14 | Copies | ... | ... |
 
 ## Passo 4: Apresentar o Roadmap
 
