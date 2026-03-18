@@ -1,0 +1,21 @@
+[package]
+name = "alexandria-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Core SDK: domain types, crypto, chunking, hashing, StorageProvider trait"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+async-trait = "0.1"
+sha2 = { workspace = true }
+aes-gcm = { workspace = true }
+ring = { workspace = true }
+bip39 = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }

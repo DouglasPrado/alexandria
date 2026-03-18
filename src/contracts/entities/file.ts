@@ -1,0 +1,24 @@
+import type { FileStatus } from "../enums/file-status";
+import type { MediaType } from "../enums/media-type";
+
+/** Representacao logica de uma foto, video ou documento no cluster. */
+export interface File {
+  id: string;
+  clusterId: string;
+  uploadedBy: string;
+  originalName: string;
+  mediaType: MediaType;
+  mimeType: string;
+  fileExtension: string;
+  /** Bytes antes de otimizacao */
+  originalSize: number;
+  /** Bytes apos pipeline de midia */
+  optimizedSize: number;
+  /** SHA-256 do conteudo otimizado */
+  contentHash: string;
+  metadata: Record<string, unknown> | null;
+  previewChunkId: string | null;
+  status: FileStatus;
+  createdAt: string;
+  updatedAt: string;
+}

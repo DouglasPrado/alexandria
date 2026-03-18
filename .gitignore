@@ -1,0 +1,36 @@
+# Rust
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# Environment
+.env
+.env.local
+.env.production
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (frontend)
+node_modules/
+.next/
+.turbo/
+dist/
+out/
+
+# Docker
+docker-compose.override.yml
+
+# SQLx offline query data
+.sqlx/
+
+# Logs
+*.log
