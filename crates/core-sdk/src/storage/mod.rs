@@ -3,6 +3,8 @@
 //! Implementacoes: filesystem local, S3, R2, B2 (todos S3-compatible via aws-sdk-s3).
 //! Operacoes: put, get, exists, delete, list, capacity.
 
+pub mod local;
+
 use async_trait::async_trait;
 use thiserror::Error;
 
