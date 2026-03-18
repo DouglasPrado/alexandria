@@ -1,10 +1,15 @@
-//! Modulo de criptografia: AES-256-GCM.
+//! Modulo de criptografia: AES-256-GCM + envelope encryption.
 //!
 //! Zero-knowledge: criptografia no cliente antes do upload.
 //! Chunks criptografados sao autenticados — detectam adulteracao (STRIDE: Tampering).
 //! Nonce aleatorio de 96 bits garante que mesmos dados + mesma chave = ciphertexts diferentes.
 //!
 //! Formato do ciphertext: [nonce (12 bytes) | encrypted_data + tag (16 bytes)]
+//!
+//! Envelope encryption (ADR-005):
+//!   seed phrase (12 palavras BIP-39) → master key → file keys → AES-256-GCM
+
+pub mod envelope;
 
 use aes_gcm::aead::{Aead, KeyInit, OsRng};
 use aes_gcm::{Aes256Gcm, AeadCore, Nonce};
