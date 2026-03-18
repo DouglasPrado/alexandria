@@ -191,4 +191,90 @@ O tema segue a preferencia do sistema operacional (`prefers-color-scheme`) com o
 
 <!-- APPEND:catalogo -->
 
+---
+
+## Catalogo de Componentes Compostos
+
+> Padroes compostos derivados da pagina /gallery, construidos a partir dos primitivos acima.
+
+### Navegacao
+
+| Componente | Variantes | Props Chave | Uso no Alexandria |
+| --- | --- | --- | --- |
+| Sidebar | expanded, collapsed | `items`, `activeItem`, `footer` | Navegacao principal: Galeria, Nos, Saude, Vault, Cluster |
+| NavItem | default, active, with-badge | `icon`, `label`, `badge`, `active` | Item individual da sidebar com icone 18px e label 14px/500 |
+| Breadcrumb | 2-level, 3-level | `segments` | Navegacao hierarquica no header (Home / Galeria / Arquivo) |
+
+**Sidebar — Especificacoes visuais:**
+- Largura fixa: 240px
+- Fundo: `--color-surface` (#F8FAFC)
+- Borda direita: 1px solid `--color-border` (#E2E8F0)
+- Padding: 24px 16px
+- Logo: Inter 700 / 18px / #0F172A
+- NavItem default: padding 8px 12px, radius 8px, gap 10px, texto 14px/400 `--color-text-muted`
+- NavItem active: background #EFF6FF, texto 14px/500 `--color-primary`
+- NavItem badge: pill com background #FEF2F2, texto 11px/600 `--color-error`
+- Footer: gap 4px entre itens (Configuracoes, Sair)
+
+**Breadcrumb — Especificacoes visuais:**
+- Segmentos inativos: Inter 400 / 14px / #94A3B8
+- Segmento ativo (ultimo): Inter 500 / 14px / #0F172A
+- Separador: "/" em #94A3B8, gap 8px entre segmentos
+
+### Status e Indicadores
+
+| Componente | Variantes | Props Chave | Uso no Alexandria |
+| --- | --- | --- | --- |
+| SyncStatus | synced, syncing, offline, error | `status`, `message` | Indicador de sincronizacao no header da aplicacao |
+| PageHeader | default, with-actions | `title`, `subtitle`, `actions` | Titulo da pagina com contagem ou acoes contextuais |
+
+**SyncStatus — Especificacoes visuais:**
+- Dot: 6px, border-radius full
+- Texto: Inter 400 / 13px, cor correspondente ao status
+- Cores: synced=#059669, syncing=#2563EB, offline=#D97706, error=#DC2626
+- Gap: 6px entre dot e texto
+
+**PageHeader — Especificacoes visuais:**
+- Titulo: heading-2 (Inter 700 / 24px / #0F172A)
+- Subtitulo/contagem: Inter 400 / 13px / `--color-text-muted`
+- Layout: justify-content space-between
+
+### Busca e Filtros
+
+| Componente | Variantes | Props Chave | Uso no Alexandria |
+| --- | --- | --- | --- |
+| SearchInput | default, focused | `placeholder`, `value`, `onSearch` | Busca de fotos por nome, data ou tags |
+| FilterTabs | default | `tabs`, `activeTab`, `onChange` | Filtro por tipo de arquivo: Fotos, Videos, Todos, RAW |
+
+**SearchInput — Especificacoes visuais:**
+- Icone: lupa 16px, stroke #94A3B8 (default) ou #2563EB (focused)
+- Padding: 9px 14px, border-radius 8px, gap 8px
+- Borda: 1px solid `--color-border` (default) ou `--color-primary` (focused)
+- Placeholder: Inter 400 / 14px / #94A3B8
+
+**FilterTabs — Especificacoes visuais:**
+- Tab active: background #EFF6FF, texto Inter 500 / 13px / `--color-primary`
+- Tab default: border 1px solid `--color-border`, texto Inter 400 / 13px / `--color-text-muted`
+- Padding: 8px 14px, border-radius 8px, gap 8px entre tabs
+
+### Galeria
+
+| Componente | Variantes | Props Chave | Uso no Alexandria |
+| --- | --- | --- | --- |
+| PhotoThumbnail | default, video, selected | `src`, `filename`, `type`, `selected` | Thumbnail 172x172 na grade de fotos |
+| MonthGroup | default | `month`, `year`, `children` | Agrupamento temporal de fotos na galeria |
+
+**PhotoThumbnail — Especificacoes visuais:**
+- Dimensao: 172x172px (responsivo conforme breakpoint)
+- Border-radius: `radius-sm` (6px)
+- Padding: 8px
+- Filename overlay: Inter 400 / 11px, posicionado no bottom
+- Variante selected: border 2px solid `--color-primary`
+- Grid gap: `space-2` (8px) entre thumbnails
+
+**MonthGroup — Especificacoes visuais:**
+- Label do mes: Inter 600 / 14px / `--color-text`
+- Gap: `space-3` (12px) entre label e grid
+- Gap entre grupos: `space-6` (24px)
+
 > Documentacao completa dos componentes: (ver 04-componentes.md)

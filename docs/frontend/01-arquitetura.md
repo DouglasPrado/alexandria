@@ -64,7 +64,7 @@ Infrastructure Layer (API Client, Crypto, Storage Providers)
 | --- | --- | --- | --- |
 | cluster | Criacao do grupo familiar, convite de membros, permissoes, governanca | ClusterSetup, InviteFlow, MemberList, PermissionManager | clusterStore |
 | gallery | Visualizacao de fotos/videos, timeline cronologica, busca por metadados, download sob demanda | GalleryGrid, PhotoCard, VideoPlayer, Timeline, SearchBar | galleryStore |
-| upload | Upload manual e sync engine, pipeline de processamento, status de progresso, fila de uploads | UploadDropzone, SyncStatus, ProcessingQueue, ProgressBar | uploadStore |
+| upload | Pipeline de upload integrado na galeria e sync automatico, processamento, status de progresso, fila de uploads. Sem rota/pagina propria | UploadDropzone, SyncStatus, ProcessingQueue, ProgressBar | uploadStore |
 | nodes | Registro e gerenciamento de nos, integracao OAuth com provedores cloud, heartbeat, quotas | NodeList, NodeCard, CloudConnector, OAuthRedirect, QuotaBar | nodesStore |
 | recovery | Geracao e exibicao de seed phrase, fluxo de recuperacao do orquestrador, disaster recovery | SeedPhraseDisplay, RecoveryWizard, SeedInput | recoveryStore |
 | vault | Vault criptografado do membro, gerenciamento de tokens OAuth, credenciais | VaultUnlock, CredentialList, TokenStatus | vaultStore |
@@ -137,7 +137,7 @@ graph TD
     subgraph "Features"
         Cluster[cluster/]
         Gallery[gallery/]
-        Upload[upload/]
+        Upload[upload/ — sem rota propria]
         Nodes[nodes/]
         Recovery[recovery/]
         Vault[vault/]

@@ -17,7 +17,6 @@ src/
       recovery/
     (protected)/          # Rotas autenticadas (requerem membro do cluster)
       gallery/
-      upload/
       nodes/
       cluster/
       health/
@@ -100,7 +99,7 @@ src/
 | --- | --- | --- |
 | cluster | Criacao do grupo familiar, convite de membros via token assinado, gestao de permissoes (admin/membro/leitura) | ClusterSetup, InviteFlow, MemberList, PermissionManager |
 | gallery | Galeria de fotos/videos com timeline cronologica, busca por nome/data/tipo/tags, download sob demanda | GalleryGrid, PhotoCard, VideoPlayer, Timeline, SearchBar |
-| upload | Upload manual e sync engine, pipeline de processamento (resize → encrypt → chunk → distribute), fila com progresso | UploadDropzone, SyncStatus, ProcessingQueue, ProgressBar |
+| upload | Pipeline de upload integrado na galeria e sync automatico (resize → encrypt → chunk → distribute), fila com progresso. Nao possui rota/pagina propria | UploadDropzone, SyncStatus, ProcessingQueue, ProgressBar |
 | nodes | Registro de nos (local, NAS, VPS, cloud bucket), integracao OAuth, heartbeat, quotas, tier management | NodeList, NodeCard, CloudConnector, OAuthRedirect, QuotaBar |
 | recovery | Exibicao de seed phrase na criacao do cluster, wizard de recuperacao do orquestrador em nova VPS | SeedPhraseDisplay, RecoveryWizard, SeedInput, RecoveryProgress |
 | vault | Vault criptografado do membro para tokens OAuth e credenciais, desbloqueio via senha, status de tokens | VaultUnlock, CredentialList, TokenStatus |

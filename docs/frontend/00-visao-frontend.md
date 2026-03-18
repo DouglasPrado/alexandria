@@ -94,8 +94,9 @@ O frontend do Alexandria e a camada de interacao entre a familia e o sistema de 
 | Perfil               | Descricao                                                         | Nivel de Acesso | Funcionalidades Principais                                                                                          |
 | -------------------- | ----------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------- |
 | Administrador Familiar | Pai/mae tecnico que configura e mantem o sistema                 | Total           | Criar cluster, convidar membros, gerenciar nos, dashboard de saude, configurar quotas, recovery via seed phrase     |
-| Membro Familiar       | Mae/pai, tios, avos que usam o sistema no dia-a-dia              | Padrao          | Upload de fotos/videos, visualizar galeria, download sob demanda, gerenciar seus dispositivos como nos              |
+| Membro Familiar       | Mae/pai, tios, avos que usam o sistema no dia-a-dia              | Padrao          | Upload de fotos/videos via galeria, visualizar galeria, download sob demanda, gerenciar seus dispositivos como nos              |
 | Fotografo Amador      | Membro da familia que tira muitas fotos e grava videos           | Padrao          | Upload automatico via sync engine, visualizar status de processamento, liberar espaco no celular com placeholders   |
+<!-- PATCH-REVIEW: "Upload de fotos/videos" e "Upload automatico" referem-se a funcionalidade, nao a tela dedicada — confirmar que o contexto esta claro -->
 | Guardiao de Memorias  | Avo/avo ou membro mais velho, curador do acervo                  | Leitura         | Navegar timeline cronologica, buscar por data/evento/pessoa, visualizar fotos antigas com thumbnails instantaneos   |
 
 <!-- APPEND:usuarios -->

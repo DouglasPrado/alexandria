@@ -16,7 +16,6 @@ Define a estrutura de rotas da aplicacao, a estrategia de protecao de rotas e os
 | `/recovery` | Publica | `AuthLayout` | RecoveryPage — entrada da seed phrase para recuperacao do orquestrador |
 | `/gallery` | Protegida | `AppLayout` | GalleryPage — galeria de fotos/videos com timeline cronologica e busca |
 | `/gallery/[fileId]` | Protegida | `AppLayout` | FileDetailPage — visualizacao de foto/video com metadados EXIF, download sob demanda |
-| `/upload` | Protegida | `AppLayout` | UploadPage — upload manual de arquivos, status do sync engine e fila de processamento |
 | `/nodes` | Protegida | `AppLayout` | NodesPage — lista de nos do cluster, heartbeat status, quotas e capacidade |
 | `/nodes/add` | Protegida | `AppLayout` | AddNodePage — registro de novo no (local, S3, R2, Google Drive, Dropbox, OneDrive) |
 | `/nodes/[nodeId]` | Protegida | `AppLayout` | NodeDetailPage — detalhes do no, chunks armazenados, drain, configuracao de quota |
@@ -50,7 +49,6 @@ app/
     gallery/
       page.tsx                        # /gallery
       [fileId]/page.tsx               # /gallery/[fileId]
-    upload/page.tsx                   # /upload
     nodes/
       page.tsx                        # /nodes
       add/page.tsx                    # /nodes/add
@@ -112,7 +110,7 @@ app/
 | `RootLayout` | Todas | ThemeProvider, QueryClientProvider, FontLoader, Toaster |
 | `MainLayout` | `/` | Navbar (publico), Hero, Footer |
 | `AuthLayout` | `/login`, `/invite/[token]`, `/recovery` | Logo centralizado, Card de formulario, fundo minimalista |
-| `AppLayout` | `/gallery`, `/upload`, `/nodes/*`, `/health/*`, `/vault`, `/settings`, `/cluster/*` | Sidebar, Header (com user menu, notificacoes, status de sync), MainContent area |
+| `AppLayout` | `/gallery`, `/nodes/*`, `/health/*`, `/vault`, `/settings`, `/cluster/*` | Sidebar, Header (com user menu, notificacoes, status de sync), MainContent area |
 | `MinimalLayout` | `/nodes/[nodeId]/oauth/callback` | Spinner de loading, sem navegacao (pagina transitoria de callback OAuth) |
 
 <!-- APPEND:layouts -->
@@ -124,7 +122,7 @@ RootLayout (app/layout.tsx)
   ├── MainLayout      → Landing page publica
   ├── AuthLayout      → Fluxos de autenticacao e recovery
   ├── AppLayout       → Toda a area logada
-  │   ├── Sidebar     → Navegacao principal (Gallery, Upload, Nodes, Health, Vault)
+  │   ├── Sidebar     → Navegacao principal (Gallery, Nodes, Health, Vault)
   │   ├── Header      → Breadcrumbs, SyncStatus, NotificationBell, UserMenu
   │   └── MainContent → Conteudo da pagina
   └── MinimalLayout   → Paginas transitorias (OAuth callbacks)
@@ -147,16 +145,16 @@ RootLayout (app/layout.tsx)
 - Navegacao principal: Sidebar lateral (area logada) / Navbar horizontal (area publica)
 - Breadcrumbs: Sim — em todas as paginas internas da area logada
 - Deep linking: URLs compartilhaveis com estado (ex: `/gallery?date=2026-01&type=photo&search=praia`)
-- Navegacao mobile: Drawer (hamburger menu) com bottom action bar para acoes frequentes (upload, galeria)
+- Navegacao mobile: Drawer (hamburger menu) com bottom action bar para acoes frequentes (galeria)
 
 | Elemento | Visivel em | Comportamento |
 |----------|-----------|---------------|
 | Navbar (publica) | Landing page (`/`) | Links: Login, Sobre, logo Alexandria |
-| Sidebar | Area logada (desktop/tablet) | Itens: Gallery, Upload, Nodes, Health, Vault, Settings. Colapsavel. Badge de alertas em Health. Indicador de sync em Upload |
+| Sidebar | Area logada (desktop/tablet) | Itens: Gallery, Nodes, Health, Vault, Settings. Colapsavel. Badge de alertas em Health. Indicador de sync na Gallery |
 | Header | Area logada | Breadcrumbs (caminho clicavel), SyncStatusIndicator, NotificationBell (alertas do cluster), UserMenu (perfil, settings, logout) |
 | Breadcrumbs | Paginas internas | Caminho hierarquico clicavel (ex: `Nodes > meu-nas > Detalhes`) |
 | Drawer | Mobile (<768px) | Menu hamburger com mesmos itens da Sidebar, fecha ao navegar |
-| Bottom Action Bar | Mobile (<768px) | Acoes rapidas: camera/upload, galeria — sempre visivel na area logada <!-- inferido do PRD — UX mobile-first para upload automatico --> |
+| Bottom Action Bar | Mobile (<768px) | Acoes rapidas: galeria, camera — sempre visivel na area logada <!-- inferido do PRD — UX mobile-first para sync automatico --> |
 
 **Estrutura da Sidebar:**
 
@@ -164,8 +162,7 @@ RootLayout (app/layout.tsx)
 ┌─────────────────────┐
 │  ◆ Alexandria       │  ← Logo/nome, clicavel → /gallery
 ├─────────────────────┤
-│  📷 Galeria         │  → /gallery
-│  ⬆️ Upload          │  → /upload (badge: N pendentes)
+│  📷 Galeria         │  → /gallery (badge: N pendentes de sync)
 │  🖥️ Nos            │  → /nodes
 │  💚 Saude           │  → /health (badge: N alertas)
 │  🔐 Vault           │  → /vault
@@ -182,8 +179,8 @@ RootLayout (app/layout.tsx)
 - **Apos login:** Redireciona para `/gallery` (ou URL armazenada em `redirect` query param)
 - **Apos aceitar convite:** Redireciona para `/gallery` com toast de boas-vindas
 - **Apos adicionar no:** Redireciona para `/nodes/[nodeId]` com status do novo no
-- **Apos upload:** Permanece em `/upload` mostrando progresso; link para `/gallery` quando completo
-- **Navegacao por teclado:** Suporte a atalhos — `G` para galeria, `U` para upload, `N` para nos, `H` para saude
+- **Apos upload:** Upload ocorre dentro da galeria; progresso visivel inline via UploadQueue integrado
+- **Navegacao por teclado:** Suporte a atalhos — `G` para galeria, `N` para nos, `H` para saude
 
 > Para detalhes sobre protecao de rotas e autenticacao, (ver 11-seguranca.md).
 

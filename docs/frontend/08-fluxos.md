@@ -33,7 +33,7 @@ Documenta os fluxos criticos de interacao do usuario com o frontend. Cada fluxo 
 7. Admin acessa "Convidar Membro" e gera um token de convite com expiracao
 8. Membro recebe o link, acessa a pagina de convite, define nome e senha
 9. Sistema cria o vault do membro e o adiciona ao cluster com permissao "membro"
-10. Membro e redirecionado ao dashboard com acesso a galeria e upload
+10. Membro e redirecionado ao dashboard com acesso a galeria (upload integrado na galeria e sync automatico)
 
 **Componentes envolvidos:**
 
@@ -64,7 +64,7 @@ Documenta os fluxos criticos de interacao do usuario com o frontend. Cada fluxo 
 
 **Passos:**
 
-1. Membro arrasta arquivos para a area de upload ou clica em "Enviar Arquivos"
+1. Membro arrasta arquivos para a area de upload na galeria ou clica em "Enviar Arquivos"
 2. Frontend valida tipo e tamanho dos arquivos (formatos suportados: JPEG, PNG, HEIC, MP4, MOV)
 3. Sistema inicia o pipeline — status muda para "Analisando"
 4. Pipeline otimiza midia (foto → WebP Full HD; video → 1080p H.265/AV1) — status "Otimizando"

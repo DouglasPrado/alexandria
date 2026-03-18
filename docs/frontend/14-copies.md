@@ -147,15 +147,16 @@ Define todos os textos e conteudos textuais das telas do frontend — labels, pl
 
 <!-- APPEND:copies-file-detail -->
 
-### Tela: Upload (`/upload`)
+### Componente: Upload integrado na Galeria
+
+> Upload nao possui tela dedicada. Os componentes de upload (UploadDropzone, UploadQueue, ProgressBar) sao exibidos dentro da galeria e via sync automatico.
 
 | Elemento | Chave i18n | Texto Padrao | Contexto |
 | --- | --- | --- | --- |
-| Titulo | `upload.title` | Upload | Heading principal |
-| Dropzone titulo | `upload.dropzone.title` | Arraste arquivos aqui ou clique para selecionar | Texto da area de drag-and-drop |
+| Dropzone titulo | `upload.dropzone.title` | Arraste arquivos aqui ou clique para selecionar | Texto da area de drag-and-drop na galeria |
 | Dropzone formatos | `upload.dropzone.formats` | Formatos aceitos: JPEG, PNG, HEIC, MP4, MOV | Descricao de formatos |
 | Botao selecionar | `upload.dropzone.selectButton` | Selecionar arquivos | CTA do dropzone |
-| Fila titulo | `upload.queue.title` | Fila de upload | Titulo da secao de fila |
+| Fila titulo | `upload.queue.title` | Fila de upload | Titulo da secao de fila (inline na galeria) |
 | Status analisando | `upload.status.analyzing` | Analisando | Badge de status |
 | Status otimizando | `upload.status.optimizing` | Otimizando | Badge de status |
 | Status preview | `upload.status.generatingPreview` | Gerando preview | Badge de status |
@@ -164,9 +165,6 @@ Define todos os textos e conteudos textuais das telas do frontend — labels, pl
 | Status erro | `upload.status.error` | Erro no processamento | Badge de status |
 | Status pausado | `upload.status.paused` | Pausado — sem conexao | Badge de status |
 | Progresso global | `upload.progress.global` | {{completed}} de {{total}} arquivos enviados | Barra de progresso global |
-| Ver na galeria | `upload.viewInGallery` | Ver na galeria | Link apos conclusao |
-| Empty state | `upload.empty.title` | Nenhum upload em andamento | Empty state da fila |
-| Empty state descricao | `upload.empty.description` | Arraste fotos e videos para comecar | Descricao do empty state |
 
 <!-- APPEND:copies-upload -->
 
@@ -512,8 +510,6 @@ Define todos os textos e conteudos textuais das telas do frontend — labels, pl
 | Elemento | Chave i18n | Texto Padrao |
 | --- | --- | --- |
 | Galeria | `global.sidebar.gallery` | Galeria |
-| Upload | `global.sidebar.upload` | Upload |
-| Upload badge | `global.sidebar.uploadBadge` | {{count}} pendentes |
 | Nos | `global.sidebar.nodes` | Nos |
 | Saude | `global.sidebar.health` | Saude |
 | Saude badge | `global.sidebar.healthBadge` | {{count}} alertas |
@@ -572,7 +568,7 @@ Define todos os textos e conteudos textuais das telas do frontend — labels, pl
 | Membros vazio | `empty.members` | Voce e o unico membro do cluster | Convidar membro |
 | Alertas vazio | `empty.alerts` | Nenhum alerta — tudo funcionando | — |
 | Vault vazio | `empty.vault` | Nenhuma credencial armazenada | — |
-| Fila de upload vazia | `empty.uploadQueue` | Nenhum upload em andamento | Selecionar arquivos |
+| Fila de upload vazia | `empty.uploadQueue` | Nenhum upload em andamento | Selecionar arquivos — exibido dentro da galeria |
 | Auditoria vazia | `empty.audit` | Nenhuma atividade recente | — |
 
 <!-- APPEND:copies-empty-states -->

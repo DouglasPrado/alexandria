@@ -18,7 +18,7 @@ Define a estrategia de performance do frontend, as tecnicas de otimizacao adotad
 | Virtualizacao | Renderizar apenas itens visiveis no viewport | Galeria de fotos (100k+ itens), lista de chunks, lista de nos, logs de operacoes | `@tanstack/virtual` |
 | Web Workers | Offload de operacoes pesadas para threads separadas | Criptografia AES-256-GCM, hashing SHA-256, resize de imagens, chunking | Web Workers API, `comlink` |
 | Cache de Thumbnails | Armazenar previews localmente para acesso offline | Navegacao na galeria, timeline cronologica | IndexedDB via `idb` |
-| Prefetch de Rotas | Pre-carregar rotas provaveis antes da navegacao | Links de navegacao principal (gallery → upload, health → nodes) | `next/link` com prefetch |
+| Prefetch de Rotas | Pre-carregar rotas provaveis antes da navegacao | Links de navegacao principal (gallery, health → nodes) | `next/link` com prefetch |
 | Optimistic Updates | Atualizar UI antes da confirmacao do servidor | Upload de fotos (mostrar thumbnail imediatamente), alteracao de permissoes | TanStack Query `onMutate` |
 
 <!-- APPEND:estrategias -->
@@ -118,7 +118,6 @@ async function encryptAndUpload(file: File, key: CryptoKey) {
 | Pagina | LCP Alvo | Estrategia |
 |--------|----------|------------|
 | Galeria (home) | < 1.5s | Thumbnails pre-gerados em cache local (IndexedDB), Server Components para shell, streaming para dados |
-| Upload | < 1.0s | Pagina leve, componentes de dropzone carregados eagerly |
 | Dashboard de Saude | < 2.0s | Dados de nos/replicacao via streaming, graficos lazy loaded |
 | Recovery | < 1.0s | Pagina estatica com wizard interativo — partial hydration |
 | Configuracao de Nos | < 1.5s | Lista de nos via Server Component, OAuth redirect lazy loaded |
