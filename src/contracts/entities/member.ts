@@ -9,6 +9,10 @@ export interface Member {
   role: MemberRole;
   invitedBy: string | null;
   joinedAt: string;
+  /** Limite de armazenamento em bytes (default 10 GB) */
+  storageQuota: number;
+  /** Uso atual em bytes */
+  storageUsed: number;
   createdAt: string;
   updatedAt: string;
 }

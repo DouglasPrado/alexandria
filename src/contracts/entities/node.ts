@@ -14,6 +14,8 @@ export interface Node {
   usedCapacity: number;
   status: NodeStatus;
   endpoint: string | null;
+  /** Tier de armazenamento: hot (SSD), warm (S3), cold (Glacier) */
+  tier: "hot" | "warm" | "cold";
   lastHeartbeat: string;
   createdAt: string;
   updatedAt: string;

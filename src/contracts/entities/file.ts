@@ -19,6 +19,12 @@ export interface File {
   metadata: Record<string, unknown> | null;
   previewChunkId: string | null;
   status: FileStatus;
+  /** Numero da versao (1 = original, 2+ = re-uploads) */
+  version: number;
+  /** ID da versao anterior (linked list de versoes) */
+  parentId: string | null;
+  /** Ultimo acesso para politica de tiering (hot/warm/cold) */
+  lastAccessedAt: string;
   createdAt: string;
   updatedAt: string;
 }
