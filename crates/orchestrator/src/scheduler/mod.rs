@@ -5,6 +5,7 @@
 //! - Auto-healing: re-replicacao de chunks sub-replicados
 //! - Scrubbing: verificacao de integridade via hash
 //! - Garbage collection: remocao de chunks orfaos
+//! - Media processing: processa arquivos com status="processing"
 
 pub mod auto_healing;
 #[cfg(test)]
@@ -13,13 +14,14 @@ pub mod garbage_collection;
 pub mod heartbeat;
 #[cfg(test)]
 mod heartbeat_test;
+pub mod media_processing;
 pub mod rebalancing;
 pub mod scrubbing;
 #[cfg(test)]
 mod scrubbing_test;
 pub mod tiering;
 
-use sqlx::PgPool;
+use crate::api::AppState;
 use std::time::Duration;
 use tokio::time;
 
@@ -37,6 +39,8 @@ pub struct SchedulerConfig {
     pub rebalancing_interval: Duration,
     /// Intervalo entre ciclos de tiering (default: 24h).
     pub tiering_interval: Duration,
+    /// Intervalo entre ciclos de media processing (default: 10s).
+    pub media_processing_interval: Duration,
 }
 
 impl Default for SchedulerConfig {
@@ -48,6 +52,7 @@ impl Default for SchedulerConfig {
             healing_interval: Duration::from_secs(10 * 60),
             rebalancing_interval: Duration::from_secs(60 * 60),
             tiering_interval: Duration::from_secs(24 * 60 * 60),
+            media_processing_interval: Duration::from_secs(10),
         }
     }
 }
@@ -55,20 +60,21 @@ impl Default for SchedulerConfig {
 /// Inicia todas as tarefas periodicas do scheduler.
 /// Cada tarefa roda em sua propria tokio task.
 /// Retorna um JoinHandle que pode ser usado para aguardar ou cancelar.
-pub fn start(pool: PgPool, config: SchedulerConfig) -> tokio::task::JoinHandle<()> {
+pub fn start(state: AppState, config: SchedulerConfig) -> tokio::task::JoinHandle<()> {
     tokio::spawn(async move {
-        let pool_hb = pool.clone();
-        let pool_heal = pool.clone();
-        let pool_scrub = pool.clone();
-        let pool_gc = pool.clone();
-        let pool_rebal = pool.clone();
-        let pool_tier = pool.clone();
+        let state_hb = state.clone();
+        let state_heal = state.clone();
+        let state_scrub = state.clone();
+        let state_gc = state.clone();
+        let state_rebal = state.clone();
+        let state_tier = state.clone();
+        let state_media = state.clone();
 
         let hb = tokio::spawn(async move {
             let mut interval = time::interval(config.heartbeat_interval);
             loop {
                 interval.tick().await;
-                if let Err(e) = heartbeat::run(&pool_hb).await {
+                if let Err(e) = heartbeat::run(&state_hb.db).await {
                     tracing::error!(error = %e, "heartbeat monitor failed");
                 }
             }
@@ -78,7 +84,7 @@ pub fn start(pool: PgPool, config: SchedulerConfig) -> tokio::task::JoinHandle<(
             let mut interval = time::interval(config.healing_interval);
             loop {
                 interval.tick().await;
-                if let Err(e) = auto_healing::run(&pool_heal).await {
+                if let Err(e) = auto_healing::run(&state_heal.db).await {
                     tracing::error!(error = %e, "auto-healing failed");
                 }
             }
@@ -88,7 +94,7 @@ pub fn start(pool: PgPool, config: SchedulerConfig) -> tokio::task::JoinHandle<(
             let mut interval = time::interval(config.scrubbing_interval);
             loop {
                 interval.tick().await;
-                if let Err(e) = scrubbing::run(&pool_scrub).await {
+                if let Err(e) = scrubbing::run(&state_scrub.db).await {
                     tracing::error!(error = %e, "scrubbing failed");
                 }
             }
@@ -98,7 +104,7 @@ pub fn start(pool: PgPool, config: SchedulerConfig) -> tokio::task::JoinHandle<(
             let mut interval = time::interval(config.gc_interval);
             loop {
                 interval.tick().await;
-                if let Err(e) = garbage_collection::run(&pool_gc).await {
+                if let Err(e) = garbage_collection::run(&state_gc.db).await {
                     tracing::error!(error = %e, "garbage collection failed");
                 }
             }
@@ -108,7 +114,7 @@ pub fn start(pool: PgPool, config: SchedulerConfig) -> tokio::task::JoinHandle<(
             let mut interval = time::interval(config.rebalancing_interval);
             loop {
                 interval.tick().await;
-                if let Err(e) = rebalancing::run(&pool_rebal).await {
+                if let Err(e) = rebalancing::run(&state_rebal.db).await {
                     tracing::error!(error = %e, "rebalancing failed");
                 }
             }
@@ -118,14 +124,22 @@ pub fn start(pool: PgPool, config: SchedulerConfig) -> tokio::task::JoinHandle<(
             let mut interval = time::interval(config.tiering_interval);
             loop {
                 interval.tick().await;
-                if let Err(e) = tiering::run(&pool_tier).await {
+                if let Err(e) = tiering::run(&state_tier.db).await {
                     tracing::error!(error = %e, "tiering failed");
                 }
             }
         });
 
+        let media = tokio::spawn(async move {
+            let mut interval = time::interval(config.media_processing_interval);
+            loop {
+                interval.tick().await;
+                media_processing::run(&state_media).await;
+            }
+        });
+
         // Se qualquer task falhar, logamos e continuamos as demais
-        let _ = tokio::join!(hb, heal, scrub, gc, rebal, tier);
+        let _ = tokio::join!(hb, heal, scrub, gc, rebal, tier, media);
     })
 }
 
@@ -142,5 +156,6 @@ mod tests {
         assert_eq!(cfg.healing_interval, Duration::from_secs(600));
         assert_eq!(cfg.rebalancing_interval, Duration::from_secs(3600));
         assert_eq!(cfg.tiering_interval, Duration::from_secs(86400));
+        assert_eq!(cfg.media_processing_interval, Duration::from_secs(10));
     }
 }

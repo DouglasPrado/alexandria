@@ -1,6 +1,6 @@
 //! Endpoints REST para Files.
 //!
-//! POST /api/v1/files/upload — iniciar upload (UC-004)
+//! POST /api/v1/files/upload — upload multipart (UC-004)
 //! GET  /api/v1/clusters/:id/files — listar galeria (paginacao cursor)
 //! GET  /api/v1/files/:id — obter arquivo
 //! GET  /api/v1/files/:id/preview — preview/thumbnail
@@ -8,27 +8,18 @@
 //! GET  /api/v1/files/:id/download — download completo (UC-005)
 
 use axum::{
-    Json,
-    extract::{Path, Query, State},
-    http::StatusCode,
+    Extension, Json,
+    extract::{Multipart, Path, Query, State},
+    http::{StatusCode, header},
     response::IntoResponse,
 };
 use serde::{Deserialize, Serialize};
+use tracing::error;
 use uuid::Uuid;
 
 use super::AppState;
+use crate::auth::claims::AuthClaims;
 use crate::services::file_service;
-
-#[derive(Deserialize)]
-pub struct UploadRequest {
-    pub cluster_id: Uuid,
-    pub uploaded_by: Uuid,
-    pub original_name: String,
-    pub media_type: String,
-    pub mime_type: String,
-    pub file_extension: String,
-    pub original_size: i64,
-}
 
 #[derive(Serialize)]
 pub struct UploadResponse {
@@ -76,34 +67,140 @@ struct ErrorResponse {
     error: String,
 }
 
-/// POST /api/v1/files/upload — UC-004
+/// POST /api/v1/files/upload — UC-004 (multipart/form-data)
+///
+/// Campos esperados:
+/// - `file`: bytes do arquivo (field obrigatorio)
+/// - `cluster_id`: UUID do cluster (text, obrigatorio)
+/// - `media_type`: "foto" | "video" | "documento" (text, opcional — detectado pelo MIME)
 pub async fn upload_file(
+    Extension(claims): Extension<AuthClaims>,
     State(state): State<AppState>,
-    Json(req): Json<UploadRequest>,
+    mut multipart: Multipart,
 ) -> impl IntoResponse {
-    match file_service::initiate_upload(
-        &state.db,
-        file_service::UploadParams {
-            cluster_id: req.cluster_id,
-            uploaded_by: req.uploaded_by,
-            original_name: &req.original_name,
-            media_type: &req.media_type,
-            mime_type: &req.mime_type,
-            file_extension: &req.file_extension,
-            original_size: req.original_size,
-        },
+    let mut file_bytes: Option<Vec<u8>> = None;
+    let mut original_name: Option<String> = None;
+    let mut mime_type: Option<String> = None;
+    let mut cluster_id: Option<Uuid> = None;
+    let mut media_type_field: Option<String> = None;
+
+    // Iterar sobre os campos do multipart
+    loop {
+        match multipart.next_field().await {
+            Ok(Some(field)) => {
+                let name = field.name().unwrap_or("").to_string();
+                match name.as_str() {
+                    "file" => {
+                        original_name = field.file_name().map(|s| s.to_string());
+                        mime_type = field.content_type().map(|s| s.to_string());
+                        match field.bytes().await {
+                            Ok(b) => file_bytes = Some(b.to_vec()),
+                            Err(_) => return StatusCode::BAD_REQUEST.into_response(),
+                        }
+                    }
+                    "cluster_id" => {
+                        let text = match field.text().await {
+                            Ok(t) => t,
+                            Err(_) => return StatusCode::BAD_REQUEST.into_response(),
+                        };
+                        cluster_id = match Uuid::parse_str(&text) {
+                            Ok(id) => Some(id),
+                            Err(_) => return StatusCode::BAD_REQUEST.into_response(),
+                        };
+                    }
+                    "media_type" => {
+                        media_type_field = match field.text().await {
+                            Ok(t) => Some(t),
+                            Err(_) => return StatusCode::BAD_REQUEST.into_response(),
+                        };
+                    }
+                    _ => {} // ignorar campos desconhecidos
+                }
+            }
+            Ok(None) => break,
+            Err(_) => return StatusCode::BAD_REQUEST.into_response(),
+        }
+    }
+
+    // Validar campos obrigatorios
+    let file_bytes = match file_bytes {
+        Some(b) => b,
+        None => return StatusCode::BAD_REQUEST.into_response(),
+    };
+    let cluster_id = match cluster_id {
+        Some(id) => id,
+        None => return StatusCode::BAD_REQUEST.into_response(),
+    };
+
+    let original_name = original_name.unwrap_or_else(|| "unknown".to_string());
+    let uploaded_by = claims.member_id;
+
+    // Detectar media_type a partir do MIME se nao fornecido
+    let media_type = media_type_field.unwrap_or_else(|| {
+        match mime_type.as_deref() {
+            Some(m) if m.starts_with("image/") => "foto".to_string(),
+            Some(m) if m.starts_with("video/") => "video".to_string(),
+            _ => "documento".to_string(),
+        }
+    });
+
+    let file_extension = original_name
+        .rsplit('.')
+        .next()
+        .unwrap_or("bin")
+        .to_string();
+
+    let mime = mime_type
+        .as_deref()
+        .unwrap_or("application/octet-stream")
+        .to_string();
+
+    // Gerar ID e salvar em diretorio temporario
+    let file_id = Uuid::new_v4();
+    let temp_dir = "/tmp/alexandria/uploads";
+
+    if let Err(_) = tokio::fs::create_dir_all(temp_dir).await {
+        return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+    }
+
+    let temp_path = format!("{}/{}", temp_dir, file_id);
+    if let Err(_) = tokio::fs::write(&temp_path, &file_bytes).await {
+        return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+    }
+
+    // Criar registro no banco com status="processing" e temp_path
+    // content_hash sera atualizado pelo pipeline apos processamento
+    let result = sqlx::query(
+        "INSERT INTO files (id, cluster_id, uploaded_by, original_name, media_type, mime_type, \
+         file_extension, original_size, optimized_size, content_hash, status, temp_path, \
+         created_at, updated_at) \
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, '', 'processing', $9, NOW(), NOW())",
     )
-    .await
-    {
-        Ok(result) => (
+    .bind(file_id)
+    .bind(cluster_id)
+    .bind(uploaded_by)
+    .bind(&original_name)
+    .bind(&media_type)
+    .bind(&mime)
+    .bind(&file_extension)
+    .bind(file_bytes.len() as i64)
+    .bind(&temp_path)
+    .execute(&state.db)
+    .await;
+
+    match result {
+        Ok(_) => (
             StatusCode::CREATED,
             Json(UploadResponse {
-                file_id: result.file_id,
-                status: result.status,
+                file_id,
+                status: "processing".to_string(),
             }),
         )
             .into_response(),
-        Err(e) => map_file_error(e).into_response(),
+        Err(e) => {
+            error!(file_id = %file_id, error = %e, "falha ao criar registro de arquivo");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
     }
 }
 
@@ -226,32 +323,22 @@ pub async fn get_file(
 }
 
 /// GET /api/v1/files/:id/preview — serve preview/thumbnail do arquivo.
-/// Retorna bytes da imagem com Content-Type apropriado.
-/// Na v1: gera preview on-the-fly (nao cached). v2: preview pre-gerado no pipeline.
+/// Retorna bytes WebP com Content-Type image/webp.
+/// Preview e gerado pelo pipeline apos upload e salvo em /data/previews/{id}.webp.
 pub async fn get_preview(
-    State(state): State<AppState>,
     Path(file_id): Path<Uuid>,
+    State(_state): State<AppState>,
 ) -> impl IntoResponse {
-    // Buscar arquivo
-    let file = match file_service::get_file(&state.db, file_id).await {
-        Ok(f) => f,
-        Err(e) => return map_file_error(e).into_response(),
-    };
-
-    // Verificar se media_type suporta preview
-    if !alexandria_core::preview::is_supported(&file.media_type) {
-        return (
-            StatusCode::UNPROCESSABLE_ENTITY,
-            Json(ErrorResponse {
-                error: format!("preview nao disponivel para tipo '{}'", file.media_type),
-            }),
+    let preview_path = format!("/data/previews/{}.webp", file_id);
+    match tokio::fs::read(&preview_path).await {
+        Ok(bytes) => (
+            StatusCode::OK,
+            [(header::CONTENT_TYPE, "image/webp")],
+            bytes,
         )
-            .into_response();
+            .into_response(),
+        Err(_) => StatusCode::NOT_FOUND.into_response(),
     }
-
-    // Na v1: preview nao esta pre-gerado (seria via preview_chunk_id).
-    // Retornamos 204 indicando que preview sera disponibilizado apos pipeline.
-    (StatusCode::NO_CONTENT).into_response()
 }
 
 /// GET /api/v1/clusters/:id/timeline — agrupamento por mes/ano para navegacao cronologica.
@@ -423,44 +510,87 @@ pub async fn get_placeholder(
 }
 
 /// GET /api/v1/files/:id/download — download completo do arquivo (UC-005).
-/// Na v1: retorna 202 Accepted indicando que o download sera processado.
-/// v2: reconstroi arquivo via manifest (decrypt chunks + reassemble).
+/// Reconstroi arquivo via manifest: decrypt chunks + reassemble.
 pub async fn download_file(
-    State(state): State<AppState>,
+    Extension(claims): Extension<AuthClaims>,
     Path(file_id): Path<Uuid>,
+    State(state): State<AppState>,
 ) -> impl IntoResponse {
-    // Verificar arquivo existe e esta ready
-    match file_service::get_file(&state.db, file_id).await {
-        Ok(f) => {
-            if f.status != "ready" {
-                return (
-                    StatusCode::CONFLICT,
-                    Json(ErrorResponse {
-                        error: format!(
-                            "arquivo em status '{}' — download disponivel apenas para status 'ready'",
-                            f.status
-                        ),
-                    }),
-                )
-                    .into_response();
-            }
+    // 1. Verificar arquivo existe e pertence ao cluster do membro
+    let file = match file_service::get_file(&state.db, file_id).await {
+        Ok(f) => f,
+        Err(e) => return map_file_error(e).into_response(),
+    };
 
-            // v1: retorna metadados do download (v2: stream de bytes reconstruidos)
-            // TODO (v2): media_pipeline::download_file(pool, file_id, master_key, providers)
+    // Verificar que o membro tem acesso ao cluster do arquivo
+    if file.cluster_id != claims.cluster_id {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+
+    // 2. Verificar status == "ready"
+    if file.status != "ready" {
+        return (
+            StatusCode::CONFLICT,
+            Json(ErrorResponse {
+                error: format!(
+                    "arquivo em status '{}' — download disponivel apenas para status 'ready'",
+                    file.status
+                ),
+            }),
+        )
+            .into_response();
+    }
+
+    // 3. Obter master_key (guard mantido vivo durante o download)
+    let master_key_guard = state.master_key.read().await;
+    let master_key = match master_key_guard.as_ref() {
+        Some(mk) => mk,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(ErrorResponse {
+                    error: "vault bloqueado — desbloqueie com a seed phrase".to_string(),
+                }),
+            )
+                .into_response();
+        }
+    };
+
+    // 4. Reconstituir arquivo via pipeline
+    let storage_providers = state.storage_providers.read().await;
+    match crate::services::media_pipeline::download_file(
+        &state.db,
+        file_id,
+        master_key,
+        &storage_providers,
+    )
+    .await
+    {
+        Ok(bytes) => {
+            let content_disposition = format!(
+                "attachment; filename=\"{}\"",
+                file.original_name
+            );
             (
-                StatusCode::ACCEPTED,
-                Json(serde_json::json!({
-                    "file_id": f.id,
-                    "original_name": f.original_name,
-                    "optimized_size": f.optimized_size,
-                    "content_hash": f.content_hash,
-                    "status": "download_queued",
-                    "message": "download sera processado (v2: reconstituicao via manifest)"
-                })),
+                StatusCode::OK,
+                [
+                    (header::CONTENT_TYPE, file.mime_type.clone()),
+                    (header::CONTENT_DISPOSITION, content_disposition),
+                ],
+                bytes,
             )
                 .into_response()
         }
-        Err(e) => map_file_error(e).into_response(),
+        Err(e) => {
+            error!(file_id = %file_id, error = %e, "falha no download do arquivo");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ErrorResponse {
+                    error: "falha ao reconstituir arquivo".to_string(),
+                }),
+            )
+                .into_response()
+        }
     }
 }
 

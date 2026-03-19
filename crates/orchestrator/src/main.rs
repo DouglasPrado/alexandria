@@ -43,10 +43,24 @@ async fn main() -> Result<()> {
         storage_providers: Arc::new(RwLock::new(HashMap::new())),
     };
 
-    let app = api::router(state);
+    // Limpar arquivos temporarios obsoletos (> 1 hora) de uploads anteriores
+    let temp_dir = "/tmp/alexandria/uploads";
+    if let Ok(mut entries) = tokio::fs::read_dir(temp_dir).await {
+        while let Ok(Some(entry)) = entries.next_entry().await {
+            if let Ok(meta) = entry.metadata().await {
+                if let Ok(modified) = meta.modified() {
+                    if modified.elapsed().unwrap_or_default() > std::time::Duration::from_secs(3600) {
+                        let _ = tokio::fs::remove_file(entry.path()).await;
+                    }
+                }
+            }
+        }
+    }
 
-    // Scheduler em background (heartbeat, auto-healing, scrubbing, GC)
-    let _scheduler = scheduler::start(pool, scheduler::SchedulerConfig::default());
+    let app = api::router(state.clone());
+
+    // Scheduler em background (heartbeat, auto-healing, scrubbing, GC, media processing)
+    let _scheduler = scheduler::start(state, scheduler::SchedulerConfig::default());
     tracing::info!("Scheduler started");
 
     let listener = tokio::net::TcpListener::bind(&addr).await?;

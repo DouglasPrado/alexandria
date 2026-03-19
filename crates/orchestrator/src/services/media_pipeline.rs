@@ -253,7 +253,6 @@ async fn process_file_inner(
 /// 2. Decrypt file_key com master_key
 /// 3. Para cada chunk: le de um no, decrypt com file_key
 /// 4. Reassembla na ordem correta
-#[allow(dead_code)]
 pub async fn download_file(
     pool: &PgPool,
     file_id: Uuid,
