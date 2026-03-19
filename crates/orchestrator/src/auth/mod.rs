@@ -25,4 +25,13 @@ pub enum AuthError {
     TokenExpired,
     #[error("Invalid token signature")]
     InvalidSignature,
+    // Refresh token errors
+    #[error("Database error: {0}")]
+    Database(String),
+    #[error("Invalid or unknown refresh token")]
+    InvalidRefreshToken,
+    #[error("Refresh token has expired")]
+    RefreshTokenExpired,
+    #[error("Refresh token has already been revoked")]
+    RefreshTokenRevoked,
 }
