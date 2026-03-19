@@ -2,17 +2,8 @@ use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
-use thiserror::Error;
 
-#[derive(Debug, Error)]
-pub enum AuthError {
-    #[error("Failed to hash password: {0}")]
-    HashError(String),
-    #[error("Failed to verify password: {0}")]
-    VerifyError(String),
-    #[error("Invalid password hash format: {0}")]
-    InvalidHash(String),
-}
+use super::AuthError;
 
 /// Hashes a plain-text password using Argon2id with a random salt.
 /// Returns a PHC-formatted string (e.g. `$argon2id$v=19$...`).
