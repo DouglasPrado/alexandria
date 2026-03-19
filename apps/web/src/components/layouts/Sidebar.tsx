@@ -2,15 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Images, Upload, HardDrive, Activity, KeyRound } from "lucide-react";
+import { Images, Upload, HardDrive, Activity, KeyRound, FileText, Users, Shield, Settings } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { usePreferencesStore } from "@/store/preferences-store";
 
 const NAV_ITEMS = [
   { href: "/gallery", label: "Galeria", icon: Images },
+  { href: "/documents", label: "Documentos", icon: FileText },
   { href: "/upload", label: "Upload", icon: Upload },
   { href: "/nodes", label: "Nos", icon: HardDrive },
   { href: "/health", label: "Saude", icon: Activity },
+  { href: "/cluster", label: "Cluster", icon: Users },
+  { href: "/vault", label: "Cofre", icon: Shield },
+  { href: "/settings", label: "Config", icon: Settings },
   { href: "/recovery", label: "Recovery", icon: KeyRound },
 ];
 
