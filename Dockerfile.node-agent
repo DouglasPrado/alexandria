@@ -1,0 +1,43 @@
+# Alexandria Node Agent — multi-stage build
+# Stage 1: Build
+FROM rust:1.87-bookworm AS builder
+
+WORKDIR /app
+
+COPY Cargo.toml Cargo.lock ./
+COPY crates/core-sdk/Cargo.toml crates/core-sdk/Cargo.toml
+COPY crates/orchestrator/Cargo.toml crates/orchestrator/Cargo.toml
+COPY crates/node-agent/Cargo.toml crates/node-agent/Cargo.toml
+
+RUN mkdir -p crates/core-sdk/src crates/orchestrator/src crates/node-agent/src && \
+    echo "pub fn dummy() {}" > crates/core-sdk/src/lib.rs && \
+    echo "fn main() {}" > crates/orchestrator/src/main.rs && \
+    echo "fn main() {}" > crates/node-agent/src/main.rs
+
+RUN cargo build --release --bin node-agent 2>/dev/null || true
+
+COPY crates/ crates/
+COPY migrations/ migrations/
+
+RUN touch crates/core-sdk/src/lib.rs crates/node-agent/src/main.rs
+
+RUN cargo build --release --bin node-agent
+
+# Stage 2: Runtime
+FROM debian:bookworm-slim
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/target/release/node-agent /usr/local/bin/node-agent
+
+WORKDIR /data/alexandria
+
+ENV NODE_PORT=9090
+ENV STORAGE_PATH=/data/alexandria
+ENV RUST_LOG=alexandria=info
+
+EXPOSE 9090
+
+CMD ["node-agent"]

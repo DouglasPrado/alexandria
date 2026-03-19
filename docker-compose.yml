@@ -1,17 +1,26 @@
+# Alexandria — Docker Compose v2 (Producao)
+# Blueprint: 06-system_architecture.md — Topologia de Producao
+#
+# Servicos:
+#   postgres     — PostgreSQL 18 (banco de metadados)
+#   redis        — Redis 7 (fila de jobs, pub/sub)
+#   orchestrator — API REST + Scheduler + Media Workers
+#   caddy        — Reverse proxy + TLS auto (Let's Encrypt)
+
 services:
   postgres:
     image: postgres:18
     restart: unless-stopped
     environment:
-      POSTGRES_USER: alexandria
-      POSTGRES_PASSWORD: alexandria
-      POSTGRES_DB: alexandria
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${POSTGRES_USER:-alexandria}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-alexandria}
+      POSTGRES_DB: ${POSTGRES_DB:-alexandria}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U alexandria"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-alexandria}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -19,13 +28,50 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    volumes:
+      - redisdata:/data
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
 
+  orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-alexandria}:${POSTGRES_PASSWORD:-alexandria}@postgres:5432/${POSTGRES_DB:-alexandria}
+      REDIS_URL: redis://redis:6379
+      HOST: 0.0.0.0
+      PORT: 8080
+      RUST_LOG: ${RUST_LOG:-alexandria=info,tower_http=info}
+    ports:
+      - "127.0.0.1:8080:8080"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - orchestrator
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+      - caddyconfig:/config
+
 volumes:
-  postgres_data:
+  pgdata:
+  redisdata:
+  caddydata:
+  caddyconfig:

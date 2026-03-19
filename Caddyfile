@@ -1,0 +1,41 @@
+# Alexandria — Caddy reverse proxy + TLS auto
+# Em producao: substituir :80 pelo dominio real (ex: alexandria.example.com)
+#
+# Caddy obtem certificados TLS automaticamente via Let's Encrypt
+# quando configurado com um dominio real.
+
+:80 {
+	# API do orchestrator
+	handle /api/* {
+		reverse_proxy orchestrator:8080
+	}
+
+	# Health check direto
+	handle /health {
+		reverse_proxy orchestrator:8080 {
+			rewrite /api/v1/health
+		}
+	}
+
+	# Fallback: tudo que nao e API vai para o web client (quando disponivel)
+	# handle {
+	#     reverse_proxy web:3000
+	# }
+
+	# Compressao
+	encode gzip
+
+	# Headers de seguranca
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	# Logs
+	log {
+		output stdout
+		format json
+	}
+}
