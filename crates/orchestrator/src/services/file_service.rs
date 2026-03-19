@@ -13,7 +13,7 @@ pub enum FileError {
     Database(#[from] sqlx::Error),
     #[error("arquivo nao encontrado")]
     NotFound,
-    #[error("nos insuficientes para replicacao minima (precisa 3+)")]
+    #[error("nos insuficientes para replicacao minima")]
     InsufficientNodes,
     #[error("arquivo temporariamente indisponivel")]
     #[allow(dead_code)]
@@ -45,7 +45,11 @@ pub async fn initiate_upload(
 ) -> Result<UploadResult, FileError> {
     // Verificar minimo de nos para replicacao (UC-004: E1)
     let online_nodes = nodes::count_online_by_cluster(pool, params.cluster_id).await?;
-    if online_nodes < 3 {
+    let min_nodes = std::env::var("REPLICATION_FACTOR")
+        .ok()
+        .and_then(|v| v.parse::<i64>().ok())
+        .unwrap_or(1);
+    if online_nodes < min_nodes {
         return Err(FileError::InsufficientNodes);
     }
 

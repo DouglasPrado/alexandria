@@ -3,7 +3,7 @@
 //! Trigger: No marcado como "lost" pelo heartbeat monitor.
 //! Processo (07-critical_flows.md):
 //!   1. Consulta chunk_replicas do no perdido
-//!   2. Identifica chunks com COUNT(replicas) < REPLICATION_FACTOR
+//!   2. Identifica chunks com COUNT(replicas) < replication_factor()
 //!   3. ConsistentHashRing seleciona novos destinos
 //!   4. Copia chunk de replica saudavel → novo destino
 //!   5. Atualiza chunk_replicas e resolve alertas
@@ -14,7 +14,12 @@
 
 use sqlx::PgPool;
 
-const REPLICATION_FACTOR: i64 = 3;
+fn replication_factor() -> i64 {
+    std::env::var("replication_factor()")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(1)
+}
 
 /// Executa um ciclo de auto-healing.
 pub async fn run(pool: &PgPool) -> Result<HealingReport, sqlx::Error> {
@@ -46,7 +51,7 @@ pub async fn run(pool: &PgPool) -> Result<HealingReport, sqlx::Error> {
             "#,
         )
         .bind(node_id)
-        .bind(REPLICATION_FACTOR)
+        .bind(replication_factor())
         .fetch_all(pool)
         .await?;
 
@@ -69,7 +74,7 @@ pub async fn run(pool: &PgPool) -> Result<HealingReport, sqlx::Error> {
             .bind(format!(
                 "{} chunks com replicacao abaixo de {} (no perdido)",
                 under_replicated.len(),
-                REPLICATION_FACTOR
+                replication_factor()
             ))
             .bind(node_id.to_string())
             .execute(pool)

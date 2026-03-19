@@ -16,7 +16,12 @@ use alexandria_core::consistent_hashing::HashRing;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-const REPLICATION_FACTOR: usize = 3;
+fn replication_factor() -> usize {
+    std::env::var("replication_factor()")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(1)
+}
 
 /// Resultado de um ciclo de rebalanceamento.
 #[derive(Debug, Default, PartialEq, Eq)]
@@ -59,7 +64,7 @@ pub async fn run_for_cluster(
     .fetch_all(pool)
     .await?;
 
-    if online_nodes.len() < REPLICATION_FACTOR {
+    if online_nodes.len() < replication_factor() {
         // Sem nos suficientes para rebalancear
         return Ok(report);
     }
@@ -88,7 +93,7 @@ pub async fn run_for_cluster(
 
     // 4. Para cada chunk, comparar placement atual vs ideal
     for (chunk_id,) in &chunks {
-        let ideal_nodes = ring.get_nodes(chunk_id, REPLICATION_FACTOR);
+        let ideal_nodes = ring.get_nodes(chunk_id, replication_factor());
 
         let current_nodes: Vec<(Uuid,)> =
             sqlx::query_as("SELECT node_id FROM chunk_replicas WHERE chunk_id = $1")

@@ -17,7 +17,12 @@ use sqlx::PgPool;
 use thiserror::Error;
 use uuid::Uuid;
 
-const REPLICATION_FACTOR: usize = 3;
+fn replication_factor() -> usize {
+    std::env::var("replication_factor()")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(1)
+}
 
 #[derive(Debug, Error)]
 pub enum PipelineError {
@@ -25,7 +30,7 @@ pub enum PipelineError {
     Database(#[from] sqlx::Error),
     #[error("arquivo nao encontrado")]
     FileNotFound,
-    #[error("nos insuficientes para replicacao (precisa {REPLICATION_FACTOR}+)")]
+    #[error("nos insuficientes para replicacao")]
     InsufficientNodes,
     #[error("erro de criptografia: {0}")]
     Crypto(#[from] crypto::CryptoError),
@@ -163,8 +168,8 @@ async fn process_file_inner(
         .await?;
 
         // Distribuir para N nos via ConsistentHashRing
-        let target_nodes = hash_ring.get_nodes(&encrypted_hash, REPLICATION_FACTOR);
-        if target_nodes.len() < REPLICATION_FACTOR {
+        let target_nodes = hash_ring.get_nodes(&encrypted_hash, replication_factor());
+        if target_nodes.len() < replication_factor() {
             return Err(PipelineError::InsufficientNodes);
         }
 

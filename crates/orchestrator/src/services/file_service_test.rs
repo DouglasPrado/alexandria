@@ -11,11 +11,11 @@ mod tests {
         let _insufficient = FileError::InsufficientNodes;
     }
 
-    // UC-004: Mensagem de InsufficientNodes indica replicacao 3+
+    // UC-004: Mensagem de InsufficientNodes indica replicacao
     #[test]
     fn insufficient_nodes_mentions_replication_factor() {
         let msg = FileError::InsufficientNodes.to_string();
-        assert!(msg.contains('3'), "mensagem deve mencionar minimo de 3 nos");
+        assert!(msg.contains("replicacao"), "mensagem deve mencionar replicacao");
     }
 
     // 09-state_models: file error messages usam linguagem ubiqua

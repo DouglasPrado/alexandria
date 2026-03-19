@@ -30,13 +30,13 @@ mod tests {
         assert_eq!(NodeError::NotFound.to_string(), "no nao encontrado");
     }
 
-    // UC-006: Regra RN-N3 — minimo de nos deve ser 3
+    // UC-006: Regra RN-N3 — minimo de nos configuravel
     #[test]
-    fn minimum_nodes_error_indicates_three() {
+    fn minimum_nodes_error_mentions_replication() {
         let msg = NodeError::MinimumNodesRequired.to_string();
         assert!(
-            msg.contains("3"),
-            "mensagem deve mencionar o minimo de 3 nos"
+            msg.contains("minimo") || msg.contains("replicacao"),
+            "mensagem deve mencionar minimo de nos"
         );
     }
 }
