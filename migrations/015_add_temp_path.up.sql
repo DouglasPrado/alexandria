@@ -1,0 +1,1 @@
+ALTER TABLE files ADD COLUMN temp_path TEXT;
