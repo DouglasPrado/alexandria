@@ -84,6 +84,30 @@ pub struct ErrorResponse {
 
 // -- Handlers --
 
+/// GET /api/v1/members/:id/quota — quota de armazenamento do membro
+pub async fn get_member_quota(
+    State(state): State<AppState>,
+    Path(member_id): Path<Uuid>,
+) -> impl IntoResponse {
+    match crate::services::quota_service::get_quota(&state.db, member_id).await {
+        Ok(info) => (StatusCode::OK, Json(info)).into_response(),
+        Err(crate::services::quota_service::QuotaError::MemberNotFound) => (
+            StatusCode::NOT_FOUND,
+            Json(ErrorResponse {
+                error: "membro nao encontrado".into(),
+            }),
+        )
+            .into_response(),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ErrorResponse {
+                error: e.to_string(),
+            }),
+        )
+            .into_response(),
+    }
+}
+
 /// POST /api/v1/clusters/:id/rebalance — trigger manual de rebalanceamento
 pub async fn rebalance_cluster(
     State(state): State<AppState>,

@@ -13,6 +13,8 @@ pub struct MemberRow {
     pub role: String,
     pub invited_by: Option<Uuid>,
     pub joined_at: chrono::DateTime<chrono::Utc>,
+    pub storage_quota: i64,
+    pub storage_used: i64,
     pub created_at: chrono::DateTime<chrono::Utc>,
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
@@ -85,4 +87,37 @@ pub async fn count_admins(pool: &PgPool, cluster_id: Uuid) -> Result<i64, sqlx::
             .fetch_one(pool)
             .await?;
     Ok(row.0)
+}
+
+#[allow(dead_code)]
+/// Atualiza storage_used incrementando pelo delta (pode ser negativo).
+pub async fn update_storage_used(
+    pool: &PgPool,
+    member_id: Uuid,
+    delta_bytes: i64,
+) -> Result<bool, sqlx::Error> {
+    let result = sqlx::query(
+        "UPDATE members SET storage_used = GREATEST(0, storage_used + $1), updated_at = NOW() WHERE id = $2",
+    )
+    .bind(delta_bytes)
+    .bind(member_id)
+    .execute(pool)
+    .await?;
+    Ok(result.rows_affected() > 0)
+}
+
+/// Atualiza quota de um membro (admin operation).
+#[allow(dead_code)]
+pub async fn set_quota(
+    pool: &PgPool,
+    member_id: Uuid,
+    quota_bytes: i64,
+) -> Result<bool, sqlx::Error> {
+    let result =
+        sqlx::query("UPDATE members SET storage_quota = $1, updated_at = NOW() WHERE id = $2")
+            .bind(quota_bytes)
+            .bind(member_id)
+            .execute(pool)
+            .await?;
+    Ok(result.rows_affected() > 0)
 }

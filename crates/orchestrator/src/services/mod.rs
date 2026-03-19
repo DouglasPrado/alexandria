@@ -11,4 +11,5 @@ pub mod media_pipeline;
 pub mod node_service;
 #[cfg(test)]
 mod node_service_test;
+pub mod quota_service;
 pub mod recovery_service;

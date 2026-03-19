@@ -47,6 +47,10 @@ pub fn router(db: PgPool) -> Router {
             "/api/v1/clusters/{cluster_id}/members/{member_id}",
             delete(clusters::remove_member),
         )
+        .route(
+            "/api/v1/members/{id}/quota",
+            get(clusters::get_member_quota),
+        )
         // Nodes (UC-003, UC-006)
         .route("/api/v1/nodes/register", post(nodes::register_node))
         .route("/api/v1/clusters/{id}/nodes", get(nodes::list_nodes))
