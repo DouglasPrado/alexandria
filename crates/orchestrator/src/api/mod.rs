@@ -11,6 +11,7 @@ use tower_http::trace::TraceLayer;
 use uuid::Uuid;
 
 mod alerts;
+mod auth;
 mod clusters;
 mod files;
 mod health;
@@ -31,6 +32,11 @@ pub struct AppState {
 pub fn router(state: AppState) -> Router {
 
     Router::new()
+        // Auth (login, refresh, logout, me)
+        .route("/api/v1/auth/login", post(auth::login))
+        .route("/api/v1/auth/refresh", post(auth::refresh_token))
+        .route("/api/v1/auth/logout", post(auth::logout))
+        .route("/api/v1/auth/me", get(auth::me))
         // Health + Metrics
         .route("/api/v1/health", get(health::health_check))
         .route("/metrics", get(metrics::prometheus_metrics))

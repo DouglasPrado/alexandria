@@ -1,6 +1,7 @@
 //! Servicos de dominio e use cases.
 //! Cada servico orquestra logica de negocio usando repositorios e core-sdk.
 
+pub mod auth_service;
 pub mod cluster_service;
 pub mod dedup_service;
 pub mod file_service;
