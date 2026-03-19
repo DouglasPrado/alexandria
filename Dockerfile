@@ -31,7 +31,7 @@ RUN cargo build --release --bin orchestrator
 FROM debian:bookworm-slim
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates && \
+    apt-get install -y --no-install-recommends ca-certificates curl && \
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/target/release/orchestrator /usr/local/bin/orchestrator
