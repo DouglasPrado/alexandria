@@ -2,6 +2,7 @@ use anyhow::Result;
 use tracing_subscriber::EnvFilter;
 
 mod api;
+mod auth;
 mod db;
 mod scheduler;
 mod services;
