@@ -3,4 +3,5 @@ pub mod consistent_hashing;
 pub mod crypto;
 pub mod domain;
 pub mod hashing;
+pub mod preview;
 pub mod storage;

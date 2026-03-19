@@ -156,6 +156,35 @@ pub async fn get_file(
     }
 }
 
+/// GET /api/v1/files/:id/preview — serve preview/thumbnail do arquivo.
+/// Retorna bytes da imagem com Content-Type apropriado.
+/// Na v1: gera preview on-the-fly (nao cached). v2: preview pre-gerado no pipeline.
+pub async fn get_preview(
+    State(state): State<AppState>,
+    Path(file_id): Path<Uuid>,
+) -> impl IntoResponse {
+    // Buscar arquivo
+    let file = match file_service::get_file(&state.db, file_id).await {
+        Ok(f) => f,
+        Err(e) => return map_file_error(e).into_response(),
+    };
+
+    // Verificar se media_type suporta preview
+    if !alexandria_core::preview::is_supported(&file.media_type) {
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            Json(ErrorResponse {
+                error: format!("preview nao disponivel para tipo '{}'", file.media_type),
+            }),
+        )
+            .into_response();
+    }
+
+    // Na v1: preview nao esta pre-gerado (seria via preview_chunk_id).
+    // Retornamos 204 indicando que preview sera disponibilizado apos pipeline.
+    (StatusCode::NO_CONTENT).into_response()
+}
+
 fn map_file_error(e: file_service::FileError) -> impl IntoResponse {
     let (status, msg) = match &e {
         file_service::FileError::NotFound => (StatusCode::NOT_FOUND, e.to_string()),

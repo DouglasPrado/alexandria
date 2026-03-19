@@ -45,6 +45,9 @@ redis = { version = "0.27", features = ["tokio-comp", "connection-manager"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
+# Image processing (preview/thumbnail generation)
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp"] }
+
 # Crypto
 aes-gcm = "0.10"
 sha2 = "0.10"
