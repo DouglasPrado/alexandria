@@ -10,6 +10,7 @@ mod alerts;
 mod clusters;
 mod files;
 mod health;
+mod metrics;
 mod nodes;
 mod recovery;
 
@@ -22,8 +23,9 @@ pub fn router(db: PgPool) -> Router {
     let state = AppState { db };
 
     Router::new()
-        // Health
+        // Health + Metrics
         .route("/api/v1/health", get(health::health_check))
+        .route("/metrics", get(metrics::prometheus_metrics))
         // Clusters (UC-001)
         .route(
             "/api/v1/clusters",

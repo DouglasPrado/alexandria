@@ -1,0 +1,10 @@
+# Alexandria — Prometheus config
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "orchestrator"
+    static_configs:
+      - targets: ["orchestrator:8080"]
+    metrics_path: "/metrics"
