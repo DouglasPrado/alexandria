@@ -84,6 +84,33 @@ pub struct ErrorResponse {
 
 // -- Handlers --
 
+/// POST /api/v1/clusters/:id/rebalance — trigger manual de rebalanceamento
+pub async fn rebalance_cluster(
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+) -> impl IntoResponse {
+    match crate::scheduler::rebalancing::run_for_cluster(&state.db, id).await {
+        Ok(report) => (
+            StatusCode::OK,
+            Json(serde_json::json!({
+                "nodes_in_ring": report.nodes_in_ring,
+                "chunks_analyzed": report.chunks_analyzed,
+                "correctly_placed": report.correctly_placed,
+                "need_migration": report.need_migration,
+                "migrations_executed": report.migrations_executed,
+            })),
+        )
+            .into_response(),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ErrorResponse {
+                error: e.to_string(),
+            }),
+        )
+            .into_response(),
+    }
+}
+
 /// GET /api/v1/clusters — listar todos os clusters
 pub async fn list_clusters(State(state): State<AppState>) -> impl IntoResponse {
     match crate::db::clusters::find_all(&state.db).await {

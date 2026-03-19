@@ -13,6 +13,7 @@ pub mod garbage_collection;
 pub mod heartbeat;
 #[cfg(test)]
 mod heartbeat_test;
+pub mod rebalancing;
 pub mod scrubbing;
 #[cfg(test)]
 mod scrubbing_test;
@@ -31,6 +32,8 @@ pub struct SchedulerConfig {
     pub gc_interval: Duration,
     /// Intervalo entre ciclos de auto-healing (default: 10 min).
     pub healing_interval: Duration,
+    /// Intervalo entre ciclos de rebalanceamento (default: 1h).
+    pub rebalancing_interval: Duration,
 }
 
 impl Default for SchedulerConfig {
@@ -40,6 +43,7 @@ impl Default for SchedulerConfig {
             scrubbing_interval: Duration::from_secs(24 * 60 * 60),
             gc_interval: Duration::from_secs(24 * 60 * 60),
             healing_interval: Duration::from_secs(10 * 60),
+            rebalancing_interval: Duration::from_secs(60 * 60),
         }
     }
 }
@@ -53,6 +57,7 @@ pub fn start(pool: PgPool, config: SchedulerConfig) -> tokio::task::JoinHandle<(
         let pool_heal = pool.clone();
         let pool_scrub = pool.clone();
         let pool_gc = pool.clone();
+        let pool_rebal = pool.clone();
 
         let hb = tokio::spawn(async move {
             let mut interval = time::interval(config.heartbeat_interval);
@@ -94,8 +99,18 @@ pub fn start(pool: PgPool, config: SchedulerConfig) -> tokio::task::JoinHandle<(
             }
         });
 
+        let rebal = tokio::spawn(async move {
+            let mut interval = time::interval(config.rebalancing_interval);
+            loop {
+                interval.tick().await;
+                if let Err(e) = rebalancing::run(&pool_rebal).await {
+                    tracing::error!(error = %e, "rebalancing failed");
+                }
+            }
+        });
+
         // Se qualquer task falhar, logamos e continuamos as demais
-        let _ = tokio::join!(hb, heal, scrub, gc);
+        let _ = tokio::join!(hb, heal, scrub, gc, rebal);
     })
 }
 
@@ -110,5 +125,6 @@ mod tests {
         assert_eq!(cfg.scrubbing_interval, Duration::from_secs(86400));
         assert_eq!(cfg.gc_interval, Duration::from_secs(86400));
         assert_eq!(cfg.healing_interval, Duration::from_secs(600));
+        assert_eq!(cfg.rebalancing_interval, Duration::from_secs(3600));
     }
 }
