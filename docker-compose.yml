@@ -80,6 +80,7 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: ""
       NEXT_PUBLIC_CLUSTER_ID: ${CLUSTER_ID:-}
+      API_PROXY_URL: "http://orchestrator:8080"
     ports:
       - "127.0.0.1:3000:3000"
 
