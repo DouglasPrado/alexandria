@@ -128,3 +128,60 @@ pub async fn find_by_content_hash(
         .fetch_optional(pool)
         .await
 }
+
+/// Busca arquivos por nome, tipo e/ou range de datas (UC-010).
+/// Usa pg_trgm para busca por similaridade em original_name.
+pub async fn search(
+    pool: &PgPool,
+    cluster_id: Uuid,
+    query: Option<&str>,
+    media_type: Option<&str>,
+    date_from: Option<chrono::DateTime<chrono::Utc>>,
+    date_to: Option<chrono::DateTime<chrono::Utc>>,
+    limit: i64,
+) -> Result<Vec<FileRow>, sqlx::Error> {
+    // Build query dinamicamente com filtros opcionais
+    let mut sql = String::from("SELECT * FROM files WHERE cluster_id = $1 AND status = 'ready'");
+    let mut param_idx = 2u32;
+
+    if query.is_some() {
+        sql.push_str(&format!(
+            " AND original_name ILIKE '%' || ${param_idx} || '%'"
+        ));
+        param_idx += 1;
+    }
+    if media_type.is_some() {
+        sql.push_str(&format!(" AND media_type = ${param_idx}"));
+        param_idx += 1;
+    }
+    if date_from.is_some() {
+        sql.push_str(&format!(" AND created_at >= ${param_idx}"));
+        param_idx += 1;
+    }
+    if date_to.is_some() {
+        sql.push_str(&format!(" AND created_at <= ${param_idx}"));
+        param_idx += 1;
+    }
+
+    sql.push_str(&format!(" ORDER BY created_at DESC LIMIT ${param_idx}"));
+
+    // SQLx requires static queries for compile-time checking.
+    // For dynamic queries, use query_as with raw SQL.
+    let mut q = sqlx::query_as::<_, FileRow>(&sql).bind(cluster_id);
+
+    if let Some(query_str) = query {
+        q = q.bind(query_str);
+    }
+    if let Some(mt) = media_type {
+        q = q.bind(mt);
+    }
+    if let Some(df) = date_from {
+        q = q.bind(df);
+    }
+    if let Some(dt) = date_to {
+        q = q.bind(dt);
+    }
+    q = q.bind(limit);
+
+    q.fetch_all(pool).await
+}

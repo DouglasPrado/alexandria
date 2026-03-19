@@ -24,6 +24,8 @@ export default function GalleryPage() {
   const [files, setFiles] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [mediaFilter, setMediaFilter] = useState("");
 
   useEffect(() => {
     if (clusterLoading || !cluster) return;
@@ -33,6 +35,19 @@ export default function GalleryPage() {
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [cluster, clusterLoading]);
+
+  const handleSearch = () => {
+    if (!cluster) return;
+    setLoading(true);
+    const hasFilters = searchQuery || mediaFilter;
+    const fetcher = hasFilters
+      ? api.searchFiles(cluster.id, { q: searchQuery || undefined, media_type: mediaFilter || undefined })
+          .then((res) => setFiles(res.files))
+      : api.listFiles(cluster.id).then((res) => setFiles(res.files));
+    fetcher
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  };
 
   if (needsSetup) {
     return (
@@ -49,7 +64,7 @@ export default function GalleryPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-semibold text-text">Galeria</h2>
         <a
           href="/upload"
@@ -57,6 +72,34 @@ export default function GalleryPage() {
         >
           Enviar Arquivos
         </a>
+      </div>
+
+      {/* Search Bar */}
+      <div className="flex gap-2 mb-6">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          placeholder="Buscar por nome..."
+          className="flex-1 px-3 py-2 border border-border rounded-lg text-sm bg-surface-elevated text-text placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
+        />
+        <select
+          value={mediaFilter}
+          onChange={(e) => { setMediaFilter(e.target.value); }}
+          className="px-3 py-2 border border-border rounded-lg text-sm bg-surface-elevated text-text"
+        >
+          <option value="">Todos</option>
+          <option value="foto">Fotos</option>
+          <option value="video">Videos</option>
+          <option value="documento">Documentos</option>
+        </select>
+        <button
+          onClick={handleSearch}
+          className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90"
+        >
+          Buscar
+        </button>
       </div>
 
       {(loading || clusterLoading) && (

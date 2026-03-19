@@ -108,6 +108,21 @@ export const api = {
       `/api/v1/clusters/${clusterId}/files?limit=${limit}${cursor ? `&cursor=${cursor}` : ""}`
     ),
 
+  searchFiles: (
+    clusterId: string,
+    params: { q?: string; media_type?: string; from?: string; to?: string; limit?: number }
+  ) => {
+    const qs = new URLSearchParams();
+    if (params.q) qs.set("q", params.q);
+    if (params.media_type) qs.set("media_type", params.media_type);
+    if (params.from) qs.set("from", params.from);
+    if (params.to) qs.set("to", params.to);
+    if (params.limit) qs.set("limit", String(params.limit));
+    return request<{ files: FileItem[]; count: number }>(
+      `/api/v1/clusters/${clusterId}/files/search?${qs.toString()}`
+    );
+  },
+
   uploadFile: (data: {
     cluster_id: string;
     uploaded_by: string;

@@ -42,6 +42,15 @@ pub struct GalleryParams {
     pub limit: Option<i64>,
 }
 
+#[derive(Deserialize)]
+pub struct SearchParams {
+    pub q: Option<String>,
+    pub media_type: Option<String>,
+    pub from: Option<String>,
+    pub to: Option<String>,
+    pub limit: Option<i64>,
+}
+
 #[derive(Serialize)]
 pub struct FileResponse {
     pub id: Uuid,
@@ -130,6 +139,63 @@ pub async fn list_gallery(
             (StatusCode::OK, Json(GalleryResponse { files, next_cursor })).into_response()
         }
         Err(e) => map_file_error(e).into_response(),
+    }
+}
+
+/// GET /api/v1/clusters/:id/files/search — busca por nome, tipo, data (UC-010)
+pub async fn search_files(
+    State(state): State<AppState>,
+    Path(cluster_id): Path<Uuid>,
+    Query(params): Query<SearchParams>,
+) -> impl IntoResponse {
+    let date_from = params
+        .from
+        .and_then(|d| d.parse::<chrono::DateTime<chrono::Utc>>().ok());
+    let date_to = params
+        .to
+        .and_then(|d| d.parse::<chrono::DateTime<chrono::Utc>>().ok());
+    let limit = params.limit.unwrap_or(50).clamp(1, 200);
+
+    match crate::db::files::search(
+        &state.db,
+        cluster_id,
+        params.q.as_deref(),
+        params.media_type.as_deref(),
+        date_from,
+        date_to,
+        limit,
+    )
+    .await
+    {
+        Ok(rows) => {
+            let files: Vec<FileResponse> = rows
+                .into_iter()
+                .map(|r| FileResponse {
+                    id: r.id,
+                    cluster_id: r.cluster_id,
+                    original_name: r.original_name,
+                    media_type: r.media_type,
+                    mime_type: r.mime_type,
+                    file_extension: r.file_extension,
+                    original_size: r.original_size,
+                    optimized_size: r.optimized_size,
+                    status: r.status,
+                    created_at: r.created_at,
+                })
+                .collect();
+            (
+                StatusCode::OK,
+                Json(serde_json::json!({ "files": files, "count": files.len() })),
+            )
+                .into_response()
+        }
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ErrorResponse {
+                error: e.to_string(),
+            }),
+        )
+            .into_response(),
     }
 }
 
