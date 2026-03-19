@@ -3,6 +3,7 @@
 
 pub mod auth_service;
 pub mod cluster_service;
+pub mod invite_service;
 pub mod dedup_service;
 pub mod file_service;
 #[cfg(test)]

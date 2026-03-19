@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::AppState;
-use crate::services::cluster_service;
+use crate::services::{cluster_service, invite_service};
 
 // -- Request/Response types --
 
@@ -62,11 +62,8 @@ pub struct InviteResponse {
 
 #[derive(Deserialize)]
 pub struct AcceptInviteRequest {
-    pub cluster_id: Uuid,
     pub name: String,
     pub email: String,
-    pub role: String,
-    pub invited_by: Uuid,
     pub password: String,
 }
 
@@ -83,6 +80,32 @@ pub struct MemberResponse {
 #[derive(Serialize)]
 pub struct ErrorResponse {
     pub error: String,
+}
+
+#[derive(Serialize)]
+pub struct ValidateInviteApiResponse {
+    pub valid: bool,
+    pub cluster_name: Option<String>,
+    pub role: Option<String>,
+    pub email: Option<String>,
+    pub error: Option<String>,
+}
+
+#[derive(Serialize)]
+pub struct MemberInfoResponse {
+    pub id: Uuid,
+    pub cluster_id: Uuid,
+    pub name: String,
+    pub email: String,
+    pub role: String,
+}
+
+#[derive(Serialize)]
+pub struct AcceptInviteApiResponse {
+    pub access_token: String,
+    pub refresh_token: String,
+    pub member: MemberInfoResponse,
+    pub expires_in: i64,
 }
 
 // -- Handlers --
@@ -316,6 +339,7 @@ pub async fn invite_member(
     Path(cluster_id): Path<Uuid>,
     Json(req): Json<InviteMemberRequest>,
 ) -> impl IntoResponse {
+    // Verifica que o inviter é admin antes de criar convite
     match cluster_service::invite_member(
         &state.db,
         cluster_id,
@@ -325,41 +349,125 @@ pub async fn invite_member(
     )
     .await
     {
-        Ok(invite) => (
-            StatusCode::CREATED,
-            Json(InviteResponse {
-                token: invite.token,
-                expires_at: invite.expires_at,
+        Ok(_) => {}
+        Err(e) => return map_error(e).into_response(),
+    }
+
+    // Cria convite na tabela invites com token aleatório
+    match invite_service::create_invite(
+        &state.db,
+        cluster_id,
+        &req.email,
+        &req.role,
+        req.inviter_id,
+    )
+    .await
+    {
+        Ok(raw_token) => {
+            let expires_at = chrono::Utc::now() + chrono::Duration::days(7);
+            (
+                StatusCode::CREATED,
+                Json(InviteResponse {
+                    token: raw_token,
+                    expires_at,
+                }),
+            )
+                .into_response()
+        }
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ErrorResponse {
+                error: e.to_string(),
             }),
         )
             .into_response(),
-        Err(e) => map_error(e).into_response(),
+    }
+}
+
+/// GET /api/v1/invite/:token/validate — Valida token de convite (rota pública)
+pub async fn validate_invite(
+    State(state): State<AppState>,
+    Path(token): Path<String>,
+) -> Result<Json<ValidateInviteApiResponse>, StatusCode> {
+    match invite_service::validate_invite(&state.db, &token).await {
+        Ok(res) => Ok(Json(ValidateInviteApiResponse {
+            valid: res.valid,
+            cluster_name: res.cluster_name,
+            role: res.role,
+            email: res.email,
+            error: res.error,
+        })),
+        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
     }
 }
 
 /// POST /api/v1/invite/:token — Aceitar convite
 pub async fn accept_invite(
     State(state): State<AppState>,
-    Path(_token): Path<String>,
+    Path(token): Path<String>,
     Json(req): Json<AcceptInviteRequest>,
 ) -> impl IntoResponse {
-    match cluster_service::accept_invite(
+    match invite_service::accept_invite(
         &state.db,
-        req.cluster_id,
+        &token,
         &req.name,
         &req.email,
-        &req.role,
-        req.invited_by,
         &req.password,
+        &state.jwt_secret,
     )
     .await
     {
-        Ok(member_id) => (
+        Ok(res) => (
             StatusCode::CREATED,
-            Json(serde_json::json!({ "member_id": member_id })),
+            Json(AcceptInviteApiResponse {
+                access_token: res.access_token,
+                refresh_token: res.refresh_token,
+                member: MemberInfoResponse {
+                    id: res.member.id,
+                    cluster_id: res.member.cluster_id,
+                    name: res.member.name,
+                    email: res.member.email,
+                    role: res.member.role,
+                },
+                expires_in: res.expires_in,
+            }),
         )
             .into_response(),
-        Err(e) => map_error(e).into_response(),
+        Err(invite_service::InviteError::NotFound) => (
+            StatusCode::NOT_FOUND,
+            Json(ErrorResponse {
+                error: "convite nao encontrado".into(),
+            }),
+        )
+            .into_response(),
+        Err(invite_service::InviteError::Expired) => (
+            StatusCode::GONE,
+            Json(ErrorResponse {
+                error: "convite expirado".into(),
+            }),
+        )
+            .into_response(),
+        Err(invite_service::InviteError::AlreadyUsed) => (
+            StatusCode::CONFLICT,
+            Json(ErrorResponse {
+                error: "convite ja foi aceito".into(),
+            }),
+        )
+            .into_response(),
+        Err(invite_service::InviteError::EmailConflict) => (
+            StatusCode::CONFLICT,
+            Json(ErrorResponse {
+                error: "email ja existe neste cluster".into(),
+            }),
+        )
+            .into_response(),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ErrorResponse {
+                error: e.to_string(),
+            }),
+        )
+            .into_response(),
     }
 }
 

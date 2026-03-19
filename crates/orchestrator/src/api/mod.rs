@@ -43,6 +43,7 @@ pub fn router(state: AppState) -> Router {
         // POST /api/v1/clusters is public (cluster creation / onboarding)
         .route("/api/v1/clusters", post(clusters::create_cluster))
         .route("/api/v1/invite/{token}", post(clusters::accept_invite))
+        .route("/api/v1/invite/{token}/validate", get(clusters::validate_invite))
         .route("/api/v1/nodes/{id}/heartbeat", post(nodes::heartbeat))
         .route("/api/v1/nodes/register", post(nodes::register_node));
 
