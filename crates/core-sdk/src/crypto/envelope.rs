@@ -18,6 +18,14 @@ pub struct SeedPhrase {
     words: Vec<String>,
 }
 
+impl std::fmt::Debug for SeedPhrase {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SeedPhrase")
+            .field("word_count", &self.words.len())
+            .finish()
+    }
+}
+
 impl SeedPhrase {
     pub fn words(&self) -> Vec<&str> {
         self.words.iter().map(|w| w.as_str()).collect()
@@ -27,6 +35,12 @@ impl SeedPhrase {
 /// Master key de 32 bytes derivada da seed phrase.
 /// Existe apenas em memoria — nunca persistida em disco.
 pub struct MasterKey([u8; 32]);
+
+impl std::fmt::Debug for MasterKey {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MasterKey").field("len", &32).finish()
+    }
+}
 
 impl MasterKey {
     pub fn as_bytes(&self) -> &[u8; 32] {

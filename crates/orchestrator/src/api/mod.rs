@@ -11,6 +11,7 @@ mod clusters;
 mod files;
 mod health;
 mod nodes;
+mod recovery;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -47,6 +48,8 @@ pub fn router(db: PgPool) -> Router {
         .route("/api/v1/clusters/{id}/files", get(files::list_gallery))
         .route("/api/v1/files/{id}", get(files::get_file))
         .route("/api/v1/files/{id}/preview", get(files::get_preview))
+        // Recovery (UC-007)
+        .route("/api/v1/recovery", post(recovery::start_recovery))
         // Alerts
         .route("/api/v1/clusters/{id}/alerts", get(alerts::list_alerts))
         .with_state(state)
