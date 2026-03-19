@@ -1,4 +1,7 @@
 use anyhow::Result;
+use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 use tracing_subscriber::EnvFilter;
 
 mod api;
@@ -28,7 +31,19 @@ async fn main() -> Result<()> {
     sqlx::migrate!("../../migrations").run(&pool).await?;
     tracing::info!("Database migrations applied");
 
-    let app = api::router(pool.clone());
+    let jwt_secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "dev-secret-change-me".to_string());
+    let bootstrap_token = std::env::var("BOOTSTRAP_TOKEN").ok();
+
+    let state = api::AppState {
+        db: pool.clone(),
+        jwt_secret,
+        bootstrap_token,
+        master_key: Arc::new(RwLock::new(None)),
+        hash_ring: Arc::new(RwLock::new(alexandria_core::consistent_hashing::HashRing::new())),
+        storage_providers: Arc::new(RwLock::new(HashMap::new())),
+    };
+
+    let app = api::router(state);
 
     // Scheduler em background (heartbeat, auto-healing, scrubbing, GC)
     let _scheduler = scheduler::start(pool, scheduler::SchedulerConfig::default());

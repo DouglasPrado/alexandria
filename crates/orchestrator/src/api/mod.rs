@@ -3,8 +3,12 @@ use axum::{
     routing::{delete, get, post},
 };
 use sqlx::PgPool;
+use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
+use uuid::Uuid;
 
 mod alerts;
 mod clusters;
@@ -17,10 +21,14 @@ mod recovery;
 #[derive(Clone)]
 pub struct AppState {
     pub db: PgPool,
+    pub jwt_secret: String,
+    pub bootstrap_token: Option<String>,
+    pub master_key: Arc<RwLock<Option<alexandria_core::crypto::envelope::MasterKey>>>,
+    pub hash_ring: Arc<RwLock<alexandria_core::consistent_hashing::HashRing>>,
+    pub storage_providers: Arc<RwLock<HashMap<Uuid, Box<dyn alexandria_core::storage::StorageProvider>>>>,
 }
 
-pub fn router(db: PgPool) -> Router {
-    let state = AppState { db };
+pub fn router(state: AppState) -> Router {
 
     Router::new()
         // Health + Metrics
