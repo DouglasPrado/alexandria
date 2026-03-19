@@ -17,6 +17,7 @@ pub mod rebalancing;
 pub mod scrubbing;
 #[cfg(test)]
 mod scrubbing_test;
+pub mod tiering;
 
 use sqlx::PgPool;
 use std::time::Duration;
@@ -34,6 +35,8 @@ pub struct SchedulerConfig {
     pub healing_interval: Duration,
     /// Intervalo entre ciclos de rebalanceamento (default: 1h).
     pub rebalancing_interval: Duration,
+    /// Intervalo entre ciclos de tiering (default: 24h).
+    pub tiering_interval: Duration,
 }
 
 impl Default for SchedulerConfig {
@@ -44,6 +47,7 @@ impl Default for SchedulerConfig {
             gc_interval: Duration::from_secs(24 * 60 * 60),
             healing_interval: Duration::from_secs(10 * 60),
             rebalancing_interval: Duration::from_secs(60 * 60),
+            tiering_interval: Duration::from_secs(24 * 60 * 60),
         }
     }
 }
@@ -58,6 +62,7 @@ pub fn start(pool: PgPool, config: SchedulerConfig) -> tokio::task::JoinHandle<(
         let pool_scrub = pool.clone();
         let pool_gc = pool.clone();
         let pool_rebal = pool.clone();
+        let pool_tier = pool.clone();
 
         let hb = tokio::spawn(async move {
             let mut interval = time::interval(config.heartbeat_interval);
@@ -109,8 +114,18 @@ pub fn start(pool: PgPool, config: SchedulerConfig) -> tokio::task::JoinHandle<(
             }
         });
 
+        let tier = tokio::spawn(async move {
+            let mut interval = time::interval(config.tiering_interval);
+            loop {
+                interval.tick().await;
+                if let Err(e) = tiering::run(&pool_tier).await {
+                    tracing::error!(error = %e, "tiering failed");
+                }
+            }
+        });
+
         // Se qualquer task falhar, logamos e continuamos as demais
-        let _ = tokio::join!(hb, heal, scrub, gc, rebal);
+        let _ = tokio::join!(hb, heal, scrub, gc, rebal, tier);
     })
 }
 
@@ -126,5 +141,6 @@ mod tests {
         assert_eq!(cfg.gc_interval, Duration::from_secs(86400));
         assert_eq!(cfg.healing_interval, Duration::from_secs(600));
         assert_eq!(cfg.rebalancing_interval, Duration::from_secs(3600));
+        assert_eq!(cfg.tiering_interval, Duration::from_secs(86400));
     }
 }

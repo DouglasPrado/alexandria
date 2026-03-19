@@ -108,6 +108,23 @@ pub async fn get_member_quota(
     }
 }
 
+/// GET /api/v1/clusters/:id/tiering — analise de tiering (hot/warm/cold)
+pub async fn cluster_tiering(
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+) -> impl IntoResponse {
+    match crate::services::tiering_service::analyze_cluster(&state.db, id).await {
+        Ok(report) => (StatusCode::OK, Json(report)).into_response(),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ErrorResponse {
+                error: e.to_string(),
+            }),
+        )
+            .into_response(),
+    }
+}
+
 /// POST /api/v1/clusters/:id/rebalance — trigger manual de rebalanceamento
 pub async fn rebalance_cluster(
     State(state): State<AppState>,
