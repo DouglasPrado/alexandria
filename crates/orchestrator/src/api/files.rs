@@ -188,6 +188,40 @@ pub async fn get_preview(
     (StatusCode::NO_CONTENT).into_response()
 }
 
+/// GET /api/v1/files/check-hash/:hash — verifica se conteudo ja existe (dedup RN-F4).
+/// Client pode verificar antes de iniciar upload.
+pub async fn check_hash(
+    State(state): State<AppState>,
+    Path(hash): Path<String>,
+) -> impl IntoResponse {
+    match crate::services::dedup_service::check_duplicate(&state.db, &hash).await {
+        Ok(crate::services::dedup_service::DedupResult::Duplicate {
+            original_file_id,
+            chunks_count,
+            optimized_size,
+        }) => (
+            StatusCode::OK,
+            Json(serde_json::json!({
+                "exists": true,
+                "original_file_id": original_file_id,
+                "chunks_count": chunks_count,
+                "optimized_size": optimized_size,
+            })),
+        )
+            .into_response(),
+        Ok(crate::services::dedup_service::DedupResult::New) => {
+            (StatusCode::OK, Json(serde_json::json!({ "exists": false }))).into_response()
+        }
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ErrorResponse {
+                error: e.to_string(),
+            }),
+        )
+            .into_response(),
+    }
+}
+
 /// GET /api/v1/files/:id/placeholder — metadados leves para exibicao local (UC-009).
 /// Retorna nome, tipo, tamanho, status e preview_chunk_id sem baixar conteudo.
 /// Dispositivos locais usam placeholder + download sob demanda para economizar espaco.

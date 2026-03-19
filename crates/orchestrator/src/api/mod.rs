@@ -48,6 +48,7 @@ pub fn router(db: PgPool) -> Router {
         .route("/api/v1/nodes/{id}", delete(nodes::disconnect_node))
         // Files (UC-004, UC-005)
         .route("/api/v1/files/upload", post(files::upload_file))
+        .route("/api/v1/files/check-hash/{hash}", get(files::check_hash))
         .route("/api/v1/clusters/{id}/files", get(files::list_gallery))
         .route("/api/v1/files/{id}", get(files::get_file))
         .route("/api/v1/files/{id}/preview", get(files::get_preview))

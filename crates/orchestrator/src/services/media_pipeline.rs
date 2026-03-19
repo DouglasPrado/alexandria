@@ -103,7 +103,38 @@ async fn process_file_inner(
     let content_hash = hashing::sha256_hex(optimized_data);
 
     // 2. Deduplicacao (RN-F4): verificar se ja existe arquivo com mesmo hash
-    // Se sim, podemos reusar chunks. Na v1, prosseguimos sem dedup.
+    match crate::services::dedup_service::check_duplicate(pool, &content_hash).await {
+        Ok(crate::services::dedup_service::DedupResult::Duplicate {
+            original_file_id,
+            chunks_count,
+            ..
+        }) => {
+            // Reutilizar chunks existentes (RN-CH3: content-addressable)
+            crate::services::dedup_service::link_duplicate(pool, file_id, original_file_id)
+                .await
+                .map_err(PipelineError::Database)?;
+
+            tracing::info!(
+                file_id = %file_id,
+                original = %original_file_id,
+                chunks = chunks_count,
+                "dedup: reutilizando chunks de arquivo existente"
+            );
+
+            return Ok(PipelineResult {
+                file_id,
+                manifest_id: Uuid::nil(), // manifest criado dentro de link_duplicate
+                chunks_count,
+                total_encrypted_size: 0,
+            });
+        }
+        Ok(crate::services::dedup_service::DedupResult::New) => {
+            // Arquivo novo — continuar pipeline
+        }
+        Err(e) => {
+            tracing::warn!(error = %e, "dedup check failed, continuing without dedup");
+        }
+    }
 
     // 3. Derive file key via envelope encryption (RN-MA2)
     let file_key = crypto::envelope::derive_file_key(master_key, &file_id);
