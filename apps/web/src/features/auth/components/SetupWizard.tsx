@@ -63,7 +63,7 @@ export function SetupWizard() {
           cluster_id: data.cluster_id,
         },
       };
-      setSeedPhrase(data.seed_phrase);
+      setSeedPhrase(Array.isArray(data.seed_phrase) ? data.seed_phrase.join(" ") : data.seed_phrase);
       setStep("seed");
     },
     onError: () => {

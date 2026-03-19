@@ -21,10 +21,11 @@ export type LoginResponse = z.infer<typeof LoginResponseSchema>;
 export const CreateClusterResponseSchema = z.object({
   cluster_id: z.string(),
   crypto_cluster_id: z.string(),
-  seed_phrase: z.string(),
+  seed_phrase: z.array(z.string()),
   access_token: z.string(),
   refresh_token: z.string(),
   expires_in: z.number(),
+  member_id: z.string().uuid(),
 });
 export type CreateClusterResponse = z.infer<typeof CreateClusterResponseSchema>;
 
