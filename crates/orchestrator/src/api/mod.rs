@@ -54,6 +54,7 @@ pub fn router(state: AppState) -> Router {
         // Auth
         .route("/api/v1/auth/logout", post(auth::logout))
         .route("/api/v1/auth/me", get(auth::me))
+        .route("/api/v1/auth/unlock", post(auth::unlock))
         // Clusters — GET /api/v1/clusters is protected (list requires membership)
         .route("/api/v1/clusters", get(clusters::list_clusters))
         .route("/api/v1/clusters/{id}", get(clusters::get_cluster))

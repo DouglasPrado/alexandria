@@ -16,6 +16,7 @@ use uuid::Uuid;
 
 use super::AppState;
 use crate::auth::claims::AuthClaims;
+use crate::auth::middleware;
 use crate::services::auth_service::{self, AuthServiceError, MemberInfo};
 
 // ---------------------------------------------------------------------------
@@ -61,6 +62,17 @@ pub struct RefreshResponse {
 #[derive(Deserialize)]
 pub struct LogoutRequest {
     pub refresh_token: String,
+}
+
+#[derive(Deserialize)]
+pub struct UnlockRequest {
+    pub seed_phrase: String, // 12 words separated by space
+}
+
+#[derive(Serialize)]
+pub struct UnlockResponse {
+    pub success: bool,
+    pub message: String,
 }
 
 // ---------------------------------------------------------------------------
@@ -166,4 +178,46 @@ pub async fn me(
         .map_err(map_auth_error)?;
 
     Ok(Json(member_info_to_response(info)))
+}
+
+/// POST /api/v1/auth/unlock
+///
+/// Deriva a master key a partir da seed phrase BIP-39 e a armazena em memoria.
+/// Requer autenticacao e papel admin.
+/// Retorna 409 se a master key ja estiver carregada.
+/// Retorna 400 se a seed phrase for invalida.
+pub async fn unlock(
+    Extension(claims): Extension<AuthClaims>,
+    State(state): State<AppState>,
+    Json(req): Json<UnlockRequest>,
+) -> Result<Json<UnlockResponse>, StatusCode> {
+    // 1. Validate admin role
+    middleware::require_admin(&claims)?;
+
+    // 2. Check if master_key already loaded (409 if yes)
+    {
+        let mk = state.master_key.read().await;
+        if mk.is_some() {
+            return Err(StatusCode::CONFLICT);
+        }
+    }
+
+    // 3. Validate seed phrase (BIP-39)
+    let seed = alexandria_core::crypto::envelope::validate_seed_phrase(&req.seed_phrase)
+        .map_err(|_| StatusCode::BAD_REQUEST)?;
+
+    // 4. Derive master_key from seed
+    let master_key = alexandria_core::crypto::envelope::derive_master_key(&seed);
+
+    // 5. Store in AppState
+    {
+        let mut mk = state.master_key.write().await;
+        *mk = Some(master_key);
+    }
+
+    // 6. Return success
+    Ok(Json(UnlockResponse {
+        success: true,
+        message: "Master key derived successfully".to_string(),
+    }))
 }
