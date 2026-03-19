@@ -9,4 +9,4 @@ CREATE TABLE clusters (
     updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX clusters_cluster_id_key ON clusters (cluster_id);
+-- UNIQUE constraint ja cria indice automaticamente
