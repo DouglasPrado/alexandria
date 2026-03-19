@@ -7,9 +7,15 @@
 //! - Garbage collection: remocao de chunks orfaos
 
 pub mod auto_healing;
+#[cfg(test)]
+mod auto_healing_test;
 pub mod garbage_collection;
 pub mod heartbeat;
+#[cfg(test)]
+mod heartbeat_test;
 pub mod scrubbing;
+#[cfg(test)]
+mod scrubbing_test;
 
 use sqlx::PgPool;
 use std::time::Duration;

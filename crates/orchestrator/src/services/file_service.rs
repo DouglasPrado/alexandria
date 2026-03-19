@@ -91,3 +91,22 @@ pub async fn get_file(pool: &PgPool, file_id: Uuid) -> Result<files::FileRow, Fi
         .await?
         .ok_or(FileError::NotFound)
 }
+
+/// Marca arquivo como "error" quando o pipeline falha (09-state_models: processing → error).
+pub async fn mark_error(pool: &PgPool, file_id: Uuid) -> Result<(), FileError> {
+    files::update_status(pool, file_id, "error", 0, "").await?;
+    Ok(())
+}
+
+#[allow(dead_code)]
+/// Marca arquivo como "ready" quando o pipeline completa com sucesso
+/// (09-state_models: processing → ready). Condicao: todos chunks com 3+ replicas (RN-F6).
+pub async fn mark_ready(
+    pool: &PgPool,
+    file_id: Uuid,
+    optimized_size: i64,
+    content_hash: &str,
+) -> Result<(), FileError> {
+    files::update_status(pool, file_id, "ready", optimized_size, content_hash).await?;
+    Ok(())
+}

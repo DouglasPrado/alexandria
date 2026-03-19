@@ -3,6 +3,10 @@
 
 pub mod cluster_service;
 pub mod file_service;
+#[cfg(test)]
+mod file_service_test;
 #[allow(dead_code)]
 pub mod media_pipeline;
 pub mod node_service;
+#[cfg(test)]
+mod node_service_test;

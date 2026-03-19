@@ -11,6 +11,7 @@
 //! Regras: RN-F1..F6, RN-CH1..CH6, RN-MA1..MA5.
 
 use crate::db::{chunk_replicas, chunks, files, manifests};
+use crate::services::file_service;
 use alexandria_core::{chunking, consistent_hashing::HashRing, crypto, hashing};
 use sqlx::PgPool;
 use thiserror::Error;
@@ -43,11 +44,44 @@ pub struct PipelineResult {
 }
 
 /// Processa arquivo completo: optimize → chunk → encrypt → distribute → manifest.
+/// Em caso de falha, marca arquivo como "error" (09-state_models: processing → error).
 ///
 /// `master_key`: master key derivada da seed phrase (em memoria, nunca persistida).
 /// `data`: bytes do arquivo (ja otimizado na v1 futura).
 /// `storage_providers`: map node_id → StorageProvider para distribuicao.
 pub async fn process_file(
+    pool: &PgPool,
+    file_id: Uuid,
+    data: &[u8],
+    master_key: &crypto::envelope::MasterKey,
+    hash_ring: &HashRing,
+    storage_providers: &std::collections::HashMap<
+        Uuid,
+        Box<dyn alexandria_core::storage::StorageProvider>,
+    >,
+) -> Result<PipelineResult, PipelineError> {
+    match process_file_inner(
+        pool,
+        file_id,
+        data,
+        master_key,
+        hash_ring,
+        storage_providers,
+    )
+    .await
+    {
+        Ok(result) => Ok(result),
+        Err(e) => {
+            // 09-state_models: processing → error em caso de falha
+            if let Err(mark_err) = file_service::mark_error(pool, file_id).await {
+                tracing::error!(file_id = %file_id, error = %mark_err, "failed to mark file as error");
+            }
+            Err(e)
+        }
+    }
+}
+
+async fn process_file_inner(
     pool: &PgPool,
     file_id: Uuid,
     data: &[u8],
