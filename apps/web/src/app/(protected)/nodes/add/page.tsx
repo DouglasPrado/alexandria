@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useCluster } from "@/hooks/useCluster";
+import { useAuthStore } from "@/store/auth-store";
 
 export default function AddNodePage() {
   const { cluster } = useCluster();
+  const { member } = useAuthStore();
   const [nodeType, setNodeType] = useState("local");
   const [name, setName] = useState("");
   const [capacity, setCapacity] = useState("100");
@@ -24,7 +26,7 @@ export default function AddNodePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           cluster_id: cluster.id,
-          owner_id: "00000000-0000-0000-0000-000000000000", // TODO: real member ID
+          owner_id: member?.id ?? "",
           node_type: nodeType,
           name,
           total_capacity: parseInt(capacity) * 1024 * 1024 * 1024,

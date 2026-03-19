@@ -1,7 +1,18 @@
 import { apiClient } from "@/services/api-client";
-import { UploadResponseSchema, type UploadResponseDTO, type UploadRequest } from "../types/upload.types";
+import { UploadResponseSchema, type UploadResponseDTO } from "../types/upload.types";
 
-export async function uploadFile(data: UploadRequest): Promise<UploadResponseDTO> {
-  const raw = await apiClient.post("/api/v1/files/upload", data);
+function detectMediaType(mimeType: string): string {
+  if (mimeType.startsWith("image/")) return "foto";
+  if (mimeType.startsWith("video/")) return "video";
+  return "documento";
+}
+
+export async function uploadFile(file: File, clusterId: string): Promise<UploadResponseDTO> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("cluster_id", clusterId);
+  formData.append("media_type", detectMediaType(file.type));
+
+  const raw = await apiClient.postMultipart("/api/v1/files/upload", formData);
   return UploadResponseSchema.parse(raw);
 }

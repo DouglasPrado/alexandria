@@ -9,7 +9,8 @@ export function useUploadFile() {
   const emit = useEventBus((s) => s.emit);
 
   return useMutation({
-    mutationFn: uploadFile,
+    mutationFn: ({ file, clusterId }: { file: File; clusterId: string }) =>
+      uploadFile(file, clusterId),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["gallery"] });
       emit("upload:complete", { fileId: data.file_id });

@@ -8,16 +8,6 @@ import { useUploadQueue } from "../hooks/useUploadQueue";
 import { UploadDropzone } from "./UploadDropzone";
 import { UploadQueue } from "./UploadQueue";
 
-function getMediaType(mime: string): string {
-  if (mime.startsWith("image/")) return "foto";
-  if (mime.startsWith("video/")) return "video";
-  return "documento";
-}
-
-function getExtension(name: string): string {
-  return name.split(".").pop()?.toLowerCase() ?? "";
-}
-
 export function UploadPage() {
   const { cluster } = useCluster();
   const { items, addFiles, updateStatus } = useUploadQueue();
@@ -30,13 +20,8 @@ export function UploadPage() {
 
       try {
         await uploadFile.mutateAsync({
-          cluster_id: cluster?.id ?? "",
-          uploaded_by: "00000000-0000-0000-0000-000000000000",
-          original_name: items[i].file.name,
-          media_type: getMediaType(items[i].file.type),
-          mime_type: items[i].file.type || "application/octet-stream",
-          file_extension: getExtension(items[i].file.name),
-          original_size: items[i].file.size,
+          file: items[i].file,
+          clusterId: cluster?.id ?? "",
         });
         updateStatus(i, "done");
       } catch (e) {
