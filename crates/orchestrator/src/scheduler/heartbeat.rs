@@ -28,11 +28,11 @@ pub async fn run(pool: &PgPool) -> Result<HeartbeatReport, sqlx::Error> {
         UPDATE nodes
         SET status = 'suspect', updated_at = NOW()
         WHERE status = 'online'
-          AND last_heartbeat < NOW() - make_interval(mins => $1)
+          AND last_heartbeat < NOW() - ($1 || ' minutes')::interval
         RETURNING id, cluster_id, name
         "#,
     )
-    .bind(SUSPECT_THRESHOLD_MINUTES)
+    .bind(SUSPECT_THRESHOLD_MINUTES.to_string())
     .fetch_all(pool)
     .await?;
 
@@ -57,11 +57,11 @@ pub async fn run(pool: &PgPool) -> Result<HeartbeatReport, sqlx::Error> {
         UPDATE nodes
         SET status = 'lost', updated_at = NOW()
         WHERE status = 'suspect'
-          AND last_heartbeat < NOW() - make_interval(mins => $1)
+          AND last_heartbeat < NOW() - ($1 || ' minutes')::interval
         RETURNING id, cluster_id, name
         "#,
     )
-    .bind(LOST_THRESHOLD_MINUTES)
+    .bind(LOST_THRESHOLD_MINUTES.to_string())
     .fetch_all(pool)
     .await?;
 
