@@ -27,7 +27,11 @@ async fn main() -> Result<()> {
     sqlx::migrate!("../../migrations").run(&pool).await?;
     tracing::info!("Database migrations applied");
 
-    let app = api::router(pool);
+    let app = api::router(pool.clone());
+
+    // Scheduler em background (heartbeat, auto-healing, scrubbing, GC)
+    let _scheduler = scheduler::start(pool, scheduler::SchedulerConfig::default());
+    tracing::info!("Scheduler started");
 
     let listener = tokio::net::TcpListener::bind(&addr).await?;
     tracing::info!("Listening on {addr}");
