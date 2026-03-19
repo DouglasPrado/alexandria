@@ -57,11 +57,25 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
 
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - orchestrator
+    environment:
+      NEXT_PUBLIC_API_URL: http://orchestrator:8080
+      NEXT_PUBLIC_CLUSTER_ID: ${CLUSTER_ID:-}
+    ports:
+      - "127.0.0.1:3000:3000"
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
     depends_on:
       - orchestrator
+      - web
     ports:
       - "80:80"
       - "443:443"

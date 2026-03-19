@@ -17,10 +17,10 @@
 		}
 	}
 
-	# Fallback: tudo que nao e API vai para o web client (quando disponivel)
-	# handle {
-	#     reverse_proxy web:3000
-	# }
+	# Web client (Next.js)
+	handle {
+		reverse_proxy web:3000
+	}
 
 	# Compressao
 	encode gzip
