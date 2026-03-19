@@ -25,10 +25,6 @@ export default function ClusterPage() {
                 <span className="text-text-muted">ID</span>
                 <span className="text-text font-mono text-xs">{cluster.id}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-text-muted">Criado em</span>
-                <span className="text-text">{new Date(cluster.created_at).toLocaleDateString("pt-BR")}</span>
-              </div>
             </div>
           </div>
 
