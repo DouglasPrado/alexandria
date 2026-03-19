@@ -47,6 +47,35 @@ pub async fn insert(
     .await
 }
 
+/// Insere no com ID explicito (para auto-register onde o node-agent define seu proprio UUID).
+pub async fn insert_with_id(
+    pool: &PgPool,
+    node_id: Uuid,
+    cluster_id: Uuid,
+    owner_id: Uuid,
+    node_type: &str,
+    name: &str,
+    total_capacity: i64,
+    endpoint: Option<&str>,
+) -> Result<NodeRow, sqlx::Error> {
+    sqlx::query_as::<_, NodeRow>(
+        r#"
+        INSERT INTO nodes (id, cluster_id, owner_id, type, name, total_capacity, endpoint)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+        "#,
+    )
+    .bind(node_id)
+    .bind(cluster_id)
+    .bind(owner_id)
+    .bind(node_type)
+    .bind(name)
+    .bind(total_capacity)
+    .bind(endpoint)
+    .fetch_one(pool)
+    .await
+}
+
 pub async fn find_by_cluster(pool: &PgPool, cluster_id: Uuid) -> Result<Vec<NodeRow>, sqlx::Error> {
     sqlx::query_as::<_, NodeRow>("SELECT * FROM nodes WHERE cluster_id = $1 ORDER BY created_at")
         .bind(cluster_id)

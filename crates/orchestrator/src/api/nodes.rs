@@ -8,7 +8,7 @@
 use axum::{
     Json,
     extract::{Path, State},
-    http::StatusCode,
+    http::{HeaderMap, StatusCode},
     response::IntoResponse,
 };
 use serde::{Deserialize, Serialize};
@@ -19,12 +19,11 @@ use crate::services::node_service;
 
 #[derive(Deserialize)]
 pub struct RegisterNodeRequest {
-    pub cluster_id: Uuid,
-    pub owner_id: Uuid,
-    pub node_type: String,
+    pub node_id: Option<Uuid>,      // se fornecido, usa como ID (auto-register)
     pub name: String,
+    pub node_type: String,
+    pub endpoint: Option<String>,   // URL do node agent para comunicacao do orchestrator
     pub total_capacity: i64,
-    pub endpoint: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -51,14 +50,80 @@ struct ErrorResponse {
 }
 
 /// POST /api/v1/nodes/register
+///
+/// Autenticacao via X-Bootstrap-Token header.
+/// Resolve cluster_id e owner_id do primeiro cluster + seu admin.
+/// Retorna 409 se node_id ja existir (node pode prosseguir com heartbeat).
 pub async fn register_node(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Json(req): Json<RegisterNodeRequest>,
 ) -> impl IntoResponse {
+    // Validar bootstrap token
+    let expected = match state.bootstrap_token.as_ref() {
+        Some(t) => t,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({ "error": "bootstrap token nao configurado" })),
+            )
+                .into_response();
+        }
+    };
+
+    let token = match headers.get("X-Bootstrap-Token").and_then(|v| v.to_str().ok()) {
+        Some(t) => t,
+        None => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(serde_json::json!({ "error": "X-Bootstrap-Token header obrigatorio" })),
+            )
+                .into_response();
+        }
+    };
+
+    if token != expected {
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({ "error": "bootstrap token invalido" })),
+        )
+            .into_response();
+    }
+
+    // Resolver cluster_id e owner_id do primeiro cluster + admin
+    let row: Option<(Uuid, Uuid)> = sqlx::query_as(
+        r#"
+        SELECT c.id, m.id
+        FROM clusters c
+        JOIN members m ON m.cluster_id = c.id
+        WHERE m.role = 'admin'
+        ORDER BY c.created_at
+        LIMIT 1
+        "#,
+    )
+    .fetch_optional(&state.db)
+    .await
+    .unwrap_or(None);
+
+    let (cluster_id, owner_id) = match row {
+        Some(ids) => ids,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({ "error": "nenhum cluster com admin encontrado — crie um cluster primeiro" })),
+            )
+                .into_response();
+        }
+    };
+
+    // Usar node_id da requisicao ou gerar novo
+    let node_id = req.node_id.unwrap_or_else(Uuid::new_v4);
+
     match node_service::register_node(
         &state.db,
-        req.cluster_id,
-        req.owner_id,
+        node_id,
+        cluster_id,
+        owner_id,
         &req.node_type,
         &req.name,
         req.total_capacity,
@@ -66,9 +131,14 @@ pub async fn register_node(
     )
     .await
     {
-        Ok(node_id) => (
+        Ok(id) => (
             StatusCode::CREATED,
-            Json(serde_json::json!({ "node_id": node_id })),
+            Json(serde_json::json!({ "node_id": id })),
+        )
+            .into_response(),
+        Err(node_service::NodeError::AlreadyRegistered) => (
+            StatusCode::CONFLICT,
+            Json(serde_json::json!({ "node_id": node_id, "message": "no ja registrado" })),
         )
             .into_response(),
         Err(e) => map_node_error(e).into_response(),
@@ -137,6 +207,7 @@ fn map_node_error(e: node_service::NodeError) -> impl IntoResponse {
         node_service::NodeError::MinimumNodesRequired => {
             (StatusCode::UNPROCESSABLE_ENTITY, e.to_string())
         }
+        node_service::NodeError::AlreadyRegistered => (StatusCode::CONFLICT, e.to_string()),
         node_service::NodeError::Database(_) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
     };
     (status, Json(ErrorResponse { error: msg }))

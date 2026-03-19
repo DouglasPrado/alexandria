@@ -5,8 +5,14 @@ use uuid::Uuid;
 
 /// Configuracao carregada via env vars.
 pub struct NodeConfig {
-    /// ID do no (registrado no orchestrator).
+    /// ID do no (persistente — gera novo UUID se nao definido).
     pub node_id: Uuid,
+    /// Nome legivel do no.
+    pub node_name: String,
+    /// Hostname para construir endpoint URL (NODE_HOSTNAME ou HOSTNAME do Docker).
+    pub hostname: String,
+    /// Token de bootstrap para auto-registro no orchestrator.
+    pub bootstrap_token: Option<String>,
     /// URL base do orchestrator (ex: http://localhost:8080).
     pub orchestrator_url: String,
     /// Caminho do diretorio de storage local.
@@ -22,10 +28,24 @@ pub struct NodeConfig {
 impl NodeConfig {
     /// Carrega configuracao das variaveis de ambiente.
     pub fn from_env() -> anyhow::Result<Self> {
-        let node_id: Uuid = std::env::var("NODE_ID")
-            .map_err(|_| anyhow::anyhow!("NODE_ID must be set"))?
-            .parse()
-            .map_err(|_| anyhow::anyhow!("NODE_ID must be a valid UUID"))?;
+        // NODE_ID: opcional — gera novo UUID se nao definido
+        let node_id: Uuid = match std::env::var("NODE_ID") {
+            Ok(v) => v
+                .parse()
+                .map_err(|_| anyhow::anyhow!("NODE_ID must be a valid UUID"))?,
+            Err(_) => Uuid::new_v4(),
+        };
+
+        // NODE_NAME: nome legivel do no
+        let node_name = std::env::var("NODE_NAME")
+            .unwrap_or_else(|_| format!("node-{}", &node_id.to_string()[..8]));
+
+        // NODE_HOSTNAME ou HOSTNAME (Docker define HOSTNAME automaticamente)
+        let hostname = std::env::var("NODE_HOSTNAME")
+            .or_else(|_| std::env::var("HOSTNAME"))
+            .unwrap_or_else(|_| "localhost".into());
+
+        let bootstrap_token = std::env::var("BOOTSTRAP_TOKEN").ok();
 
         let orchestrator_url =
             std::env::var("ORCHESTRATOR_URL").unwrap_or_else(|_| "http://localhost:8080".into());
@@ -53,6 +73,9 @@ impl NodeConfig {
 
         Ok(Self {
             node_id,
+            node_name,
+            hostname,
+            bootstrap_token,
             orchestrator_url,
             storage_path,
             max_capacity,
@@ -67,11 +90,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn from_env_requires_node_id() {
-        // Sem NODE_ID definido, deve falhar
+    fn from_env_generates_node_id_when_missing() {
+        // Sem NODE_ID definido, deve gerar UUID automaticamente
         // SAFETY: test runs single-threaded, no other thread reads NODE_ID
         unsafe { std::env::remove_var("NODE_ID") };
         let result = NodeConfig::from_env();
-        assert!(result.is_err());
+        assert!(result.is_ok(), "deve funcionar sem NODE_ID");
+    }
+
+    #[test]
+    fn from_env_uses_provided_node_id() {
+        let expected = Uuid::new_v4();
+        unsafe { std::env::set_var("NODE_ID", expected.to_string()) };
+        let cfg = NodeConfig::from_env().unwrap();
+        assert_eq!(cfg.node_id, expected);
+        unsafe { std::env::remove_var("NODE_ID") };
     }
 }

@@ -17,11 +17,17 @@ pub enum NodeError {
     Forbidden,
     #[error("nao e possivel remover — minimo de 3 nos necessario")]
     MinimumNodesRequired,
+    #[error("no ja registrado")]
+    AlreadyRegistered,
 }
 
 /// Registra no de armazenamento (UC-003).
+///
+/// Aceita cluster_id e owner_id ja resolvidos pelo handler (via bootstrap token).
+/// Se node_id ja existir, retorna NodeError::AlreadyRegistered (handler retorna 409).
 pub async fn register_node(
     pool: &PgPool,
+    node_id: Uuid,
     cluster_id: Uuid,
     owner_id: Uuid,
     node_type: &str,
@@ -29,17 +35,16 @@ pub async fn register_node(
     total_capacity: i64,
     endpoint: Option<&str>,
 ) -> Result<Uuid, NodeError> {
-    // Verificar que owner e admin (RN-M2)
-    let owner = members::find_by_id(pool, owner_id)
-        .await?
-        .ok_or(NodeError::NotFound)?;
-
-    if owner.role != "admin" {
-        return Err(NodeError::Forbidden);
+    // Verificar se node_id ja existe (idempotencia para auto-register)
+    if let Some(existing) = nodes::find_by_id(pool, node_id).await? {
+        if existing.cluster_id == cluster_id {
+            return Err(NodeError::AlreadyRegistered);
+        }
     }
 
-    let node = nodes::insert(
+    let node = nodes::insert_with_id(
         pool,
+        node_id,
         cluster_id,
         owner_id,
         node_type,
