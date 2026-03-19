@@ -1,0 +1,3 @@
+DROP INDEX IF EXISTS files_parent_id_idx;
+ALTER TABLE files DROP COLUMN IF EXISTS parent_id;
+ALTER TABLE files DROP COLUMN IF EXISTS version;

@@ -67,6 +67,7 @@ pub fn router(db: PgPool) -> Router {
             get(files::get_placeholder),
         )
         .route("/api/v1/files/{id}/download", get(files::download_file))
+        .route("/api/v1/files/{id}/versions", get(files::list_versions))
         // Recovery (UC-007)
         .route("/api/v1/recovery", post(recovery::start_recovery))
         // Health dashboard

@@ -254,6 +254,45 @@ pub async fn get_preview(
     (StatusCode::NO_CONTENT).into_response()
 }
 
+/// GET /api/v1/files/:id/versions — lista versoes de um arquivo.
+pub async fn list_versions(
+    State(state): State<AppState>,
+    Path(file_id): Path<Uuid>,
+) -> impl IntoResponse {
+    match crate::db::files::find_versions(&state.db, file_id).await {
+        Ok(rows) => {
+            let versions: Vec<serde_json::Value> = rows
+                .into_iter()
+                .map(|r| {
+                    serde_json::json!({
+                        "id": r.id,
+                        "version": r.version,
+                        "parent_id": r.parent_id,
+                        "original_name": r.original_name,
+                        "original_size": r.original_size,
+                        "optimized_size": r.optimized_size,
+                        "content_hash": r.content_hash,
+                        "status": r.status,
+                        "created_at": r.created_at,
+                    })
+                })
+                .collect();
+            (
+                StatusCode::OK,
+                Json(serde_json::json!({ "versions": versions })),
+            )
+                .into_response()
+        }
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ErrorResponse {
+                error: e.to_string(),
+            }),
+        )
+            .into_response(),
+    }
+}
+
 /// GET /api/v1/files/check-hash/:hash — verifica se conteudo ja existe (dedup RN-F4).
 /// Client pode verificar antes de iniciar upload.
 pub async fn check_hash(

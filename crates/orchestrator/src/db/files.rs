@@ -19,6 +19,8 @@ pub struct FileRow {
     pub metadata: Option<serde_json::Value>,
     pub preview_chunk_id: Option<String>,
     pub status: String,
+    pub version: i32,
+    pub parent_id: Option<Uuid>,
     pub created_at: chrono::DateTime<chrono::Utc>,
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
@@ -184,4 +186,57 @@ pub async fn search(
     q = q.bind(limit);
 
     q.fetch_all(pool).await
+}
+
+/// Lista todas as versoes de um arquivo (cadeia parent_id).
+/// Retorna da mais recente para a mais antiga.
+pub async fn find_versions(pool: &PgPool, file_id: Uuid) -> Result<Vec<FileRow>, sqlx::Error> {
+    // Buscar toda a cadeia: o arquivo + todos que tem parent_id apontando para ele
+    // e recursivamente os pais
+    sqlx::query_as::<_, FileRow>(
+        r#"
+        WITH RECURSIVE version_chain AS (
+            SELECT * FROM files WHERE id = $1
+            UNION ALL
+            SELECT f.* FROM files f
+            JOIN version_chain vc ON f.id = vc.parent_id
+        )
+        SELECT * FROM version_chain ORDER BY version DESC
+        "#,
+    )
+    .bind(file_id)
+    .fetch_all(pool)
+    .await
+}
+
+#[allow(dead_code)]
+/// Cria nova versao de um arquivo existente.
+/// Incrementa version e seta parent_id para o arquivo original.
+pub async fn create_version(
+    pool: &PgPool,
+    parent_id: Uuid,
+    params: InsertFileParams<'_>,
+) -> Result<FileRow, sqlx::Error> {
+    // Buscar versao atual do parent
+    let parent = find_by_id(pool, parent_id).await?;
+    let next_version = parent.map(|p| p.version + 1).unwrap_or(1);
+
+    sqlx::query_as::<_, FileRow>(
+        r#"
+        INSERT INTO files (cluster_id, uploaded_by, original_name, media_type, mime_type, file_extension, original_size, optimized_size, content_hash, version, parent_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, 0, '', $8, $9)
+        RETURNING *
+        "#,
+    )
+    .bind(params.cluster_id)
+    .bind(params.uploaded_by)
+    .bind(params.original_name)
+    .bind(params.media_type)
+    .bind(params.mime_type)
+    .bind(params.file_extension)
+    .bind(params.original_size)
+    .bind(next_version)
+    .bind(parent_id)
+    .fetch_one(pool)
+    .await
 }
