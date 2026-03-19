@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { createCluster } from "../api/auth-api";
@@ -8,6 +8,12 @@ import { SeedPhraseDisplay } from "./SeedPhraseDisplay";
 import { PasswordInput } from "./PasswordInput";
 
 type Step = "welcome" | "create" | "seed";
+
+interface PendingAuth {
+  access_token: string;
+  refresh_token: string;
+  member: { id: string; name: string; email: string; role: string; cluster_id: string };
+}
 
 interface CreateForm {
   clusterName: string;
@@ -24,6 +30,7 @@ export function SetupWizard() {
   const [step, setStep] = useState<Step>("welcome");
   const [seedPhrase, setSeedPhrase] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
+  const pendingAuthRef = useRef<PendingAuth | null>(null);
 
   const [form, setForm] = useState<CreateForm>({
     clusterName: "",
@@ -42,7 +49,10 @@ export function SetupWizard() {
         admin_password: form.password,
       }),
     onSuccess: (data) => {
-      authLogin({
+      // IMPORTANT: Show seed phrase BEFORE logging in.
+      // authLogin sets isAuthenticated=true which could trigger redirects.
+      // Store tokens temporarily, login only after user confirms seed phrase.
+      pendingAuthRef.current = {
         access_token: data.access_token,
         refresh_token: data.refresh_token,
         member: {
@@ -52,7 +62,7 @@ export function SetupWizard() {
           role: "admin",
           cluster_id: data.cluster_id,
         },
-      });
+      };
       setSeedPhrase(data.seed_phrase);
       setStep("seed");
     },
@@ -86,6 +96,11 @@ export function SetupWizard() {
   };
 
   const handleSeedConfirm = () => {
+    // Now that user confirmed seed phrase, complete the login
+    if (pendingAuthRef.current) {
+      authLogin(pendingAuthRef.current);
+      pendingAuthRef.current = null;
+    }
     router.push("/gallery");
   };
 
