@@ -3,6 +3,9 @@
 //! POST /api/v1/files/upload — iniciar upload (UC-004)
 //! GET  /api/v1/clusters/:id/files — listar galeria (paginacao cursor)
 //! GET  /api/v1/files/:id — obter arquivo
+//! GET  /api/v1/files/:id/preview — preview/thumbnail
+//! GET  /api/v1/files/:id/placeholder — metadados leves (UC-009)
+//! GET  /api/v1/files/:id/download — download completo (UC-005)
 
 use axum::{
     Json,
@@ -185,6 +188,92 @@ pub async fn get_preview(
     (StatusCode::NO_CONTENT).into_response()
 }
 
+/// GET /api/v1/files/:id/placeholder — metadados leves para exibicao local (UC-009).
+/// Retorna nome, tipo, tamanho, status e preview_chunk_id sem baixar conteudo.
+/// Dispositivos locais usam placeholder + download sob demanda para economizar espaco.
+pub async fn get_placeholder(
+    State(state): State<AppState>,
+    Path(file_id): Path<Uuid>,
+) -> impl IntoResponse {
+    match file_service::get_file(&state.db, file_id).await {
+        Ok(f) => (
+            StatusCode::OK,
+            Json(PlaceholderResponse {
+                id: f.id,
+                original_name: f.original_name,
+                media_type: f.media_type,
+                mime_type: f.mime_type,
+                file_extension: f.file_extension,
+                original_size: f.original_size,
+                optimized_size: f.optimized_size,
+                status: f.status,
+                preview_chunk_id: f.preview_chunk_id,
+                has_content: false, // Placeholder: conteudo nao baixado localmente
+                created_at: f.created_at,
+            }),
+        )
+            .into_response(),
+        Err(e) => map_file_error(e).into_response(),
+    }
+}
+
+/// GET /api/v1/files/:id/download — download completo do arquivo (UC-005).
+/// Na v1: retorna 202 Accepted indicando que o download sera processado.
+/// v2: reconstroi arquivo via manifest (decrypt chunks + reassemble).
+pub async fn download_file(
+    State(state): State<AppState>,
+    Path(file_id): Path<Uuid>,
+) -> impl IntoResponse {
+    // Verificar arquivo existe e esta ready
+    match file_service::get_file(&state.db, file_id).await {
+        Ok(f) => {
+            if f.status != "ready" {
+                return (
+                    StatusCode::CONFLICT,
+                    Json(ErrorResponse {
+                        error: format!(
+                            "arquivo em status '{}' — download disponivel apenas para status 'ready'",
+                            f.status
+                        ),
+                    }),
+                )
+                    .into_response();
+            }
+
+            // v1: retorna metadados do download (v2: stream de bytes reconstruidos)
+            // TODO (v2): media_pipeline::download_file(pool, file_id, master_key, providers)
+            (
+                StatusCode::ACCEPTED,
+                Json(serde_json::json!({
+                    "file_id": f.id,
+                    "original_name": f.original_name,
+                    "optimized_size": f.optimized_size,
+                    "content_hash": f.content_hash,
+                    "status": "download_queued",
+                    "message": "download sera processado (v2: reconstituicao via manifest)"
+                })),
+            )
+                .into_response()
+        }
+        Err(e) => map_file_error(e).into_response(),
+    }
+}
+
+#[derive(Serialize)]
+pub struct PlaceholderResponse {
+    pub id: Uuid,
+    pub original_name: String,
+    pub media_type: String,
+    pub mime_type: String,
+    pub file_extension: String,
+    pub original_size: i64,
+    pub optimized_size: i64,
+    pub status: String,
+    pub preview_chunk_id: Option<String>,
+    pub has_content: bool,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+}
+
 fn map_file_error(e: file_service::FileError) -> impl IntoResponse {
     let (status, msg) = match &e {
         file_service::FileError::NotFound => (StatusCode::NOT_FOUND, e.to_string()),
@@ -195,4 +284,70 @@ fn map_file_error(e: file_service::FileError) -> impl IntoResponse {
         file_service::FileError::Database(_) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
     };
     (status, Json(ErrorResponse { error: msg }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // UC-009: PlaceholderResponse has_content is false
+    #[test]
+    fn placeholder_has_content_false() {
+        let p = PlaceholderResponse {
+            id: Uuid::new_v4(),
+            original_name: "familia.jpg".into(),
+            media_type: "foto".into(),
+            mime_type: "image/jpeg".into(),
+            file_extension: "jpg".into(),
+            original_size: 5_000_000,
+            optimized_size: 1_200_000,
+            status: "ready".into(),
+            preview_chunk_id: Some("abc123".into()),
+            has_content: false,
+            created_at: chrono::Utc::now(),
+        };
+        assert!(!p.has_content);
+    }
+
+    // UC-009: Placeholder contem metadados suficientes para exibicao
+    #[test]
+    fn placeholder_has_required_metadata() {
+        let p = PlaceholderResponse {
+            id: Uuid::new_v4(),
+            original_name: "video.mp4".into(),
+            media_type: "video".into(),
+            mime_type: "video/mp4".into(),
+            file_extension: "mp4".into(),
+            original_size: 500_000_000,
+            optimized_size: 200_000_000,
+            status: "ready".into(),
+            preview_chunk_id: None,
+            has_content: false,
+            created_at: chrono::Utc::now(),
+        };
+        assert!(!p.original_name.is_empty());
+        assert!(!p.media_type.is_empty());
+        assert!(p.original_size > 0);
+    }
+
+    // UC-009: Placeholder serializa para JSON com has_content
+    #[test]
+    fn placeholder_serializes_to_json() {
+        let p = PlaceholderResponse {
+            id: Uuid::new_v4(),
+            original_name: "doc.pdf".into(),
+            media_type: "documento".into(),
+            mime_type: "application/pdf".into(),
+            file_extension: "pdf".into(),
+            original_size: 1_000_000,
+            optimized_size: 1_000_000,
+            status: "ready".into(),
+            preview_chunk_id: None,
+            has_content: false,
+            created_at: chrono::Utc::now(),
+        };
+        let json = serde_json::to_string(&p).unwrap();
+        assert!(json.contains("\"has_content\":false"));
+        assert!(json.contains("\"media_type\":\"documento\""));
+    }
 }

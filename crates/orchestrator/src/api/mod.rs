@@ -48,6 +48,11 @@ pub fn router(db: PgPool) -> Router {
         .route("/api/v1/clusters/{id}/files", get(files::list_gallery))
         .route("/api/v1/files/{id}", get(files::get_file))
         .route("/api/v1/files/{id}/preview", get(files::get_preview))
+        .route(
+            "/api/v1/files/{id}/placeholder",
+            get(files::get_placeholder),
+        )
+        .route("/api/v1/files/{id}/download", get(files::download_file))
         // Recovery (UC-007)
         .route("/api/v1/recovery", post(recovery::start_recovery))
         // Alerts
