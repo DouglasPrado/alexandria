@@ -34,6 +34,9 @@ pub struct CreateClusterResponse {
     pub cluster_id: Uuid,
     pub crypto_cluster_id: String,
     pub seed_phrase: Vec<String>,
+    pub access_token: String,
+    pub refresh_token: String,
+    pub expires_in: i64,
 }
 
 #[derive(Serialize)]
@@ -182,6 +185,33 @@ pub async fn create_cluster(
     State(state): State<AppState>,
     Json(req): Json<CreateClusterRequest>,
 ) -> impl IntoResponse {
+    // Guard: apenas um cluster por instancia (single-cluster deployment)
+    let count: Result<(i64,), _> = sqlx::query_as("SELECT COUNT(*) FROM clusters")
+        .fetch_one(&state.db)
+        .await;
+
+    match count {
+        Ok((n,)) if n > 0 => {
+            return (
+                StatusCode::FORBIDDEN,
+                Json(ErrorResponse {
+                    error: "cluster ja existe nesta instancia".into(),
+                }),
+            )
+                .into_response();
+        }
+        Err(_) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ErrorResponse {
+                    error: "erro ao verificar clusters existentes".into(),
+                }),
+            )
+                .into_response();
+        }
+        Ok(_) => {}
+    }
+
     match cluster_service::create_cluster(
         &state.db,
         &req.name,
@@ -191,15 +221,61 @@ pub async fn create_cluster(
     )
     .await
     {
-        Ok(result) => (
-            StatusCode::CREATED,
-            Json(CreateClusterResponse {
-                cluster_id: result.cluster_id,
-                crypto_cluster_id: result.crypto_cluster_id,
-                seed_phrase: result.seed_phrase,
-            }),
-        )
-            .into_response(),
+        Ok(result) => {
+            // Gera tokens JWT para o admin recem criado
+            let access_token = match crate::auth::jwt::encode_access_token(
+                result.member_id,
+                result.cluster_id,
+                "admin",
+                &state.jwt_secret,
+            ) {
+                Ok(t) => t,
+                Err(e) => {
+                    return (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        Json(ErrorResponse {
+                            error: e.to_string(),
+                        }),
+                    )
+                        .into_response();
+                }
+            };
+
+            let refresh_token =
+                match crate::auth::refresh::create_refresh_token(&state.db, result.member_id)
+                    .await
+                {
+                    Ok(t) => t,
+                    Err(e) => {
+                        return (
+                            StatusCode::INTERNAL_SERVER_ERROR,
+                            Json(ErrorResponse {
+                                error: e.to_string(),
+                            }),
+                        )
+                            .into_response();
+                    }
+                };
+
+            // Armazena master_key no AppState (em memoria, nunca persistida)
+            {
+                let mut mk = state.master_key.write().await;
+                *mk = Some(result.master_key);
+            }
+
+            (
+                StatusCode::CREATED,
+                Json(CreateClusterResponse {
+                    cluster_id: result.cluster_id,
+                    crypto_cluster_id: result.crypto_cluster_id,
+                    seed_phrase: result.seed_phrase,
+                    access_token,
+                    refresh_token,
+                    expires_in: 24 * 60 * 60, // 24 horas em segundos
+                }),
+            )
+                .into_response()
+        }
         Err(e) => map_error(e).into_response(),
     }
 }
@@ -368,6 +444,9 @@ fn map_error(e: cluster_service::ClusterError) -> impl IntoResponse {
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         }
         cluster_service::ClusterError::Crypto(_) => {
+            (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+        }
+        cluster_service::ClusterError::Auth(_) => {
             (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
         }
     };

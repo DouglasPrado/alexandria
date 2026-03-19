@@ -4,7 +4,7 @@
 
 use crate::db::{clusters, members, vaults};
 use alexandria_core::crypto;
-use alexandria_core::crypto::envelope;
+use alexandria_core::crypto::envelope::{self, MasterKey};
 use alexandria_core::hashing;
 use sqlx::PgPool;
 use thiserror::Error;
@@ -27,13 +27,23 @@ pub enum ClusterError {
     InvalidInviteToken,
     #[error("nao pode remover o ultimo admin do cluster")]
     CannotRemoveLastAdmin,
+    #[error("erro de autenticacao: {0}")]
+    Auth(String),
+}
+
+impl From<crate::auth::AuthError> for ClusterError {
+    fn from(e: crate::auth::AuthError) -> Self {
+        ClusterError::Auth(e.to_string())
+    }
 }
 
 /// Resultado da criacao de cluster — inclui seed phrase (exibida uma unica vez).
 pub struct CreateClusterResult {
     pub cluster_id: Uuid,
+    pub member_id: Uuid,
     pub crypto_cluster_id: String,
     pub seed_phrase: Vec<String>,
+    pub master_key: MasterKey,
 }
 
 /// Token de convite para membro.
@@ -95,7 +105,15 @@ pub async fn create_cluster(
     )
     .await?;
 
-    // 8. Cria vault do admin criptografado com senha
+    // 8. Hash da senha do admin e persistencia (Argon2id)
+    let password_hash = crate::auth::password::hash_password(admin_password)?;
+    sqlx::query("UPDATE members SET password_hash = $1 WHERE id = $2")
+        .bind(&password_hash)
+        .bind(admin_row.id)
+        .execute(pool)
+        .await?;
+
+    // 9. Cria vault do admin criptografado com senha
     let empty_vault_data = serde_json::json!({
         "oauth_tokens": [],
         "node_credentials": [],
@@ -110,8 +128,10 @@ pub async fn create_cluster(
 
     Ok(CreateClusterResult {
         cluster_id: cluster_row.id,
+        member_id: admin_row.id,
         crypto_cluster_id,
         seed_phrase: seed_words,
+        master_key,
     })
 }
 
