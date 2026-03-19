@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api, type NodeItem } from "@/lib/api";
-
-const CLUSTER_ID = process.env.NEXT_PUBLIC_CLUSTER_ID ?? "";
+import { useCluster } from "@/lib/useCluster";
 
 function formatCapacity(bytes: number): string {
   const gb = bytes / (1024 * 1024 * 1024);
@@ -21,22 +20,19 @@ function statusColor(status: string): string {
 }
 
 export default function NodesPage() {
+  const { cluster, loading: clusterLoading } = useCluster();
   const [nodes, setNodes] = useState<NodeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!CLUSTER_ID) {
-      setError("NEXT_PUBLIC_CLUSTER_ID nao configurado");
-      setLoading(false);
-      return;
-    }
+    if (clusterLoading || !cluster) return;
     api
-      .listNodes(CLUSTER_ID)
+      .listNodes(cluster.id)
       .then(setNodes)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [cluster, clusterLoading]);
 
   return (
     <div>

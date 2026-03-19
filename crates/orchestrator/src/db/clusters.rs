@@ -45,6 +45,13 @@ pub async fn find_by_id(pool: &PgPool, id: Uuid) -> Result<Option<ClusterRow>, s
 }
 
 #[allow(dead_code)]
+pub async fn find_all(pool: &PgPool) -> Result<Vec<ClusterRow>, sqlx::Error> {
+    sqlx::query_as::<_, ClusterRow>("SELECT * FROM clusters ORDER BY created_at")
+        .fetch_all(pool)
+        .await
+}
+
+#[allow(dead_code)]
 pub async fn find_by_cluster_id(
     pool: &PgPool,
     cluster_id: &str,

@@ -2,9 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { api, type UploadResponse } from "@/lib/api";
-
-const CLUSTER_ID = process.env.NEXT_PUBLIC_CLUSTER_ID ?? "";
-const MEMBER_ID = process.env.NEXT_PUBLIC_MEMBER_ID ?? "";
+import { useCluster } from "@/lib/useCluster";
 
 function getMediaType(mime: string): string {
   if (mime.startsWith("image/")) return "foto";
@@ -24,6 +22,7 @@ interface UploadItem {
 }
 
 export default function UploadPage() {
+  const { cluster } = useCluster();
   const [items, setItems] = useState<UploadItem[]>([]);
   const [dragging, setDragging] = useState(false);
 
@@ -48,8 +47,8 @@ export default function UploadPage() {
       try {
         const file = items[i].file;
         const result = await api.uploadFile({
-          cluster_id: CLUSTER_ID,
-          uploaded_by: MEMBER_ID,
+          cluster_id: cluster?.id ?? "",
+          uploaded_by: "00000000-0000-0000-0000-000000000000",
           original_name: file.name,
           media_type: getMediaType(file.type),
           mime_type: file.type || "application/octet-stream",
@@ -72,7 +71,7 @@ export default function UploadPage() {
         );
       }
     }
-  }, [items]);
+  }, [items, cluster]);
 
   return (
     <div>

@@ -25,7 +25,10 @@ pub fn router(db: PgPool) -> Router {
         // Health
         .route("/api/v1/health", get(health::health_check))
         // Clusters (UC-001)
-        .route("/api/v1/clusters", post(clusters::create_cluster))
+        .route(
+            "/api/v1/clusters",
+            get(clusters::list_clusters).post(clusters::create_cluster),
+        )
         .route("/api/v1/clusters/{id}", get(clusters::get_cluster))
         // Members (UC-002)
         .route(

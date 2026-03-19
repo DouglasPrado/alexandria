@@ -3,7 +3,9 @@
  * Base URL configuravel via env var NEXT_PUBLIC_API_URL.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+// Em producao (Docker): vazio — requests vao para o mesmo host (Caddy faz proxy /api/*)
+// Em dev local: http://localhost:8080
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -78,7 +80,28 @@ export interface UploadResponse {
 
 // ─── API Functions ────────────────────────────────────
 
+export interface ClusterItem {
+  id: string;
+  cluster_id: string;
+  name: string;
+  created_at: string;
+}
+
 export const api = {
+  // Clusters
+  listClusters: () => request<ClusterItem[]>("/api/v1/clusters"),
+
+  createCluster: (data: {
+    name: string;
+    admin_name: string;
+    admin_email: string;
+    admin_password: string;
+  }) =>
+    request<{ cluster_id: string; crypto_cluster_id: string; seed_phrase: string[] }>(
+      "/api/v1/clusters",
+      { method: "POST", body: JSON.stringify(data) }
+    ),
+
   // Files
   listFiles: (clusterId: string, cursor?: string, limit = 20) =>
     request<GalleryResponse>(

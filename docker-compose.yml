@@ -16,7 +16,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-alexandria}
       POSTGRES_DB: ${POSTGRES_DB:-alexandria}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
     ports:
       - "127.0.0.1:5432:5432"
     healthcheck:
@@ -65,7 +65,7 @@ services:
     depends_on:
       - orchestrator
     environment:
-      NEXT_PUBLIC_API_URL: http://orchestrator:8080
+      NEXT_PUBLIC_API_URL: ""
       NEXT_PUBLIC_CLUSTER_ID: ${CLUSTER_ID:-}
     ports:
       - "127.0.0.1:3000:3000"

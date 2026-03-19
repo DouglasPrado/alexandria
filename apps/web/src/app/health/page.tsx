@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api, type AlertItem } from "@/lib/api";
-
-const CLUSTER_ID = process.env.NEXT_PUBLIC_CLUSTER_ID ?? "";
+import { useCluster } from "@/lib/useCluster";
 
 function severityStyle(severity: string): string {
   switch (severity) {
@@ -31,18 +30,15 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function HealthPage() {
+  const { cluster, loading: clusterLoading } = useCluster();
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!CLUSTER_ID) {
-      setError("NEXT_PUBLIC_CLUSTER_ID nao configurado");
-      setLoading(false);
-      return;
-    }
+    if (clusterLoading || !cluster) return;
     api
-      .listAlerts(CLUSTER_ID)
+      .listAlerts(cluster.id)
       .then(setAlerts)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));

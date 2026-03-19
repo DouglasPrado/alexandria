@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api, type FileItem } from "@/lib/api";
-
-const CLUSTER_ID = process.env.NEXT_PUBLIC_CLUSTER_ID ?? "";
+import { useCluster } from "@/lib/useCluster";
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -21,22 +20,32 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function GalleryPage() {
+  const { cluster, loading: clusterLoading, needsSetup } = useCluster();
   const [files, setFiles] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!CLUSTER_ID) {
-      setError("NEXT_PUBLIC_CLUSTER_ID nao configurado");
-      setLoading(false);
-      return;
-    }
+    if (clusterLoading || !cluster) return;
     api
-      .listFiles(CLUSTER_ID)
+      .listFiles(cluster.id)
       .then((res) => setFiles(res.files))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [cluster, clusterLoading]);
+
+  if (needsSetup) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-4xl mb-4">🏠</p>
+        <p className="text-lg font-medium text-text">Nenhum cluster configurado</p>
+        <p className="text-sm text-text-muted mt-1 mb-4">Crie um cluster para comecar</p>
+        <a href="/recovery" className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium">
+          Configurar
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -50,7 +59,7 @@ export default function GalleryPage() {
         </a>
       </div>
 
-      {loading && (
+      {(loading || clusterLoading) && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="aspect-square bg-border/50 rounded-lg animate-pulse" />
@@ -62,7 +71,7 @@ export default function GalleryPage() {
         <div className="p-4 bg-error/10 text-error rounded-lg">{error}</div>
       )}
 
-      {!loading && !error && files.length === 0 && (
+      {!loading && !clusterLoading && !error && files.length === 0 && (
         <div className="text-center py-16 text-text-muted">
           <p className="text-4xl mb-4">📷</p>
           <p className="text-lg font-medium">Nenhum arquivo ainda</p>

@@ -84,6 +84,31 @@ pub struct ErrorResponse {
 
 // -- Handlers --
 
+/// GET /api/v1/clusters — listar todos os clusters
+pub async fn list_clusters(State(state): State<AppState>) -> impl IntoResponse {
+    match crate::db::clusters::find_all(&state.db).await {
+        Ok(rows) => {
+            let clusters: Vec<ClusterResponse> = rows
+                .into_iter()
+                .map(|r| ClusterResponse {
+                    id: r.id,
+                    cluster_id: r.cluster_id,
+                    name: r.name,
+                    created_at: r.created_at,
+                })
+                .collect();
+            (StatusCode::OK, Json(clusters)).into_response()
+        }
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ErrorResponse {
+                error: e.to_string(),
+            }),
+        )
+            .into_response(),
+    }
+}
+
 /// POST /api/v1/clusters — UC-001: Criar Cluster Familiar
 pub async fn create_cluster(
     State(state): State<AppState>,
