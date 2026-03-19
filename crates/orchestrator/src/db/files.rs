@@ -240,3 +240,63 @@ pub async fn create_version(
     .fetch_one(pool)
     .await
 }
+
+/// Resultado de agrupamento por mes para timeline.
+#[derive(Debug, sqlx::FromRow, serde::Serialize)]
+pub struct TimelineEntry {
+    pub year: i32,
+    pub month: i32,
+    pub count: i64,
+    pub fotos: i64,
+    pub videos: i64,
+    pub documentos: i64,
+}
+
+/// Agrupa arquivos por mes/ano para navegacao cronologica.
+pub async fn timeline(pool: &PgPool, cluster_id: Uuid) -> Result<Vec<TimelineEntry>, sqlx::Error> {
+    sqlx::query_as::<_, TimelineEntry>(
+        r#"
+        SELECT
+            EXTRACT(YEAR FROM created_at)::INT as year,
+            EXTRACT(MONTH FROM created_at)::INT as month,
+            COUNT(*) as count,
+            COUNT(*) FILTER (WHERE media_type = 'foto') as fotos,
+            COUNT(*) FILTER (WHERE media_type = 'video') as videos,
+            COUNT(*) FILTER (WHERE media_type = 'documento') as documentos
+        FROM files
+        WHERE cluster_id = $1 AND status = 'ready'
+        GROUP BY year, month
+        ORDER BY year DESC, month DESC
+        "#,
+    )
+    .bind(cluster_id)
+    .fetch_all(pool)
+    .await
+}
+
+/// Lista arquivos de um mes/ano especifico.
+pub async fn find_by_month(
+    pool: &PgPool,
+    cluster_id: Uuid,
+    year: i32,
+    month: i32,
+    limit: i64,
+) -> Result<Vec<FileRow>, sqlx::Error> {
+    sqlx::query_as::<_, FileRow>(
+        r#"
+        SELECT * FROM files
+        WHERE cluster_id = $1
+          AND status = 'ready'
+          AND EXTRACT(YEAR FROM created_at) = $2
+          AND EXTRACT(MONTH FROM created_at) = $3
+        ORDER BY created_at DESC
+        LIMIT $4
+        "#,
+    )
+    .bind(cluster_id)
+    .bind(year)
+    .bind(month)
+    .bind(limit)
+    .fetch_all(pool)
+    .await
+}

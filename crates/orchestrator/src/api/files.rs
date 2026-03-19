@@ -254,6 +254,72 @@ pub async fn get_preview(
     (StatusCode::NO_CONTENT).into_response()
 }
 
+/// GET /api/v1/clusters/:id/timeline — agrupamento por mes/ano para navegacao cronologica.
+pub async fn timeline(
+    State(state): State<AppState>,
+    Path(cluster_id): Path<Uuid>,
+) -> impl IntoResponse {
+    match crate::db::files::timeline(&state.db, cluster_id).await {
+        Ok(entries) => (
+            StatusCode::OK,
+            Json(serde_json::json!({ "timeline": entries })),
+        )
+            .into_response(),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ErrorResponse {
+                error: e.to_string(),
+            }),
+        )
+            .into_response(),
+    }
+}
+
+#[derive(Deserialize)]
+pub struct ByDateParams {
+    pub year: i32,
+    pub month: i32,
+    pub limit: Option<i64>,
+}
+
+/// GET /api/v1/clusters/:id/files/by-date — lista arquivos de um mes/ano.
+pub async fn files_by_date(
+    State(state): State<AppState>,
+    Path(cluster_id): Path<Uuid>,
+    Query(params): Query<ByDateParams>,
+) -> impl IntoResponse {
+    let limit = params.limit.unwrap_or(100).clamp(1, 500);
+    match crate::db::files::find_by_month(&state.db, cluster_id, params.year, params.month, limit)
+        .await
+    {
+        Ok(rows) => {
+            let files: Vec<FileResponse> = rows
+                .into_iter()
+                .map(|r| FileResponse {
+                    id: r.id,
+                    cluster_id: r.cluster_id,
+                    original_name: r.original_name,
+                    media_type: r.media_type,
+                    mime_type: r.mime_type,
+                    file_extension: r.file_extension,
+                    original_size: r.original_size,
+                    optimized_size: r.optimized_size,
+                    status: r.status,
+                    created_at: r.created_at,
+                })
+                .collect();
+            (StatusCode::OK, Json(serde_json::json!({ "files": files }))).into_response()
+        }
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ErrorResponse {
+                error: e.to_string(),
+            }),
+        )
+            .into_response(),
+    }
+}
+
 /// GET /api/v1/files/:id/versions — lista versoes de um arquivo.
 pub async fn list_versions(
     State(state): State<AppState>,

@@ -64,6 +64,11 @@ pub fn router(db: PgPool) -> Router {
         .route("/api/v1/files/upload", post(files::upload_file))
         .route("/api/v1/files/check-hash/{hash}", get(files::check_hash))
         .route("/api/v1/clusters/{id}/files", get(files::list_gallery))
+        .route("/api/v1/clusters/{id}/timeline", get(files::timeline))
+        .route(
+            "/api/v1/clusters/{id}/files/by-date",
+            get(files::files_by_date),
+        )
         .route(
             "/api/v1/clusters/{id}/files/search",
             get(files::search_files),
