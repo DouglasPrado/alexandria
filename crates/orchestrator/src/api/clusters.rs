@@ -37,6 +37,7 @@ pub struct CreateClusterResponse {
     pub access_token: String,
     pub refresh_token: String,
     pub expires_in: i64,
+    pub member_id: Uuid,
 }
 
 #[derive(Serialize)]
@@ -295,6 +296,7 @@ pub async fn create_cluster(
                     access_token,
                     refresh_token,
                     expires_in: 24 * 60 * 60, // 24 horas em segundos
+                    member_id: result.member_id,
                 }),
             )
                 .into_response()

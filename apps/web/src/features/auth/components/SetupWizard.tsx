@@ -56,7 +56,7 @@ export function SetupWizard() {
         access_token: data.access_token,
         refresh_token: data.refresh_token,
         member: {
-          id: "",
+          id: data.member_id,
           name: form.adminName,
           email: form.email,
           role: "admin",
