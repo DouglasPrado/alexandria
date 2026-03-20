@@ -60,6 +60,7 @@ async jwt({ token, user }) {
     token.accessToken = user.accessToken;
     token.refreshToken = user.refreshToken;
     token.accessTokenExpires = user.accessTokenExpires;
+    token.masterKeyStatus = user.masterKeyStatus;
     token.member = user.member;
     return token;
   }
@@ -100,6 +101,7 @@ async session({ session, token }) {
     cluster_id: token.member.cluster_id,
   };
   session.accessToken = token.accessToken as string;
+  session.masterKeyStatus = token.masterKeyStatus as string;
   session.error = token.error as string | undefined;
   return session;
 }
@@ -147,6 +149,7 @@ declare module "next-auth" {
     accessToken: string;
     refreshToken: string;
     accessTokenExpires: number;
+    masterKeyStatus: string;
     member: {
       id: string;
       name: string;
@@ -158,6 +161,7 @@ declare module "next-auth" {
 
   interface Session {
     accessToken: string;
+    masterKeyStatus: string;
     error?: string;
     user: {
       id: string;
@@ -181,6 +185,7 @@ declare module "next-auth/jwt" {
       role: string;
       cluster_id: string;
     };
+    masterKeyStatus: string;
     error?: string;
   }
 }
@@ -246,13 +251,18 @@ Não precisa mais ser `"use client"`.
 ### 6. `apps/web/src/features/auth/components/LoginForm.tsx`
 
 **Antes:** chama `login()` da auth-api → salva tokens no Zustand → redirect manual
-**Depois:** chama `signIn("credentials", { email, password, redirectTo: "/gallery" })` do NextAuth
+**Depois:** chama `signIn("credentials", { email, password, redirect: false })` do NextAuth
 
-O `signIn` do NextAuth:
+O `signIn` com `redirect: false` retorna o resultado sem redirecionar:
 1. Envia credentials para o `authorize()` callback (server-side)
-2. `authorize()` chama o backend Rust
-3. Se sucesso: cookie criado automaticamente → redirect para `/gallery`
-4. Se falha: retorna erro para o formulário exibir
+2. `authorize()` chama o backend Rust e inclui `master_key_status` no user
+3. Se falha: retorna erro para o formulário exibir
+4. Se sucesso: LoginForm verifica `master_key_status` da sessão
+   - `"locked"` → mostra prompt de seed phrase (fluxo inalterado), depois redirect manual
+   - `"ready"` → `router.push("/gallery")`
+
+Para acessar `master_key_status` após login, o callback `jwt` grava `masterKeyStatus` no token,
+e o callback `session` o expõe em `session.masterKeyStatus`. O type augmentation inclui esse campo.
 
 ### 7. `apps/web/src/features/auth/components/SetupWizard.tsx`
 
@@ -325,13 +335,16 @@ export default function RootLayout({ children }) {
 Removido completamente. Todos os consumidores migram para `useSession()` do NextAuth.
 
 **Consumidores a migrar:**
-- `api-client.ts` → `getSession()` / `auth()`
+- `api-client.ts` (request + postMultipart) → `getSession()` / `auth()`
 - `(protected)/layout.tsx` → middleware + `SessionGuard`
 - `LoginForm.tsx` → `signIn()`
 - `SetupWizard.tsx` → `signIn()`
 - `InviteAcceptForm.tsx` → `signIn()`
-- `useLogin.ts` → removido ou simplificado (signIn já é o hook)
-- Qualquer componente que lê `useAuthStore().member` → `useSession().data.user`
+- `useLogin.ts` → removido (signIn do NextAuth substitui)
+- `hooks/useCluster.ts` → `useSession().data.user` (lê `member` e `isAuthenticated`)
+- `features/nodes/components/NodesPage.tsx` → `useSession().data.user` (lê `member`)
+- `app/(protected)/nodes/add/page.tsx` → `useSession().data.user` (lê `member`)
+- `features/members/components/MembersPage.tsx` → `useSession().data.user` (lê `member`)
 
 ---
 
@@ -339,11 +352,13 @@ Removido completamente. Todos os consumidores migram para `useSession()` do Next
 
 ### Login
 ```
-LoginForm → signIn("credentials", {email, password})
+LoginForm → signIn("credentials", {email, password, redirect: false})
   → NextAuth authorize() → POST backend/api/v1/auth/login
-  → 200: {access_token, refresh_token, member, expires_in}
-  → jwt callback: grava tokens no JWT cookie
-  → redirect /gallery
+  → 200: {access_token, refresh_token, member, expires_in, master_key_status}
+  → jwt callback: grava tokens + masterKeyStatus no JWT cookie
+  → LoginForm lê session.masterKeyStatus
+  → "ready" → router.push("/gallery")
+  → "locked" → mostra prompt de seed phrase → unlock → router.push("/gallery")
 ```
 
 ### F5 / Refresh (o problema original)
@@ -373,10 +388,31 @@ InviteAcceptForm → POST /api/v1/invite/{token} (sem auth)
 
 ### Logout
 ```
-Botão logout → POST /api/v1/auth/logout (revoga refresh token)
-  → signOut() do NextAuth (limpa cookie)
-  → redirect /login
+Botão logout → signOut({ redirectTo: "/login" }) do NextAuth
+  → NextAuth events.signOut callback (server-side):
+     lê refreshToken do JWT token → POST backend/api/v1/auth/logout
+  → Cookie limpo → redirect /login
 ```
+
+A revogação do refresh token no backend acontece no **event `signOut`** do NextAuth (configurado em `auth.ts`):
+```typescript
+events: {
+  async signOut({ token }) {
+    // token contém refreshToken do JWT cookie (server-side)
+    if (token?.refreshToken) {
+      await fetch(`${BACKEND_URL}/api/v1/auth/logout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token.accessToken}`,
+        },
+        body: JSON.stringify({ refresh_token: token.refreshToken }),
+      }).catch(() => {}); // best-effort, não bloqueia logout
+    }
+  },
+}
+```
+Isso evita expor `refreshToken` ao client — tudo acontece server-side.
 
 ### Unlock (inalterado)
 ```
@@ -393,12 +429,13 @@ Botão logout → POST /api/v1/auth/logout (revoga refresh token)
 **Adicionar:**
 - `next-auth@5` (Auth.js v5 para Next.js 16)
 
-**Remover (após migração):**
-- `zustand` — **apenas se** não for usado em mais nenhum lugar além do auth-store
+**Manter:**
+- `zustand` — usado por `event-bus.ts` e `preferences-store.ts`, não pode ser removido
 
 **Variáveis de ambiente:**
 - `AUTH_SECRET` — secret para cookie encryption
-- `BACKEND_URL` — URL do backend Rust (server-side only)
+- `BACKEND_URL` — URL do backend Rust (server-side only, usado pelo NextAuth authorize callback)
+- `NEXT_PUBLIC_API_URL` — mantido, usado pelo `api-client.ts` para chamadas client-side
 - `AUTH_TRUST_HOST=true` — para Docker
 
 ---
