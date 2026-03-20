@@ -181,7 +181,7 @@ pub struct PipelineResult {
 |---------|--------------|
 | Preview não suportado (vídeo, doc) | `preview_chunk_id = None`, pipeline continua normalmente |
 | Erro na geração de preview (imagem corrompida) | Log warning, `preview_chunk_id = None`, pipeline continua |
-| Falha ao distribuir chunk de preview | Pipeline falha (mesmo tratamento que falha em chunk de conteúdo) |
+| Falha ao distribuir chunk de preview | Log warning, `preview_chunk_id = None`, pipeline continua (preview não é dado essencial — diferente de chunks de conteúdo) |
 | Preview chunk não encontrado no GET | 404 Not Found |
 | Todas réplicas offline no GET | 503 Service Unavailable |
 | Master key não disponível no GET | 503 Service Unavailable |
