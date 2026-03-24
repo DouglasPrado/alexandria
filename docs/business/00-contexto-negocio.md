@@ -13,7 +13,7 @@ Esta seção estabelece **o cenário de negócios** onde o produto será inserid
 - [ ] Em mercado (primeiros usuários)
 - [ ] Growth (product-market fit validado, escalando)
 
-**Estágio atual:** Fase de design e documentação. PRD v1.0.0 completo com 79 requisitos funcionais. Blueprint técnico finalizado. Nenhum código escrito ainda. Próximo passo é a Fase 0 (Fundação — Core SDK em Rust). Validações pendentes incluem: qualidade perceptual de Full HD para fotos familiares (H-01), taxa de deduplicação em acervo real (H-02) e recovery via seed phrase (H-04).
+**Estágio atual:** Fase de design e documentação. PRD v1.0.0 completo com 79 requisitos funcionais. Blueprint técnico finalizado. Nenhum código escrito ainda. Próximo passo é a Fase 0 (Fundação — Core SDK em TypeScript). Validações pendentes incluem: qualidade perceptual de Full HD para fotos familiares (H-01), taxa de deduplicação em acervo real (H-02) e recovery via seed phrase (H-04).
 
 ---
 
@@ -86,7 +86,7 @@ Não existe solução que combine: (1) distribuição de dados entre múltiplos 
 - Google eliminou storage gratuito ilimitado em 2021; preços de planos pagos crescem todo ano — famílias sentem o custo
 - Codecs modernos (WebP, H.265, AV1) atingiram maturidade suficiente para otimização agressiva sem perda perceptível
 - Provedores cloud com free tier generoso (R2 sem egress, B2 a $5/TB) e S3-compatible API viabilizam arquitetura multi-cloud
-- Rust atingiu maturidade (ecossistema async Tokio/Axum estável) — permite performance nativa com safety para sistema de storage
+- NestJS atingiu maturidade (ecossistema NestJS maduro e estável) — permite produtividade alta com type-safety para sistema de storage
 - Comunidade self-hosting em crescimento (Immich, Nextcloud, Syncthing) valida que existe demanda por alternativas às big techs
 - ~102GB de free tier disponível por pessoa combinando provedores — uma família de 5 pessoas obtém ~500GB gratuitos
 
@@ -100,7 +100,7 @@ Não existe solução que combine: (1) distribuição de dados entre múltiplos 
 | ----------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | **Interno** | **Forças**                                                                                           | **Fraquezas**                                                                                   |
 |             | Tech lead com experiência full-stack em sistemas distribuídos, criptografia e processamento de mídia | Time de 1 pessoa — capacidade de desenvolvimento limitada                                       |
-|             | Rust como stack: performance nativa, memory safety, binário único                                    | Sem base de usuários; sem marca; sem marketing                                                  |
+|             | TypeScript/NestJS como stack: produtividade alta, type-safety, ecossistema npm maduro                                    | Sem base de usuários; sem marca; sem marketing                                                  |
 |             | Arquitetura "orquestrador descartável" — resilience by design                                        | Curva de aprendizado para família não-técnica usar o sistema                                    |
 |             | Custo operacional ~€5-10/mês (VPS + free tiers)                                                      | Sem funding; sem runway comercial; projeto pessoal                                              |
 | **Externo** | **Oportunidades**                                                                                    | **Ameaças**                                                                                     |

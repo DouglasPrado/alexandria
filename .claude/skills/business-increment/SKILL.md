@@ -1,5 +1,5 @@
 ---
-name: business-incrementar
+name: business-increment
 description: Incrementa o business blueprint com nova informacao ou correcao sem sobrescrever conteudo existente. Usa Edit (nao Write) para preservar tudo.
 ---
 
@@ -32,20 +32,20 @@ Aguarde a resposta antes de prosseguir.
 
 Leia TODOS os documentos existentes em `docs/business/`:
 
-1. `docs/business/00-contexto-negocio.md`
-2. `docs/business/01-proposta-valor.md`
-3. `docs/business/02-segmentos-personas.md`
-4. `docs/business/03-canais-distribuicao.md`
-5. `docs/business/04-relacionamento.md`
-6. `docs/business/05-modelo-receita.md`
-7. `docs/business/06-estrutura-custos.md`
-8. `docs/business/07-metricas-kpis.md`
-9. `docs/business/08-estrategia-marketing.md`
-10. `docs/business/09-plano-operacional.md`
+1. `docs/business/00-business-context.md`
+2. `docs/business/01-value-proposition.md`
+3. `docs/business/02-segments-personas.md`
+4. `docs/business/03-channels-distribution.md`
+5. `docs/business/04-relationships.md`
+6. `docs/business/05-revenue-model.md`
+7. `docs/business/06-cost-structure.md`
+8. `docs/business/07-metrics-kpis.md`
+9. `docs/business/08-marketing-strategy.md`
+10. `docs/business/09-operational-plan.md`
 
-Leia tambem `docs/prd.md` se existir, para contexto adicional.
+Leia tambem os arquivos relevantes de `docs/blueprint/` para contexto tecnico, e `docs/prd.md` como fallback/complemento.
 
-> Ao referenciar tecnologias, ferramentas ou plataformas especificas com versoes, consulte https://context7.com/ para garantir versoes atualizadas.
+> **Versoes atualizadas:** Ao referenciar tecnologias, ferramentas ou plataformas especificas com versoes, use o MCP context7 para consultar documentacao atualizada. Primeiro chame `mcp__context7__resolve-library-id` para obter o ID da biblioteca, depois `mcp__context7__query-docs` para consultar versoes e exemplos.
 
 ## Passo 3: Classificar Tipo de Alteracao
 
@@ -63,13 +63,13 @@ Identifique quais documentos sao impactados. Use a tabela de referencia abaixo p
 | Doc | Quando impactado |
 |-----|-----------------|
 | 00-contexto | Novo mercado, novo concorrente |
-| 01-proposta-valor | Nova necessidade do cliente, novo diferencial |
+| 01-value-proposition | Nova necessidade do cliente, novo diferencial |
 | 02-segmentos | Novo segmento, nova persona |
 | 03-canais | Novo canal, nova parceria |
-| 04-relacionamento | Nova estrategia de retencao, novo churn signal |
+| 04-relationships | Nova estrategia de retencao, novo churn signal |
 | 05-receita | Nova fonte de receita, novo plano de preco |
 | 06-custos | Novo custo, novo fornecedor |
-| 07-metricas | Nova metrica, novo milestone |
+| 07-metrics | Nova metrica, novo milestone |
 | 08-marketing | Novo canal de marketing, novo growth loop |
 | 09-operacional | Novo processo, nova contratacao, novo milestone |
 
@@ -78,13 +78,13 @@ Apresente ao usuario:
 | Doc | Impactado? | Tipo | O que fazer |
 |-----|-----------|------|-------------|
 | 00-contexto | {{Sim/Nao}} | {{Adicao/Correcao/Atualizacao/Remocao}} | {{Descricao}} |
-| 01-proposta-valor | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| 01-value-proposition | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
 | 02-segmentos | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
 | 03-canais | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 04-relacionamento | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| 04-relationships | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
 | 05-receita | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
 | 06-custos | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 07-metricas | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| 07-metrics | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
 | 08-marketing | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
 | 09-operacional | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
 
@@ -236,5 +236,5 @@ Apresente ao usuario um resumo do que foi alterado:
 ## Passo 7: Proximo
 
 > "Alteracao documentada. Para adicionar outra informacao de negocio, rode
-> `/business-incrementar` novamente.
+> `/business-increment` novamente.
 > Para revisar o blueprint completo de negocio, rode `/business`."

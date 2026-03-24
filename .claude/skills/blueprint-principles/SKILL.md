@@ -29,7 +29,7 @@ Proponha 3-7 principios inferidos do PRD e pergunte ao usuario se deseja ajustar
 > **Modo de escrita:**
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
-> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-incrementar`.
+> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-increment`.
 
 Preencha `docs/blueprint/02-architecture_principles.md`. Para cada principio, preencha:
 

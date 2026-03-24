@@ -44,7 +44,7 @@ Execute cada verificacao abaixo carregando os docs um par de cada vez (doc + cod
 
 ### V1: Entidades vs Tipos (Domain Model → src/contracts/)
 
-**Docs:** `docs/blueprint/04-domain_model.md`
+**Docs:** `docs/blueprint/04-domain-model.md`
 **Codigo:** `src/contracts/entities/`
 
 Para cada entidade no domain model:
@@ -56,7 +56,7 @@ Para cada entidade no domain model:
 
 ### V2: Tabelas vs Schema (Data Model → Schema)
 
-**Docs:** `docs/blueprint/05-data_model.md`
+**Docs:** `docs/blueprint/05-data-model.md`
 **Codigo:** Arquivo de schema (prisma, drizzle, etc.)
 
 Para cada tabela no data model:
@@ -89,7 +89,7 @@ Para cada use case:
 
 ### V5: State Machines vs Implementacao
 
-**Docs:** `docs/blueprint/09-state_models.md`
+**Docs:** `docs/blueprint/09-state-models.md`
 **Codigo:** Services/entities com logica de estado
 
 Para cada state machine:
@@ -110,7 +110,7 @@ Para cada state machine:
 
 ### V7: Componentes Frontend vs Implementacao
 
-**Docs:** `docs/frontend/04-componentes.md`
+**Docs:** `docs/frontend/04-components.md`
 **Codigo:** Componentes do frontend
 
 Para cada componente documentado:
@@ -151,7 +151,7 @@ Para cada componente documentado:
 Para cada divergencia, sugira:
 
 - **Se o codigo esta errado:** "Corrija o codigo para seguir o blueprint. Use `/codegen-feature` para reimplementar."
-- **Se o blueprint esta desatualizado:** "Atualize o blueprint com `/blueprint-incrementar` para refletir a decisao tomada no codigo."
+- **Se o blueprint esta desatualizado:** "Atualize o blueprint com `/blueprint-increment` para refletir a decisao tomada no codigo."
 - **Se e ambiguo:** "Confirme com o dev: o blueprint ou o codigo esta correto?"
 
 ## Passo 6: Proximo
@@ -160,6 +160,6 @@ Para cada divergencia, sugira:
 >
 > Para corrigir divergencias:
 > - No codigo: `/codegen-feature [feature]`
-> - No blueprint: `/blueprint-incrementar`
+> - No blueprint: `/blueprint-increment`
 >
 > Para continuar implementando: `/codegen`"

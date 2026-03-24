@@ -4,9 +4,9 @@
 sequenceDiagram
     autonumber
 
-    participant Sched as Scheduler<br/>(tokio::time)
-    participant API as Orquestrador<br/>(Rust + Axum 0.8)
-    participant DB as PostgreSQL 18<br/>(SQLx)
+    participant Sched as Scheduler<br/>(@nestjs/schedule)
+    participant API as Orquestrador<br/>(NestJS)
+    participant DB as PostgreSQL 18<br/>(Prisma)
     participant S3 as StorageProvider<br/>(nó com réplica)
     participant SDK as Core SDK<br/>(SHA-256)
 

@@ -1,12 +1,12 @@
 %% C4 Nivel 3: Componentes Internos — Orquestrador Alexandria
 %% Referencia: docs/blueprint/06-system_architecture.md
-%% Stack: Rust + Axum 0.8 + SQLx + Tower middleware
+%% Stack: NestJS + Prisma + NestJS Guards middleware
 
 graph TB
-    subgraph ContainerBoundary["⚙️ Orquestrador (Rust + Axum 0.8) — Componentes Internos"]
+    subgraph ContainerBoundary["⚙️ Orquestrador (NestJS) — Componentes Internos"]
         direction TB
 
-        subgraph EntryLayer["Camada de Entrada (Axum Router)"]
+        subgraph EntryLayer["Camada de Entrada (NestJS Router)"]
             direction LR
             ClusterRouter["🔀 Cluster API<br/>POST /clusters<br/>POST /clusters/:id/invite<br/>GET /clusters/:id/health"]
             FileRouter["🔀 File API<br/>POST /files/upload<br/>GET /files<br/>GET /files/:id/download"]
@@ -14,7 +14,7 @@ graph TB
             AlertRouter["🔀 Alert API<br/>GET /alerts<br/>PATCH /alerts/:id/resolve"]
         end
 
-        Middleware["🛡️ Tower Middleware<br/>Auth (JWT/Token), TLS validation,<br/>Rate limiting (tower::limit), Request tracing"]
+        Middleware["🛡️ NestJS Guards Middleware<br/>Auth (JWT/Token), TLS validation,<br/>Rate limiting (ThrottlerGuard), Request tracing"]
 
         subgraph ServiceLayer["Camada de Serviços / Casos de Uso"]
             direction LR
@@ -25,7 +25,7 @@ graph TB
             SchedulerService["📋 SchedulerService<br/>Scrubbing, GC, rebalance,<br/>heartbeat timeout, alertas"]
         end
 
-        subgraph DataLayer["Camada de Acesso a Dados (SQLx + PostgreSQL 18)"]
+        subgraph DataLayer["Camada de Acesso a Dados (Prisma + PostgreSQL 18)"]
             direction LR
             ClusterRepo["🗃️ ClusterRepository<br/>CRUD clusters + members"]
             FileRepo["🗃️ FileRepository<br/>CRUD files + manifests"]
@@ -80,11 +80,11 @@ graph TB
     ClusterService --> CryptoEngine
 
     %% Conexões Externas
-    ClusterRepo -->|"SQLx async"| DB
-    FileRepo -->|"SQLx async"| DB
-    ChunkRepo -->|"SQLx async"| DB
-    NodeRepo -->|"SQLx async"| DB
-    AlertRepo -->|"SQLx async"| DB
+    ClusterRepo -->|"Prisma"| DB
+    FileRepo -->|"Prisma"| DB
+    ChunkRepo -->|"Prisma"| DB
+    NodeRepo -->|"Prisma"| DB
+    AlertRepo -->|"Prisma"| DB
     FileService -->|"TCP (enqueue)"| RedisQ
     SchedulerService -->|"TCP (enqueue)"| RedisQ
     StorageClient -->|"HTTPS (aws-sdk-s3)"| S3Ext

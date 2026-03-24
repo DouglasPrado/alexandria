@@ -95,7 +95,7 @@ Cada caso de uso descreve uma interação completa entre um ator e o sistema par
 
 #### Fluxos Alternativos
 
-- **2a.** Nó local (PC/NAS): Admin instala agente de nó (binário Rust); agente registra automaticamente via POST /nodes/register
+- **2a.** Nó local (PC/NAS): Admin instala agente de nó (app NestJS); agente registra automaticamente via POST /nodes/register
 - **5a.** Teste de conectividade falha: Sistema exibe erro com detalhes; permite corrigir credenciais e re-testar
 
 #### Fluxo de Exceção

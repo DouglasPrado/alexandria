@@ -1,5 +1,5 @@
 ---
-name: frontend-incrementar
+name: frontend-increment
 description: Incrementa o frontend blueprint com nova funcionalidade ou correcao sem sobrescrever conteudo existente. Usa Edit (nao Write) para preservar tudo.
 ---
 
@@ -31,24 +31,25 @@ Aguarde a resposta antes de prosseguir.
 
 Leia TODOS os documentos existentes em `docs/frontend/`:
 
-1. `docs/frontend/00-visao-frontend.md`
-2. `docs/frontend/01-arquitetura.md`
-3. `docs/frontend/02-estrutura-projeto.md`
+1. `docs/frontend/00-frontend-vision.md`
+2. `docs/frontend/01-architecture.md`
+3. `docs/frontend/02-project-structure.md`
 4. `docs/frontend/03-design-system.md`
-5. `docs/frontend/04-componentes.md`
-6. `docs/frontend/05-estado.md`
+5. `docs/frontend/04-components.md`
+6. `docs/frontend/05-state.md`
 7. `docs/frontend/06-data-layer.md`
-8. `docs/frontend/07-rotas.md`
-9. `docs/frontend/08-fluxos.md`
-10. `docs/frontend/09-testes.md`
+8. `docs/frontend/07-routes.md`
+9. `docs/frontend/08-flows.md`
+10. `docs/frontend/09-tests.md`
 11. `docs/frontend/10-performance.md`
-12. `docs/frontend/11-seguranca.md`
-13. `docs/frontend/12-observabilidade.md`
-14. `docs/frontend/13-cicd-convencoes.md`
+12. `docs/frontend/11-security.md`
+13. `docs/frontend/12-observability.md`
+14. `docs/frontend/13-cicd-conventions.md`
 
-Leia tambem `docs/prd.md` se existir, para contexto adicional.
+Leia tambem os arquivos relevantes de `docs/blueprint/` para contexto do sistema (entidades, fluxos, requisitos).
+Leia `docs/prd.md` se existir, como complemento.
 
-> Ao referenciar tecnologias especificas com versoes, consulte https://context7.com/ para garantir versoes atualizadas.
+> **Versões atualizadas:** Ao referenciar tecnologias específicas com versões, use o MCP context7 para consultar documentação atualizada. Primeiro chame `mcp__context7__resolve-library-id` para obter o ID da biblioteca, depois `mcp__context7__query-docs` para consultar versões e exemplos.
 
 ## Passo 3: Classificar Tipo de Alteracao
 
@@ -66,18 +67,18 @@ Identifique quais documentos sao impactados. Apresente ao usuario:
 | Doc | Impactado? | Tipo | O que fazer |
 |-----|-----------|------|-------------|
 | 00-visao | {{Sim/Nao}} | {{Adicao/Correcao/Atualizacao/Remocao}} | {{Descricao}} |
-| 01-arquitetura | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| 01-architecture | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
 | 02-estrutura | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
 | 03-design-system | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 04-componentes | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 05-estado | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| 04-components | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| 05-state | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
 | 06-data-layer | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 07-rotas | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 08-fluxos | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 09-testes | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| 07-routes | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| 08-flows | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| 09-tests | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
 | 10-performance | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 11-seguranca | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 12-observabilidade | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| 11-security | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| 12-observability | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
 | 13-cicd | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
 
 > Confirme com o usuario antes de prosseguir: "Estes sao os documentos que serao atualizados. Deseja ajustar algo?"
@@ -192,8 +193,8 @@ Apresente ao usuario um resumo do que foi adicionado:
 >
 > | Doc | Alteracao |
 > |-----|----------|
-> | 04-componentes | +{{X}} componentes |
-> | 05-estado | +{{Y}} stores, +{{Z}} eventos |
+> | 04-components | +{{X}} componentes |
+> | 05-state | +{{Y}} stores, +{{Z}} eventos |
 > | ... | ... |
 >
 > Revise os documentos atualizados e solicite ajustes se necessario."
@@ -201,5 +202,5 @@ Apresente ao usuario um resumo do que foi adicionado:
 ## Passo 7: Proximo
 
 > "Feature documentada. Para adicionar outra funcionalidade, rode
-> `/frontend-incrementar` novamente.
+> `/frontend-increment` novamente.
 > Para revisar o blueprint completo, rode `/frontend`."

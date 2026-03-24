@@ -1,6 +1,6 @@
 ---
 name: blueprint-data
-description: Use when filling the data model section (05-data_model.md) of the software blueprint. Defines database choices, table schemas, migration strategy, indexes, and critical queries.
+description: Use when filling the data model section (05-data-model.md) of the software blueprint. Defines database choices, table schemas, migration strategy, indexes, and critical queries.
 ---
 
 # Blueprint — Modelo de Dados
@@ -10,8 +10,8 @@ Voce vai preencher a secao de Modelo de Dados do blueprint. Esta secao traduz o 
 ## Leitura de Contexto
 
 1. Leia `docs/prd.md` — fonte primaria
-2. Leia `docs/blueprint/04-domain_model.md` — entidades e relacionamentos ja definidos
-3. Leia `docs/blueprint/05-data_model.md` — template a preencher
+2. Leia `docs/blueprint/04-domain-model.md` — entidades e relacionamentos ja definidos
+3. Leia `docs/blueprint/05-data-model.md` — template a preencher
 
 ## Analise de Lacunas
 
@@ -34,9 +34,9 @@ Se o PRD nao especificar a tecnologia de banco ou volumes esperados, pergunte ao
 > **Modo de escrita:**
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
-> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-incrementar`.
+> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-increment`.
 
-Preencha `docs/blueprint/05-data_model.md`:
+Preencha `docs/blueprint/05-data-model.md`:
 
 - **Banco de Dados**: tecnologia escolhida e justificativa
 - **Tabelas/Collections**: para cada uma, liste campos com tipo, constraint e descricao (nomes em ingles, descricoes em portugues)

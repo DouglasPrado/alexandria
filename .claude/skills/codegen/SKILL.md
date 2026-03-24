@@ -27,7 +27,7 @@ Leia os seguintes documentos:
 
 1. `docs/blueprint/11-build_plan.md` — fases, entregas, dependencias, criterios de aceite
 2. `docs/blueprint/01-vision.md` — visao geral (para nao perder o norte)
-3. `docs/blueprint/06-system_architecture.md` — stack e componentes (somente secao de Componentes)
+3. `docs/blueprint/06-system-architecture.md` — stack e componentes (somente secao de Componentes)
 
 ## Passo 3: Apresentar Status do Projeto
 
@@ -47,7 +47,7 @@ Para cada fase, verifique se as entregas ja existem no codigo:
 > "## Status do Projeto
 >
 > **Visao:** {{elevator pitch de 01-vision}}
-> **Stack:** {{resumo de 06-system_architecture}}
+> **Stack:** {{resumo de 06-system-architecture}}
 >
 > | Fase | Objetivo | Status | Entregas |
 > |------|---------|--------|----------|

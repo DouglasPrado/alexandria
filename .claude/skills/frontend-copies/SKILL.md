@@ -1,22 +1,24 @@
 ---
 name: frontend-copies
-description: Preenche a secao de Copies (14-copies.md) do frontend blueprint a partir do PRD.
+description: Preenche a secao de Copies (14-copies.md) do frontend blueprint a partir do blueprint tecnico.
 ---
 
 # Frontend Blueprint — Copies
 
-Preenche `docs/frontend/14-copies.md` com base no PRD e no contexto das telas do projeto.
+Preenche `docs/frontend/14-copies.md` com base no blueprint tecnico e no contexto das telas do projeto.
 
 ## Leitura de Contexto
 
-1. Leia `docs/prd.md` — fonte primaria
-2. Leia `docs/frontend/14-copies.md` — template a preencher
-3. Leia `docs/frontend/07-rotas.md` — para identificar todas as telas/paginas
-4. Leia `docs/frontend/08-fluxos.md` — para identificar copies dentro dos fluxos criticos
+1. Leia `docs/blueprint/08-use_cases.md` — casos de uso com textos e mensagens
+2. Leia `docs/blueprint/17-communication.md` — templates de comunicacao
+3. Leia `docs/frontend/14-copies.md` — template a preencher
+4. Leia `docs/frontend/07-routes.md` — para identificar todas as telas/paginas
+5. Leia `docs/frontend/08-flows.md` — para identificar copies dentro dos fluxos criticos
+6. Leia `docs/prd.md` — complemento se necessario
 
 ## Analise de Lacunas
 
-A partir do PRD e das rotas/fluxos, identifique o que esta disponivel para cada subsecao:
+A partir do blueprint tecnico e das rotas/fluxos, identifique o que esta disponivel para cada subsecao:
 
 - **Estrategia de Copy**: Idioma padrao, suporte i18n, tom de voz, glossario de termos do produto
 - **Copies por Tela**: Textos de cada tela (titulos, labels, placeholders, CTAs, links, empty states)
@@ -26,28 +28,28 @@ A partir do PRD e das rotas/fluxos, identifique o que esta disponivel para cada 
 
 Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 perguntas pontuais ao usuario antes de gerar.
 
-> Ao referenciar tecnologias especificas com versoes, consulte https://context7.com/ para garantir versoes atualizadas.
+> **Versões atualizadas:** Ao referenciar tecnologias específicas com versões, use o MCP context7 para consultar documentação atualizada. Primeiro chame `mcp__context7__resolve-library-id` para obter o ID da biblioteca, depois `mcp__context7__query-docs` para consultar versões e exemplos.
 
 ## Geracao
 
 > **Modo de escrita:**
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
-> - Para adicionar copies de uma feature especifica sem reescrever, prefira `/frontend-incrementar`.
+> - Para adicionar copies de uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
 Preencha `docs/frontend/14-copies.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
-- Informacoes explicitas do PRD
-- Rotas de `07-rotas.md` para gerar uma subsecao por tela
-- Fluxos de `08-fluxos.md` para garantir que mensagens de feedback estejam cobertas
+- Informacoes do blueprint tecnico (use cases, comunicacao)
+- Rotas de `07-routes.md` para gerar uma subsecao por tela
+- Fluxos de `08-flows.md` para garantir que mensagens de feedback estejam cobertas
 - Respostas do usuario (se houve perguntas)
-- Inferencias logicas quando seguro (marque com `<!-- inferido do PRD -->`)
+- Inferencias logicas quando seguro (marque com `<!-- do blueprint: XX-arquivo.md -->`)
 
 ### Checklist de Cobertura
 
 Antes de finalizar, verifique:
 
-- [ ] Toda rota de `07-rotas.md` tem uma subsecao em "Copies por Tela"
-- [ ] Todo fluxo critico de `08-fluxos.md` tem suas mensagens de feedback mapeadas
+- [ ] Toda rota de `07-routes.md` tem uma subsecao em "Copies por Tela"
+- [ ] Todo fluxo critico de `08-flows.md` tem suas mensagens de feedback mapeadas
 - [ ] Glossario contem todos os termos de dominio do PRD
 - [ ] Mensagens de erro cobrem os cenarios de erro dos endpoints da API
 - [ ] Empty states estao definidos para todas as listas e telas com dados dinamicos
@@ -59,4 +61,4 @@ Apresente o documento preenchido ao usuario. Aplique ajustes solicitados. Salve 
 
 ## Proxima Etapa
 
-> "Copies preenchido. O frontend blueprint esta completo! Rode `/frontend` para revisar a cobertura geral, ou `/frontend-incrementar` para adicionar copies de novas features."
+> "Copies preenchido. O frontend blueprint esta completo! Rode `/frontend` para revisar a cobertura geral, ou `/frontend-increment` para adicionar copies de novas features."

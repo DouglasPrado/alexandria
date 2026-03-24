@@ -14,16 +14,16 @@
 
 **Entregas:**
 
-- Core SDK (crate Rust): chunking engine (~4MB), SHA-256 hashing, AES-256-GCM encryption/decryption
+- Core SDK (package TypeScript): chunking engine (~4MB), SHA-256 hashing, AES-256-GCM encryption/decryption
 - Envelope encryption: BIP-39 seed → master key → file keys → chunk keys
 - Consistent hashing ring com virtual nodes
 - StorageProvider trait + implementação local (filesystem)
 - StorageProvider implementação S3 (aws-sdk-s3) para S3/R2/B2
 - Manifest structure: criação, serialização, validação de assinatura
 - Vault: criação por membro, criptografia/descriptografia, serialização, gerenciamento de senhas
-- Modelo de dados PostgreSQL 18: migrações iniciais (sqlx-cli)
-- Setup do workspace Rust (cargo workspaces: core-sdk, orchestrator, node-agent)
-- CI: GitHub Actions com cargo test + clippy + fmt
+- Modelo de dados PostgreSQL 18: migrações iniciais (prisma cli)
+- Setup do workspace TypeScript (pnpm workspaces: core-sdk, orchestrator, node-agent)
+- CI: GitHub Actions com jest + eslint + prettier
 
 **Dependências:**
 
@@ -48,7 +48,7 @@
 
 **Entregas:**
 
-- Orquestrador (Rust + Axum 0.8): API REST completa para clientes e agentes
+- Orquestrador (NestJS): API REST completa para clientes e agentes
 - Pipeline de mídia: fotos → WebP 1920px (libvips); vídeos → 1080p H.265 (FFmpeg)
 - Preview generation: thumbnail ~50KB (fotos), 480p ~5MB (vídeos)
 - Replicação 3x com monitoramento contínuo
@@ -56,8 +56,8 @@
 - Heartbeat monitoring de nós com detecção offline (suspect/lost)
 - Scrubbing periódico (verificação de integridade SHA-256)
 - Garbage collection de chunks órfãos
-- Scheduler interno (tokio::time) para tarefas periódicas
-- Agente de nó (binário Rust): armazenamento local + heartbeat + scrubbing
+- Scheduler interno (@nestjs/schedule) para tarefas periódicas
+- Agente de nó (app NestJS): armazenamento local + heartbeat + scrubbing
 - Placeholder files com download sob demanda
 - Seed phrase recovery: rebuild do orquestrador em nova VPS
 - Web client básico (Next.js 16): upload, galeria com thumbnails, download
@@ -104,7 +104,7 @@
 - Family Storage Protocol (FSP) v1 documentado
 - Quotas de armazenamento por usuário
 - Tiered storage (hot/warm/cold)
-- Observabilidade: Grafana + Prometheus + tracing
+- Observabilidade: Grafana + Prometheus + pino
 
 **Dependências:**
 
@@ -176,7 +176,7 @@
 | Performance de criptografia AES-256-GCM insuficiente | Alto | Baixa | Benchmark na Fase 0; usar hardware AES-NI (presente em CPUs modernas); paralelizar chunks |
 | Provedor cloud muda API S3 ou elimina free tier | Alto | Baixa | StorageProvider abstrai provedor; dados em 3+ provedores; migração transparente |
 | Perda de seed phrase pelo usuário | Alto | Alta | Instruções claras; alerta persistente na UI; recovery guardians na Fase 3 (RF-005) |
-| Complexidade do envelope encryption causa bugs de criptografia | Alto | Média | Testes extensivos na Fase 0; usar crates auditados (ring, aes-gcm); nunca implementar crypto próprio |
+| Complexidade do envelope encryption causa bugs de criptografia | Alto | Média | Testes extensivos na Fase 0; usar packages auditados (crypto nativo, @noble/ciphers); nunca implementar crypto próprio |
 | Transcodificação de vídeo sobrecarrega VPS | Médio | Alta | Fila com rate limiting; processamento sequencial (não paralelo) de vídeos grandes; worker dedicado |
 | Conflito de chunks durante upload concorrente de mesmo arquivo | Médio | Baixa | Deduplicação por hash (content-addressable); constraint unique no banco; idempotência |
 

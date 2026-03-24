@@ -6,11 +6,11 @@ sequenceDiagram
 
     actor Membro as Membro Familiar
     participant Web as Web Client<br/>(Next.js 16)
-    participant API as Orquestrador<br/>(Rust + Axum 0.8)
+    participant API as Orquestrador<br/>(NestJS)
     participant Redis as Redis 7<br/>(Fila)
-    participant Worker as Media Worker<br/>(Rust + FFmpeg)
+    participant Worker as Media Worker<br/>(TypeScript + FFmpeg)
     participant SDK as Core SDK<br/>(Crypto + Chunk)
-    participant DB as PostgreSQL 18<br/>(SQLx)
+    participant DB as PostgreSQL 18<br/>(Prisma)
     participant S3 as StorageProvider<br/>(S3/R2)
 
     %% Upload

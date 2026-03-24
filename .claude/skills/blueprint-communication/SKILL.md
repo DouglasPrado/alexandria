@@ -13,7 +13,7 @@ Você vai preencher a seção de Comunicação do blueprint. Mensagens enviadas 
 2. Leia `docs/blueprint/17-communication.md` — template a preencher
 3. Leia `docs/blueprint/07-critical_flows.md` — para identificar fluxos que geram comunicação (cadastro, reset senha, checkout, etc.)
 4. Leia `docs/blueprint/08-use_cases.md` — para mapear eventos que disparam mensagens
-5. Leia `docs/blueprint/04-domain_model.md` — para identificar entidades e variáveis disponíveis
+5. Leia `docs/blueprint/04-domain-model.md` — para identificar entidades e variáveis disponíveis
 6. Leia `docs/blueprint/13-security.md` — para alinhar autenticação (2FA, tokens) com templates de verificação
 
 ## Análise de Lacunas
@@ -34,20 +34,20 @@ Se houver lacunas críticas que NÃO podem ser inferidas do PRD, faça até 3 pe
 2. Se não há informação sobre provedores (SendGrid, Twilio, etc.), pergunte qual stack de envio
 3. Se não há fluxo de onboarding detalhado, pergunte sobre emails de lifecycle
 
-> Ao referenciar tecnologias específicas com versões, consulte https://context7.com/ para garantir versões atualizadas.
+> **Versões atualizadas:** Ao referenciar tecnologias específicas com versões, use o MCP context7 para consultar documentação atualizada. Primeiro chame `mcp__context7__resolve-library-id` para obter o ID da biblioteca, depois `mcp__context7__query-docs` para consultar versões e exemplos.
 
 ## Geração
 
 > **Modo de escrita:**
 > - Se o documento contém apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento já tem conteúdo real (reexecução): use **Edit** para atualizar APENAS o que mudou. Preserve conteúdo existente. Insira novo conteúdo antes dos marcadores `<!-- APPEND:... -->`.
-> - Para adicionar templates de uma feature específica sem reescrever, prefira `/blueprint-incrementar`.
+> - Para adicionar templates de uma feature específica sem reescrever, prefira `/blueprint-increment`.
 
 Preencha `docs/blueprint/17-communication.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
 - Informações explícitas do PRD
 - Fluxos de `07-critical_flows.md` para mapear eventos que geram comunicação
 - Use cases de `08-use_cases.md` para identificar todos os pontos de envio
-- Modelo de domínio de `04-domain_model.md` para definir variáveis disponíveis
+- Modelo de domínio de `04-domain-model.md` para definir variáveis disponíveis
 - Security de `13-security.md` para alinhar templates de verificação/2FA
 - Respostas do usuário (se houve perguntas)
 - Inferências lógicas quando seguro (marque com `<!-- inferido do PRD -->`)
@@ -78,4 +78,4 @@ Apresente o documento preenchido ao usuário. Aplique ajustes solicitados. Salve
 
 ## Próxima Etapa
 
-> "Comunicação documentada. O blueprint técnico está completo! Rode `/blueprint` para revisar a cobertura geral, ou `/blueprint-incrementar` para adicionar templates de novas features."
+> "Comunicação documentada. O blueprint técnico está completo! Rode `/blueprint` para revisar a cobertura geral, ou `/blueprint-increment` para adicionar templates de novas features."

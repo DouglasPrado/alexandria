@@ -1,15 +1,16 @@
 %% ============================================================
 %% Modelo de Dados (ER) — Alexandria
-%% Referência: docs/blueprint/05-data_model.md
+%% Referência: docs/blueprint/05-data-model.md
 %% ============================================================
 
 erDiagram
     clusters {
         uuid id PK "Identificador único"
-        string cluster_id UK "Hash da chave pública"
+        string cluster_id UK "SHA-256 da chave pública"
         string name "Nome do cluster familiar"
         bytea public_key "Chave pública do cluster"
         bytea encrypted_private_key "Chave privada criptografada"
+        string status "active, suspended"
         timestamp created_at "Data de criação"
         timestamp updated_at "Última atualização"
     }
@@ -19,7 +20,7 @@ erDiagram
         uuid cluster_id FK "Cluster ao qual pertence"
         string name "Nome do membro"
         string email "E-mail para identificação"
-        string role "admin, membro, leitura"
+        string role "admin, member, reader"
         uuid invited_by FK "Membro que convidou"
         timestamp joined_at "Data de ingresso"
         timestamp created_at "Data de criação"
@@ -30,14 +31,15 @@ erDiagram
         uuid id PK "Identificador único"
         uuid cluster_id FK "Cluster ao qual pertence"
         uuid owner_id FK "Membro que registrou"
-        string type "local, s3, r2, vps"
+        string type "local, s3, r2, b2, vps"
         string name "Nome descritivo do nó"
         bigint total_capacity "Espaço total em bytes"
         bigint used_capacity "Espaço usado em bytes"
-        string status "online, suspect, lost, draining"
+        string status "online, suspect, lost, draining, disconnected"
         text endpoint "URL de conexão"
         bytea config_encrypted "Credenciais criptografadas"
         timestamp last_heartbeat "Último heartbeat recebido"
+        string tier "hot, warm, cold"
         timestamp created_at "Data de criação"
         timestamp updated_at "Última atualização"
     }
@@ -47,15 +49,24 @@ erDiagram
         uuid cluster_id FK "Cluster ao qual pertence"
         uuid uploaded_by FK "Membro que fez upload"
         string original_name "Nome do arquivo original"
-        string media_type "foto, video, documento"
+        string media_type "photo, video, document"
         bigint original_size "Tamanho antes de otimização"
         bigint optimized_size "Tamanho após otimização"
         string content_hash "SHA-256 do conteúdo otimizado"
         jsonb metadata "EXIF e metadados extraídos"
-        string preview_chunk_id "Chunk ID do preview"
-        string status "processing, ready, error"
+        string status "processing, ready, error, corrupted"
         timestamp created_at "Data de criação"
         timestamp updated_at "Última atualização"
+    }
+
+    previews {
+        uuid id PK "Identificador único"
+        uuid file_id FK "Arquivo ao qual pertence"
+        string type "thumbnail, video_preview, pdf_page, generic_icon"
+        bigint size "Tamanho em bytes"
+        string format "webp, mp4, png"
+        string content_hash "SHA-256 do conteúdo do preview"
+        timestamp created_at "Data de criação"
     }
 
     manifests {
@@ -71,24 +82,41 @@ erDiagram
 
     chunks {
         string id PK "SHA-256 do conteúdo criptografado"
-        uuid file_id FK "Arquivo ao qual pertence"
-        int chunk_index "Posição dentro do arquivo"
         int size "Tamanho em bytes"
         timestamp created_at "Data de criação"
+    }
+
+    manifest_chunks {
+        uuid id PK "Identificador único"
+        uuid manifest_id FK "Manifest que referencia"
+        string chunk_id FK "Chunk referenciado"
+        int chunk_index "Posição dentro do arquivo"
     }
 
     chunk_replicas {
         uuid id PK "Identificador único"
         string chunk_id FK "Chunk replicado"
         uuid node_id FK "Nó que armazena"
+        string status "healthy, corrupted, pending"
         timestamp verified_at "Último scrubbing OK"
         timestamp created_at "Data de criação"
+    }
+
+    vaults {
+        uuid id PK "Identificador único"
+        uuid member_id FK "Membro dono (1:1)"
+        bytea vault_data "Conteúdo criptografado"
+        string encryption_algorithm "Algoritmo usado"
+        jsonb replicated_to "Lista de node_ids com cópia"
+        boolean is_admin_vault "Vault de admin (config do cluster)"
+        timestamp created_at "Data de criação"
+        timestamp updated_at "Última atualização"
     }
 
     alerts {
         uuid id PK "Identificador único"
         uuid cluster_id FK "Cluster relacionado"
-        string type "Tipo do alerta"
+        string type "node_offline, replication_low, etc."
         text message "Descrição do problema"
         string severity "info, warning, critical"
         boolean resolved "Se foi resolvido"
@@ -96,14 +124,31 @@ erDiagram
         timestamp resolved_at "Data de resolução"
     }
 
+    invites {
+        uuid id PK "Identificador único"
+        uuid cluster_id FK "Cluster alvo"
+        string email "Email do convidado"
+        string role "Role atribuída ao aceitar"
+        string token "Token assinado"
+        timestamp expires_at "Data de expiração"
+        uuid created_by FK "Admin que criou"
+        timestamp accepted_at "Data de aceite"
+        timestamp created_at "Data de criação"
+    }
+
     %% --- Relacionamentos ---
     clusters ||--o{ members : "possui"
     clusters ||--o{ nodes : "gerencia"
-    clusters ||--o{ files : "armazena"
+    clusters ||--o{ files : "contém"
     clusters ||--o{ alerts : "gera"
+    clusters ||--o{ invites : "possui"
+    members ||--|| vaults : "protege"
     members ||--o{ nodes : "registra"
     members ||--o{ files : "faz upload"
+    members ||--o{ invites : "cria"
     files ||--|| manifests : "descrito por"
-    files ||--|{ chunks : "composto por"
+    files ||--|| previews : "visualizado por"
+    manifests ||--|{ manifest_chunks : "lista"
+    manifest_chunks }|--|| chunks : "referencia"
     chunks ||--|{ chunk_replicas : "replicado em"
     nodes ||--o{ chunk_replicas : "armazena"

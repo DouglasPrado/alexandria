@@ -10,7 +10,7 @@ Voce vai preencher a secao de Casos de Uso do blueprint. Casos de uso descrevem 
 ## Leitura de Contexto
 
 1. Leia `docs/prd.md` — fonte primaria
-2. Leia `docs/blueprint/04-domain_model.md` — entidades e regras de negocio
+2. Leia `docs/blueprint/04-domain-model.md` — entidades e regras de negocio
 3. Leia `docs/blueprint/07-critical_flows.md` — fluxos ja documentados
 4. Leia `docs/blueprint/08-use_cases.md` — template a preencher
 
@@ -32,7 +32,7 @@ Se faltar clareza sobre fluxos alternativos ou excecoes, pergunte ao usuario (ma
 > **Modo de escrita:**
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
-> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-incrementar`.
+> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-increment`.
 
 Preencha `docs/blueprint/08-use_cases.md`. Para cada caso de uso:
 

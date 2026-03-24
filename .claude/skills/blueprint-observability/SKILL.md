@@ -10,7 +10,7 @@ Voce vai preencher a secao de Observabilidade do blueprint. Se voce nao consegue
 ## Leitura de Contexto
 
 1. Leia `docs/prd.md` — fonte primaria
-2. Leia `docs/blueprint/06-system_architecture.md` — componentes e stack
+2. Leia `docs/blueprint/06-system-architecture.md` — componentes e stack
 3. Leia `docs/blueprint/14-scalability.md` — metricas e thresholds de escala
 4. Leia `docs/blueprint/15-observability.md` — template a preencher
 
@@ -32,7 +32,7 @@ Se o PRD nao mencionar ferramentas de monitoramento ou politica de alertas, prop
 > **Modo de escrita:**
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
-> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-incrementar`.
+> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-increment`.
 
 Preencha `docs/blueprint/15-observability.md`:
 

@@ -11,7 +11,7 @@ Voce vai gerar o "shared kernel" do projeto — os tipos, schema e scaffold que 
 
 ## Pre-requisitos
 
-- Blueprints preenchidos (pelo menos 04-domain_model, 05-data_model, 06-system_architecture)
+- Blueprints preenchidos (pelo menos 04-domain-model, 05-data-model, 06-system-architecture)
 - CLAUDE.md gerado no projeto-alvo (via `/codegen-claudemd`)
 
 ## Passo 1: Receber o Projeto-Alvo
@@ -26,13 +26,13 @@ Aguarde a resposta.
 
 Leia os seguintes documentos **completos**:
 
-1. `docs/blueprint/04-domain_model.md` — entidades, glossario, regras de negocio
-2. `docs/blueprint/05-data_model.md` — tabelas, campos, tipos, constraints, indices
-3. `docs/blueprint/06-system_architecture.md` — stack, componentes, protocolos
+1. `docs/blueprint/04-domain-model.md` — entidades, glossario, regras de negocio
+2. `docs/blueprint/05-data-model.md` — tabelas, campos, tipos, constraints, indices
+3. `docs/blueprint/06-system-architecture.md` — stack, componentes, protocolos
 4. `docs/blueprint/02-architecture_principles.md` — principios guia
-5. `docs/frontend/02-estrutura-projeto.md` — estrutura de diretorios do frontend
+5. `docs/frontend/02-project-structure.md` — estrutura de diretorios do frontend
 
-> Ao referenciar tecnologias especificas com versoes, consulte https://context7.com/ para garantir versoes atualizadas.
+> **Versões atualizadas:** Ao referenciar tecnologias específicas com versões, use o MCP context7 para consultar documentação atualizada. Primeiro chame `mcp__context7__resolve-library-id` para obter o ID da biblioteca, depois `mcp__context7__query-docs` para consultar versões e exemplos.
 
 Se algum doc tiver mais de 50k tokens, use Context Excerpting:
 - Grep pelos headers para ver a estrutura
@@ -82,7 +82,7 @@ Aguarde confirmacao.
 
 ## Passo 4: Gerar Scaffold
 
-Crie a estrutura de diretorios conforme a arquitetura definida nos blueprints. A estrutura DEVE seguir o que esta documentado em `06-system_architecture.md` e `frontend/02-estrutura-projeto.md`.
+Crie a estrutura de diretorios conforme a arquitetura definida nos blueprints. A estrutura DEVE seguir o que esta documentado em `06-system-architecture.md` e `frontend/02-project-structure.md`.
 
 Gere na seguinte ordem:
 
@@ -121,7 +121,7 @@ src/contracts/
 
 ### 4.3: Schema do Banco
 
-Gere o schema completo baseado no `05-data_model.md`:
+Gere o schema completo baseado no `05-data-model.md`:
 - Se a stack usa Prisma: `prisma/schema.prisma`
 - Se usa Drizzle: `src/db/schema.ts`
 - Se usa TypeORM: entities com decorators

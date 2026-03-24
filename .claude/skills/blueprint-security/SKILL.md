@@ -10,8 +10,8 @@ Voce vai preencher a secao de Seguranca do blueprint. Seguranca nao e uma featur
 ## Leitura de Contexto
 
 1. Leia `docs/prd.md` — fonte primaria
-2. Leia `docs/blueprint/05-data_model.md` — dados sensiveis e persistencia
-3. Leia `docs/blueprint/06-system_architecture.md` — componentes e comunicacao
+2. Leia `docs/blueprint/05-data-model.md` — dados sensiveis e persistencia
+3. Leia `docs/blueprint/06-system-architecture.md` — componentes e comunicacao
 4. Leia `docs/blueprint/13-security.md` — template a preencher
 5. Leia `docs/diagrams/sequences/auth-flow.mmd` — template de fluxo de autenticacao
 
@@ -32,7 +32,7 @@ Se o PRD nao especificar metodo de autenticacao ou regulamentacoes aplicaveis, p
 > **Modo de escrita:**
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
-> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-incrementar`.
+> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-increment`.
 
 Preencha `docs/blueprint/13-security.md`:
 

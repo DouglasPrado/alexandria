@@ -17,9 +17,9 @@
 | Vazamento de tokens OAuth/credenciais S3/senhas do membro | Information Disclosure | Alto — acesso a buckets cloud e contas do membro | Vault criptografado individual por membro com sua senha; tokens e senhas em texto puro apenas em memória, nunca em disco; vaults replicados criptografados |
 | Comprometimento da master key | Information Disclosure | Crítico — acesso a todos os dados do cluster | Master key derivada da seed em memória; nunca persistida em disco; envelope encryption limita blast radius por file key |
 | Perda/roubo da seed phrase | Information Disclosure | Crítico — acesso total ao cluster | Seed nunca armazenada digitalmente pelo sistema; instruções claras ao admin; recovery guardians em fase futura |
-| DDoS no orquestrador (API pública) | Denial of Service | Médio — uploads e galeria indisponíveis | Rate limiting via Tower middleware; Caddy com rate limit; nós continuam servindo chunks cached localmente |
+| DDoS no orquestrador (API pública) | Denial of Service | Médio — uploads e galeria indisponíveis | Rate limiting via NestJS Guard; Caddy com rate limit; nós continuam servindo chunks cached localmente |
 | Nó malicioso enviando chunks corrompidos | Tampering | Médio — dados corrompidos se scrubbing falhar | Verificação de hash na recepção; rejeitar chunks com hash inconsistente; scrubbing periódico como segunda camada |
-| Membro com role "leitura" tenta fazer upload | Elevation of Privilege | Baixo — bypass de permissões | Verificação de role em cada endpoint (middleware Axum); role stored em JWT e validado server-side |
+| Membro com role "leitura" tenta fazer upload | Elevation of Privilege | Baixo — bypass de permissões | Verificação de role em cada endpoint (middleware NestJS); role stored em JWT e validado server-side |
 
 ---
 
@@ -43,7 +43,7 @@ O Alexandria usa autenticação em duas camadas: **membros** (pessoas) e **nós*
 5. Orquestrador emite JWT com {membro_id, cluster_id, role, exp}
 6. Web Client armazena JWT (httpOnly cookie)
 7. Todas as requests incluem JWT no header Authorization
-8. Middleware Axum valida JWT em cada request
+8. Middleware NestJS valida JWT em cada request
 ```
 
 ### Autenticação de Nós
@@ -78,7 +78,7 @@ O Alexandria usa autenticação em duas camadas: **membros** (pessoas) e **nós*
 
 - **Princípio do menor privilégio:** Novos membros entram como "leitura" por padrão; admin promove explicitamente
 - **Segregação:** Apenas admin pode gerenciar nós e membros; operações destrutivas (drain, remover membro) requerem confirmação
-- **Verificação:** Role validado em cada request via middleware Axum (extraído do JWT, verificado server-side contra banco)
+- **Verificação:** Role validado em cada request via middleware NestJS (extraído do JWT, verificado server-side contra banco)
 - **Imutabilidade:** Criador do cluster é admin permanente; não pode ser rebaixado (apenas transferir admin)
 
 ---
@@ -87,7 +87,7 @@ O Alexandria usa autenticação em duas camadas: **membros** (pessoas) e **nós*
 
 ### Dados em Trânsito
 
-- **Protocolo:** TLS 1.3 obrigatório em toda comunicação (Caddy para terminação externa; Axum com rustls para inter-nó)
+- **Protocolo:** TLS 1.3 obrigatório em toda comunicação (Caddy para terminação externa; NestJS com TLS nativo Node.js para inter-nó)
 - **Certificate Pinning:** Não na v1; Caddy usa Let's Encrypt com auto-renovação
 - **Cifras permitidas:** TLS 1.3 cipher suites (AES-256-GCM-SHA384, CHACHA20-POLY1305-SHA256)
 - **HSTS:** Habilitado via Caddy (max-age=31536000; includeSubDomains)
@@ -123,14 +123,14 @@ Checklist baseado no **OWASP Top 10** adaptado para o Alexandria.
 
 | Item | Status | Responsável | Observações |
 |------|--------|-------------|-------------|
-| Prevenção de Injection | Planejado | Douglas | SQLx com compile-time checked queries elimina SQL injection; validação de input em todos os endpoints Axum |
+| Prevenção de Injection | Planejado | Douglas | Prisma com type-safe queries elimina SQL injection; validação de input em todos os endpoints NestJS |
 | Autenticação e Sessão | Planejado | Douglas | JWT assinado com chave do cluster; expiração 24h; httpOnly cookies; sem senhas |
-| Exposição de Dados Sensíveis | Planejado | Douglas | Zero-knowledge: tudo criptografado antes do upload; sem dados sensíveis em logs (tracing com redaction) |
-| Controle de Acesso | Planejado | Douglas | RBAC com 3 roles; middleware Axum verifica role em cada endpoint; testes de autorização |
+| Exposição de Dados Sensíveis | Planejado | Douglas | Zero-knowledge: tudo criptografado antes do upload; sem dados sensíveis em logs (pino com redaction) |
+| Controle de Acesso | Planejado | Douglas | RBAC com 3 roles; middleware NestJS verifica role em cada endpoint; testes de autorização |
 | Configuração de Segurança | Planejado | Douglas | HSTS via Caddy; CORS restrito à origem do web client; TLS 1.3 only |
 | XSS | Planejado | Douglas | Next.js 16 escapa output por padrão (React); CSP header via Caddy; sem renderização de HTML user-supplied |
 | CSRF | Planejado | Douglas | SameSite=Strict em cookies; JWT em header (não cookie) para API; origin validation |
-| Dependências vulneráveis | Planejado | Douglas | `cargo audit` no CI; Dependabot para crates Rust; pin de versões major |
+| Dependências vulneráveis | Planejado | Douglas | `npm audit` no CI; Dependabot para packages npm; pin de versões major |
 
 ---
 
@@ -145,7 +145,7 @@ Checklist baseado no **OWASP Top 10** adaptado para o Alexandria.
 ### Logging de Auditoria
 
 - **Eventos auditados:** Login/logout, criação de cluster, convite de membro, registro de nó, upload de arquivo, download, drain de nó, recovery, alterações de permissão, alertas gerados/resolvidos
-- **Formato:** JSON estruturado via `tracing` crate (Rust) — timestamp, evento, ator, recurso, resultado
+- **Formato:** JSON estruturado via `pino` + `nestjs-pino` — timestamp, evento, ator, recurso, resultado
 - **Destino:** stdout (Docker logs) → agregador futuro (Grafana Loki em fase 2)
 - **Imutabilidade:** Logs em stdout são append-only por design; rotação via Docker log driver
 

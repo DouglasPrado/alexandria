@@ -1,6 +1,6 @@
 %% C4 Nivel 2: Diagrama de Containers — Alexandria
 %% Referencia: docs/blueprint/06-system_architecture.md
-%% Versões: Rust + Axum 0.8, Next.js 16, PostgreSQL 18, Redis 7
+%% Versões: NestJS, Next.js 16, PostgreSQL 18, Redis 7
 
 graph TB
     %% -------------------------------------------------------
@@ -12,7 +12,7 @@ graph TB
     %% -------------------------------------------------------
     %% Dispositivos / Nós
     %% -------------------------------------------------------
-    NodeAgent["💻 Agente de Nó<br/>Rust (Core SDK + Axum)<br/>Armazena chunks, heartbeat, scrubbing local"]
+    NodeAgent["💻 Agente de Nó<br/>NestJS (Core SDK)<br/>Armazena chunks, heartbeat, scrubbing local"]
 
     %% -------------------------------------------------------
     %% Fronteira do Sistema
@@ -22,9 +22,9 @@ graph TB
 
         WebApp["🌐 Web Client<br/>Next.js 16 (Turbopack) + React + Tailwind<br/>Upload, galeria, admin"]
 
-        API["⚙️ Orquestrador<br/>Rust + Axum 0.8 + SQLx<br/>API REST, coordenação de cluster"]
-        Workers["⚙️ Media Workers<br/>Rust + FFmpeg 7 + libvips<br/>Pipeline: resize, transcode, chunk, encrypt"]
-        Scheduler_C["⚙️ Scheduler<br/>Rust (tokio::time)<br/>Scrubbing, GC, auto-healing, rebalance"]
+        API["⚙️ Orquestrador<br/>NestJS + Prisma<br/>API REST, coordenação de cluster"]
+        Workers["⚙️ Media Workers<br/>TypeScript + FFmpeg 7 + libvips<br/>Pipeline: resize, transcode, chunk, encrypt"]
+        Scheduler_C["⚙️ Scheduler<br/>NestJS (@nestjs/schedule)<br/>Scrubbing, GC, auto-healing, rebalance"]
 
         DB[("🗄️ PostgreSQL 18<br/>Metadados: clusters, nós,<br/>arquivos, chunks, réplicas")]
         Queue["📨 Redis 7<br/>Fila de processamento<br/>+ pub/sub eventos"]
@@ -52,7 +52,7 @@ graph TB
     %% -------------------------------------------------------
     %% Backend interno
     %% -------------------------------------------------------
-    API -->|"TCP/SQL (SQLx async)"| DB
+    API -->|"TCP/SQL (Prisma)"| DB
     API -->|"TCP (enqueue jobs)"| Queue
     Queue -->|"consume jobs"| Workers
     Workers -->|"CLI"| FFmpeg_C

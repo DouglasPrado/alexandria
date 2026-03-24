@@ -35,7 +35,7 @@ Esta seção estabelece a visão de alto nível do sistema: quem o utiliza, com 
 | PostgreSQL | Driver nativo (TCP) | Banco de metadados do orquestrador: clusters, membros, nós, arquivos, chunks, manifests | Crítico; sem PostgreSQL o orquestrador não funciona |
 | Redis | Driver nativo (TCP) | Fila de processamento do pipeline de mídia e pub/sub para eventos internos | Crítico para pipeline; sem Redis, processamento de mídia para |
 | DNS Provider | DNS (UDP/TCP) | Descoberta do orquestrador pelos nós via domínio fixo; reconexão após troca de VPS | Essencial para recovery; nós usam DNS para encontrar novo orquestrador |
-| BIP-39 Wordlist | Biblioteca embarcada | Geração e validação de seed phrase de 12 palavras | Padrão criptográfico; wordlist embutida no binário |
+| BIP-39 Wordlist | Biblioteca embarcada | Geração e validação de seed phrase de 12 palavras | Padrão criptográfico; wordlist embutida no app NestJS |
 
 ---
 
@@ -84,7 +84,7 @@ Esta seção estabelece a visão de alto nível do sistema: quem o utiliza, com 
 
 | Tipo | Descrição |
 | --- | --- |
-| Técnica | Backend em Rust para performance de IO, concorrência nativa e binário único sem runtime |
+| Técnica | Backend em TypeScript/NestJS para produtividade alta, ecossistema npm maduro e deploy via container Docker |
 | Técnica | Frontend web em Next.js para SSR, galeria responsiva e deploy simples |
 | Técnica | PostgreSQL para metadados do orquestrador; Redis para filas de processamento |
 | Técnica | Monorepo com core-sdk compartilhado entre orquestrador, agentes de nó e clientes |

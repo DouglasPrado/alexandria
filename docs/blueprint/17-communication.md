@@ -285,7 +285,7 @@ Canal unico — sem fallback necessario. <!-- inferido do PRD -->
 
 | Data | Decisao | Motivo |
 | --- | --- | --- |
-| 2026-03-18 | Resend como provedor de email | API moderna, SDK Rust disponivel, free tier de 3k emails/mes suficiente para uso familiar |
+| 2026-03-18 | Resend como provedor de email | API moderna, SDK TypeScript disponivel, free tier de 3k emails/mes suficiente para uso familiar |
 | 2026-03-18 | SMS e WhatsApp nao aplicaveis | Sistema familiar de pequena escala; convites compartilhados manualmente pelo admin |
 | 2026-03-18 | Alertas por email apenas para severidade critical | Evitar excesso de notificacoes; warnings e info ficam apenas na UI |
 | 2026-03-18 | Sem email de reset de senha | Sistema usa autenticacao via tokens de convite + JWT, sem senhas tradicionais |

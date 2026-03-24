@@ -1,6 +1,6 @@
 # Data Layer
 
-Define a camada de dados do frontend: como a aplicacao se comunica com o orquestrador e nos de armazenamento, o padrao de API client, estrategias de cache e os contratos de dados que garantem type-safety entre frontend e backend. Uma data layer bem definida isola o frontend de mudancas na API e centraliza tratamento de erros.
+Define a camada de dados do frontend: como a aplicacao se comunica com o backend, o padrao de API client, estrategias de cache e os contratos de dados que garantem type-safety entre frontend e backend. Uma data layer bem definida isola o frontend de mudancas na API e centraliza tratamento de erros.
 
 ---
 
@@ -8,46 +8,97 @@ Define a camada de dados do frontend: como a aplicacao se comunica com o orquest
 
 > Existe um client centralizado para comunicacao com o backend?
 
-O Alexandria possui dois clientes de API distintos:
+<!-- do blueprint: 06-system-architecture.md + 13-security.md (JWT, TLS 1.3) -->
 
-1. **Orchestrator API Client** — comunicacao com o orquestrador central (metadata, manifests, cluster management)
-2. **Storage Client** — comunicacao direta com nos de armazenamento para upload/download de chunks criptografados
-
-### Orchestrator API Client
-
-Responsabilidades:
-- Autenticacao via token do cluster (assinado com Ed25519)
-- Headers padrao (Content-Type, X-Cluster-Id, X-Member-Id, X-Request-Id para correlacao)
-- Tratamento de erros com mapeamento de status HTTP
-- Retry automatico com backoff exponencial (embrace failure)
-- Rate limiting client-side para respeitar limites do orquestrador
+Responsabilidades do API Client:
+- Autenticacao (JWT injection via interceptor, refresh automatico em 401)
+- Headers padrao (Content-Type, Accept, X-Request-ID para correlacao)
+- Tratamento de erros (mapeamento de status HTTP → mensagens user-friendly)
+- Retry automatico (com backoff exponencial para 5xx e network errors)
+- Base URL configuration (por ambiente via env var)
+- Upload multipart com progress tracking
 
 | Configuracao | Valor |
 | --- | --- |
-| Base URL | `https://{cluster-domain}/api/v1` (DNS fixo configurado pelo admin) |
-| Timeout | 30 segundos (metadata), 120 segundos (uploads) |
-| Retry Policy | 3 tentativas, backoff exponencial (1s, 2s, 4s) |
-| Auth Header | `Authorization: Bearer <cluster-token>` (assinado Ed25519) |
-| TLS | TLS 1.3 obrigatorio (RF-053) |
+| Base URL | `NEXT_PUBLIC_API_URL` (ex.: `https://api.alexandria.local/api/v1`) |
+| Timeout | 30 segundos (requests normais), 10 minutos (upload de video) |
+| Retry Policy | 3 tentativas, backoff exponencial (1s, 2s, 4s), somente 5xx e network errors |
+| Auth Header | `Authorization: Bearer <accessToken>` via authStore |
+| Content-Type | `application/json` (default), `multipart/form-data` (upload) |
+| TLS | TLS 1.3 obrigatorio |
 
-**Localizacao:** `src/services/orchestrator-client.ts`
+**Localizacao:** `src/shared/lib/api-client.ts`
 
-### Storage Client
+<details>
+<summary>Exemplo — API Client com fetch wrapper</summary>
 
-Responsabilidades:
-- Upload/download de chunks criptografados direto para nos
-- Multipart upload para chunks de ~4MB
-- Verificacao de hash SHA-256 apos download
-- Adaptadores por tipo de no (local, S3, R2, Google Drive, Dropbox, OneDrive)
+```typescript
+// shared/lib/api-client.ts
+import { useAuthStore } from '@/shared/store/auth-store';
 
-| Configuracao | Valor |
-| --- | --- |
-| Chunk Size | ~4MB por chunk |
-| Upload paralelo | Ate 3 chunks simultaneos (configuravel) <!-- inferido do PRD --> |
-| Timeout | 120 segundos por chunk |
-| Verificacao | SHA-256 hash check apos download |
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/v1';
 
-**Localizacao:** `src/services/storage-client.ts`
+interface ApiError {
+  error: string;
+  code: string;
+  details?: Record<string, unknown>;
+}
+
+async function request<T>(
+  path: string,
+  options: RequestInit & { timeout?: number } = {}
+): Promise<T> {
+  const { timeout = 30_000, ...init } = options;
+  const token = useAuthStore.getState().accessToken;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    'X-Request-ID': crypto.randomUUID(),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...init.headers,
+  };
+
+  try {
+    const response = await fetchWithRetry(`${API_BASE}${path}`, {
+      ...init,
+      headers,
+      signal: controller.signal,
+    });
+
+    if (response.status === 401) {
+      const refreshed = await refreshToken();
+      if (refreshed) return request(path, options); // retry com novo token
+      useAuthStore.getState().logout();
+      throw new Error('SESSION_EXPIRED');
+    }
+
+    if (!response.ok) {
+      const error: ApiError = await response.json();
+      throw error;
+    }
+
+    return response.json();
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+export const apiClient = {
+  get: <T>(path: string) => request<T>(path),
+  post: <T>(path: string, body: unknown) =>
+    request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
+  put: <T>(path: string, body: unknown) =>
+    request<T>(path, { method: 'PUT', body: JSON.stringify(body) }),
+  delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  upload: <T>(path: string, formData: FormData, onProgress?: (pct: number) => void) =>
+    uploadWithProgress<T>(`${API_BASE}${path}`, formData, onProgress),
+};
+```
+
+</details>
 
 ---
 
@@ -57,98 +108,127 @@ Responsabilidades:
 
 **Ferramenta:** TanStack Query v5
 
+<!-- do blueprint: 01-architecture.md (endpoints) + 05-state.md (query keys, stale times) -->
+
 Padrao de organizacao:
 ```
 features/
   gallery/
     api/
-      gallery-api.ts         # Funcoes de API (getPhotos, getManifest)
+      files-api.ts           # Funcoes HTTP puras (getFiles, getFileById, uploadFile)
     hooks/
-      useGallery.ts          # useQuery wrapper para lista de fotos
-      useManifest.ts         # useQuery wrapper para manifest de arquivo
-      useDownloadFile.ts     # useMutation wrapper para download sob demanda
+      useFiles.ts            # useQuery wrapper com filtros e paginacao
+      useFileDetail.ts       # useQuery para detalhes de um arquivo
+      useFileDownload.ts     # useMutation para download com progress
+      useUploadFile.ts       # useMutation para upload multipart
     types/
-      gallery.types.ts       # DTOs e interfaces
+      gallery.types.ts       # DTOs e interfaces locais
 ```
 
 ### Queries (Leitura)
 
-| Hook | Endpoint | Stale Time | Descricao |
-| --- | --- | --- | --- |
-| useGallery | `GET /api/v1/files?type=photo&sort=date` | 10 min | Lista de fotos/videos com thumbnails e metadata |
-| useManifest | `GET /api/v1/files/:id/manifest` | 30 min | Manifest do arquivo (lista de chunks + hashes) |
-| useTimeline | `GET /api/v1/files/timeline?group=month` | 10 min | Fotos agrupadas por mes/ano para timeline |
-| useSearchFiles | `GET /api/v1/files/search?q=...` | 5 min | Busca por nome, data, tipo, tags, metadados |
-| useNodes | `GET /api/v1/nodes` | 30 seg | Lista de nos com status, capacidade, heartbeat |
-| useNodeDetail | `GET /api/v1/nodes/:id` | 30 seg | Detalhes do no: espaco, chunks, tier |
-| useCluster | `GET /api/v1/cluster` | 5 min | Dados do cluster: membros, permissoes, config |
-| useMembers | `GET /api/v1/cluster/members` | 5 min | Lista de membros com roles e dispositivos |
-| useClusterHealth | `GET /api/v1/health` | 30 seg | Saude: replicacao, capacidade, alertas |
-| useAlerts | `GET /api/v1/health/alerts` | 30 seg | Lista de alertas ativos (no offline, replicacao baixa) |
-| useReplicationStatus | `GET /api/v1/health/replication` | 30 seg | Porcentagem de chunks com 3+ replicas |
-| useVaultStatus | `GET /api/v1/vault/status` | 5 min | Status dos tokens OAuth (ativo/expirando/expirado) |
+| Hook | Endpoint | Stale Time | Paginacao | Feature |
+| --- | --- | --- | --- | --- |
+| useFiles | GET /files?cursor=&limit=&media_type= | 5 min | Cursor-based (infinite scroll) | gallery |
+| useFileDetail | GET /files/:id | 5 min | — | gallery |
+| useNodes | GET /nodes | 1 min | — | nodes |
+| useNodeDetail | GET /nodes/:id | 1 min | — | nodes |
+| useAlerts | GET /alerts?resolved=false&severity= | 30s | Cursor-based | health |
+| useClusterHealth | GET /cluster/health | 30s | — | health |
+| useMembers | GET /members | 5 min | — | cluster |
+| useMe | GET /members/me | 10 min | — | settings |
+| useRecoveryStatus | GET /recovery/status | 5s (polling ativo) | — | recovery |
 
 ### Mutations (Escrita)
 
-| Hook | Endpoint | Invalidates | Descricao |
-| --- | --- | --- | --- |
-| useUploadFile | `POST /api/v1/files/upload` | `['gallery']` | Upload de arquivo via pipeline completo |
-| useConfirmManifest | `POST /api/v1/files/:id/manifest` | `['manifest', id]` | Confirmar manifest apos distribuicao de chunks |
-| useDeleteFile | `DELETE /api/v1/files/:id` | `['gallery']` | Deletar arquivo e seus chunks |
-| useRegisterNode | `POST /api/v1/nodes` | `['nodes']` | Registrar novo no (local, cloud, S3) |
-| useDrainNode | `POST /api/v1/nodes/:id/drain` | `['nodes'], ['health']` | Migrar chunks antes de desconectar no |
-| useInviteMember | `POST /api/v1/cluster/invite` | `['members']` | Gerar token de convite para novo membro |
-| useUpdatePermission | `PATCH /api/v1/cluster/members/:id` | `['members']` | Atualizar permissao de membro |
-| useConnectCloud | `POST /api/v1/nodes/oauth/:provider` | `['nodes']` | Conectar conta cloud via OAuth |
-| useRefreshToken | `POST /api/v1/vault/refresh/:provider` | `['vault']` | Renovar token OAuth expirado |
-| useInitRecovery | `POST /api/v1/recovery/init` | Tudo | Iniciar recovery via seed phrase |
+| Hook | Endpoint | Invalidacoes | Optimistic? | Feature |
+| --- | --- | --- | --- | --- |
+| useUploadFile | POST /files/upload | files.all, cluster.health | Nao (progresso real via polling) | upload |
+| useCreateCluster | POST /clusters | — (redirect para seed display) | Nao | cluster |
+| useCreateInvite | POST /clusters/:id/invite | — (retorna token) | Nao | cluster |
+| useAcceptInvite | POST /invites/:token/accept | members.all | Nao | cluster |
+| useRegisterNode | POST /nodes | nodes.all, cluster.health | Nao | nodes |
+| useDrainNode | POST /nodes/:id/drain | nodes.all, cluster.health, alerts.active | Nao | nodes |
+| useResolveAlert | PATCH /alerts/:id/resolve | alerts.active, alerts.all | Sim (remove da lista otimisticamente) | health |
+| useLogin | POST /auth/login | — (seta authStore) | Nao | auth |
+| useUpdateProfile | PUT /members/me | members.me | Sim (atualiza nome otimisticamente) | settings |
+| useStartRecovery | POST /recovery/seed | recovery.status | Nao | recovery |
 
 <!-- APPEND:hooks -->
 
 <details>
-<summary>Exemplo — useGallery + useUploadFile</summary>
+<summary>Exemplo — useFiles com infinite scroll e filtros</summary>
 
 ```typescript
-// features/gallery/api/gallery-api.ts
-export const galleryApi = {
-  getPhotos: (filters: GalleryFilters) =>
-    orchestratorClient.get<PaginatedResponse<FileDTO>>('/files', { params: filters })
-      .then((res) => res.data),
-  getManifest: (fileId: string) =>
-    orchestratorClient.get<ManifestDTO>(`/files/${fileId}/manifest`)
-      .then((res) => res.data),
+// features/gallery/api/files-api.ts
+import { apiClient } from '@/shared/lib/api-client';
+import type { FileDTO, PaginatedResponse } from '@alexandria/types';
+
+export const filesApi = {
+  list: (params: { cursor?: string; limit?: number; media_type?: string; search?: string }) =>
+    apiClient.get<PaginatedResponse<FileDTO>>(
+      `/files?${new URLSearchParams(
+        Object.entries(params).filter(([, v]) => v != null).map(([k, v]) => [k, String(v)])
+      )}`
+    ),
+  getById: (id: string) => apiClient.get<FileDTO>(`/files/${id}`),
+  getPreview: (id: string) => `/files/${id}/preview`, // URL direta para <img>
+  download: (id: string) => apiClient.get<Blob>(`/files/${id}/download`),
 };
 
-// features/gallery/hooks/useGallery.ts
-export function useGallery(filters: GalleryFilters) {
-  return useQuery({
-    queryKey: ['gallery', filters],
-    queryFn: () => galleryApi.getPhotos(filters),
-    staleTime: 10 * 60 * 1000,
+// features/gallery/hooks/useFiles.ts
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { queryKeys } from '@/shared/lib/query-keys';
+import { filesApi } from '../api/files-api';
+
+export function useFiles(clusterId: string, filters: FileFilters) {
+  return useInfiniteQuery({
+    queryKey: queryKeys.files.list(clusterId, filters),
+    queryFn: ({ pageParam }) =>
+      filesApi.list({ ...filters, cursor: pageParam, limit: 30 }),
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    initialPageParam: undefined as string | undefined,
+    staleTime: 5 * 60 * 1000,
   });
 }
+```
 
+</details>
+
+<details>
+<summary>Exemplo — useUploadFile com progresso</summary>
+
+```typescript
 // features/upload/hooks/useUploadFile.ts
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '@/shared/lib/api-client';
+import { queryKeys } from '@/shared/lib/query-keys';
+import { useUploadStore } from '@/shared/store/upload-store';
+import { useAuthStore } from '@/shared/store/auth-store';
+
 export function useUploadFile() {
   const queryClient = useQueryClient();
-  const eventBus = useEventBus();
+  const clusterId = useAuthStore((s) => s.clusterId);
+  const { updateProgress, setStatus } = useUploadStore();
 
   return useMutation({
-    mutationFn: async (file: File) => {
-      // Pipeline: analyze → resize → encrypt → chunk → distribute → confirm
-      const optimized = await mediaOptimizer.process(file);
-      const encrypted = await cryptoService.encrypt(optimized);
-      const chunks = await chunker.split(encrypted);
-      const manifest = await uploadApi.distribute(chunks);
-      return uploadApi.confirmManifest(manifest);
+    mutationFn: async ({ id, file }: { id: string; file: File }) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      setStatus(id, 'uploading');
+      return apiClient.upload('/files/upload', formData, (pct) =>
+        updateProgress(id, pct, 0)
+      );
     },
-    onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ['gallery'] });
-      eventBus.emit('upload:complete', {
-        fileId: result.fileId,
-        manifestId: result.manifestId,
-        thumbnailUrl: result.thumbnailUrl,
-      });
+    onSuccess: (_, { id }) => {
+      setStatus(id, 'processing');
+      if (clusterId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.files.all(clusterId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.cluster.health(clusterId) });
+      }
+    },
+    onError: (error, { id }) => {
+      setStatus(id, 'error', error instanceof Error ? error.message : 'Upload falhou');
     },
   });
 }
@@ -162,26 +242,81 @@ export function useUploadFile() {
 
 > Como garantimos type-safety entre frontend e backend?
 
-- Cada endpoint tem um DTO (Data Transfer Object) tipado
-- Validacao em runtime com Zod para respostas da API
-- DTOs vivem em `features/xxx/types/` e modelos compartilhados em `packages/core-sdk/types/`
+<!-- do blueprint: 04-domain-model.md (entidades) + 05-data-model.md (campos) -->
+
+- Cada endpoint tem um DTO (Data Transfer Object) tipado em `@alexandria/types`
+- Validacao em runtime com Zod para respostas da API (catch malformed responses)
+- DTOs gerados manualmente a partir do modelo de dados (futuro: OpenAPI codegen)
+- DTOs vivem em `packages/types/src/` (compartilhados) e `features/xxx/types/` (locais)
+
+### DTOs de Response
 
 | DTO | Campos Principais | Validacao |
 | --- | --- | --- |
-| FileDTO | id, name, size, mimeType, thumbnailUrl, createdAt, replicas, manifestId | Zod: size > 0, mimeType enum, replicas >= 0 |
-| ManifestDTO | fileId, chunks[], totalSize, hash, signature, createdAt | Zod: chunks array nao vazio, hash hex 64 chars |
-| ChunkDTO | id, hash, size, nodeIds[], index | Zod: hash hex 64 chars, index >= 0 |
-| NodeDTO | id, type, tier, capacity, used, status, lastHeartbeat, provider | Zod: type enum, status enum, capacity > 0 |
-| MemberDTO | id, name, role, devices[], joinedAt | Zod: role enum (admin/member/readonly) |
-| ClusterDTO | id, name, membersCount, nodesCount, totalCapacity, usedCapacity | Zod: membersCount > 0 |
-| AlertDTO | id, type, severity, message, nodeId?, createdAt, resolved | Zod: severity enum (critical/warning/info) |
-| InviteDTO | token, expiresAt, role, createdBy | Zod: token string, expiresAt futuro |
-| HealthDTO | replicationPercent, totalChunks, healthyChunks, nodesOnline, nodesTotal | Zod: percentages 0-100 |
-| ExifDTO | date, gps?, camera?, lens?, resolution, orientation | Zod: date ISO, gps optional lat/lng |
+| ClusterDTO | id, clusterId, name, status, createdAt | Zod: status enum (active, suspended) |
+| MemberDTO | id, name, email, role, joinedAt | Zod: role enum (admin, member, reader), email format |
+| FileDTO | id, originalName, mediaType, originalSize, optimizedSize, contentHash, metadata, status, createdAt | Zod: mediaType enum, status enum, size > 0 |
+| PreviewDTO | id, fileId, type, size, format, contentHash | Zod: type enum, format enum |
+| NodeDTO | id, type, name, totalCapacity, usedCapacity, status, endpoint, lastHeartbeat, tier | Zod: status enum, capacity >= 0 |
+| AlertDTO | id, type, message, severity, resolved, createdAt, resolvedAt | Zod: severity enum, type enum |
+| ManifestDTO | id, fileId, chunksJson, replicatedTo, version, createdAt | Zod: chunksJson array |
+| InviteDTO | id, email, role, token, expiresAt, acceptedAt | Zod: role enum, email format |
+| ClusterHealthDTO | nodesOnline, nodesTotal, capacityUsed, capacityTotal, replicationHealthy, filesTotal, alertsActive | Zod: all numbers >= 0 |
+
+### DTOs de Request
+
+| DTO | Endpoint | Campos | Validacao |
+| --- | --- | --- | --- |
+| CreateClusterDTO | POST /clusters | name | Zod: name 3-100 chars |
+| CreateInviteDTO | POST /clusters/:id/invite | email, role | Zod: email format, role enum |
+| AcceptInviteDTO | POST /invites/:token/accept | name | Zod: name 2-100 chars |
+| RegisterNodeDTO | POST /nodes | type, name, endpoint, credentials | Zod: type enum, endpoint URL |
+| LoginDTO | POST /auth/login | email, password | Zod: email format, password min 8 |
+| UpdateProfileDTO | PUT /members/me | name, email | Zod: name 2-100, email format |
+| StartRecoveryDTO | POST /recovery/seed | seedPhrase | Zod: array de 12 strings (BIP-39) |
+
+### Respostas paginadas
+
+```typescript
+// packages/types/src/pagination.ts
+interface PaginatedResponse<T> {
+  data: T[];
+  nextCursor: string | null;  // null = ultima pagina
+  totalCount?: number;         // opcional, caro de computar
+}
+```
 
 <!-- APPEND:dtos -->
 
-> Contratos sao definidos no `packages/core-sdk/types/` e compartilhados entre web, desktop e mobile. Validacao Zod aplicada na Infrastructure Layer ao receber respostas da API.
+<details>
+<summary>Exemplo — FileDTO com Zod schema</summary>
+
+```typescript
+// packages/types/src/file.ts
+import { z } from 'zod';
+
+export const fileStatusSchema = z.enum(['processing', 'ready', 'error', 'corrupted']);
+export const mediaTypeSchema = z.enum(['photo', 'video', 'document']);
+
+export const fileDTOSchema = z.object({
+  id: z.string().uuid(),
+  originalName: z.string(),
+  mediaType: mediaTypeSchema,
+  originalSize: z.number().positive(),
+  optimizedSize: z.number().positive().nullable(),
+  contentHash: z.string().length(64).nullable(),
+  metadata: z.record(z.unknown()).nullable(),
+  status: fileStatusSchema,
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+export type FileDTO = z.infer<typeof fileDTOSchema>;
+export type FileStatus = z.infer<typeof fileStatusSchema>;
+export type MediaType = z.infer<typeof mediaTypeSchema>;
+```
+
+</details>
 
 ---
 
@@ -189,23 +324,34 @@ export function useUploadFile() {
 
 > O frontend usa uma camada BFF para agregar dados?
 
-- [ ] Nao necessario (API direta)
-- [x] Sim — Next.js Route Handlers (App Router)
-- [ ] Sim — Servico BFF separado
+- [x] Sim — Next.js Route Handlers (minimo, apenas onde necessario)
 
-O BFF via Next.js Route Handlers serve como proxy seguro entre o browser e o orquestrador, com tres responsabilidades principais:
+<!-- do blueprint: 02-architecture_principles.md (Simplicidade Operacional) + 13-security.md (JWT) -->
 
-1. **Proxy de autenticacao** — cluster token nunca exposto ao browser; Route Handler injeta token server-side
-2. **Agregacao de dados** — combina multiplas chamadas ao orquestrador em uma unica resposta para o cliente
-3. **OAuth redirect handler** — processa callbacks OAuth dos provedores cloud e encaminha tokens para o vault
+O BFF e minimo — a maioria das chamadas vai direto do browser para o Orquestrador NestJS. Route Handlers sao usados apenas quando:
+1. **Seguranca:** operacao que nao deve expor tokens/credenciais ao browser
+2. **Agregacao:** pagina precisa de dados de multiplos endpoints em uma unica chamada SSR
+3. **Proxy de preview:** servir previews sem expor URL interna do orquestrador
 
 | Rota BFF | APIs Agregadas | Proposito |
 | --- | --- | --- |
-| `GET /api/dashboard` | health + nodes + alerts + replication | Agregar dados do dashboard de saude em uma unica chamada |
-| `GET /api/gallery/[id]` | file + manifest + exif | Montar detalhes completos do arquivo para visualizacao |
-| `POST /api/upload/chunk` | orchestrator upload + storage node | Proxy de upload: recebe chunk do browser, encaminha para no destino |
-| `GET /api/oauth/callback/[provider]` | OAuth provider + vault | Processar callback OAuth, armazenar token no vault do membro |
-| `GET /api/thumbnail/[id]` | storage node | Proxy de thumbnail com cache headers (Cache-Control: max-age=86400) |
+| GET /api/gallery/[fileId] | GET /files/:id + GET /files/:id/preview | SSR da pagina de detalhe com preview pre-carregado |
+| GET /api/health/summary | GET /cluster/health + GET /alerts?resolved=false&limit=5 | SSR do dashboard com metricas + top 5 alertas |
+| GET /api/preview/[fileId] | GET /files/:id/preview (proxy) | Proxy de preview para evitar CORS e expor URL interna |
+| POST /api/auth/refresh | POST /auth/refresh | Refresh token server-side (httpOnly cookie seguro) |
+
+### Estrategia de rendering por rota
+
+| Rota | Estrategia | Justificativa |
+| --- | --- | --- |
+| /gallery | SSR + CSR (hydration) | SSR para SEO-free mas fast first paint; CSR para infinite scroll |
+| /gallery/[fileId] | SSR (dados do arquivo + preview) | Primeiro paint com preview ja visivel |
+| /health | SSR + polling CSR (30s) | Dados iniciais via SSR; atualizacao frequente via polling |
+| /nodes | SSR + CSR | Lista inicial via SSR; status atualiza via polling |
+| /upload | CSR only | Interatividade pura (drag-and-drop, progress) |
+| /login | SSR (static) | Pagina estatica, sem dados dinamicos |
+| /recovery | CSR only | Seed phrase nunca deve ser renderizada no servidor |
+| /cluster/setup | CSR only | Seed phrase gerada e exibida somente no cliente |
 
 ---
 
@@ -213,28 +359,37 @@ O BFF via Next.js Route Handlers serve como proxy seguro entre o browser e o orq
 
 > Como o cache e gerenciado em cada camada?
 
+<!-- do blueprint: 03-requirements.md (RNF latencia p95 < 500ms) + 14-scalability.md (caching) -->
+
 | Camada | Estrategia | TTL | Invalidacao |
 | --- | --- | --- | --- |
-| IndexedDB (thumbnails) | Cache persistente de thumbnails baixados | Indefinido (ate GC) | Quando arquivo e deletado do cluster |
-| Query Cache (TanStack Query) | staleTime + gcTime por dominio | 30s (health) a 30min (manifests) | invalidateQueries apos mutations e eventos |
-| BFF Cache (Next.js) | Route Handler com revalidate | 60s para dashboard, 0 para uploads | revalidateTag por dominio |
-| Browser Cache | Cache-Control headers para thumbnails | 24h para thumbnails, 1 ano para assets | ETag para thumbnails; hash no filename para assets |
-| CDN (assets estaticos) | Imutavel com hash no filename | 1 ano | Deploy com novos hashes (Turbopack) |
-| Service Worker | Precache de shell do app + runtime cache de API | Shell indefinido; API conforme TanStack Query | Atualizacao no deploy <!-- inferido do PRD --> |
-
-### Cache por dominio
-
-| Dominio | Stale Time | GC Time | Justificativa |
-| --- | --- | --- | --- |
-| gallery (lista) | 10 min | 30 min | Galeria estavel entre uploads; invalidada por upload:complete |
-| manifest | 30 min | 60 min | Manifests sao imutaveis apos criacao |
-| nodes | 30 seg | 5 min | Status de nos muda frequentemente (heartbeat) |
-| health | 30 seg | 5 min | Dashboard de saude precisa de dados recentes |
-| cluster | 5 min | 30 min | Dados de cluster mudam raramente |
-| vault | 5 min | 10 min | Status de tokens pode mudar por expiracao |
+| Browser HTTP Cache | Cache-Control headers do Orquestrador | Previews: 1 ano (imutaveis, hash no path); API: no-cache | ETag para previews; no-cache para dados dinamicos |
+| TanStack Query Cache | staleTime + gcTime por dominio | 30s (alertas) a 10min (perfil) | invalidateQueries apos mutations (ver 05-state.md) |
+| Next.js Server Cache | fetch cache em Server Components | 60s para paginas SSR (revalidate) | revalidatePath em mutations via Route Handlers |
+| Static Assets (CDN) | JS/CSS bundles com content hash | 1 ano (cache busting via hash no filename) | Deploy automatico com novos hashes |
+| Preview Images | Servidos via proxy BFF com Cache-Control | 1 ano (preview e imutavel — se arquivo muda, novo preview_id) | Imutavel — nao precisa invalidar |
 
 <!-- APPEND:cache -->
 
-> Estrategia geral: dados frequentemente atualizados (health, nodes) usam staleTime curto (30s). Dados estaveis (gallery, manifests) usam cache longo com invalidacao explicita via eventos.
+### Cache por dominio
 
-> Gerenciamento de estado e cache: (ver 05-estado.md)
+| Dominio | Stale Time | GC Time | Refetch on Focus | Polling |
+| --- | --- | --- | --- | --- |
+| files (galeria) | 5 min | 30 min | Sim | Nao |
+| files (detalhe) | 5 min | 30 min | Sim | Nao |
+| nodes | 1 min | 10 min | Sim | Nao |
+| alerts | 30s | 5 min | Sim | Nao (refetch on focus suficiente) |
+| cluster health | 30s | 5 min | Sim | Nao |
+| members | 5 min | 30 min | Sim | Nao |
+| me (perfil) | 10 min | 60 min | Nao | Nao |
+| recovery status | 5s | 1 min | Nao | Sim (polling ativo durante recovery) |
+
+### Regras de cache
+
+- **Previews sao imutaveis:** se um arquivo e reprocessado, ganha novo `preview_id`. URL antiga continua valida. Permite cache agressivo (1 ano).
+- **Dados de monitoramento (alertas, health) tem stale time curto** (30s) porque sao criticos para operacao.
+- **Dados de conteudo (files, members) tem stale time longo** (5-10min) porque mudam raramente.
+- **Recovery usa polling ativo** (5s) porque o usuario esta aguardando progresso em tempo real.
+- **Prefetch de proxima pagina** no infinite scroll da galeria: quando usuario chega a 80% do scroll, prefetch da proxima pagina.
+
+> Gerenciamento de estado e cache: (ver 05-state.md)

@@ -1,6 +1,6 @@
 ---
 name: blueprint-domain
-description: Use when filling the domain model section (04-domain_model.md) of the software blueprint. Defines ubiquitous language, entities, attributes, business rules, and relationships.
+description: Use when filling the domain model section (04-domain-model.md) of the software blueprint. Defines ubiquitous language, entities, attributes, business rules, and relationships.
 ---
 
 # Blueprint — Modelo de Dominio
@@ -12,7 +12,7 @@ Voce vai preencher a secao de Modelo de Dominio do blueprint. O modelo de domini
 1. Leia `docs/prd.md` — fonte primaria
 2. Leia `docs/blueprint/00-context.md` — atores e limites do sistema
 3. Leia `docs/blueprint/01-vision.md` — objetivos e personas
-4. Leia `docs/blueprint/04-domain_model.md` — template a preencher
+4. Leia `docs/blueprint/04-domain-model.md` — template a preencher
 
 ## Analise de Lacunas
 
@@ -29,9 +29,9 @@ Faca ate 3 perguntas ao usuario focando em regras de negocio — estas sao as ma
 > **Modo de escrita:**
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
-> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-incrementar`.
+> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-increment`.
 
-Preencha `docs/blueprint/04-domain_model.md`:
+Preencha `docs/blueprint/04-domain-model.md`:
 
 - **Glossario Ubiquo**: tabela com termos e definicoes oficiais
 - **Entidades**: para cada uma, liste atributos (campo, tipo, obrigatorio, descricao), regras de negocio e eventos de dominio

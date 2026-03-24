@@ -50,11 +50,11 @@ Para cada doc relevante:
 
 | Tipo | Docs a consultar |
 |------|-----------------|
-| CRUD de entidade | 04-domain_model (entidade), 05-data_model (tabela), 08-use_cases (UC da entidade), frontend/04-componentes |
-| Fluxo de negocio | 07-critical_flows (fluxo), 08-use_cases (UCs do fluxo), 09-state_models (estados), frontend/08-fluxos |
-| Autenticacao | 07-critical_flows (auth flow), 13-security, frontend/11-seguranca |
-| Dashboard/Relatorio | frontend/04-componentes, frontend/06-data-layer, 07-critical_flows |
-| Integracao externa | 06-system_architecture (componente), 07-critical_flows (fluxo de integracao) |
+| CRUD de entidade | 04-domain-model (entidade), 05-data-model (tabela), 08-use_cases (UC da entidade), frontend/04-components |
+| Fluxo de negocio | 07-critical_flows (fluxo), 08-use_cases (UCs do fluxo), 09-state-models (estados), frontend/08-flows |
+| Autenticacao | 07-critical_flows (auth flow), 13-security, frontend/11-security |
+| Dashboard/Relatorio | frontend/04-components, frontend/06-data-layer, 07-critical_flows |
+| Integracao externa | 06-system-architecture (componente), 07-critical_flows (fluxo de integracao) |
 
 ### 2.3: Ler Contratos Existentes
 
@@ -139,10 +139,10 @@ Implemente o codigo minimo para os testes passarem:
 - Tratamento de erros (conforme fluxos criticos)
 
 ### 5.3: Frontend
-- Componentes (conforme frontend/04-componentes)
-- Hooks de estado (conforme frontend/05-estado)
+- Componentes (conforme frontend/04-components)
+- Hooks de estado (conforme frontend/05-state)
 - Data layer/API client (conforme frontend/06-data-layer)
-- Rotas (conforme frontend/07-rotas)
+- Rotas (conforme frontend/07-routes)
 
 **Regras:**
 - Use os tipos de `src/contracts/` — NAO crie tipos locais duplicados

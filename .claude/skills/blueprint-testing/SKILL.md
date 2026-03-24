@@ -10,7 +10,7 @@ Voce vai preencher a secao de Estrategia de Testes do blueprint. Esta secao defi
 ## Leitura de Contexto
 
 1. Leia `docs/prd.md` — fonte primaria
-2. Leia `docs/blueprint/06-system_architecture.md` — componentes e stack tecnologico
+2. Leia `docs/blueprint/06-system-architecture.md` — componentes e stack tecnologico
 3. Leia `docs/blueprint/07-critical_flows.md` — fluxos criticos a cobrir com testes
 4. Leia `docs/blueprint/12-testing_strategy.md` — template a preencher
 
@@ -30,7 +30,7 @@ Se o PRD nao mencionar requisitos de cobertura ou ferramentas de teste, proponha
 > **Modo de escrita:**
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
-> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-incrementar`.
+> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-increment`.
 
 Preencha `docs/blueprint/12-testing_strategy.md`:
 

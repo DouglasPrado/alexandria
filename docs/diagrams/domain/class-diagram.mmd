@@ -1,6 +1,6 @@
 %% ============================================================
 %% Modelo de Domínio — Alexandria
-%% Referência: docs/blueprint/04-domain_model.md
+%% Referência: docs/blueprint/04-domain-model.md
 %% ============================================================
 
 classDiagram
@@ -11,105 +11,182 @@ classDiagram
         +String name
         +Bytes public_key
         +Bytes encrypted_private_key
+        +Status status
         +DateTime created_at
         +criar(seed_phrase) Cluster
         +recuperar(seed_phrase) Cluster
-        +convidarMembro(email, role) Token
+        +convidarMembro(email, role) Invite
     }
 
-    class Membro {
-        +String member_id
+    class Member {
+        +UUID member_id
         +String name
         +String email
         +Role role
+        +UUID invited_by
         +DateTime joined_at
         +aceitarConvite(token) void
-        +registrarNó(config) Nó
-        +uploadArquivo(file) Arquivo
+        +registrarNo(config) Node
+        +uploadArquivo(file) File
     }
 
-    class Nó {
-        +String node_id
-        +TipoNó type
+    class Node {
+        +UUID node_id
+        +NodeType type
         +String name
         +Long total_capacity
         +Long used_capacity
-        +StatusNó status
+        +NodeStatus status
         +String endpoint
         +Bytes config_encrypted
         +DateTime last_heartbeat
+        +Tier tier
         +receberHeartbeat() void
         +iniciarDrain() void
         +armazenarChunk(chunk) void
         +servirChunk(chunk_id) Bytes
     }
 
-    class Arquivo {
-        +String file_id
+    class File {
+        +UUID file_id
         +String original_name
-        +TipoMidia media_type
+        +MediaType media_type
         +Long original_size
         +Long optimized_size
         +String content_hash
-        +StatusArquivo status
         +JSON metadata
+        +FileStatus status
         +DateTime created_at
         +processar() void
-        +gerarPreview() Preview
+    }
+
+    class Preview {
+        +UUID preview_id
+        +UUID file_id
+        +PreviewType type
+        +Long size
+        +Format format
+        +String content_hash
+        +DateTime created_at
     }
 
     class Manifest {
-        +String manifest_id
-        +List~ChunkRef~ chunks
+        +UUID manifest_id
+        +UUID file_id
+        +JSON chunks_json
         +Bytes file_key_encrypted
         +Bytes signature
-        +List~String~ replicated_to
+        +JSON replicated_to
+        +DateTime created_at
         +validarAssinatura() Boolean
-        +replicar(nó) void
+        +replicar(node) void
     }
 
     class Chunk {
         +String chunk_id
         +Int chunk_index
         +Int size
+        +DateTime created_at
         +verificarIntegridade() Boolean
     }
 
-    class Réplica {
+    class ChunkReplica {
+        +String chunk_id
+        +UUID node_id
         +DateTime verified_at
+        +ReplicaStatus status
         +DateTime created_at
         +verificar() Boolean
     }
 
     class Vault {
-        +String member_id
+        +UUID member_id
         +Bytes vault_data
         +String encryption_algorithm
-        +List~String~ replicated_to
-        +desbloquear(senha_membro) void
+        +JSON replicated_to
+        +Boolean is_admin_vault
+        +DateTime updated_at
+        +desbloquear(senha) void
         +armazenarCredencial(key, value) void
-        +replicar(nó) void
+        +replicar(node) void
     }
 
-    class Alerta {
-        +String alert_id
-        +TipoAlerta type
+    class Alert {
+        +UUID alert_id
+        +AlertType type
         +String message
-        +Severidade severity
+        +Severity severity
         +Boolean resolved
         +DateTime created_at
         +DateTime resolved_at
         +resolver() void
     }
 
+    class Invite {
+        +UUID invite_id
+        +String email
+        +Role role
+        +String token
+        +DateTime expires_at
+        +UUID created_by
+        +DateTime accepted_at
+        +aceitar(nome) Member
+        +expirado() Boolean
+    }
+
+    %% --- Enums ---
+    class Role {
+        <<enumeration>>
+        admin
+        member
+        reader
+    }
+
+    class NodeType {
+        <<enumeration>>
+        local
+        s3
+        r2
+        b2
+        vps
+    }
+
+    class NodeStatus {
+        <<enumeration>>
+        online
+        suspect
+        lost
+        draining
+        disconnected
+    }
+
+    class MediaType {
+        <<enumeration>>
+        photo
+        video
+        document
+    }
+
+    class FileStatus {
+        <<enumeration>>
+        processing
+        ready
+        error
+        corrupted
+    }
+
     %% --- Relacionamentos ---
-    Cluster "1" --> "*" Membro : possui
-    Cluster "1" --> "*" Nó : gerencia
-    Membro "1" --> "1" Vault : protege credenciais
-    Cluster "1" --> "*" Alerta : gera
-    Membro "1" --> "*" Nó : registra
-    Membro "1" --> "*" Arquivo : faz upload
-    Arquivo "1" *-- "1" Manifest : descrito por
-    Arquivo "1" *-- "1..*" Chunk : composto por
-    Chunk "1" --> "3..*" Réplica : replicado em
-    Nó "1" --> "*" Réplica : armazena
+    Cluster "1" --> "*" Member : possui
+    Cluster "1" --> "*" Node : gerencia
+    Cluster "1" --> "*" File : contém
+    Cluster "1" --> "*" Alert : gera
+    Cluster "1" --> "*" Invite : possui
+    Member "1" --> "1" Vault : protege credenciais
+    Member "1" --> "*" Node : registra (owner)
+    Member "1" --> "*" File : faz upload
+    Member "1" --> "*" Invite : cria
+    File "1" *-- "1" Manifest : descrito por
+    File "1" *-- "1" Preview : visualizado por
+    Manifest "*" --> "*" Chunk : referencia (dedup)
+    Chunk "1" --> "3..*" ChunkReplica : replicado em
+    Node "1" --> "*" ChunkReplica : armazena

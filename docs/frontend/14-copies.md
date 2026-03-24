@@ -2,6 +2,8 @@
 
 Define todos os textos e conteudos textuais das telas do frontend — labels, placeholders, mensagens de feedback, CTAs, tooltips e empty states. Centralizar copies facilita revisao por produto/UX, garante consistencia de tom de voz e prepara o terreno para internacionalizacao (i18n).
 
+<!-- do blueprint: 08-use_cases.md + 17-communication.md + 07-routes.md + 08-flows.md -->
+
 ---
 
 ## Estrategia de Copy
@@ -11,34 +13,42 @@ Define todos os textos e conteudos textuais das telas do frontend — labels, pl
 | Aspecto | Definicao |
 | --- | --- |
 | Idioma padrao | pt-BR |
-| Suporte i18n | Sim — lib: next-intl (integrado com App Router) |
-| Estrutura de chaves | namespace.screen.element — ex: `auth.login.submitButton` |
-| Arquivos de traducao | `locales/pt-BR.json`, `locales/en-US.json` |
-| Tom de voz | Casual e amigavel — linguagem acessivel para toda a familia, incluindo avos e membros com baixo nivel tecnico |
+| Suporte i18n | Nao na v1 — preparar estrutura de chaves para i18n futuro (next-intl) |
+| Estrutura de chaves | `namespace.screen.element` — ex: `auth.login.submitButton` |
+| Arquivos de traducao | `locales/pt-BR.json` (unico por enquanto; preparado para en-US futuro) |
+| Tom de voz | Familiar e confiavel — como um membro da familia explicando algo. Direto sem ser frio, acolhedor sem ser infantil |
 | Pessoa gramatical | Voce |
-| Genero | Neutro quando possivel |
+| Genero | Neutro quando possivel (ex: "membro" em vez de "usuario") |
+
+### Tom de voz — Diretrizes
+
+| Situacao | Tom | Exemplo |
+| --- | --- | --- |
+| Sucesso | Celebrativo e breve | "Foto salva com sucesso!" |
+| Erro recuperavel | Calmo e orientador | "Nao foi possivel processar o arquivo. Tente novamente." |
+| Erro critico | Direto e urgente | "No perdido. Auto-healing iniciado." |
+| Instrucao | Claro e passo-a-passo | "Anote estas 12 palavras em papel. Esta e a unica vez." |
+| Empty state | Encorajador | "Sua galeria esta vazia. Faca seu primeiro upload!" |
+| Confirmacao destrutiva | Explicito sobre consequencias | "Tem certeza? Todos os chunks serao migrados antes da remocao." |
 
 ### Glossario do Produto
 
 > Termos do dominio que devem ser usados de forma consistente em toda a interface.
 
-| Termo | Definicao | Nao usar |
+| Termo na UI | Definicao | Nao usar |
 | --- | --- | --- |
-| Cluster | Grupo familiar que compartilha o armazenamento | Grupo, Rede, Time |
-| Membro | Pessoa dentro do cluster familiar | Usuario, Participante, Conta |
-| No | Dispositivo ou provedor cloud que armazena dados | Servidor, Storage, Disco |
-| Vault | Cofre criptografado pessoal do membro | Carteira, Cofre digital, Wallet |
-| Seed phrase | Frase de 12 palavras para recuperacao do sistema | Chave mestra, Senha mestra, Frase secreta |
-| Chunk | Fragmento criptografado de um arquivo | Pedaco, Bloco, Parte |
-| Manifest | Mapa que descreve como reconstruir um arquivo a partir dos chunks | Indice, Catalogo |
-| Galeria | Acervo de fotos e videos da familia | Biblioteca, Albuns, Midiateca |
-| Upload | Envio de arquivos para o sistema | Importacao, Carregamento |
-| Thumbnail | Miniatura de preview de uma foto ou video | Preview pequeno, Icone |
-| Tier | Classificacao de disponibilidade do no (hot/warm/cold) | Nivel, Camada |
-| Drain | Migracao de dados antes de remover um no | Esvaziamento, Transferencia |
-| Heartbeat | Sinal periodico de que um no esta online | Pulso, Ping, Status |
-| Replicacao | Copia de chunks em multiplos nos para seguranca | Backup, Espelhamento |
-| Pipeline | Processo automatizado de otimizacao de midia | Processamento, Conversao |
+| Cluster | Grupo familiar no Alexandria | Grupo, Workspace, Conta |
+| Membro | Pessoa que pertence a um cluster | Usuario, Participante, Conta |
+| No | Dispositivo ou conta cloud que armazena dados | Servidor, Storage, Drive |
+| Galeria | Tela principal com fotos, videos e documentos | Biblioteca, Acervo, Feed |
+| Upload | Envio de arquivo ao cluster | Subir, Importar |
+| Preview | Versao leve de um arquivo para visualizacao rapida | Miniatura (ok como sinonimo), Thumbnail (evitar em UI) |
+| Seed phrase | 12 palavras para recuperacao do sistema | Frase de recuperacao (ok como descricao), Senha mestra |
+| Drain | Migracao de dados antes de desconectar um no | Esvaziar, Migrar |
+| Admin | Membro com permissoes de gerenciamento | Administrador (ok em contexto formal) |
+| Alerta | Notificacao de condicao anomala no cluster | Aviso (ok para warning), Notificacao |
+| Auto-healing | Re-replicacao automatica quando um no e perdido | Reparo automatico (ok como descricao) |
+| Replicacao | Copias de dados distribuidas entre nos | Backup (evitar — nao e backup tradicional) |
 
 <!-- APPEND:glossario -->
 
@@ -46,414 +56,303 @@ Define todos os textos e conteudos textuais das telas do frontend — labels, pl
 
 ## Copies por Tela
 
-> Quais sao os textos de cada tela? Organize por rota/pagina conforme definido em 07-rotas.md.
-
-### Tela: Landing Page (`/`)
-
-| Elemento | Chave i18n | Texto Padrao | Contexto |
-| --- | --- | --- | --- |
-| Titulo hero | `landing.hero.title` | Suas memorias familiares, seguras para sempre | Heading principal da landing |
-| Subtitulo hero | `landing.hero.subtitle` | Armazene fotos e videos da familia com criptografia e redundancia. Recupere tudo com 12 palavras. | Descricao abaixo do titulo |
-| CTA principal | `landing.hero.cta` | Criar cluster familiar | Botao principal do hero |
-| CTA secundario | `landing.hero.ctaSecondary` | Ja tenho conta | Link para login |
-| Secao como funciona | `landing.howItWorks.title` | Como funciona | Titulo da secao explicativa |
-| Passo 1 | `landing.howItWorks.step1` | Crie seu cluster familiar e receba sua seed phrase de 12 palavras | Primeiro passo |
-| Passo 2 | `landing.howItWorks.step2` | Conecte dispositivos e provedores cloud como nos de armazenamento | Segundo passo |
-| Passo 3 | `landing.howItWorks.step3` | Envie fotos e videos — o sistema otimiza, criptografa e distribui automaticamente | Terceiro passo |
-
-<!-- APPEND:copies-landing -->
+> Quais sao os textos de cada tela? Organize por rota/pagina conforme definido em 07-routes.md.
 
 ### Tela: Login (`/login`)
 
-| Elemento | Chave i18n | Texto Padrao | Contexto |
+| Elemento | Chave i18n | Texto | Contexto |
 | --- | --- | --- | --- |
-| Titulo | `auth.login.title` | Entrar no Alexandria | Heading principal da pagina |
-| Placeholder nome | `auth.login.namePlaceholder` | Seu nome no cluster | Campo de identificacao do membro |
-| Placeholder senha | `auth.login.passwordPlaceholder` | Sua senha | Campo de senha |
-| Botao submit | `auth.login.submitButton` | Entrar | CTA principal |
-| Link recuperacao | `auth.login.recoveryLink` | Recuperar sistema com seed phrase | Link para /recovery |
-| Erro credenciais | `auth.login.errorInvalid` | Nome ou senha incorretos | Mensagem de erro inline |
+| Titulo | auth.login.title | Entrar no Alexandria | Heading principal |
+| Subtitulo | auth.login.subtitle | Acesse o acervo da sua familia | Descricao abaixo do titulo |
+| Label email | auth.login.emailLabel | Email | Label do campo |
+| Placeholder email | auth.login.emailPlaceholder | seu@email.com | Campo de email |
+| Label senha | auth.login.passwordLabel | Senha | Label do campo |
+| Placeholder senha | auth.login.passwordPlaceholder | Sua senha | Campo de senha |
+| Botao submit | auth.login.submitButton | Entrar | CTA principal |
+| Link recovery | auth.login.recoveryLink | Perdeu acesso? Recupere via seed phrase | Link secundario |
+| Erro credenciais | auth.login.errorInvalid | Email ou senha incorretos | Mensagem inline no form |
+| Erro rede | auth.login.errorNetwork | Nao foi possivel conectar ao servidor | Toast error |
 
 <!-- APPEND:copies-login -->
 
-### Tela: Convite (`/invite/[token]`)
+### Tela: Aceitar Convite (`/invite/:token`)
 
-| Elemento | Chave i18n | Texto Padrao | Contexto |
+| Elemento | Chave i18n | Texto | Contexto |
 | --- | --- | --- | --- |
-| Titulo | `auth.invite.title` | Voce foi convidado para o cluster familiar | Heading principal |
-| Subtitulo | `auth.invite.subtitle` | Crie sua conta para acessar fotos e videos da familia | Descricao |
-| Label nome | `auth.invite.nameLabel` | Seu nome | Campo de nome do membro |
-| Label senha | `auth.invite.passwordLabel` | Crie uma senha | Campo de senha |
-| Label confirmar senha | `auth.invite.confirmPasswordLabel` | Confirme sua senha | Campo de confirmacao |
-| Botao submit | `auth.invite.submitButton` | Aceitar convite | CTA principal |
-| Token expirado titulo | `auth.invite.expiredTitle` | Convite expirado | Titulo quando token invalido |
-| Token expirado mensagem | `auth.invite.expiredMessage` | Este convite nao e mais valido. Peca ao administrador do cluster para enviar um novo convite. | Mensagem quando token invalido |
+| Titulo | cluster.invite.title | Voce foi convidado! | Heading principal |
+| Subtitulo | cluster.invite.subtitle | {{admin_name}} convidou voce para o cluster "{{cluster_name}}" | Descricao com dados do convite |
+| Role info | cluster.invite.roleInfo | Seu acesso sera como: {{role}} | Badge com role atribuida |
+| Label nome | cluster.invite.nameLabel | Seu nome | Label do campo |
+| Placeholder nome | cluster.invite.namePlaceholder | Como quer ser chamado na familia? | Campo de nome |
+| Label senha | cluster.invite.passwordLabel | Crie uma senha | Label do campo |
+| Hint senha | cluster.invite.passwordHint | Minimo 8 caracteres. Usada para proteger seu cofre pessoal | Help text |
+| Botao submit | cluster.invite.submitButton | Aceitar convite | CTA principal |
+| Token expirado titulo | cluster.invite.expiredTitle | Convite expirado | AlertBanner |
+| Token expirado corpo | cluster.invite.expiredBody | Este convite nao e mais valido. Peca um novo convite ao admin do cluster. | Mensagem |
+| Token invalido | cluster.invite.invalidToken | Convite invalido | AlertBanner error |
 
 <!-- APPEND:copies-convite -->
 
-### Tela: Recuperacao (`/recovery`)
+### Tela: Recovery (`/recovery`)
 
-| Elemento | Chave i18n | Texto Padrao | Contexto |
+| Elemento | Chave i18n | Texto | Contexto |
 | --- | --- | --- | --- |
-| Titulo | `recovery.title` | Recuperar sistema | Heading principal |
-| Subtitulo | `recovery.subtitle` | Insira sua seed phrase de 12 palavras para recuperar o cluster | Descricao |
-| Label seed | `recovery.seedLabel` | Palavra {{n}} | Label de cada campo (1-12) |
-| Botao submit | `recovery.submitButton` | Iniciar recuperacao | CTA principal |
-| Progresso titulo | `recovery.progress.title` | Recuperando seu cluster | Titulo durante recuperacao |
-| Etapa derivando | `recovery.progress.derivingKeys` | Derivando chaves criptograficas | Status do pipeline |
-| Etapa vaults | `recovery.progress.decryptingVaults` | Descriptografando vaults dos membros | Status do pipeline |
-| Etapa nos | `recovery.progress.reconnectingNodes` | Reconectando nos de armazenamento | Status do pipeline |
-| Etapa indice | `recovery.progress.rebuildingIndex` | Reconstruindo indice de arquivos | Status do pipeline |
-| Progresso nos | `recovery.progress.nodesStatus` | Nos reconectados: {{connected}}/{{total}} | Contador de nos |
-| Progresso manifests | `recovery.progress.manifestsStatus` | Manifests recuperados: {{count}} | Contador de manifests |
-| Progresso arquivos | `recovery.progress.filesStatus` | Arquivos indexados: {{count}} | Contador de arquivos |
-| Sucesso | `recovery.success` | Cluster recuperado com sucesso | Mensagem de conclusao |
+| Titulo | recovery.title | Recuperar sistema | Heading principal |
+| Subtitulo | recovery.subtitle | Insira as 12 palavras da seed phrase para reconstruir o Alexandria | Descricao |
+| Label palavra N | recovery.wordLabel | Palavra {{n}} | Label de cada campo (1-12) |
+| Placeholder palavra | recovery.wordPlaceholder | Digite a palavra | Placeholder de cada campo |
+| Hint geral | recovery.hint | Voce pode colar todas as 12 palavras de uma vez | Help text |
+| Erro palavra invalida | recovery.invalidWord | Palavra invalida. Verifique o dicionario BIP-39 | Erro inline por campo |
+| Erro seed incorreta | recovery.wrongSeed | Seed incorreta — os dados nao puderam ser descriptografados | Toast error |
+| Botao submit | recovery.submitButton | Iniciar recovery | CTA principal |
+| Progresso titulo | recovery.progressTitle | Reconstruindo o sistema... | Heading do progress |
+| Etapa 1 | recovery.step.seed | Validando seed phrase | Progress step |
+| Etapa 2 | recovery.step.vaults | Buscando cofres dos membros | Progress step |
+| Etapa 3 | recovery.step.manifests | Escaneando nos em busca de dados | Progress step |
+| Etapa 4 | recovery.step.rebuild | Reconstruindo banco de metadados | Progress step |
+| Etapa 5 | recovery.step.nodes | Aguardando reconexao dos nos | Progress step |
+| Etapa 6 | recovery.step.integrity | Verificando integridade dos dados | Progress step |
+| Relatorio titulo | recovery.reportTitle | Recovery concluido | Heading do relatorio |
+| Relatorio arquivos | recovery.reportFiles | {{count}} arquivos recuperados | Metrica |
+| Relatorio chunks | recovery.reportChunks | {{count}} chunks pendentes de re-replicacao | Metrica |
+| Relatorio nos | recovery.reportNodes | {{connected}}/{{total}} nos reconectados | Metrica |
+| Botao concluir | recovery.completeButton | Ir para o cluster | CTA |
+| Alerta vaults | recovery.vaultsNotFound | Cofres nao encontrados. Insira credenciais S3/R2 manualmente. | AlertBanner warning |
+| Alerta manifests | recovery.manifestsNotFound | Dados nao encontrados. Recovery impossivel sem manifests. | AlertBanner critical |
 
 <!-- APPEND:copies-recovery -->
 
+### Tela: Criar Cluster (`/cluster/setup`)
+
+| Elemento | Chave i18n | Texto | Contexto |
+| --- | --- | --- | --- |
+| Titulo | cluster.setup.title | Criar seu cluster familiar | Heading principal |
+| Subtitulo | cluster.setup.subtitle | Um espaco seguro para as memorias da sua familia | Descricao |
+| Label nome | cluster.setup.nameLabel | Nome do cluster | Label do campo |
+| Placeholder nome | cluster.setup.namePlaceholder | Ex: Familia Prado | Campo de nome |
+| Label senha | cluster.setup.passwordLabel | Sua senha de admin | Label |
+| Hint senha | cluster.setup.passwordHint | Protege seu cofre pessoal. Diferente da seed phrase. | Help text |
+| Botao criar | cluster.setup.createButton | Criar cluster | CTA |
+| Seed titulo | cluster.setup.seedTitle | Sua seed phrase | Heading apos criacao |
+| Seed instrucao | cluster.setup.seedInstruction | Anote estas 12 palavras em papel e guarde em local seguro. Esta e a UNICA vez que serao exibidas. Sem elas, o sistema nao pode ser recuperado. | Instrucao critica |
+| Seed aviso | cluster.setup.seedWarning | Nao tire screenshot. Nao salve digitalmente. Anote em papel. | AlertBanner warning |
+| Checkbox confirmacao | cluster.setup.seedConfirm | Anotei a seed phrase em local seguro | Checkbox obrigatorio |
+| Botao copiar | cluster.setup.copyButton | Copiar seed phrase | CopyButton |
+| Toast copiado | cluster.setup.copiedToast | Seed copiada! Lembre-se de apagar da area de transferencia. | Toast info |
+| Botao continuar | cluster.setup.continueButton | Continuar | CTA apos confirmacao |
+
+<!-- APPEND:copies-setup -->
+
 ### Tela: Galeria (`/gallery`)
 
-| Elemento | Chave i18n | Texto Padrao | Contexto |
+| Elemento | Chave i18n | Texto | Contexto |
 | --- | --- | --- | --- |
-| Titulo | `gallery.title` | Galeria | Heading principal |
-| Busca placeholder | `gallery.searchPlaceholder` | Buscar por nome, data ou tags | Placeholder da barra de busca |
-| Filtro tipo | `gallery.filter.type` | Tipo | Label do filtro de tipo |
-| Filtro tipo foto | `gallery.filter.typePhoto` | Fotos | Opcao do filtro |
-| Filtro tipo video | `gallery.filter.typeVideo` | Videos | Opcao do filtro |
-| Filtro periodo | `gallery.filter.period` | Periodo | Label do filtro de data |
-| Filtro membro | `gallery.filter.member` | Membro | Label do filtro por membro |
-| Empty state | `gallery.empty.title` | Nenhuma memoria por aqui ainda | Titulo do empty state |
-| Empty state descricao | `gallery.empty.description` | Envie suas primeiras fotos e videos para comecar a construir o acervo da familia | Descricao do empty state |
-| Empty state CTA | `gallery.empty.cta` | Enviar fotos | Botao no empty state |
-| Busca sem resultado | `gallery.search.noResults` | Nenhum resultado para "{{termo}}" | Mensagem de busca vazia |
-| Busca sem resultado dica | `gallery.search.noResultsHint` | Tente termos diferentes ou ajuste os filtros | Dica abaixo da busca vazia |
+| Titulo | gallery.title | Galeria | Header da pagina |
+| Busca placeholder | gallery.searchPlaceholder | Buscar por nome... | SearchBar |
+| Filtro todos | gallery.filterAll | Todos | Filtro de tipo |
+| Filtro fotos | gallery.filterPhotos | Fotos | Filtro de tipo |
+| Filtro videos | gallery.filterVideos | Videos | Filtro de tipo |
+| Filtro documentos | gallery.filterDocuments | Documentos | Filtro de tipo |
+| View grid | gallery.viewGrid | Grade | Toggle de visualizacao |
+| View timeline | gallery.viewTimeline | Timeline | Toggle de visualizacao |
+| Empty titulo | gallery.emptyTitle | Sua galeria esta vazia | Empty state |
+| Empty descricao | gallery.emptyDescription | Faca seu primeiro upload para comecar a preservar as memorias da familia | Empty state |
+| Empty CTA | gallery.emptyCta | Fazer upload | Button no empty state |
+| Carregando | gallery.loading | Carregando fotos... | Skeleton state |
+| Erro titulo | gallery.errorTitle | Nao foi possivel carregar a galeria | Error state |
+| Erro CTA | gallery.errorRetry | Tentar novamente | Button no error state |
+| Sem resultados | gallery.noResults | Nenhum arquivo encontrado para "{{search}}" | Busca sem resultados |
+| Sem resultados CTA | gallery.clearFilters | Limpar filtros | Button |
 
 <!-- APPEND:copies-galeria -->
 
-### Tela: Detalhe do Arquivo (`/gallery/[fileId]`)
+### Tela: Detalhe do Arquivo (`/gallery/:fileId`)
 
-| Elemento | Chave i18n | Texto Padrao | Contexto |
+| Elemento | Chave i18n | Texto | Contexto |
 | --- | --- | --- | --- |
-| Botao baixar | `fileDetail.download` | Baixar original | Botao de download sob demanda |
-| Baixando | `fileDetail.downloading` | Reconstruindo arquivo... | Status durante download |
-| Info data | `fileDetail.info.date` | Data | Label de metadado |
-| Info tamanho | `fileDetail.info.size` | Tamanho | Label de metadado |
-| Info tipo | `fileDetail.info.type` | Tipo | Label de metadado |
-| Info replicacao | `fileDetail.info.replication` | Copias | Label de metadado |
-| Info resolucao | `fileDetail.info.resolution` | Resolucao | Label de metadado |
-| Indisponivel titulo | `fileDetail.unavailable.title` | Arquivo temporariamente indisponivel | Quando chunks nao acessiveis |
-| Indisponivel mensagem | `fileDetail.unavailable.message` | A replicacao ainda esta em andamento. Tente novamente em alguns minutos. | Descricao do erro |
-| Botao retry | `fileDetail.unavailable.retry` | Tentar novamente | CTA de retry |
+| Botao download | gallery.detail.download | Baixar arquivo | CTA principal |
+| Botao excluir | gallery.detail.delete | Excluir | Button destructive |
+| Label nome | gallery.detail.nameLabel | Nome original | Metadata |
+| Label tipo | gallery.detail.typeLabel | Tipo | Metadata |
+| Label tamanho original | gallery.detail.originalSize | Tamanho original | Metadata |
+| Label tamanho otimizado | gallery.detail.optimizedSize | Tamanho otimizado | Metadata |
+| Label data | gallery.detail.dateLabel | Data de upload | Metadata |
+| Label hash | gallery.detail.hashLabel | Hash (SHA-256) | Metadata tecnico |
+| Status processing | gallery.detail.statusProcessing | Processando... | Badge |
+| Status ready | gallery.detail.statusReady | Disponivel | Badge |
+| Status error | gallery.detail.statusError | Erro no processamento | Badge |
+| Status corrupted | gallery.detail.statusCorrupted | Corrompido | Badge |
+| Preview indisponivel | gallery.detail.previewUnavailable | Preview temporariamente indisponivel | Fallback |
+| Modal excluir titulo | gallery.detail.deleteTitle | Excluir arquivo | ConfirmDialog |
+| Modal excluir corpo | gallery.detail.deleteBody | Tem certeza que deseja excluir "{{name}}"? O arquivo sera removido de todos os nos. | ConfirmDialog |
 
-<!-- APPEND:copies-file-detail -->
+<!-- APPEND:copies-detalhe -->
 
-### Componente: Upload integrado na Galeria
+### Tela: Upload (`/upload`)
 
-> Upload nao possui tela dedicada. Os componentes de upload (UploadDropzone, UploadQueue, ProgressBar) sao exibidos dentro da galeria e via sync automatico.
-
-| Elemento | Chave i18n | Texto Padrao | Contexto |
+| Elemento | Chave i18n | Texto | Contexto |
 | --- | --- | --- | --- |
-| Dropzone titulo | `upload.dropzone.title` | Arraste arquivos aqui ou clique para selecionar | Texto da area de drag-and-drop na galeria |
-| Dropzone formatos | `upload.dropzone.formats` | Fotos, videos, documentos e outros arquivos. Ate 50MB fotos, 10GB videos, 2GB documentos | Descricao de formatos |
-| Botao selecionar | `upload.dropzone.selectButton` | Selecionar arquivos | CTA do dropzone |
-| Fila titulo | `upload.queue.title` | Fila de upload | Titulo da secao de fila (inline na galeria) |
-| Status analisando | `upload.status.analyzing` | Analisando | Badge de status |
-| Status otimizando | `upload.status.optimizing` | Otimizando | Badge de status |
-| Status preview | `upload.status.generatingPreview` | Gerando preview | Badge de status |
-| Status criptografando | `upload.status.encrypting` | Criptografando e distribuindo | Badge de status |
-| Status concluido | `upload.status.completed` | Concluido | Badge de status |
-| Status erro | `upload.status.error` | Erro no processamento | Badge de status |
-| Status pausado | `upload.status.paused` | Pausado — sem conexao | Badge de status |
-| Progresso global | `upload.progress.global` | {{completed}} de {{total}} arquivos enviados | Barra de progresso global |
+| Titulo | upload.title | Upload | Header da pagina |
+| Drop zone titulo | upload.dropTitle | Arraste arquivos aqui | FileUploader |
+| Drop zone subtitulo | upload.dropSubtitle | ou clique para selecionar | FileUploader |
+| Drop zone tipos | upload.dropTypes | Fotos, videos e documentos (max {{limit}}) | FileUploader |
+| Drop zone disabled | upload.dropDisabled | Minimo 3 nos ativos para upload | Mensagem quando < 3 nos |
+| Tipo nao suportado | upload.unsupportedType | Tipo de arquivo nao suportado: {{mimeType}} | Toast warning |
+| Arquivo grande | upload.fileTooLarge | Arquivo muito grande. Maximo: {{limit}} | Toast warning |
+| Duplicado | upload.duplicate | Arquivo ja existe no cluster. Chunks reutilizados. | Toast info |
+| Status queued | upload.statusQueued | Na fila | UploadQueue |
+| Status uploading | upload.statusUploading | Enviando... {{progress}}% | UploadQueue |
+| Status processing | upload.statusProcessing | Processando... | UploadQueue |
+| Status distributing | upload.statusDistributing | Distribuindo entre os nos... | UploadQueue |
+| Status done | upload.statusDone | Concluido | UploadQueue |
+| Status error | upload.statusError | Falhou | UploadQueue |
+| Botao retry | upload.retryButton | Tentar novamente | Button por arquivo |
+| Toast sucesso | upload.successToast | "{{name}}" processado com sucesso! | Toast success |
+| Toast erro pipeline | upload.errorToast | Falha ao processar "{{name}}": {{reason}} | Toast error |
+| Limpar concluidos | upload.clearCompleted | Limpar concluidos | Button secundario |
 
 <!-- APPEND:copies-upload -->
 
-### Tela: Documentos (`/documents`)
-
-| Elemento | Chave i18n | Texto Padrao | Contexto |
-| --- | --- | --- | --- |
-| Titulo | `documents.title` | Documentos | Heading principal |
-| Subtitulo | `documents.subtitle` | Arquivos, PDFs, planilhas e outros documentos da familia | Descricao |
-| Busca placeholder | `documents.searchPlaceholder` | Buscar por nome ou tipo | Placeholder da barra de busca |
-| Filtro tipo | `documents.filter.type` | Tipo | Label do filtro |
-| Filtro PDF | `documents.filter.pdf` | PDFs | Opcao do filtro |
-| Filtro Office | `documents.filter.office` | Office | Opcao do filtro |
-| Filtro Texto | `documents.filter.text` | Texto | Opcao do filtro |
-| Filtro Archives | `documents.filter.archives` | Arquivos compactados | Opcao do filtro |
-| Filtro Todos | `documents.filter.all` | Todos | Opcao do filtro |
-| Botao upload | `documents.uploadButton` | Enviar documento | CTA principal |
-| Coluna nome | `documents.column.name` | Nome | Label de coluna |
-| Coluna tipo | `documents.column.type` | Tipo | Label de coluna |
-| Coluna tamanho | `documents.column.size` | Tamanho | Label de coluna |
-| Coluna enviado por | `documents.column.uploadedBy` | Enviado por | Label de coluna |
-| Coluna data | `documents.column.date` | Data | Label de coluna |
-| Botao baixar | `documents.download` | Baixar | Acao no documento |
-| Empty state | `documents.empty.title` | Nenhum documento por aqui | Empty state |
-| Empty state descricao | `documents.empty.description` | Envie PDFs, planilhas, documentos e outros arquivos para manter tudo organizado e seguro | Descricao |
-| Empty state CTA | `documents.empty.cta` | Enviar primeiro documento | CTA do empty state |
-| Busca sem resultado | `documents.search.noResults` | Nenhum documento encontrado para "{{termo}}" | Busca vazia |
-
-<!-- APPEND:copies-documents -->
-
 ### Tela: Nos de Armazenamento (`/nodes`)
 
-| Elemento | Chave i18n | Texto Padrao | Contexto |
+| Elemento | Chave i18n | Texto | Contexto |
 | --- | --- | --- | --- |
-| Titulo | `nodes.title` | Nos de armazenamento | Heading principal |
-| Botao adicionar | `nodes.addButton` | Adicionar no | CTA principal |
-| Status online | `nodes.status.online` | Online | Badge de status |
-| Status offline | `nodes.status.offline` | Offline | Badge de status |
-| Status suspeito | `nodes.status.suspect` | Sem resposta | Badge de status |
-| Tier hot | `nodes.tier.hot` | Hot — sempre online | Label de tier |
-| Tier warm | `nodes.tier.warm` | Warm — frequente | Label de tier |
-| Tier cold | `nodes.tier.cold` | Cold — ocasional | Label de tier |
-| Capacidade | `nodes.capacity` | {{used}} de {{total}} usado | Barra de capacidade |
-| Ultimo heartbeat | `nodes.lastHeartbeat` | Ultimo sinal: {{time}} | Tooltip de heartbeat |
-| Empty state | `nodes.empty.title` | Nenhum no conectado | Empty state |
-| Empty state descricao | `nodes.empty.description` | Adicione dispositivos ou provedores cloud para comecar a armazenar seus dados | Descricao |
-| Empty state CTA | `nodes.empty.cta` | Adicionar primeiro no | CTA do empty state |
+| Titulo | nodes.title | Nos de armazenamento | Header da pagina |
+| Botao adicionar | nodes.addButton | Adicionar no | CTA no header |
+| Empty titulo | nodes.emptyTitle | Nenhum no registrado | Empty state |
+| Empty descricao | nodes.emptyDescription | Adicione pelo menos 3 nos para comecar a armazenar dados | Empty state |
+| Empty CTA | nodes.emptyCta | Adicionar primeiro no | Button |
+| Tipo local | nodes.typeLocal | Local (PC/NAS) | Badge de tipo |
+| Tipo s3 | nodes.typeS3 | AWS S3 | Badge de tipo |
+| Tipo r2 | nodes.typeR2 | Cloudflare R2 | Badge de tipo |
+| Tipo b2 | nodes.typeB2 | Backblaze B2 | Badge de tipo |
+| Tipo vps | nodes.typeVps | VPS | Badge de tipo |
+| Status online | nodes.statusOnline | Online | StatusDot label |
+| Status suspect | nodes.statusSuspect | Sem resposta | StatusDot label |
+| Status lost | nodes.statusLost | Perdido | StatusDot label |
+| Status draining | nodes.statusDraining | Migrando dados... | StatusDot label |
+| Capacidade | nodes.capacity | {{used}} de {{total}} usado | CapacityBar label |
 
-<!-- APPEND:copies-nodes -->
+<!-- APPEND:copies-nos -->
 
-### Tela: Adicionar No (`/nodes/add`)
+### Tela: Adicionar No (FormDialog)
 
-| Elemento | Chave i18n | Texto Padrao | Contexto |
+| Elemento | Chave i18n | Texto | Contexto |
 | --- | --- | --- | --- |
-| Titulo | `nodes.add.title` | Adicionar no de armazenamento | Heading principal |
-| Subtitulo | `nodes.add.subtitle` | Escolha o tipo de no que deseja conectar | Descricao |
-| Tipo local | `nodes.add.typeLocal` | Dispositivo local | Opcao de tipo |
-| Tipo local desc | `nodes.add.typeLocalDesc` | Computador, NAS ou HD externo | Descricao do tipo |
-| Tipo S3 | `nodes.add.typeS3` | S3 / R2 / B2 | Opcao de tipo |
-| Tipo S3 desc | `nodes.add.typeS3Desc` | Amazon S3, Cloudflare R2 ou Backblaze B2 | Descricao do tipo |
-| Tipo Google | `nodes.add.typeGoogle` | Google Drive | Opcao de tipo |
-| Tipo Dropbox | `nodes.add.typeDropbox` | Dropbox | Opcao de tipo |
-| Tipo OneDrive | `nodes.add.typeOneDrive` | OneDrive | Opcao de tipo |
-| S3 endpoint label | `nodes.add.s3Endpoint` | Endpoint | Label do formulario S3 |
-| S3 access key label | `nodes.add.s3AccessKey` | Access key | Label do formulario S3 |
-| S3 secret key label | `nodes.add.s3SecretKey` | Secret key | Label do formulario S3 |
-| S3 bucket label | `nodes.add.s3Bucket` | Nome do bucket | Label do formulario S3 |
-| Botao validar | `nodes.add.validateButton` | Validar conexao | CTA de validacao S3 |
-| Validacao sucesso | `nodes.add.validateSuccess` | Conexao validada com sucesso | Feedback de validacao |
-| Validacao erro | `nodes.add.validateError` | Nao foi possivel conectar. Verifique as credenciais. | Feedback de erro |
-| OAuth botao | `nodes.add.oauthButton` | Conectar com {{provider}} | CTA para fluxo OAuth |
-| Botao salvar | `nodes.add.saveButton` | Registrar no | CTA final |
+| Dialog titulo | nodes.add.title | Adicionar no de armazenamento | FormDialog |
+| Label tipo | nodes.add.typeLabel | Tipo de no | Select |
+| Label nome | nodes.add.nameLabel | Nome descritivo | Input |
+| Placeholder nome | nodes.add.namePlaceholder | Ex: NAS Sala, R2 Cloudflare | Input |
+| Label bucket | nodes.add.bucketLabel | Nome do bucket | Input (S3/R2/B2) |
+| Label region | nodes.add.regionLabel | Regiao | Input (S3) |
+| Label access key | nodes.add.accessKeyLabel | Access Key | Input (S3/R2/B2) |
+| Label secret key | nodes.add.secretKeyLabel | Secret Key | Input (S3/R2/B2) |
+| Label endpoint | nodes.add.endpointLabel | Endpoint | Input (Local/VPS) |
+| Botao testar | nodes.add.testButton | Testar conexao | Button secundario |
+| Teste sucesso | nodes.add.testSuccess | Conexao OK! Capacidade: {{capacity}} | Toast success |
+| Teste falha | nodes.add.testFailed | Falha na conexao: {{reason}} | Toast error |
+| Botao registrar | nodes.add.registerButton | Registrar no | CTA principal |
+| Erro credenciais | nodes.add.invalidCredentials | Credenciais invalidas. Verifique access key e secret. | FormField error |
+| Erro bucket | nodes.add.bucketNotFound | Bucket "{{name}}" nao encontrado na regiao "{{region}}" | FormField error |
 
-<!-- APPEND:copies-nodes-add -->
+<!-- APPEND:copies-adicionar-no -->
 
-### Tela: Detalhe do No (`/nodes/[nodeId]`)
+### Tela: Detalhe do No (`/nodes/:nodeId`)
 
-| Elemento | Chave i18n | Texto Padrao | Contexto |
+| Elemento | Chave i18n | Texto | Contexto |
 | --- | --- | --- | --- |
-| Capacidade titulo | `nodeDetail.capacity.title` | Capacidade | Secao de capacidade |
-| Chunks titulo | `nodeDetail.chunks.title` | Chunks armazenados | Secao de chunks |
-| Chunks total | `nodeDetail.chunks.total` | {{count}} chunks | Contador |
-| Configuracao titulo | `nodeDetail.config.title` | Configuracao | Secao de configuracao |
-| Quota label | `nodeDetail.config.quotaLabel` | Limite de armazenamento | Label de quota |
-| Tier label | `nodeDetail.config.tierLabel` | Classificacao | Label de tier |
-| Botao remover | `nodeDetail.removeButton` | Remover no | CTA destrutivo |
-| Drain titulo | `nodeDetail.drain.title` | Removendo no com seguranca | Titulo durante drain |
-| Drain descricao | `nodeDetail.drain.description` | Migrando chunks para outros nos antes da remocao. Isso pode levar alguns minutos. | Descricao durante drain |
-| Drain progresso | `nodeDetail.drain.progress` | {{migrated}} de {{total}} chunks migrados | Progresso do drain |
+| Label endpoint | nodes.detail.endpoint | Endpoint | Metadata |
+| Label tipo | nodes.detail.type | Tipo | Metadata |
+| Label capacidade | nodes.detail.capacity | Capacidade | Metadata |
+| Label ultimo heartbeat | nodes.detail.lastHeartbeat | Ultimo heartbeat | Metadata |
+| Label chunks | nodes.detail.chunks | Chunks armazenados | Metadata |
+| Botao drain | nodes.detail.drainButton | Desconectar no | Button destructive |
+| Modal drain titulo | nodes.detail.drainTitle | Desconectar "{{name}}"? | ConfirmDialog |
+| Modal drain corpo | nodes.detail.drainBody | Todos os chunks serao migrados para outros nos antes da remocao. Isso pode levar algum tempo. | ConfirmDialog |
+| Modal drain erro minimo | nodes.detail.drainMinNodes | Nao e possivel remover — minimo 3 nos necessario | Mensagem de bloqueio |
+| Drain progresso | nodes.detail.drainProgress | Migrando chunks: {{migrated}}/{{total}} | DrainProgress |
+| Drain tempo | nodes.detail.drainEta | Tempo estimado: {{time}} | DrainProgress |
+| Drain concluido | nodes.detail.drainComplete | No desconectado com sucesso | Toast success |
 
-<!-- APPEND:copies-node-detail -->
+<!-- APPEND:copies-detalhe-no -->
 
-### Tela: OAuth Callback (`/nodes/[nodeId]/oauth/callback`)
+### Tela: Saude do Cluster (`/health`)
 
-| Elemento | Chave i18n | Texto Padrao | Contexto |
+| Elemento | Chave i18n | Texto | Contexto |
 | --- | --- | --- | --- |
-| Processando | `oauth.callback.processing` | Conectando sua conta... | Mensagem durante processamento |
-| Sucesso | `oauth.callback.success` | Conta conectada com sucesso | Mensagem de sucesso |
-| Erro | `oauth.callback.error` | Nao foi possivel conectar a conta. Tente novamente. | Mensagem de erro |
+| Titulo | health.title | Saude do cluster | Header da pagina |
+| Metrica nos online | health.nodesOnline | Nos online | MetricCard label |
+| Metrica capacidade | health.capacityUsed | Espaco utilizado | MetricCard label |
+| Metrica replicacao | health.replication | Replicacao saudavel | MetricCard label |
+| Metrica arquivos | health.filesTotal | Arquivos | MetricCard label |
+| Metrica alertas | health.alertsActive | Alertas ativos | MetricCard label |
+| Alertas titulo | health.alertsTitle | Alertas | Secao |
+| Alerta sem alertas | health.noAlerts | Nenhum alerta ativo. Tudo funcionando normalmente. | Empty state |
+| Alerta node_offline | health.alert.nodeOffline | No "{{node_name}}" offline ha {{duration}} | Alert message |
+| Alerta replication_low | health.alert.replicationLow | {{count}} chunks com menos de 3 replicas | Alert message |
+| Alerta space_low | health.alert.spaceLow | No "{{node_name}}" com {{percent}}% de espaco utilizado | Alert message |
+| Alerta corruption | health.alert.corruption | {{count}} chunks corrompidos detectados | Alert message |
+| Alerta auto_healing | health.alert.autoHealing | Auto-healing concluido: {{count}} chunks re-replicados | Alert message |
+| Botao resolver | health.resolveButton | Marcar como resolvido | Button por alerta |
 
-<!-- APPEND:copies-oauth -->
+<!-- APPEND:copies-saude -->
 
-### Tela: Cluster (`/cluster`)
+### Tela: Membros (`/cluster`)
 
-| Elemento | Chave i18n | Texto Padrao | Contexto |
+| Elemento | Chave i18n | Texto | Contexto |
 | --- | --- | --- | --- |
-| Titulo | `cluster.title` | Cluster familiar | Heading principal |
-| Info cluster id | `cluster.info.clusterId` | ID do cluster | Label informativo |
-| Info criado em | `cluster.info.createdAt` | Criado em | Label informativo |
-| Info total membros | `cluster.info.totalMembers` | Membros | Label informativo |
-| Info total nos | `cluster.info.totalNodes` | Nos conectados | Label informativo |
-| Info total arquivos | `cluster.info.totalFiles` | Arquivos armazenados | Label informativo |
+| Titulo | cluster.members.title | Membros | Header da pagina |
+| Botao convidar | cluster.members.inviteButton | Convidar | CTA no header |
+| Role admin | cluster.members.roleAdmin | Admin | Badge |
+| Role member | cluster.members.roleMember | Membro | Badge |
+| Role reader | cluster.members.roleReader | Leitura | Badge |
+| Label desde | cluster.members.since | Desde {{date}} | Data de ingresso |
+| Botao remover | cluster.members.removeButton | Remover do cluster | Menu acao |
+| Modal remover titulo | cluster.members.removeTitle | Remover "{{name}}"? | ConfirmDialog |
+| Modal remover corpo | cluster.members.removeBody | O membro perdera acesso a galeria e seus dados pessoais serao removidos. | ConfirmDialog |
+| Erro ultimo admin | cluster.members.lastAdmin | Nao e possivel remover o ultimo admin do cluster | Toast error |
 
-<!-- APPEND:copies-cluster -->
+<!-- APPEND:copies-membros -->
 
-### Tela: Membros (`/cluster/members`)
+### Tela: Convidar Membro (FormDialog)
 
-| Elemento | Chave i18n | Texto Padrao | Contexto |
+| Elemento | Chave i18n | Texto | Contexto |
 | --- | --- | --- | --- |
-| Titulo | `members.title` | Membros do cluster | Heading principal |
-| Botao convidar | `members.inviteButton` | Convidar membro | CTA principal |
-| Role admin | `members.role.admin` | Administrador | Label de role |
-| Role membro | `members.role.member` | Membro | Label de role |
-| Role leitura | `members.role.readonly` | Somente leitura | Label de role |
-| Empty state | `members.empty.title` | Voce e o unico membro | Empty state |
-| Empty state descricao | `members.empty.description` | Convide sua familia para comecar a compartilhar memorias | Descricao |
-| Empty state CTA | `members.empty.cta` | Convidar primeiro membro | CTA do empty state |
+| Dialog titulo | cluster.invite.formTitle | Convidar membro | FormDialog |
+| Label email | cluster.invite.emailLabel | Email do convidado | Input |
+| Placeholder email | cluster.invite.emailPlaceholder | email@exemplo.com | Input |
+| Label role | cluster.invite.roleLabel | Nivel de acesso | Select |
+| Role member desc | cluster.invite.roleMemberDesc | Pode ver e enviar fotos | Select hint |
+| Role reader desc | cluster.invite.roleReaderDesc | Pode ver fotos, mas nao enviar | Select hint |
+| Botao gerar | cluster.invite.generateButton | Gerar convite | CTA principal |
+| Link gerado titulo | cluster.invite.linkTitle | Link de convite gerado! | Sucesso |
+| Link gerado hint | cluster.invite.linkHint | Compartilhe este link com {{email}}. Expira em 7 dias. | Instrucao |
+| Botao copiar link | cluster.invite.copyLink | Copiar link | CopyButton |
+| Toast link copiado | cluster.invite.linkCopied | Link de convite copiado! | Toast success |
+| Erro email existente | cluster.invite.emailExists | Este email ja e membro do cluster | FormField error |
 
-<!-- APPEND:copies-members -->
-
-### Tela: Detalhe do Membro (`/cluster/members/[memberId]`)
-
-| Elemento | Chave i18n | Texto Padrao | Contexto |
-| --- | --- | --- | --- |
-| Dispositivos titulo | `memberDetail.devices.title` | Dispositivos | Secao |
-| Quota titulo | `memberDetail.quota.title` | Uso de armazenamento | Secao |
-| Auditoria titulo | `memberDetail.audit.title` | Atividade recente | Secao de auditoria |
-| Alterar role | `memberDetail.changeRole` | Alterar permissao | CTA |
-| Remover membro | `memberDetail.removeButton` | Remover do cluster | CTA destrutivo |
-
-<!-- APPEND:copies-member-detail -->
-
-### Tela: Gerar Convite (`/cluster/invite`)
-
-| Elemento | Chave i18n | Texto Padrao | Contexto |
-| --- | --- | --- | --- |
-| Titulo | `invite.create.title` | Convidar novo membro | Heading principal |
-| Expiracao label | `invite.create.expirationLabel` | Validade do convite | Label do campo |
-| Expiracao 24h | `invite.create.expiration24h` | 24 horas | Opcao de expiracao |
-| Expiracao 7d | `invite.create.expiration7d` | 7 dias | Opcao de expiracao |
-| Expiracao 30d | `invite.create.expiration30d` | 30 dias | Opcao de expiracao |
-| Botao gerar | `invite.create.generateButton` | Gerar link de convite | CTA principal |
-| Link gerado titulo | `invite.create.linkTitle` | Link de convite | Titulo apos gerar |
-| Link gerado instrucao | `invite.create.linkInstruction` | Compartilhe este link com o membro da familia | Instrucao |
-| Botao copiar | `invite.create.copyButton` | Copiar link | CTA de copiar |
-| Copiado | `invite.create.copied` | Link copiado | Feedback de copia |
-
-<!-- APPEND:copies-invite -->
-
-### Tela: Dashboard de Saude (`/health`)
-
-| Elemento | Chave i18n | Texto Padrao | Contexto |
-| --- | --- | --- | --- |
-| Titulo | `health.title` | Saude do cluster | Heading principal |
-| Replicacao titulo | `health.replication.title` | Replicacao | Secao |
-| Replicacao saudavel | `health.replication.healthy` | {{percentage}}% dos chunks com 3+ copias | Status saudavel |
-| Replicacao alerta | `health.replication.warning` | {{count}} chunks com menos de 3 copias | Status de alerta |
-| Capacidade titulo | `health.capacity.title` | Capacidade total | Secao |
-| Capacidade valor | `health.capacity.value` | {{used}} de {{total}} usado | Valor de capacidade |
-| Nos titulo | `health.nodes.title` | Status dos nos | Secao |
-| Nos online | `health.nodes.online` | {{count}} online | Contador |
-| Nos offline | `health.nodes.offline` | {{count}} offline | Contador |
-| Alertas titulo | `health.alerts.title` | Alertas recentes | Secao |
-| Ver todos alertas | `health.alerts.viewAll` | Ver todos os alertas | Link para /health/alerts |
-
-<!-- APPEND:copies-health -->
-
-### Tela: Alertas (`/health/alerts`)
-
-| Elemento | Chave i18n | Texto Padrao | Contexto |
-| --- | --- | --- | --- |
-| Titulo | `alerts.title` | Alertas | Heading principal |
-| Tipo no offline | `alerts.type.nodeOffline` | No offline | Tipo de alerta |
-| Tipo replicacao | `alerts.type.lowReplication` | Replicacao abaixo do minimo | Tipo de alerta |
-| Tipo token | `alerts.type.tokenExpired` | Token OAuth expirado | Tipo de alerta |
-| Tipo capacidade | `alerts.type.capacityWarning` | Capacidade quase cheia | Tipo de alerta |
-| Empty state | `alerts.empty.title` | Nenhum alerta | Empty state |
-| Empty state descricao | `alerts.empty.description` | Tudo esta funcionando normalmente | Descricao |
-
-<!-- APPEND:copies-alerts -->
-
-### Tela: Vault (`/vault`)
-
-| Elemento | Chave i18n | Texto Padrao | Contexto |
-| --- | --- | --- | --- |
-| Titulo | `vault.title` | Seu vault | Heading principal |
-| Subtitulo | `vault.subtitle` | Credenciais e tokens armazenados com criptografia | Descricao |
-| Tokens titulo | `vault.tokens.title` | Tokens OAuth | Secao de tokens |
-| Token provedor | `vault.tokens.provider` | Provedor | Label de coluna |
-| Token status | `vault.tokens.status` | Status | Label de coluna |
-| Token ativo | `vault.tokens.active` | Ativo | Badge de status |
-| Token expirado | `vault.tokens.expired` | Expirado — reconectar | Badge de status |
-| Botao reconectar | `vault.tokens.reconnectButton` | Reconectar | CTA de reconexao |
-| Empty state | `vault.empty.title` | Nenhuma credencial armazenada | Empty state |
-| Empty state descricao | `vault.empty.description` | Tokens OAuth e credenciais de nos aparecerao aqui quando voce conectar provedores | Descricao |
-| Token conectado em | `vault.tokens.connectedAt` | Conectado em | Label de coluna |
-| Token acao | `vault.tokens.action` | Acao | Label de coluna |
-| Token expirando | `vault.tokens.expiring` | Expira em {{days}}d | Badge de status warning |
-| Banner token expirando | `vault.tokens.expiringBanner` | O token do {{provider}} expira em {{days}} dias. Reconecte sua conta para evitar interrupcao. | Banner de warning |
-| Banner CTA | `vault.tokens.expiringBannerCta` | Reconectar agora | CTA do banner |
-| Modal reconectar titulo | `vault.reconnect.title` | Reconectar {{provider}} | Titulo do modal |
-| Modal reconectar descricao | `vault.reconnect.description` | O token OAuth do {{provider}} expirou. Para continuar usando este no de armazenamento, voce precisa autorizar o acesso novamente. | Descricao do modal |
-| Modal reconectar info | `vault.reconnect.info` | Voce sera redirecionado para o {{provider}} para autorizar o acesso. O novo token sera armazenado no seu vault. | Info box do modal |
-| Modal reconectar CTA | `vault.reconnect.cta` | Conectar com {{provider}} | CTA do modal |
-| Credenciais titulo | `vault.credentials.title` | Credenciais de nos | Secao de credenciais |
-| Credenciais contagem | `vault.credentials.count` | {{count}} credencial armazenada | Contador |
-| Credencial validada | `vault.credentials.validated` | Validada | Badge de status |
-| Credencial access key | `vault.credentials.accessKey` | Access Key: {{masked}} | Exibicao mascarada |
-| Senhas titulo | `vault.passwords.title` | Senhas pessoais | Secao de senhas |
-| Senhas botao adicionar | `vault.passwords.addButton` | Adicionar senha | CTA |
-| Senha mascara | `vault.passwords.masked` | ************ | Senha mascarada |
-| Senha atualizado em | `vault.passwords.updatedAt` | Atualizado em {{date}} | Data de atualizacao |
-| Modal adicionar titulo | `vault.addPassword.title` | Adicionar senha | Titulo do modal |
-| Modal adicionar descricao | `vault.addPassword.description` | A senha sera criptografada e armazenada no seu vault pessoal. | Descricao do modal |
-| Modal adicionar label titulo | `vault.addPassword.titleLabel` | Titulo | Label do campo |
-| Modal adicionar label usuario | `vault.addPassword.usernameLabel` | Usuario ou email | Label do campo |
-| Modal adicionar label senha | `vault.addPassword.passwordLabel` | Senha | Label do campo |
-| Modal adicionar label notas | `vault.addPassword.notesLabel` | Notas | Label do campo |
-| Modal adicionar notas opcional | `vault.addPassword.notesOptional` | (opcional) | Indicador |
-| Modal adicionar placeholder notas | `vault.addPassword.notesPlaceholder` | Anotacoes sobre esta senha... | Placeholder |
-| Modal adicionar CTA | `vault.addPassword.submitButton` | Salvar no vault | CTA do modal |
-| Nota seguranca | `vault.securityNote` | Todas as credenciais e senhas sao armazenadas com criptografia AES-256-GCM no seu vault pessoal. Apenas voce pode acessa-las com sua senha. | Info box |
-
-<!-- APPEND:copies-vault -->
+<!-- APPEND:copies-convidar -->
 
 ### Tela: Configuracoes (`/settings`)
 
-| Elemento | Chave i18n | Texto Padrao | Contexto |
+| Elemento | Chave i18n | Texto | Contexto |
 | --- | --- | --- | --- |
-| Titulo | `settings.title` | Configuracoes | Heading principal |
-| Secao perfil | `settings.profile.title` | Perfil | Titulo da secao |
-| Nome label | `settings.profile.nameLabel` | Nome | Label do campo |
-| Senha label | `settings.profile.passwordLabel` | Alterar senha | Label do campo |
-| Secao aparencia | `settings.appearance.title` | Aparencia | Titulo da secao |
-| Tema label | `settings.appearance.themeLabel` | Tema | Label do campo |
-| Tema claro | `settings.appearance.themeLight` | Claro | Opcao |
-| Tema escuro | `settings.appearance.themeDark` | Escuro | Opcao |
-| Tema sistema | `settings.appearance.themeSystem` | Automatico (sistema) | Opcao |
-| Secao notificacoes | `settings.notifications.title` | Notificacoes | Titulo da secao |
-| Notif alertas | `settings.notifications.alerts` | Alertas de saude do cluster | Toggle |
-| Notif upload | `settings.notifications.upload` | Upload concluido | Toggle |
-| Botao salvar | `settings.saveButton` | Salvar configuracoes | CTA principal |
+| Titulo | settings.title | Configuracoes | Header da pagina |
+| Tab perfil | settings.tabProfile | Perfil | Tab |
+| Tab vault | settings.tabVault | Cofre | Tab |
+| Tab preferencias | settings.tabPreferences | Preferencias | Tab |
+| Label nome | settings.nameLabel | Nome | Input |
+| Label email | settings.emailLabel | Email | Input |
+| Botao salvar | settings.saveButton | Salvar alteracoes | CTA |
+| Toast salvo | settings.savedToast | Perfil atualizado com sucesso | Toast success |
+| Vault titulo | settings.vaultTitle | Cofre criptografado | Secao |
+| Vault descricao | settings.vaultDescription | Suas credenciais e tokens sao armazenados aqui de forma criptografada | Descricao |
+| Tema label | settings.themeLabel | Tema | Preferencia |
+| Tema light | settings.themeLight | Claro | Opcao |
+| Tema dark | settings.themeDark | Escuro | Opcao |
+| Tema system | settings.themeSystem | Sistema | Opcao |
 
-<!-- APPEND:copies-settings -->
-
-### Tela: Seed Phrase (`/recovery/seed`) — Admin
-
-| Elemento | Chave i18n | Texto Padrao | Contexto |
-| --- | --- | --- | --- |
-| Titulo | `seed.title` | Sua seed phrase | Heading principal |
-| Aviso | `seed.warning` | Anote estas 12 palavras em um lugar seguro. Elas sao a unica forma de recuperar o sistema em caso de perda total. Nunca compartilhe online. | Alerta de seguranca |
-| Confirmar senha label | `seed.confirmPasswordLabel` | Confirme sua senha para visualizar | Label de re-autenticacao |
-| Botao revelar | `seed.revealButton` | Revelar seed phrase | CTA |
-| Botao copiar | `seed.copyButton` | Copiar para area de transferencia | CTA secundario |
-| Copiado | `seed.copied` | Copiado — guarde em local seguro | Feedback |
-
-<!-- APPEND:copies-seed -->
-
-### Tela: Onboarding — Criacao de Cluster <!-- inferido do PRD -->
-
-| Elemento | Chave i18n | Texto Padrao | Contexto |
-| --- | --- | --- | --- |
-| Wizard titulo | `onboarding.title` | Criar cluster familiar | Titulo do wizard |
-| Step 1 titulo | `onboarding.step1.title` | Seu cluster esta sendo criado | Geracao de chaves |
-| Step 1 descricao | `onboarding.step1.description` | Estamos gerando as chaves criptograficas do seu cluster | Descricao |
-| Step 2 titulo | `onboarding.step2.title` | Anote sua seed phrase | Exibicao da seed |
-| Step 2 descricao | `onboarding.step2.description` | Estas 12 palavras sao a unica forma de recuperar o sistema. Anote em papel e guarde em local seguro. | Instrucao de seguranca |
-| Step 2 checkbox | `onboarding.step2.confirmCheckbox` | Eu anotei minha seed phrase em um lugar seguro | Checkbox obrigatorio |
-| Step 3 titulo | `onboarding.step3.title` | Confirme sua seed phrase | Verificacao |
-| Step 3 descricao | `onboarding.step3.description` | Digite as palavras {{pos1}}, {{pos2}} e {{pos3}} da sua seed phrase | Instrucao de verificacao |
-| Step 4 titulo | `onboarding.step4.title` | Crie seu vault pessoal | Criacao de vault |
-| Step 4 nome label | `onboarding.step4.nameLabel` | Seu nome | Campo de nome |
-| Step 4 senha label | `onboarding.step4.passwordLabel` | Crie uma senha | Campo de senha |
-| Step 4 confirmar label | `onboarding.step4.confirmLabel` | Confirme sua senha | Campo de confirmacao |
-| Botao avancar | `onboarding.nextButton` | Continuar | CTA de proximo passo |
-| Botao concluir | `onboarding.finishButton` | Criar cluster | CTA final |
-| Sucesso | `onboarding.success` | Cluster criado com sucesso! Bem-vindo ao Alexandria. | Mensagem de conclusao |
-
-<!-- APPEND:copies-onboarding -->
+<!-- APPEND:copies-configuracoes -->
 
 <!-- APPEND:copies-telas -->
 
@@ -467,17 +366,18 @@ Define todos os textos e conteudos textuais das telas do frontend — labels, pl
 
 | Chave i18n | Texto | Onde aparece |
 | --- | --- | --- |
-| `feedback.success.clusterCreated` | Cluster familiar criado com sucesso | Toast apos criar cluster |
-| `feedback.success.memberInvited` | Convite gerado com sucesso | Toast apos gerar convite |
-| `feedback.success.inviteAccepted` | Bem-vindo ao cluster familiar! | Toast apos aceitar convite |
-| `feedback.success.nodeAdded` | No registrado e conectado | Toast apos adicionar no |
-| `feedback.success.nodeRemoved` | No removido com sucesso | Toast apos drain e remocao |
-| `feedback.success.uploadCompleted` | {{count}} arquivo(s) enviado(s) com sucesso | Toast apos uploads concluidos |
-| `feedback.success.settingsSaved` | Configuracoes salvas | Toast apos salvar settings |
-| `feedback.success.passwordChanged` | Senha alterada com sucesso | Toast apos alterar senha |
-| `feedback.success.roleChanged` | Permissao do membro alterada | Toast apos alterar role |
-| `feedback.success.recoveryCompleted` | Cluster recuperado com sucesso | Toast apos recovery |
-| `feedback.success.oauthConnected` | Conta {{provider}} conectada | Toast apos OAuth |
+| feedback.success.clusterCreated | Cluster criado com sucesso! | Toast apos criar cluster |
+| feedback.success.fileUploaded | "{{name}}" processado com sucesso! | Toast apos pipeline ready |
+| feedback.success.fileDeleted | Arquivo removido | Toast apos deletar |
+| feedback.success.nodeRegistered | No "{{name}}" registrado com sucesso | Toast apos registrar no |
+| feedback.success.nodeDrained | No desconectado com sucesso | Toast apos drain completo |
+| feedback.success.inviteCreated | Convite gerado! Copie o link para enviar. | Toast apos gerar convite |
+| feedback.success.inviteAccepted | Bem-vindo ao cluster! | Toast apos aceitar convite |
+| feedback.success.alertResolved | Alerta resolvido | Toast apos resolver alerta |
+| feedback.success.profileSaved | Perfil atualizado com sucesso | Toast apos salvar perfil |
+| feedback.success.recoveryComplete | Recovery concluido! Sistema restaurado. | Toast apos recovery |
+| feedback.success.seedCopied | Seed copiada! Lembre-se de apagar da area de transferencia. | Toast info apos copiar seed |
+| feedback.success.linkCopied | Link copiado! | Toast info apos copiar link/hash |
 
 <!-- APPEND:feedback-sucesso -->
 
@@ -485,25 +385,23 @@ Define todos os textos e conteudos textuais das telas do frontend — labels, pl
 
 | Chave i18n | Texto | Onde aparece |
 | --- | --- | --- |
-| `feedback.error.generic` | Algo deu errado. Tente novamente. | Fallback generico |
-| `feedback.error.network` | Sem conexao com o servidor. Verifique sua internet. | Erro de rede |
-| `feedback.error.unauthorized` | Sessao expirada. Faca login novamente. | 401 |
-| `feedback.error.forbidden` | Voce nao tem permissao para esta acao. | 403 |
-| `feedback.error.notFound` | Recurso nao encontrado. | 404 |
-| `feedback.error.invalidCredentials` | Nome ou senha incorretos. | Erro de login |
-| `feedback.error.invalidSeed` | Seed phrase invalida. Verifique as palavras digitadas. | Erro de recovery |
-| `feedback.error.seedNoCluster` | Nenhum cluster encontrado para esta seed phrase. Verifique se os nos estao acessiveis. | Cluster nao encontrado |
-| `feedback.error.inviteExpired` | Este convite expirou. Peca um novo ao administrador. | Token expirado |
-| `feedback.error.s3InvalidCredentials` | Nao foi possivel conectar. Verifique as credenciais e o endpoint. | Validacao S3 |
-| `feedback.error.oauthDenied` | Voce nao autorizou o acesso. Tente novamente se quiser conectar. | OAuth negado |
-| `feedback.error.oauthFailed` | Erro ao conectar a conta. Tente novamente. | OAuth falha |
-| `feedback.error.uploadFormat` | Formato nao suportado. Use JPEG, PNG, HEIC, MP4 ou MOV. | Validacao de arquivo |
-| `feedback.error.uploadFailed` | Erro ao enviar "{{filename}}". Tente novamente. | Falha de upload |
-| `feedback.error.pipelineFailed` | Erro ao processar "{{filename}}". O arquivo pode estar corrompido. | Falha de pipeline |
-| `feedback.error.downloadFailed` | Arquivo temporariamente indisponivel. A replicacao pode estar em andamento. | Falha de download |
-| `feedback.error.drainFailed` | Nao foi possivel migrar todos os chunks. Adicione mais nos antes de remover este. | Falha de drain |
-| `feedback.error.vaultCreationFailed` | Erro ao criar seu vault. Tente novamente. | Falha na criacao do vault |
-| `feedback.error.serverOffline` | O servidor esta indisponivel. Verifique sua conexao. | Servidor offline |
+| feedback.error.generic | Algo deu errado. Tente novamente. | Fallback generico |
+| feedback.error.network | Sem conexao com o servidor. Verifique sua internet. | Erro de rede (fetch failed) |
+| feedback.error.unauthorized | Sessao expirada. Faca login novamente. | Response 401 |
+| feedback.error.forbidden | Voce nao tem permissao para esta acao. | Response 403 |
+| feedback.error.notFound | Recurso nao encontrado. | Response 404 |
+| feedback.error.conflict | Este recurso ja existe. | Response 409 |
+| feedback.error.tooManyRequests | Muitas tentativas. Aguarde {{seconds}} segundos. | Response 429 |
+| feedback.error.serverError | Erro no servidor. Tente novamente em alguns minutos. | Response 5xx |
+| feedback.error.uploadFailed | Falha no upload de "{{name}}". | Upload interrompido |
+| feedback.error.pipelineFailed | Falha ao processar "{{name}}": {{reason}} | Pipeline error |
+| feedback.error.insufficientNodes | Nos insuficientes para garantir replicacao minima (3 nos) | Upload bloqueado |
+| feedback.error.seedInvalid | Seed incorreta — os dados nao puderam ser descriptografados | Recovery falhou |
+| feedback.error.inviteExpired | Este convite expirou. Peca um novo ao admin. | Token expirado |
+| feedback.error.inviteInvalid | Convite invalido. | Token com assinatura invalida |
+| feedback.error.emailExists | Este email ja e membro do cluster. | Convite com email existente |
+| feedback.error.lastAdmin | Nao e possivel remover o ultimo admin do cluster. | Tentativa de remover ultimo admin |
+| feedback.error.drainMinNodes | Nao e possivel desconectar — minimo 3 nos necessario. | Drain bloqueado |
 
 <!-- APPEND:feedback-erro -->
 
@@ -511,16 +409,15 @@ Define todos os textos e conteudos textuais das telas do frontend — labels, pl
 
 | Chave i18n | Texto | Quando aparece |
 | --- | --- | --- |
-| `validation.required` | Campo obrigatorio | Campo vazio no submit |
-| `validation.minLength` | Minimo de {{min}} caracteres | Texto curto demais |
-| `validation.maxLength` | Maximo de {{max}} caracteres | Texto longo demais |
-| `validation.passwordMismatch` | As senhas nao coincidem | Confirmacao de senha |
-| `validation.passwordWeak` | A senha deve ter pelo menos 8 caracteres | Senha fraca |
-| `validation.seedWordInvalid` | "{{word}}" nao faz parte da lista de palavras validas | Palavra fora do wordlist BIP-39 |
-| `validation.seedIncomplete` | Preencha todas as 12 palavras | Seed incompleta |
-| `validation.seedVerificationFailed` | As palavras nao correspondem a sua seed phrase | Verificacao de seed falhou |
-| `validation.urlInvalid` | URL invalida | Formato de endpoint invalido |
-| `validation.nameRequired` | Informe seu nome | Nome vazio |
+| validation.required | Campo obrigatorio | Campo vazio no submit |
+| validation.email | Email invalido | Formato de email incorreto |
+| validation.minLength | Minimo de {{min}} caracteres | Texto curto demais |
+| validation.maxLength | Maximo de {{max}} caracteres | Texto longo demais |
+| validation.passwordMin | Senha deve ter no minimo 8 caracteres | Senha curta |
+| validation.seedWord | Palavra invalida. Verifique o dicionario BIP-39 | Palavra fora do wordlist |
+| validation.clusterName | Nome do cluster deve ter entre 3 e 100 caracteres | Nome invalido |
+| validation.nodeName | Nome do no deve ter entre 3 e 100 caracteres | Nome invalido |
+| validation.url | URL invalida | Endpoint de no invalido |
 
 <!-- APPEND:feedback-validacao -->
 
@@ -528,18 +425,15 @@ Define todos os textos e conteudos textuais das telas do frontend — labels, pl
 
 | Chave i18n | Texto | Onde aparece |
 | --- | --- | --- |
-| `feedback.warning.unsavedChanges` | Voce tem alteracoes nao salvas. Deseja sair? | Modal ao navegar |
-| `feedback.warning.nodeOffline` | O no "{{nodeName}}" esta offline desde {{time}} | Banner de alerta |
-| `feedback.warning.lowReplication` | {{count}} chunks com menos de 3 copias. Adicione mais nos para melhorar a seguranca. | Banner no health dashboard |
-| `feedback.warning.tokenExpiring` | O token do {{provider}} expira em breve. Reconecte sua conta. | Banner de aviso |
-| `feedback.warning.capacityHigh` | O no "{{nodeName}}" esta com {{percentage}}% da capacidade. Considere adicionar mais espaco. | Banner de aviso |
-| `feedback.warning.drainConfirm` | Ao remover este no, todos os chunks serao migrados. Isso pode demorar. Deseja continuar? | Modal de confirmacao |
-| `feedback.warning.removeMemberConfirm` | Remover "{{memberName}}" do cluster? O membro perdera acesso a galeria e uploads. | Modal de confirmacao |
-| `feedback.info.loading` | Carregando... | Estado de loading |
-| `feedback.info.noResults` | Nenhum resultado encontrado | Busca sem resultados |
-| `feedback.info.syncInProgress` | Sincronizando arquivos... | Indicador de sync |
-| `feedback.info.replicationPending` | Replicacao em andamento | Badge de replicacao |
-| `feedback.info.recoveryBanner` | Alguns arquivos podem nao estar indexados. Verifique nos offline. | Banner pos-recovery |
+| feedback.info.loading | Carregando... | Estado de loading generico |
+| feedback.info.processing | Processando... | Pipeline em andamento |
+| feedback.info.noResults | Nenhum resultado para "{{search}}" | Busca sem resultados |
+| feedback.warning.seedOnce | Esta e a UNICA vez que a seed sera exibida | AlertBanner no setup |
+| feedback.warning.seedNoScreenshot | Nao tire screenshot. Anote em papel. | AlertBanner warning |
+| feedback.warning.nodeDisconnecting | Migracao de dados em andamento. Nao desligue o no. | AlertBanner durante drain |
+| feedback.warning.lowSpace | Espaco de armazenamento baixo. Considere adicionar mais nos. | AlertBanner warning |
+| feedback.info.autoHealing | Auto-healing em andamento. Seus dados estao sendo protegidos. | AlertBanner info |
+| feedback.info.recoveryInProgress | Recovery em andamento. Isso pode levar ate 2 horas. | AlertBanner info |
 
 <!-- APPEND:feedback-aviso -->
 
@@ -549,82 +443,64 @@ Define todos os textos e conteudos textuais das telas do frontend — labels, pl
 
 > Copies de elementos compartilhados entre todas as telas.
 
-### Navbar
-
-| Elemento | Chave i18n | Texto Padrao |
-| --- | --- | --- |
-| Logo alt | `global.navbar.logoAlt` | Alexandria — armazenamento familiar |
-| Link login | `global.navbar.login` | Entrar |
-| Link sobre | `global.navbar.about` | Sobre |
-
-<!-- APPEND:copies-navbar -->
-
 ### Sidebar
 
-| Elemento | Chave i18n | Texto Padrao |
+| Elemento | Chave i18n | Texto |
 | --- | --- | --- |
-| Galeria | `global.sidebar.gallery` | Galeria |
-| Documentos | `global.sidebar.documents` | Documentos |
-| Nos | `global.sidebar.nodes` | Nos |
-| Saude | `global.sidebar.health` | Saude |
-| Saude badge | `global.sidebar.healthBadge` | {{count}} alertas |
-| Vault | `global.sidebar.vault` | Vault |
-| Cluster | `global.sidebar.cluster` | Cluster |
-| Configuracoes | `global.sidebar.settings` | Configuracoes |
-| Sair | `global.sidebar.logout` | Sair |
+| Item galeria | global.sidebar.gallery | Galeria |
+| Item upload | global.sidebar.upload | Upload |
+| Item nos | global.sidebar.nodes | Nos |
+| Item saude | global.sidebar.health | Saude |
+| Item membros | global.sidebar.members | Membros |
+| Item configuracoes | global.sidebar.settings | Configuracoes |
+| Tooltip collapse | global.sidebar.collapse | Recolher menu |
+| Tooltip expand | global.sidebar.expand | Expandir menu |
 
 <!-- APPEND:copies-sidebar -->
 
-### Footer
+### Header
 
-| Elemento | Chave i18n | Texto Padrao |
+| Elemento | Chave i18n | Texto |
 | --- | --- | --- |
-| Copyright | `global.footer.copyright` | © {{ano}} Alexandria. Todos os direitos reservados. |
-| Termos | `global.footer.terms` | Termos de uso |
-| Privacidade | `global.footer.privacy` | Politica de privacidade |
+| Menu perfil | global.header.profile | Meu perfil |
+| Menu tema | global.header.theme | Alternar tema |
+| Menu sair | global.header.logout | Sair |
+| Logo alt | global.header.logoAlt | Alexandria — preservando memorias |
+
+<!-- APPEND:copies-navbar -->
+
+### AlertBanner (global — alertas criticos no topo)
+
+| Elemento | Chave i18n | Texto |
+| --- | --- | --- |
+| Alerta critico prefix | global.alert.criticalPrefix | Atencao: |
+| Botao ver detalhes | global.alert.viewDetails | Ver detalhes |
+| Botao dispensar | global.alert.dismiss | Dispensar |
 
 <!-- APPEND:copies-footer -->
 
-### Header (Area Logada)
-
-| Elemento | Chave i18n | Texto Padrao |
-| --- | --- | --- |
-| Busca placeholder | `global.header.searchPlaceholder` | Buscar... |
-| Sync status sincronizando | `global.header.syncActive` | Sincronizando |
-| Sync status ok | `global.header.syncDone` | Tudo sincronizado |
-| Sync status erro | `global.header.syncError` | Erro de sincronizacao |
-| Notificacoes tooltip | `global.header.notificationsTooltip` | Notificacoes |
-| Menu perfil | `global.header.profile` | Meu perfil |
-| Menu configuracoes | `global.header.settings` | Configuracoes |
-| Menu sair | `global.header.logout` | Sair |
-
-<!-- APPEND:copies-header -->
-
 ### Modais Genericos
 
-| Modal | Chave i18n titulo | Texto titulo | Chave i18n corpo | Texto corpo |
+| Modal | Titulo | Corpo | CTA confirmar | CTA cancelar |
 | --- | --- | --- | --- | --- |
-| Confirmacao de exclusao | `modal.delete.title` | Confirmar exclusao | `modal.delete.body` | Tem certeza que deseja excluir? Esta acao nao pode ser desfeita. |
-| Confirmacao de saida | `modal.leave.title` | Sair sem salvar? | `modal.leave.body` | Suas alteracoes nao salvas serao perdidas. |
-| Confirmacao de remocao de no | `modal.removeNode.title` | Remover no? | `modal.removeNode.body` | Todos os chunks serao migrados para outros nos antes da remocao. |
-| Confirmacao de remocao de membro | `modal.removeMember.title` | Remover membro? | `modal.removeMember.body` | O membro perdera acesso ao cluster e seus dados compartilhados. |
-| Botao confirmar | `modal.confirmButton` | Confirmar | `modal.cancelButton` | Cancelar |
+| Exclusao | Confirmar exclusao | Esta acao nao pode ser desfeita. | Excluir | Cancelar |
+| Desconexao de no | Desconectar no | Todos os chunks serao migrados. Isso pode levar algum tempo. | Desconectar | Cancelar |
+| Remocao de membro | Remover membro | O membro perdera acesso a galeria e seus dados pessoais serao removidos. | Remover | Cancelar |
+| Logout | Sair do Alexandria | Voce sera desconectado desta sessao. | Sair | Cancelar |
 
 <!-- APPEND:copies-modais -->
 
 ### Empty States
 
-| Tela/Secao | Chave i18n | Texto | CTA |
+| Tela/Secao | Titulo | Descricao | CTA |
 | --- | --- | --- | --- |
-| Galeria vazia | `empty.gallery` | Nenhuma memoria por aqui ainda | Enviar fotos |
-| Busca sem resultado | `empty.search` | Nenhum resultado para "{{termo}}" | Limpar filtros |
-| Erro de carregamento | `empty.error` | Nao foi possivel carregar os dados | Tentar novamente |
-| Nos vazio | `empty.nodes` | Nenhum no conectado | Adicionar primeiro no |
-| Membros vazio | `empty.members` | Voce e o unico membro do cluster | Convidar membro |
-| Alertas vazio | `empty.alerts` | Nenhum alerta — tudo funcionando | — |
-| Vault vazio | `empty.vault` | Nenhuma credencial armazenada | — |
-| Fila de upload vazia | `empty.uploadQueue` | Nenhum upload em andamento | Selecionar arquivos — exibido dentro da galeria |
-| Auditoria vazia | `empty.audit` | Nenhuma atividade recente | — |
+| Galeria (sem arquivos) | Sua galeria esta vazia | Faca seu primeiro upload para comecar a preservar as memorias da familia | Fazer upload |
+| Galeria (busca sem resultado) | Nenhum arquivo encontrado | Nenhum resultado para "{{search}}". Tente ajustar os filtros. | Limpar filtros |
+| Nos (sem nos) | Nenhum no registrado | Adicione pelo menos 3 nos para comecar a armazenar dados | Adicionar primeiro no |
+| Alertas (sem alertas) | Nenhum alerta ativo | Tudo funcionando normalmente | — |
+| Membros (so admin) | Voce e o unico membro | Convide sua familia para comecar a compartilhar memorias | Convidar membro |
+| Upload (fila vazia) | Nenhum arquivo na fila | Arraste arquivos aqui ou clique para selecionar | — |
+| Erro generico | Nao foi possivel carregar os dados | Houve um problema ao conectar com o servidor | Tentar novamente |
 
 <!-- APPEND:copies-empty-states -->
 
@@ -636,18 +512,18 @@ Define todos os textos e conteudos textuais das telas do frontend — labels, pl
 
 | Regra | Exemplo correto | Exemplo incorreto |
 | --- | --- | --- |
-| Capitalize apenas a primeira palavra em titulos | Criar cluster familiar | Criar Cluster Familiar |
-| Use voz ativa | Envie suas fotos | Suas fotos devem ser enviadas |
-| Seja direto — maximo 60 caracteres em CTAs | Adicionar no | Clique aqui para adicionar um novo no de armazenamento |
-| Evite jargao tecnico em mensagens ao usuario | Algo deu errado | Erro 500: Internal Server Error |
-| Use pontuacao em frases completas | Suas configuracoes foram salvas. | Suas configuracoes foram salvas |
-| Nao use ponto em labels e botoes | Salvar configuracoes | Salvar configuracoes. |
-| Tooltips devem ser autoexplicativos | Exportar dados em CSV | Clique para exportar |
-| Termos tecnicos do dominio usam o glossario | Chunk, Manifest, Vault, Seed phrase | Pedaco, Indice, Cofre, Frase secreta |
-| Numeros de contagem usam formato localizado | 1.234 arquivos | 1234 arquivos |
-| Datas usam formato brasileiro | 18 de mar. de 2026 | 2026-03-18 |
-| Mensagens de erro incluem orientacao | Nao foi possivel conectar. Verifique as credenciais. | Erro de conexao. |
-| Confirmacoes destrutivas nomeiam o recurso | Remover no "meu-nas"? | Tem certeza? |
+| Capitalize apenas a primeira palavra | Criar novo cluster | Criar Novo Cluster |
+| Voz ativa | Salve suas fotos | Suas fotos devem ser salvas |
+| Direto — max 50 chars em CTAs | Fazer upload | Clique aqui para comecar a fazer upload dos seus arquivos |
+| Sem jargao tecnico para membros | Algo deu errado | Erro 500: Internal Server Error |
+| Jargao tecnico ok para admin | Chunks em re-replicacao | Dados sendo copiados |
+| Pontuacao em frases completas | Suas alteracoes foram salvas. | Suas alteracoes foram salvas |
+| Sem ponto em labels e botoes | Salvar alteracoes | Salvar alteracoes. |
+| Tooltips autoexplicativos | Copiar seed phrase para a area de transferencia | Clique para copiar |
+| Numeros formatados | 1.247 chunks | 1247 chunks |
+| Tamanhos formatados | 450 KB, 2.3 GB | 450000 bytes |
+| Datas relativas para < 7 dias | ha 3 horas, ontem | 2026-03-20T14:30:00Z |
+| Datas absolutas para >= 7 dias | 15 de marco de 2026 | 2026-03-15 |
 
 <!-- APPEND:convencoes -->
 
@@ -657,10 +533,10 @@ Define todos os textos e conteudos textuais das telas do frontend — labels, pl
 
 | Data | Decisao | Motivo |
 | --- | --- | --- |
-| 2026-03-18 | Idioma padrao pt-BR com suporte i18n via next-intl | Produto de uso familiar brasileiro; next-intl integra nativamente com App Router |
-| 2026-03-18 | Tom de voz casual e amigavel, pessoa "voce" | Membros com baixo nivel tecnico (avos, tios) precisam de linguagem acessivel |
-| 2026-03-18 | Termos tecnicos do dominio mantidos em ingles (Chunk, Vault, Manifest) | Sao conceitos do sistema sem traducao direta; consistencia com documentacao tecnica |
-| 2026-03-18 | Mensagens de erro sempre incluem orientacao de acao | Usuarios nao tecnicos precisam saber o que fazer, nao apenas o que deu errado |
-| 2026-03-18 | Genero neutro sempre que possivel | Inclusao e adequacao a comunicacao moderna |
+| 2026-03-23 | pt-BR como idioma unico (preparado para i18n) | Produto para familias brasileiras na v1; chaves i18n facilitam traducao futura |
+| 2026-03-23 | Tom familiar e confiavel (nao corporativo) | Usuarios incluem avos e pessoas nao-tecnicas; produto trata de memorias familiares |
+| 2026-03-23 | "Voce" (nao "Tu" ou formal) | Tom informal mas respeitoso; padrao brasileiro mais universal |
+| 2026-03-23 | Jargao tecnico apenas para telas de admin | Membros comuns nao precisam saber o que e "chunk" ou "heartbeat"; admin sim |
+| 2026-03-23 | Seed phrase com instrucoes explicitas e repetidas | Seed e o elemento mais critico do sistema; redundancia de avisos e intencional |
 
 <!-- APPEND:decisoes -->

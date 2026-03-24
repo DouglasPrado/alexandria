@@ -1,6 +1,6 @@
 ---
-name: business-receita
-description: Use when filling the revenue model section (05-modelo-receita.md) of the business blueprint. Defines revenue sources, MRR composition, NRR, pricing strategy, unit economics, and revenue projections.
+name: business-revenue
+description: Preenche a secao de Modelo de Receita (05-revenue-model.md) do business blueprint a partir do blueprint tecnico.
 ---
 
 # Business Blueprint — Modelo de Receita
@@ -9,12 +9,13 @@ Define as fontes de receita, composicao do MRR, retencao liquida, estrategia de 
 
 ## Leitura de Contexto
 
-1. Leia `docs/prd.md` — fonte primaria
-2. Leia `docs/business/05-modelo-receita.md` — template a preencher
+1. Leia `docs/blueprint/03-requirements.md` e `docs/blueprint/01-vision.md` — fontes primarias
+2. Leia `docs/prd.md` — fallback/complemento
+3. Leia `docs/business/05-revenue-model.md` — template a preencher
 
 ## Analise de Lacunas
 
-A partir do PRD, identifique o que esta disponivel para cada subsecao:
+A partir do blueprint tecnico, identifique o que esta disponivel para cada subsecao:
 
 - **Fontes de Receita**: quais sao as formas de monetizacao e qual o tipo de cada uma (recorrente, transacional, uso, comissao)?
 - **Composicao do MRR**: como o MRR se decompoe (New MRR, Expansion, Churn, Reactivation)? Ha risco de concentracao de receita?
@@ -25,21 +26,21 @@ A partir do PRD, identifique o que esta disponivel para cada subsecao:
 - **Projecoes de Receita**: existem metas de receita em 5 checkpoints (Mes 1, 3, 6, 9, 12)?
 - **Premissas Financeiras**: quais premissas sustentam as projecoes (formato simplificado: premissa, valor assumido, risco)?
 
-Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 perguntas pontuais ao usuario antes de gerar.
+Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, faca ate 3 perguntas pontuais ao usuario antes de gerar.
 
 ## Geracao
 
 > **Modo de escrita:**
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
-> - Para adicionar uma feature especifica sem reescrever, prefira `/business-incrementar`.
+> - Para adicionar uma feature especifica sem reescrever, prefira `/business-increment`.
 
-Preencha `docs/business/05-modelo-receita.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
-- Informacoes explicitas do PRD
+Preencha `docs/business/05-revenue-model.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+- Informacoes explicitas do blueprint tecnico
 - Respostas do usuario (se houve perguntas)
-- Inferencias logicas quando seguro (marque com `<!-- inferido do PRD -->`)
+- Inferencias logicas quando seguro (marque com `<!-- do blueprint: 03-requirements.md, 01-vision.md -->`)
 
-**REGRA CRITICA: NUNCA invente numeros.** Valores de MRR, precos, CAC, LTV, projecoes, unit economics ou qualquer dado numerico que NAO esteja explicitamente no PRD devem ser perguntados ao usuario. Use `{{placeholder}}` para campos numericos sem dados.
+**REGRA CRITICA: NUNCA invente numeros.** Valores de MRR, precos, CAC, LTV, projecoes, unit economics ou qualquer dado numerico que NAO esteja explicitamente no blueprint tecnico devem ser perguntados ao usuario. Use `{{placeholder}}` para campos numericos sem dados.
 
 ## Revisao
 
@@ -47,4 +48,4 @@ Apresente o documento preenchido ao usuario. Aplique ajustes solicitados. Salve 
 
 ## Proxima Etapa
 
-> "Modelo de Receita preenchido. Rode `/business-custos` para definir a Estrutura de Custos."
+> "Modelo de Receita preenchido. Rode `/business-costs` para definir a Estrutura de Custos."

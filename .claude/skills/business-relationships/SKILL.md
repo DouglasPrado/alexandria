@@ -1,6 +1,6 @@
 ---
-name: business-relacionamento
-description: Preenche a secao de Relacionamento com Cliente (04-relacionamento.md) do business blueprint a partir do PRD.
+name: business-relationships
+description: Preenche a secao de Relacionamento com Cliente (04-relationships.md) do business blueprint a partir do blueprint tecnico.
 ---
 
 # Business Blueprint — Relacionamento com Cliente
@@ -9,12 +9,13 @@ Define como o produto constroi e mantem relacoes duradouras: ativacao, ciclo de 
 
 ## Leitura de Contexto
 
-1. Leia `docs/prd.md` — fonte primaria
-2. Leia `docs/business/04-relacionamento.md` — template a preencher
+1. Leia `docs/blueprint/17-communication.md` — fonte primaria
+2. Leia `docs/prd.md` — fallback/complemento
+3. Leia `docs/business/04-relationships.md` — template a preencher
 
 ## Analise de Lacunas
 
-A partir do PRD, identifique o que esta disponivel para cada subsecao:
+A partir do blueprint tecnico, identifique o que esta disponivel para cada subsecao:
 
 - **Definicao de Ativacao**: O que significa um usuario "ativo"? Qual o criterio, momento "aha!", prazo e taxa alvo?
 - **Ciclo de Vida e Estrategia**: Quais as fases (Aquisicao, Ativacao, Retencao, Receita, Indicacao) e a acao principal em cada uma?
@@ -25,21 +26,21 @@ A partir do PRD, identifique o que esta disponivel para cada subsecao:
 - **Suporte**: Quais canais de suporte em 2 tiers (Self-service e Assistido) serao oferecidos?
 - **Programa de Indicacao**: Qual a mecanica, incentivo e momento de ativacao do programa?
 
-Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 perguntas pontuais ao usuario antes de gerar.
+Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, faca ate 3 perguntas pontuais ao usuario antes de gerar.
 
 ## Geracao
 
 > **Modo de escrita:**
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
-> - Para adicionar uma feature especifica sem reescrever, prefira `/business-incrementar`.
+> - Para adicionar uma feature especifica sem reescrever, prefira `/business-increment`.
 
-Preencha `docs/business/04-relacionamento.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
-- Informacoes explicitas do PRD
+Preencha `docs/business/04-relationships.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+- Informacoes explicitas do blueprint tecnico
 - Respostas do usuario (se houve perguntas)
-- Inferencias logicas quando seguro (marque com `<!-- inferido do PRD -->`)
+- Inferencias logicas quando seguro (marque com `<!-- do blueprint: 17-communication.md -->`)
 
-**REGRA CRITICA: NUNCA invente numeros.** Taxas de retencao, percentuais, metas numericas ou qualquer dado numerico que NAO esteja explicitamente no PRD devem ser perguntados ao usuario. Use `{{placeholder}}` para campos numericos sem dados.
+**REGRA CRITICA: NUNCA invente numeros.** Taxas de retencao, percentuais, metas numericas ou qualquer dado numerico que NAO esteja explicitamente no blueprint tecnico devem ser perguntados ao usuario. Use `{{placeholder}}` para campos numericos sem dados.
 
 ## Revisao
 
@@ -47,4 +48,4 @@ Apresente o documento preenchido ao usuario. Aplique ajustes solicitados. Salve 
 
 ## Proxima Etapa
 
-> "Relacionamento com Cliente preenchido. Rode `/business-receita` para definir o Modelo de Receita."
+> "Relacionamento com Cliente preenchido. Rode `/business-revenue` para definir o Modelo de Receita."

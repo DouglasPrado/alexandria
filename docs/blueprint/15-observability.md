@@ -8,7 +8,7 @@
 
 ### Formato
 
-Logs estruturados em JSON via `tracing` crate (Rust) + `tracing-subscriber` com formatador JSON.
+Logs estruturados em JSON via `pino` + `nestjs-pino` com formatador JSON.
 
 ```json
 {
@@ -46,7 +46,7 @@ Logs estruturados em JSON via `tracing` crate (Rust) + `tracing-subscriber` com 
 | Produção | 90 dias (Docker log rotation: max-size 100MB, max-file 10) |
 | Desenvolvimento | 7 dias (stdout local) |
 
-> **Redaction obrigatória:** Seed phrase, master key, file keys, tokens OAuth e credenciais S3 NUNCA aparecem em logs, mesmo em DEBUG. Usar `tracing::instrument(skip(master_key, seed))`.
+> **Redaction obrigatória:** Seed phrase, master key, file keys, tokens OAuth e credenciais S3 NUNCA aparecem em logs, mesmo em DEBUG. Usar redaction paths do `pino` para omitir campos sensíveis.
 
 ### Eventos Críticos (sempre logados)
 
@@ -97,9 +97,9 @@ Logs estruturados em JSON via `tracing` crate (Rust) + `tracing-subscriber` com 
 
 ## Tracing Distribuído
 
-> Fase 1: spans locais via `tracing` crate. Fase 2: OpenTelemetry para tracing distribuído completo.
+> Fase 1: spans locais via `pino`. Fase 2: OpenTelemetry para tracing distribuído completo.
 
-- **Ferramenta:** `tracing` + `tracing-subscriber` (Fase 1); OpenTelemetry + Jaeger/Tempo (Fase 2)
+- **Ferramenta:** `pino` + `nestjs-pino` (Fase 1); OpenTelemetry + Jaeger/Tempo (Fase 2)
 - **Protocolo de propagação:** W3C Trace Context (header `traceparent`) — preparado para Fase 2
 - **Taxa de amostragem:** 100% na Fase 1 (volume baixo); 10% na Fase 2 se volume crescer
 
@@ -109,7 +109,7 @@ Logs estruturados em JSON via `tracing` crate (Rust) + `tracing-subscriber` com 
 |-------|-------|
 | service.name | `alexandria-orchestrator`, `alexandria-node-agent`, `alexandria-web` |
 | Atributos obrigatórios | `membro_id`, `cluster_id`, `file_id` (quando aplicável), `node_id` (para operações de nó) |
-| Formato de Trace ID | UUID v4 (gerado por tracing) |
+| Formato de Trace ID | UUID v4 (gerado por pino) |
 
 ### Spans Principais
 
@@ -179,7 +179,7 @@ Verifica se o processo está rodando e respondendo. Caddy usa para decidir se de
 
 - **Endpoint:** `GET /health/live`
 - **Intervalo de verificação:** 30s
-- **O que verifica:** Processo Axum respondendo; sem deadlock
+- **O que verifica:** Processo NestJS respondendo; sem deadlock
 
 ### Readiness
 

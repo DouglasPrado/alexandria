@@ -6,7 +6,7 @@ sequenceDiagram
 
     actor Admin as Admin Familiar
     participant VPS as Nova VPS<br/>(Docker Compose)
-    participant API as Orquestrador (novo)<br/>(Rust + Axum 0.8)
+    participant API as Orquestrador (novo)<br/>(NestJS)
     participant SDK as Core SDK<br/>(CryptoEngine)
     participant Vault as Vaults dos Membros<br/>(AES-256-GCM)
     participant S3 as StorageProvider<br/>(S3/R2)

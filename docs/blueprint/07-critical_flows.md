@@ -10,14 +10,14 @@
 
 **Criticidade:** Máxima — exercita pipeline completo (upload → optimize → chunk → encrypt → distribute → replicate)
 
-**Atores envolvidos:** Membro, Web Client, Orquestrador (Axum), Media Workers, Core SDK, StorageProvider, Redis, PostgreSQL 18
+**Atores envolvidos:** Membro, Web Client, Orquestrador (NestJS), Media Workers, Core SDK, StorageProvider, Redis, PostgreSQL 18
 
 ### Passos
 
 1. **Membro** seleciona arquivo(s) no Web Client e clica em "Upload"
 2. **Web Client** envia arquivo para o Orquestrador via POST /files/upload (HTTPS/TLS 1.3, multipart)
 3. **Orquestrador** valida autenticação (JWT), permissões do membro e tamanho do arquivo
-4. **Orquestrador** registra arquivo em `files` (status: "processing") via SQLx e enfileira job no Redis
+4. **Orquestrador** registra arquivo em `files` (status: "processing") via Prisma e enfileira job no Redis
 5. **Media Worker** consome job da fila Redis
 6. **Media Worker** analisa arquivo (resolução, formato, tamanho, tipo MIME)
 7. **Media Worker** otimiza conforme tipo:
@@ -38,7 +38,7 @@
 12. **Core SDK** gera file key via envelope encryption (master key → file key) e criptografa cada chunk com AES-256-GCM
 13. **Core SDK** consulta ConsistentHashRing para determinar 3 nós destino por chunk
 14. **Orquestrador** envia chunks criptografados para os 3 nós via StorageProvider (aws-sdk-s3 para cloud, REST para agentes locais)
-15. **Orquestrador** cria registros em `chunks` e `chunk_replicas` dentro de uma transação SQLx
+15. **Orquestrador** cria registros em `chunks` e `chunk_replicas` dentro de uma transação Prisma
 16. **Orquestrador** cria manifest (chunks_json + file_key_encrypted + assinatura) e salva em `manifests`
 17. **Orquestrador** replica manifest em 2+ nós adicionais via StorageProvider
 18. **Orquestrador** atualiza file status para "ready" e publica evento via Redis pub/sub
@@ -58,7 +58,7 @@
 | 11 | Hash idêntico encontrado (arquivo duplicado) | Chunks existentes reutilizados; novo manifest aponta para mesmos chunks; economia de espaço |
 | 13 | Menos de 3 nós ativos disponíveis | Upload bloqueado; retorna 503 "nós insuficientes para replicação mínima"; alerta ao admin |
 | 14 | Nó destino falha durante recebimento | Selecionar próximo nó no ConsistentHashRing; retry no nó original após backoff exponencial |
-| 14 | S3/R2 retorna rate limit (429) | Respeitar retry-after header; enfileirar para retry com backoff exponencial via Tower middleware |
+| 14 | S3/R2 retorna rate limit (429) | Respeitar retry-after header; enfileirar para retry com backoff exponencial via NestJS Guard |
 | 15 | Transação PostgreSQL falha | Rollback automático; chunks já enviados ficam órfãos (GC remove depois); retry do job |
 | 17 | Falha ao replicar manifest nos nós | Manifest mantido no Orquestrador; retry de replicação em background; alerta gerado |
 
@@ -92,7 +92,7 @@
 6. **Core SDK** descriptografa vaults dos membros com master key → libera credenciais S3/R2, senhas dos membros, config do cluster, lista de nós
 7. **Orquestrador** conecta aos buckets cloud (S3/R2) usando credenciais dos vaults dos membros via aws-sdk-s3
 8. **Orquestrador** escaneia nós cloud em busca de manifests replicados
-9. **Orquestrador** reconstrói banco de metadados PostgreSQL 18 a partir dos manifests (bulk insert via SQLx)
+9. **Orquestrador** reconstrói banco de metadados PostgreSQL 18 a partir dos manifests (bulk insert via Prisma)
 10. **Admin** atualiza registro DNS para apontar para IP da nova VPS (TTL: 300s)
 11. **Agentes de Nó** detectam novo Orquestrador via DNS lookup e reconectam com retry + backoff
 12. **Orquestrador** recebe heartbeats dos nós e atualiza status em `nodes`
@@ -133,7 +133,7 @@
 
 **Criticidade:** Alta — sem auto-healing, perda de um nó degrada progressivamente a durabilidade
 
-**Atores envolvidos:** Scheduler (tokio::time), Orquestrador, Core SDK (ConsistentHashRing), StorageProvider, PostgreSQL 18, Nós restantes
+**Atores envolvidos:** Scheduler (@nestjs/schedule), Orquestrador, Core SDK (ConsistentHashRing), StorageProvider, PostgreSQL 18, Nós restantes
 
 ### Passos
 
@@ -146,7 +146,7 @@
 7. **Core SDK (ConsistentHashRing)** seleciona novos nós destino para cada chunk sub-replicado (excluindo nó perdido)
 8. **Orquestrador** para cada chunk: lê de uma réplica existente via StorageProvider
 9. **Orquestrador** envia chunk para novo nó destino via StorageProvider
-10. **Orquestrador** cria novo registro em `chunk_replicas` e remove o registro do nó perdido (transação SQLx)
+10. **Orquestrador** cria novo registro em `chunk_replicas` e remove o registro do nó perdido (transação Prisma)
 11. **Orquestrador** repete passos 8-10 até todos os chunks terem 3+ réplicas
 12. **Orquestrador** atualiza alerta como resolvido; gera relatório de auto-healing
 
@@ -182,7 +182,7 @@
 
 **Criticidade:** Alta — executado uma única vez mas é pré-requisito para todo o sistema
 
-**Atores envolvidos:** Admin, Web Client, Orquestrador (Axum), Core SDK (CryptoEngine, BIP-39), Vault, PostgreSQL 18
+**Atores envolvidos:** Admin, Web Client, Orquestrador (NestJS), Core SDK (CryptoEngine, BIP-39), Vault, PostgreSQL 18
 
 ### Passos
 
@@ -232,7 +232,7 @@
 
 **Criticidade:** Alta — sem scrubbing, corrupção passa despercebida e pode se propagar
 
-**Atores envolvidos:** Scheduler (tokio::time), Orquestrador, StorageProvider, Core SDK, PostgreSQL 18
+**Atores envolvidos:** Scheduler (@nestjs/schedule), Orquestrador, StorageProvider, Core SDK, PostgreSQL 18
 
 ### Passos
 

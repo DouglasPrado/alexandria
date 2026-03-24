@@ -28,7 +28,7 @@ Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 pergun
 > **Modo de escrita:**
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
-> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-incrementar`.
+> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-increment`.
 
 Preencha `docs/blueprint/00-context.md` substituindo TODOS os `{{placeholders}}` por informacoes reais. Mantenha a estrutura e formatacao do template original. Use:
 

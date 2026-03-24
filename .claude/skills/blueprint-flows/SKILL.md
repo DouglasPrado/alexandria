@@ -10,8 +10,8 @@ Voce vai preencher a secao de Fluxos Criticos do blueprint. Fluxos criticos sao 
 ## Leitura de Contexto
 
 1. Leia `docs/prd.md` — fonte primaria
-2. Leia `docs/blueprint/04-domain_model.md` — entidades envolvidas nos fluxos
-3. Leia `docs/blueprint/06-system_architecture.md` — componentes e comunicacao
+2. Leia `docs/blueprint/04-domain-model.md` — entidades envolvidas nos fluxos
+3. Leia `docs/blueprint/06-system-architecture.md` — componentes e comunicacao
 4. Leia `docs/blueprint/07-critical_flows.md` — template a preencher
 5. Leia `docs/diagrams/sequences/template-flow.mmd` — template de diagrama de sequencia
 
@@ -32,7 +32,7 @@ Se o PRD nao deixar claros os cenarios de erro ou SLAs por fluxo, pergunte ao us
 > **Modo de escrita:**
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
-> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-incrementar`.
+> - Para adicionar uma feature especifica sem reescrever, prefira `/blueprint-increment`.
 
 Preencha `docs/blueprint/07-critical_flows.md` com 3-5 fluxos. Para cada fluxo:
 

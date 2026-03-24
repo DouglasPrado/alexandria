@@ -33,8 +33,8 @@ Para cada doc em `docs/blueprint/`, `docs/frontend/`, `docs/business/`:
 Leia estes docs **completos** (sao essenciais para o CLAUDE.md):
 
 1. `docs/blueprint/02-architecture_principles.md` — principios que guiam decisoes de codigo
-2. `docs/blueprint/06-system_architecture.md` — stack tecnologica, componentes, protocolos
-3. `docs/blueprint/04-domain_model.md` — **somente a secao Glossario/Linguagem Ubiqua** (grep por "Glossario" ou "Linguagem")
+2. `docs/blueprint/06-system-architecture.md` — stack tecnologica, componentes, protocolos
+3. `docs/blueprint/04-domain-model.md` — **somente a secao Glossario/Linguagem Ubiqua** (grep por "Glossario" ou "Linguagem")
 
 Extraia:
 - **Stack**: linguagens, frameworks, ORMs, bancos, filas
@@ -62,7 +62,7 @@ Localizacao dos blueprints: {{caminho relativo dos docs}}
 
 ## Stack Tecnologica
 
-{{Extraido de 06-system_architecture.md}}
+{{Extraido de 06-system-architecture.md}}
 
 ## Mapa de Contexto por Tarefa
 
@@ -101,7 +101,7 @@ Antes de iniciar qualquer tarefa, leia os docs listados abaixo conforme o tipo d
 {{Extraido de 02-architecture_principles.md — resumo de 1 linha por principio}}
 
 ### Glossario do Dominio (Linguagem Ubiqua)
-{{Tabela com os termos principais extraidos de 04-domain_model.md}}
+{{Tabela com os termos principais extraidos de 04-domain-model.md}}
 
 ## Sempre Ler Antes de Codar
 

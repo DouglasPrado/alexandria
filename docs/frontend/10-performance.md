@@ -2,73 +2,90 @@
 
 Define a estrategia de performance do frontend, as tecnicas de otimizacao adotadas, os Core Web Vitals alvos e o budget de performance. Performance e um requisito nao-funcional critico que impacta diretamente a experiencia do usuario e metricas de negocio.
 
+<!-- do blueprint: 14-scalability.md (cache, limites) + 03-requirements.md (latencia p95 < 500ms, browsers) -->
+
+> **Contexto:** Alexandria e usado por familias (5-10 pessoas) em dispositivos variados — celulares antigos, notebooks, tablets. A galeria de fotos e a pagina mais visitada e precisa carregar rapido mesmo com centenas de thumbnails. Upload de video e CPU-bound no backend — o frontend precisa dar feedback constante.
+
 ---
 
 ## Estrategias de Otimizacao
 
 > Quais tecnicas de performance sao aplicadas?
 
-| Tecnica | Descricao | Quando Usar | Ferramenta/API |
-|---------|-----------|-------------|----------------|
-| Code Splitting | Carregar apenas o codigo necessario por rota/feature | Rotas (gallery, cluster, recovery, health) e features pesadas (video player, dashboard de saude) | `next/dynamic`, `React.lazy` |
-| Lazy Loading | Carregar componentes e imagens sob demanda | Thumbnails abaixo da fold, modais de configuracao, VideoPlayer, CloudConnector | Intersection Observer, `next/dynamic` |
-| Streaming | Renderizacao progressiva do servidor | GalleryPage com dados assincronos do orquestrador, HealthDashboard com metricas de nos | React Suspense, Next.js streaming |
-| Partial Hydration | Hidratar apenas componentes interativos | Paginas com conteudo estatico e partes dinamicas (ex: timeline com controles de filtro) | React Server Components |
-| Memoizacao | Evitar re-renders desnecessarios | PhotoCard em listas grandes, NodeCard com status de heartbeat, CapacityChart | `React.memo`, `useMemo`, `useCallback` |
-| Virtualizacao | Renderizar apenas itens visiveis no viewport | Galeria de fotos (100k+ itens), lista de chunks, lista de nos, logs de operacoes | `@tanstack/virtual` |
-| Web Workers | Offload de operacoes pesadas para threads separadas | Criptografia AES-256-GCM, hashing SHA-256, resize de imagens, chunking | Web Workers API, `comlink` |
-| Cache de Thumbnails | Armazenar previews localmente para acesso offline | Navegacao na galeria, timeline cronologica | IndexedDB via `idb` |
-| Prefetch de Rotas | Pre-carregar rotas provaveis antes da navegacao | Links de navegacao principal (gallery, health → nodes) | `next/link` com prefetch |
-| Optimistic Updates | Atualizar UI antes da confirmacao do servidor | Upload de fotos (mostrar thumbnail imediatamente), alteracao de permissoes | TanStack Query `onMutate` |
+| Tecnica | Descricao | Onde no Alexandria | Ferramenta/API |
+|---------|-----------|-------------------|----------------|
+| Code Splitting | Carregar apenas codigo da rota atual | Rotas do App Router (automatico) | Next.js App Router (automatic splitting) |
+| Dynamic Import | Carregar componentes pesados sob demanda | FilePreview (video player), RecoveryForm (core-sdk WASM) | `next/dynamic` com `ssr: false` |
+| Lazy Loading de Imagens | Carregar thumbnails somente quando visiveis | GalleryGrid (centenas de thumbnails) | `loading="lazy"` nativo + IntersectionObserver |
+| Virtualizacao | Renderizar apenas itens visiveis na viewport | GalleryGrid (infinite scroll com 1000+ itens) | `@tanstack/react-virtual` |
+| React Server Components | Renderizar no servidor sem JS no cliente | PageShell, Header, Sidebar, MemberList, NodeList | Next.js RSC (default) |
+| Streaming SSR | Renderizacao progressiva com Suspense | GalleryPage, HealthPage (dados assincronos) | React Suspense + Next.js streaming |
+| Prefetch | Pre-carregar proxima pagina da galeria | Infinite scroll (prefetch a 80% do scroll) | TanStack Query `prefetchInfiniteQuery` |
+| Memoizacao | Evitar re-renders em listas de thumbnails | GalleryItem, NodeCard, AlertItem | `React.memo` + `useMemo` para filtros |
+| Image Optimization | Servir previews no tamanho correto | Thumbnails na galeria (~50KB WebP) | Previews pre-gerados pelo backend; `<img>` com `srcSet` |
+| Font Optimization | Eliminar layout shift de fontes | Merriweather + Inter + JetBrains Mono | `next/font` (self-hosted, zero CLS) |
+| WASM Lazy Load | Carregar core-sdk WASM somente quando necessario | SeedPhraseInput (validacao BIP-39), RecoveryForm | `next/dynamic` com `ssr: false` |
 
 <!-- APPEND:estrategias -->
 
-<details>
-<summary>Exemplo — Code Splitting por feature no Alexandria</summary>
+### Code Splitting por rota
 
-```tsx
-import dynamic from 'next/dynamic';
-
-// VideoPlayer carregado apenas quando usuario clica em um video
-const VideoPlayer = dynamic(() => import('@/features/gallery/components/VideoPlayer'), {
-  loading: () => <VideoSkeleton />,
-  ssr: false, // Nao renderizar no servidor — depende de APIs de browser
-});
-
-// HealthDashboard carregado apenas para admins
-const HealthDashboard = dynamic(() => import('@/features/health/components/HealthDashboard'), {
-  loading: () => <DashboardSkeleton />,
-});
-
-// RecoveryWizard carregado sob demanda
-const RecoveryWizard = dynamic(() => import('@/features/recovery/components/RecoveryWizard'), {
-  loading: () => <WizardSkeleton />,
-});
+```
+Rota                    Bundle estimado    Componentes pesados
+/login                  ~15KB              LoginForm (leve)
+/gallery                ~40KB              GalleryGrid + @tanstack/react-virtual
+/gallery/[fileId]       ~30KB              FilePreview (dynamic: video player)
+/upload                 ~35KB              FileUploader + UploadQueue
+/nodes                  ~25KB              NodeList + AddNodeForm
+/health                 ~30KB              HealthDashboard + MetricCards
+/recovery               ~50KB              core-sdk WASM (dynamic, ssr: false)
+/cluster/setup          ~45KB              core-sdk WASM (dynamic, ssr: false)
 ```
 
-</details>
-
-<details>
-<summary>Exemplo — Virtualizacao da galeria com @tanstack/virtual</summary>
+### Componentes com dynamic import
 
 ```tsx
+// Componentes que usam core-sdk WASM — nunca no servidor
+const SeedPhraseInput = dynamic(
+  () => import('@/features/cluster/components/SeedPhraseInput'),
+  { ssr: false, loading: () => <Skeleton variant="grid" /> }
+);
+
+// Video player — pesado, so quando usuario clica em video
+const VideoPlayer = dynamic(
+  () => import('@/features/gallery/components/VideoPlayer'),
+  { ssr: false, loading: () => <Skeleton variant="card" /> }
+);
+
+// PDF viewer — pesado, so quando usuario clica em PDF
+const PDFViewer = dynamic(
+  () => import('@/features/gallery/components/PDFViewer'),
+  { ssr: false, loading: () => <Skeleton variant="card" /> }
+);
+```
+
+### Virtualizacao da galeria
+
+```tsx
+// features/gallery/components/GalleryGrid.tsx
 import { useVirtualizer } from '@tanstack/react-virtual';
 
-function GalleryGrid({ photos }: { photos: Photo[] }) {
+function GalleryGrid({ files }: { files: FileDTO[] }) {
   const parentRef = useRef<HTMLDivElement>(null);
+  const columns = useResponsiveColumns(); // 2 (mobile) → 6 (desktop)
 
-  const virtualizer = useVirtualizer({
-    count: photos.length, // Suporta 100k+ itens
+  const rowVirtualizer = useVirtualizer({
+    count: Math.ceil(files.length / columns),
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 200, // Altura estimada do thumbnail
-    overscan: 5, // Renderizar 5 itens extras acima/abaixo do viewport
+    estimateSize: () => 200, // altura estimada de cada row
+    overscan: 3, // renderizar 3 rows extras acima/abaixo
   });
 
   return (
-    <div ref={parentRef} className="h-screen overflow-auto">
-      <div style={{ height: virtualizer.getTotalSize() }}>
-        {virtualizer.getVirtualItems().map((virtualItem) => (
-          <PhotoCard key={virtualItem.key} photo={photos[virtualItem.index]} />
+    <div ref={parentRef} style={{ height: '100vh', overflow: 'auto' }}>
+      <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+        {rowVirtualizer.getVirtualItems().map((virtualRow) => (
+          // renderizar apenas thumbnails visiveis
         ))}
       </div>
     </div>
@@ -76,51 +93,30 @@ function GalleryGrid({ photos }: { photos: Photo[] }) {
 }
 ```
 
-</details>
-
-<details>
-<summary>Exemplo — Web Worker para criptografia sem bloquear UI</summary>
-
-```tsx
-// infrastructure/crypto/crypto.worker.ts
-import { wrap } from 'comlink';
-
-const cryptoWorker = wrap<CryptoWorkerAPI>(
-  new Worker(new URL('./crypto.worker.ts', import.meta.url))
-);
-
-// Application Layer — hook de upload
-async function encryptAndUpload(file: File, key: CryptoKey) {
-  // Criptografia roda no Worker — UI permanece responsiva
-  const encryptedChunks = await cryptoWorker.encryptFile(file, key);
-  // Upload dos chunks criptografados
-  await uploadChunks(encryptedChunks);
-}
-```
-
-</details>
-
 ---
 
 ## Core Web Vitals
 
 > Quais sao as metas de performance?
 
-| Metrica | Meta | Descricao |
-|---------|------|-----------|
-| LCP (Largest Contentful Paint) | < 1.5s | Tempo ate o grid de thumbnails da galeria carregar — thumbnails pre-gerados (~50KB) servidos do cache local ou CDN <!-- inferido do PRD --> |
-| INP (Interaction to Next Paint) | < 150ms | Responsividade a interacoes: clique em foto, filtro de busca, navegacao na timeline — garantida por virtualizacao e memoizacao <!-- inferido do PRD --> |
-| CLS (Cumulative Layout Shift) | < 0.05 | Estabilidade visual — thumbnails com dimensoes reservadas via aspect-ratio, skeletons com tamanho fixo, fontes com font-display: swap <!-- inferido do PRD --> |
-| TTFB (Time to First Byte) | < 500ms | Tempo de resposta do servidor Next.js — alinhado com meta de p95 < 500ms do orquestrador (RNF-003) |
+| Metrica | Meta | Estrategia para atingir |
+|---------|------|------------------------|
+| LCP (Largest Contentful Paint) | < 2.0s | SSR da galeria (thumbnails pre-carregados via Server Component); `next/font` elimina flash; previews servidos com `Cache-Control: max-age=31536000` |
+| INP (Interaction to Next Paint) | < 150ms | Memoizacao de GalleryItem; virtualizacao de listas longas; event handlers leves (sem crypto no main thread) |
+| CLS (Cumulative Layout Shift) | < 0.05 | Thumbnails com `width`/`height` explicitos; Skeleton com dimensoes fixas; `next/font` self-hosted; sem ads/banners dinamicos |
+| TTFB (Time to First Byte) | < 500ms | SSR com streaming; Caddy como proxy com cache de assets; VPS proxima do usuario (Contabo EU) |
+| FCP (First Contentful Paint) | < 1.2s | Server Components para shell (sidebar, header); CSS critico inline via Tailwind |
 
-**Metas por tipo de pagina:**
+### Metas por pagina
 
-| Pagina | LCP Alvo | Estrategia |
-|--------|----------|------------|
-| Galeria (home) | < 1.5s | Thumbnails pre-gerados em cache local (IndexedDB), Server Components para shell, streaming para dados |
-| Dashboard de Saude | < 2.0s | Dados de nos/replicacao via streaming, graficos lazy loaded |
-| Recovery | < 1.0s | Pagina estatica com wizard interativo — partial hydration |
-| Configuracao de Nos | < 1.5s | Lista de nos via Server Component, OAuth redirect lazy loaded |
+| Pagina | LCP | Elemento LCP | INP critico |
+|--------|-----|-------------|-------------|
+| /gallery | < 1.5s | Primeiro thumbnail visivel | Click em thumbnail (abrir preview) |
+| /gallery/[fileId] | < 2.0s | Preview da foto/video | Click "Download" |
+| /upload | < 1.0s | Zona de drag-and-drop | Drop de arquivo |
+| /health | < 2.0s | MetricCard "Nos Online" | Click em alerta |
+| /login | < 1.0s | LoginForm | Submit do formulario |
+| /recovery | < 1.5s | SeedPhraseInput (WASM load) | Paste de seed phrase |
 
 ---
 
@@ -128,33 +124,48 @@ async function encryptAndUpload(file: File, key: CryptoKey) {
 
 > Qual o tamanho maximo aceitavel?
 
-| Recurso | Budget | Atual |
-|---------|--------|-------|
-| JavaScript total | < 180KB gzipped | A medir |
-| CSS total | < 30KB gzipped | A medir <!-- Tailwind CSS v4 com purge agressivo --> |
-| Imagens (por pagina) | < 400KB | A medir <!-- thumbnails ~50KB cada, max 8 visiveis no viewport --> |
-| Fonte (web fonts) | < 60KB | A medir <!-- 1 familia tipografica, subset latin --> |
-| First Load JS | < 70KB | A medir <!-- shell minimo: layout + nav + auth check --> |
+| Recurso | Budget | Justificativa |
+|---------|--------|---------------|
+| JavaScript total (first load) | < 80KB gzipped | Dispositivos moveis antigos; conexoes 3G/4G |
+| JavaScript total (por rota) | < 50KB gzipped | Code splitting automatico; dynamic imports |
+| CSS total | < 30KB gzipped | Tailwind CSS v4 com purge; atomic classes |
+| Fontes (web fonts) | < 80KB | Merriweather (2 pesos) + Inter (4 pesos) + JetBrains Mono (1 peso) via `next/font` |
+| Imagens por pagina (galeria) | < 1MB (thumbnails visiveis) | Thumbnails ~50KB WebP; ~20 visiveis = ~1MB; lazy load o resto |
+| Preview de foto | < 600KB | WebP Full HD pre-otimizado pelo backend |
+| Preview de video | < 5MB | 480p MP4; carregado on-demand |
+| core-sdk WASM | < 200KB gzipped | Carregado somente em /recovery e /cluster/setup |
+| Requests por pagina (initial load) | < 15 | SSR reduz cascade; prefetch para dados criticos |
+| Total transfer (initial page load) | < 500KB | First Load JS + CSS + fontes + dados SSR |
 
 <!-- APPEND:budget -->
 
-**Budget por feature (code-split):**
+### Alertas de budget
 
-| Feature | JS Budget (gzipped) | Justificativa |
-|---------|---------------------|---------------|
-| Gallery (core) | < 40KB | Grid virtualizado + PhotoCard + lazy loading |
-| Upload Pipeline | < 35KB | Dropzone + progress + fila — sem crypto (Worker separado) |
-| Crypto Worker | < 25KB | AES-256-GCM + SHA-256 via Web Crypto API |
-| Health Dashboard | < 30KB | Graficos lazy loaded, dados via streaming |
-| Recovery Wizard | < 15KB | UI simples de steps — carregado sob demanda |
-| Video Player | < 20KB | Player nativo com controles custom — lazy loaded |
-| Nodes/OAuth | < 25KB | Lista + OAuth redirect — lazy loaded |
+| Metrica | Threshold warning | Threshold error | Acao |
+|---------|-------------------|-----------------|------|
+| First Load JS | > 70KB | > 100KB | Revisar imports; verificar tree shaking |
+| Route bundle | > 40KB | > 60KB | Mover componente pesado para dynamic import |
+| LCP | > 2.0s | > 3.0s | Investigar SSR; verificar cache de previews |
+| CLS | > 0.05 | > 0.15 | Adicionar dimensoes explicitas; verificar fontes |
+| Total transfer | > 400KB | > 600KB | Auditar imagens; verificar duplicacao de bundles |
 
-**Regras de budget:**
+---
 
-- PRs que excedem o budget em >10% sao bloqueados no CI pelo Lighthouse CI
-- Bundle Analyzer roda a cada release para identificar regressoes
-- Dependencias com >20KB gzipped requerem aprovacao explicita e justificativa
+## Otimizacoes de Imagens e Previews
+
+> Como otimizamos o carregamento de fotos e videos na galeria?
+
+<!-- do blueprint: 02-architecture_principles.md (Eficiencia sobre Fidelidade) + 14-scalability.md (cache de previews) -->
+
+| Tecnica | Descricao | Impacto |
+|---------|-----------|---------|
+| Previews pre-otimizados | Backend gera WebP ~50KB (foto) e MP4 480p ~5MB (video) | Elimina processamento no frontend |
+| Cache agressivo | Previews sao imutaveis (novo preview_id se reprocessado); `Cache-Control: max-age=31536000` | Cache hit rate ~99% apos primeira visita |
+| Proxy BFF | Previews servidos via `/api/preview/[fileId]` (proxy Next.js) | Evita CORS; adiciona cache headers |
+| Lazy loading nativo | `loading="lazy"` em `<img>` de thumbnails | Browser decide quando carregar |
+| Blur placeholder | Thumbnail ~1KB blur hash inline no HTML (SSR) | Percepçao de velocidade enquanto thumbnail real carrega |
+| Responsive sizing | `srcSet` nao necessario — previews tem tamanho unico (WebP 50KB) | Simplicidade; preview ja e pequeno |
+| Prefetch da proxima pagina | Quando scroll atinge 80%, busca proxima pagina de thumbnails | Scroll infinito sem "loading" visivel |
 
 ---
 
@@ -162,24 +173,70 @@ async function encryptAndUpload(file: File, key: CryptoKey) {
 
 > Como medimos performance continuamente?
 
-| Ferramenta | Proposito | Frequencia |
-|------------|-----------|------------|
-| Lighthouse CI | Auditoria automatica no CI — bloqueia PR se score < 90 ou budget excedido | Cada PR |
-| Web Vitals (`web-vitals` lib) | Metricas reais de usuarios (RUM) — LCP, INP, CLS, TTFB coletados em producao | Continuo em producao |
-| Vercel Analytics | Monitoramento de performance em producao com breakdown por rota e dispositivo | Continuo <!-- inferido do PRD — Next.js no Vercel --> |
-| `@next/bundle-analyzer` | Analise visual do tamanho do bundle por modulo e dependencia | Cada release |
-| Custom Performance Marks | Metricas especificas do Alexandria: tempo de encrypt, tempo de chunking, tempo de upload | Continuo via `performance.mark()` |
+| Ferramenta | Proposito | Frequencia | Custo |
+|------------|-----------|------------|-------|
+| Lighthouse CI | Auditoria automatica no pipeline CI; score minimo por rota | Cada PR | Gratuito |
+| web-vitals (lib) | Coleta de CWV reais dos usuarios (RUM) enviados para endpoint | Continuo em producao | Gratuito (lib JS ~1KB) |
+| `@next/bundle-analyzer` | Analise visual do tamanho de cada bundle/chunk | Cada release / sob demanda | Gratuito |
+| Caddy access logs | Latencia de requests, cache hit rate, status codes | Continuo | Gratuito (logs) |
+| Console Performance API | `performance.mark()` / `performance.measure()` para fluxos criticos | Desenvolvimento | Nativo do browser |
 
-**Alertas configurados:**
+### Metricas coletadas via web-vitals
 
-| Alerta | Condicao | Acao |
-|--------|----------|------|
-| LCP regressao | LCP p75 > 2.0s por 24h | Notificacao no canal de desenvolvimento |
-| Bundle size regressao | First Load JS > 80KB | PR bloqueado no CI |
-| Crypto Worker lento | Tempo de encrypt p95 > 500ms por chunk de 4MB | Investigar — pode indicar problema no Web Worker |
-| Thumbnail cache miss alto | Cache miss rate > 30% | Revisar estrategia de prefetch e eviction do IndexedDB |
+```typescript
+// shared/lib/analytics.ts
+import { onLCP, onINP, onCLS, onFCP, onTTFB } from 'web-vitals';
 
-> Para integracao com CI, (ver 13-cicd-convencoes.md).
+function sendMetric(metric: { name: string; value: number; id: string }) {
+  // Enviar para endpoint do orquestrador ou console (dev)
+  if (process.env.NODE_ENV === 'production') {
+    navigator.sendBeacon('/api/vitals', JSON.stringify(metric));
+  } else {
+    console.log(`[CWV] ${metric.name}: ${metric.value.toFixed(1)}`);
+  }
+}
+
+onLCP(sendMetric);
+onINP(sendMetric);
+onCLS(sendMetric);
+onFCP(sendMetric);
+onTTFB(sendMetric);
+```
+
+### Lighthouse CI no pipeline
+
+```yaml
+# Dentro do workflow de CI (GitHub Actions)
+- name: Lighthouse CI
+  uses: treosh/lighthouse-ci-action@v12
+  with:
+    urls: |
+      http://localhost:3000/login
+      http://localhost:3000/gallery
+      http://localhost:3000/health
+    budgetPath: ./lighthouse-budget.json
+    uploadArtifacts: true
+```
+
+```json
+// lighthouse-budget.json
+[
+  {
+    "path": "/gallery",
+    "timings": [
+      { "metric": "largest-contentful-paint", "budget": 2000 },
+      { "metric": "interactive", "budget": 3500 },
+      { "metric": "cumulative-layout-shift", "budget": 0.05 }
+    ],
+    "resourceSizes": [
+      { "resourceType": "script", "budget": 100 },
+      { "resourceType": "total", "budget": 500 }
+    ]
+  }
+]
+```
+
+> Para integracao com CI, (ver 13-cicd-conventions.md).
 
 ---
 
@@ -187,8 +244,10 @@ async function encryptAndUpload(file: File, key: CryptoKey) {
 
 | Data | Decisao | Motivo |
 |------|---------|--------|
-| 2026-03-17 | Virtualizacao obrigatoria para galeria com `@tanstack/virtual` | Acervos familiares podem ter 100k+ fotos — renderizar tudo causa freeze na UI |
-| 2026-03-17 | Criptografia em Web Workers com `comlink` | AES-256-GCM e SHA-256 sao CPU-intensivos — bloqueariam a main thread e degradariam INP |
-| 2026-03-17 | Cache de thumbnails em IndexedDB | Suporte offline-first — thumbnails devem carregar em < 1s mesmo sem rede |
-| 2026-03-17 | Budget de First Load JS < 70KB | Manter LCP agressivo (< 1.5s) para galeria — shell minimo carrega rapido, features via code splitting |
-| 2026-03-17 | Vercel Analytics como APM primario | Integracao nativa com Next.js, zero-config, metricas reais de usuarios sem overhead de instrumentacao |
+| 2026-03-23 | @tanstack/react-virtual para galeria | Galeria pode ter 1000+ thumbnails; renderizar apenas visiveis evita DOM bloat e re-renders |
+| 2026-03-23 | core-sdk WASM via dynamic import (ssr: false) | WASM nao roda no servidor; carregado somente em /recovery e /cluster/setup (~200KB) |
+| 2026-03-23 | Previews imutaveis com cache 1 ano | Preview nunca muda (novo preview_id se reprocessado); cache agressivo elimina requests repetidos |
+| 2026-03-23 | web-vitals via sendBeacon (nao analytics SaaS) | Simplicidade operacional; sem dependencia externa; dados enviados para o proprio orquestrador |
+| 2026-03-23 | Lighthouse CI com budget por rota | Previne regressao de performance no pipeline; falha CI se LCP > 2s na galeria |
+| 2026-03-23 | Server Components como default | Reduz JS enviado ao cliente; sidebar, header e listas sao RSC; client components somente para interatividade |
+| 2026-03-23 | Blur placeholder para thumbnails | Percepcao de velocidade; hash ~1KB inline no HTML SSR enquanto WebP 50KB carrega |

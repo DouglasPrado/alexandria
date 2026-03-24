@@ -32,7 +32,7 @@ O Alexandria é projetado para escala familiar (1-10 usuários, 50 nós, 100TB).
 
 | Aspecto | Detalhes |
 |---|---|
-| **Tecnologia** | In-memory (Rust HashMap/dashmap) para hot data; Redis para dados compartilhados entre workers |
+| **Tecnologia** | In-memory (Node.js Map/lru-cache) para hot data; Redis para dados compartilhados entre workers |
 | **Camadas de cache** | Caddy (assets estáticos do web client) → Orquestrador (metadata em memória) → PostgreSQL (shared_buffers) |
 | **O que cachear** | Thumbnails/previews (servidos diretamente do filesystem); metadata de galeria (últimos N arquivos); ConsistentHashRing (recalculado apenas quando nós mudam); nó status (atualizado por heartbeat) |
 | **Estratégia de invalidação** | Event-driven: invalidar quando nó muda, arquivo criado/deletado, heartbeat recebido |
@@ -52,8 +52,8 @@ O Alexandria é projetado para escala familiar (1-10 usuários, 50 nós, 100TB).
 
 | Componente | Limite Atual | Gargalo | Ação quando atingir |
 |---|---|---|---|
-| Orquestrador (API) | ~1000 req/s (Axum em 2 vCPU) | CPU (criptografia em requests) | Escala vertical: VPS maior; ou separar media workers em processo próprio |
-| PostgreSQL 18 | ~500 conexões; ~1M registros em chunk_replicas | Conexões (SQLx pool); disco para índices | Connection pooling (SQLx max 20); VACUUM periódico; escala vertical |
+| Orquestrador (API) | ~1000 req/s (NestJS em 2 vCPU) | CPU (criptografia em requests) | Escala vertical: VPS maior; ou separar media workers em processo próprio |
+| PostgreSQL 18 | ~500 conexões; ~1M registros em chunk_replicas | Conexões (Prisma pool); disco para índices | Connection pooling (Prisma max 20); VACUUM periódico; escala vertical |
 | Redis 7 | ~50k msg/s; 1GB RAM | Memória (se acumular jobs) | Jobs são pequenos (~1KB); limitar fila a 10k jobs; alertar se crescer |
 | Storage por nó (S3/R2) | Free tier: ~10-20GB por conta | Espaço | Adicionar mais contas/provedores; alertar em 80% |
 | Storage total cluster | 100TB (limite v1) | Nós × capacidade | Adicionar nós; erasure coding na Fase 3 (economia ~40%) |
@@ -116,9 +116,9 @@ O Alexandria é projetado para escala familiar (1-10 usuários, 50 nós, 100TB).
 
 | Aspecto | Detalhes |
 |---|---|
-| **Algoritmo** | Token bucket (via Tower middleware `tower::limit::RateLimitLayer`) |
-| **Onde aplicar** | Middleware Axum (Tower layer); Caddy para rate limit por IP em nível de proxy |
-| **Armazenamento de contadores** | In-memory (dashmap) para API; Redis para limites compartilhados entre workers |
+| **Algoritmo** | Token bucket (via NestJS Guard `@nestjs/throttler`) |
+| **Onde aplicar** | Middleware NestJS (NestJS Guard); Caddy para rate limit por IP em nível de proxy |
+| **Armazenamento de contadores** | In-memory (Map / cache in-memory) para API; Redis para limites compartilhados entre workers |
 | **Identificação do cliente** | JWT membro_id para API autenticada; IP para endpoints públicos (recovery, convite) |
 | **Headers de resposta** | `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` |
 | **Tratamento de burst** | Permitir burst de 2x o limite por 5s (token bucket com burst capacity) |

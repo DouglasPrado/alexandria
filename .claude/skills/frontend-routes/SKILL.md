@@ -1,41 +1,43 @@
 ---
-name: frontend-rotas
-description: Preenche a secao de Rotas (07-rotas.md) do frontend blueprint a partir do PRD.
+name: frontend-routes
+description: Preenche a secao de Rotas (07-routes.md) do frontend blueprint a partir do blueprint tecnico.
 ---
 
 # Frontend Blueprint — Rotas
 
-Preenche `docs/frontend/07-rotas.md` com base no PRD e no contexto do projeto.
+Preenche `docs/frontend/07-routes.md` com base no blueprint tecnico e no contexto do projeto.
 
 ## Leitura de Contexto
 
-1. Leia `docs/prd.md` — fonte primaria
-2. Leia `docs/frontend/07-rotas.md` — template a preencher
+1. Leia `docs/blueprint/08-use_cases.md` — casos de uso que mapeiam para telas
+2. Leia `docs/blueprint/07-critical_flows.md` — fluxos criticos com navegacao
+3. Leia `docs/frontend/07-routes.md` — template a preencher
+4. Leia `docs/prd.md` — complemento se necessario
 
 ## Analise de Lacunas
 
-A partir do PRD, identifique o que esta disponivel para cada subsecao:
+A partir do blueprint tecnico, identifique o que esta disponivel para cada subsecao:
 
 - **Estrutura de Rotas**: Quais paginas e rotas o sistema possui e como estao organizadas hierarquicamente?
 - **Protecao de Rotas**: Quais rotas exigem autenticacao, autorizacao ou condicoes especiais de acesso?
 - **Layouts Compartilhados**: Quais layouts sao reutilizados entre rotas e como a composicao de layouts funciona?
 - **Navegacao**: Como o usuario navega entre as paginas, quais menus e breadcrumbs existem?
 
-Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 perguntas pontuais ao usuario antes de gerar.
+Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, faca ate 3 perguntas pontuais ao usuario antes de gerar.
 
-> Ao referenciar tecnologias especificas com versoes, consulte https://context7.com/ para garantir versoes atualizadas.
+> **Versões atualizadas:** Ao referenciar tecnologias específicas com versões, use o MCP context7 para consultar documentação atualizada. Primeiro chame `mcp__context7__resolve-library-id` para obter o ID da biblioteca, depois `mcp__context7__query-docs` para consultar versões e exemplos.
 
 ## Geracao
 
 > **Modo de escrita:**
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
-> - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-incrementar`.
+> - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
-Preencha `docs/frontend/07-rotas.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
-- Informacoes explicitas do PRD
+Preencha `docs/frontend/07-routes.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+- Informacoes explicitas do blueprint tecnico
 - Respostas do usuario (se houve perguntas)
-- Inferencias logicas quando seguro (marque com `<!-- inferido do PRD -->`)
+- Inferencias logicas quando seguro (marque com `<!-- do blueprint: XX-arquivo.md -->`)
 
 ## Revisao
 
@@ -43,4 +45,4 @@ Apresente o documento preenchido ao usuario. Aplique ajustes solicitados. Salve 
 
 ## Proxima Etapa
 
-> "Rotas preenchido. Rode `/frontend-fluxos` para preencher Fluxos de Interface."
+> "Rotas preenchido. Rode `/frontend-flows` para preencher Fluxos de Interface."

@@ -6,10 +6,10 @@ sequenceDiagram
 
     actor Admin as Admin Familiar
     participant Web as Web Client<br/>(Next.js 16)
-    participant API as Orquestrador<br/>(Rust + Axum 0.8)
+    participant API as Orquestrador<br/>(NestJS)
     participant SDK as Core SDK<br/>(CryptoEngine + BIP-39)
     participant Vault as Vault<br/>(AES-256-GCM)
-    participant DB as PostgreSQL 18<br/>(SQLx)
+    participant DB as PostgreSQL 18<br/>(Prisma)
     actor Membro as Membro Convidado
 
     %% Criação do cluster

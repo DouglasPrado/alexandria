@@ -4,8 +4,8 @@
 
 | ID | Título | Status | Data |
 |----|--------|--------|------|
-| ADR-001 | Rust como linguagem principal do backend | Aceita | 2026-03-16 |
-| ADR-002 | Axum como web framework | Aceita | 2026-03-16 |
+| ADR-001 | NestJS (TypeScript) como linguagem/framework principal do backend | Aceita | 2026-03-16 |
+| ADR-002 | NestJS como web framework (consolidado em ADR-001) | Aceita | 2026-03-16 |
 | ADR-003 | Orquestrador centralizado vs P2P | Aceita | 2026-03-16 |
 | ADR-004 | PostgreSQL 18 para metadados | Aceita | 2026-03-16 |
 | ADR-005 | Envelope encryption com seed phrase BIP-39 | Aceita | 2026-03-16 |
@@ -18,29 +18,31 @@
 
 ---
 
-### ADR-001: Rust como linguagem principal do backend
+### ADR-001: NestJS (TypeScript) como linguagem/framework principal do backend
 
 **Data:** 2026-03-16 | **Status:** Aceita
 
-**Contexto:** Sistema de armazenamento distribuído com operações IO-bound pesadas (chunks, replicação, criptografia). Time de 1 pessoa; binários precisam rodar em VPS, PCs e NAS como agentes de nó.
+**Contexto:** Sistema de armazenamento distribuído com operações IO-bound pesadas (chunks, replicação, criptografia). Time de 1 pessoa; aplicação precisa rodar em VPS via container Docker, com agentes de nó nos dispositivos.
 
-**Decisão:** Rust — performance nativa, memory safety sem GC, binário único sem runtime, ecossistema async maduro (Tokio).
+**Decisão:** NestJS (TypeScript) — produtividade alta, ecossistema npm maduro, framework opinado com DI/módulos/guards/interceptors, deploy via container Docker.
 
-**Alternativas descartadas:** Go (GC pode causar latency spikes em IO pesado; menos controle de memória), Node.js (single-threaded; overhead de runtime em agentes de nó), Python (performance insuficiente para pipeline de criptografia).
+**Alternativas descartadas:** Go (menos produtivo para time de 1 pessoa; menos ecossistema de bibliotecas web), Rust (curva de aprendizado alta; complexidade desnecessária para escala familiar), Python (performance insuficiente para pipeline de criptografia).
 
 > 📄 Detalhes: [adr/ADR-001.md](../adr/ADR-001.md)
 
 ---
 
-### ADR-002: Axum como web framework
+### ADR-002: NestJS como web framework (consolidado em ADR-001)
 
 **Data:** 2026-03-16 | **Status:** Aceita
 
-**Contexto:** Precisamos de um web framework Rust para a API REST do orquestrador e agentes de nó. Deve suportar async, middleware composável e integração com Tokio.
+> **Nota:** Esta ADR está consolidada na ADR-001, pois NestJS é simultaneamente a linguagem/runtime e o framework web. Mantida como registro histórico.
 
-**Decisão:** Axum 0.8 — async-first, built on Tokio/Tower/Hyper; middleware composável via Tower; integração natural com SQLx e tracing.
+**Contexto:** Precisamos de um web framework para a API REST do orquestrador e agentes de nó. Deve suportar async, middleware composável e ecossistema maduro.
 
-**Alternativas descartadas:** Actix-web (bom, mas menos integrado com ecossistema Tower; API menos ergonômica para middleware), Warp (menor comunidade, menos mantido).
+**Decisão:** NestJS — async-first, Guards/Interceptors composáveis, integração natural com Prisma e pino.
+
+**Alternativas descartadas:** Express puro (sem estrutura opinada; falta DI e módulos), Fastify puro (bom, mas menos estruturado que NestJS para projetos grandes).
 
 > 📄 Detalhes: [adr/ADR-002.md](../adr/ADR-002.md)
 
@@ -66,7 +68,7 @@
 
 **Contexto:** Orquestrador precisa de banco para metadados: clusters, membros, nós, arquivos, chunks, réplicas. Dados altamente relacionais com integridade referencial necessária.
 
-**Decisão:** PostgreSQL 18 + SQLx (compile-time checked, async) — ACID para transações críticas (criar arquivo + chunks + réplicas atomicamente), JSONB para metadata flexível (EXIF), ecossistema maduro de migrações.
+**Decisão:** PostgreSQL 18 + Prisma (type-safe, async) — ACID para transações críticas (criar arquivo + chunks + réplicas atomicamente), JSONB para metadata flexível (EXIF), ecossistema maduro de migrações.
 
 **Alternativas descartadas:** SQLite (sem concorrência; limitações em queries complexas com joins), MongoDB (sem integridade referencial; equipe sem experiência), CockroachDB (overkill para escala familiar).
 

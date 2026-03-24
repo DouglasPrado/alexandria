@@ -1,5 +1,5 @@
 ---
-name: blueprint-incrementar
+name: blueprint-increment
 description: Incrementa o blueprint tecnico com nova funcionalidade ou correcao sem sobrescrever conteudo existente. Usa Edit (nao Write) para preservar tudo.
 ---
 
@@ -36,12 +36,12 @@ Leia TODOS os documentos existentes em `docs/blueprint/`:
 2. `docs/blueprint/01-vision.md`
 3. `docs/blueprint/02-architecture_principles.md`
 4. `docs/blueprint/03-requirements.md`
-5. `docs/blueprint/04-domain_model.md`
-6. `docs/blueprint/05-data_model.md`
-7. `docs/blueprint/06-system_architecture.md`
+5. `docs/blueprint/04-domain-model.md`
+6. `docs/blueprint/05-data-model.md`
+7. `docs/blueprint/06-system-architecture.md`
 8. `docs/blueprint/07-critical_flows.md`
 9. `docs/blueprint/08-use_cases.md`
-10. `docs/blueprint/09-state_models.md`
+10. `docs/blueprint/09-state-models.md`
 11. `docs/blueprint/10-architecture_decisions.md`
 12. `docs/blueprint/11-build_plan.md`
 13. `docs/blueprint/12-testing_strategy.md`
@@ -52,7 +52,7 @@ Leia TODOS os documentos existentes em `docs/blueprint/`:
 
 Leia tambem `docs/prd.md` se existir, para contexto adicional.
 
-> Ao referenciar tecnologias especificas com versoes, consulte https://context7.com/ para garantir versoes atualizadas.
+> **Versões atualizadas:** Ao referenciar tecnologias específicas com versões, use o MCP context7 para consultar documentação atualizada. Primeiro chame `mcp__context7__resolve-library-id` para obter o ID da biblioteca, depois `mcp__context7__query-docs` para consultar versões e exemplos.
 
 ## Passo 3: Classificar Tipo de Alteracao
 
@@ -107,8 +107,8 @@ Marcadores disponiveis por documento:
 - `00-context.md`: `<!-- APPEND:actors -->`, `<!-- APPEND:external-systems -->`, `<!-- APPEND:constraints -->`
 - `01-vision.md`: `<!-- APPEND:objectives -->`, `<!-- APPEND:personas -->`, `<!-- APPEND:success-metrics -->`
 - `03-requirements.md`: `<!-- APPEND:functional-requirements -->`, `<!-- APPEND:nonfunctional-requirements -->`
-- `04-domain_model.md`: `<!-- APPEND:glossary -->`, `<!-- APPEND:entities -->`
-- `09-state_models.md`: `<!-- APPEND:state-models -->`
+- `04-domain-model.md`: `<!-- APPEND:glossary -->`, `<!-- APPEND:entities -->`
+- `09-state-models.md`: `<!-- APPEND:state-models -->`
 - `10-architecture_decisions.md`: `<!-- APPEND:adrs -->`
 - `11-build_plan.md`: `<!-- APPEND:technical-risks -->`, `<!-- APPEND:phases -->`
 - `12-testing_strategy.md`: `<!-- APPEND:coverage -->`, `<!-- APPEND:ci-pipeline -->`
@@ -254,5 +254,5 @@ Apresente ao usuario um resumo do que foi alterado:
 ## Passo 7: Proximo
 
 > "Blueprint atualizado. Para adicionar outra alteracao, rode
-> `/blueprint-incrementar` novamente.
+> `/blueprint-increment` novamente.
 > Para revisar o blueprint completo, rode `/blueprint`."

@@ -1,20 +1,22 @@
 ---
-name: frontend-estado
-description: Preenche a secao de Gerenciamento de Estado (05-estado.md) do frontend blueprint a partir do PRD.
+name: frontend-state
+description: Preenche a secao de Gerenciamento de Estado (05-state.md) do frontend blueprint a partir do blueprint tecnico.
 ---
 
 # Frontend Blueprint — Gerenciamento de Estado
 
-Preenche `docs/frontend/05-estado.md` com base no PRD e no contexto do projeto.
+Preenche `docs/frontend/05-state.md` com base no blueprint tecnico e no contexto do projeto.
 
 ## Leitura de Contexto
 
-1. Leia `docs/prd.md` — fonte primaria
-2. Leia `docs/frontend/05-estado.md` — template a preencher
+1. Leia `docs/blueprint/09-state-models.md` — maquinas de estado das entidades
+2. Leia `docs/blueprint/04-domain-model.md` — entidades e regras
+3. Leia `docs/frontend/05-state.md` — template a preencher
+4. Leia `docs/prd.md` — complemento se necessario
 
 ## Analise de Lacunas
 
-A partir do PRD, identifique o que esta disponivel para cada subsecao:
+A partir do blueprint tecnico, identifique o que esta disponivel para cada subsecao:
 
 - **Tipos de Estado**: Quais categorias de estado existem (local, global, server, URL, form)?
 - **Server State**: Como o estado vindo do servidor e gerenciado (caching, revalidacao, optimistic updates)?
@@ -22,21 +24,21 @@ A partir do PRD, identifique o que esta disponivel para cada subsecao:
 - **Event Bus**: Existe comunicacao entre componentes via eventos? Qual o padrao adotado?
 - **Anti-patterns**: Quais praticas de gerenciamento de estado devem ser evitadas no projeto?
 
-Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 perguntas pontuais ao usuario antes de gerar.
+Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, faca ate 3 perguntas pontuais ao usuario antes de gerar.
 
-> Ao referenciar tecnologias especificas com versoes, consulte https://context7.com/ para garantir versoes atualizadas.
+> **Versões atualizadas:** Ao referenciar tecnologias específicas com versões, use o MCP context7 para consultar documentação atualizada. Primeiro chame `mcp__context7__resolve-library-id` para obter o ID da biblioteca, depois `mcp__context7__query-docs` para consultar versões e exemplos.
 
 ## Geracao
 
 > **Modo de escrita:**
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
-> - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-incrementar`.
+> - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
-Preencha `docs/frontend/05-estado.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
-- Informacoes explicitas do PRD
+Preencha `docs/frontend/05-state.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+- Informacoes explicitas do blueprint tecnico
 - Respostas do usuario (se houve perguntas)
-- Inferencias logicas quando seguro (marque com `<!-- inferido do PRD -->`)
+- Inferencias logicas quando seguro (marque com `<!-- do blueprint: XX-arquivo.md -->`)
 
 ## Revisao
 

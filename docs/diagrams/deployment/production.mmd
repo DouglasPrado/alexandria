@@ -1,7 +1,7 @@
 %% ============================================================
 %% Diagrama de Deploy: Produção — Alexandria
 %% Referências: docs/blueprint/06-system_architecture.md
-%% Stack: Rust + Axum 0.8, Next.js 16, PostgreSQL 18, Redis 7
+%% Stack: NestJS, Next.js 16, PostgreSQL 18, Redis 7
 %% ============================================================
 
 graph TB
@@ -26,13 +26,13 @@ graph TB
 
         subgraph APP_TIER["Docker Compose v2 — Application"]
             direction LR
-            Orchestrator["Orquestrador<br/>──────────<br/>Runtime: Rust + Axum 0.8<br/>Porta: 8080<br/>CPU: 2 vCPU / RAM: 2GB<br/>Inclui: Scheduler (tokio::time)<br/>+ Media Workers + Vaults"]
+            Orchestrator["Orquestrador<br/>──────────<br/>Runtime: NestJS<br/>Porta: 8080<br/>CPU: 2 vCPU / RAM: 2GB<br/>Inclui: Scheduler (@nestjs/schedule)<br/>+ Media Workers + Vaults"]
             WebClient["Web Client<br/>──────────<br/>Runtime: Next.js 16 (Turbopack)<br/>Porta: 3000<br/>CPU: 0.5 vCPU / RAM: 512MB"]
         end
 
         subgraph DATA_TIER["Docker Compose v2 — Data"]
             direction LR
-            DB_PRIMARY["PostgreSQL 18<br/>──────────<br/>Porta: 5432<br/>Driver: SQLx (async)<br/>Volume: /data/postgres<br/>Backup: pg_dump diário → S3"]
+            DB_PRIMARY["PostgreSQL 18<br/>──────────<br/>Porta: 5432<br/>ORM: Prisma<br/>Volume: /data/postgres<br/>Backup: pg_dump diário → S3"]
             Redis_P["Redis 7<br/>──────────<br/>Porta: 6379<br/>Sem persistência<br/>(jobs são recuperáveis)"]
         end
 
@@ -44,8 +44,8 @@ graph TB
     %% ===========================================================
     subgraph CLOUD_STORAGE["📦 Cloud Storage (chunks criptografados)"]
         direction LR
-        S3_Bucket["AWS S3<br/>──────────<br/>Região: eu-west-1<br/>Classe: S3 Standard<br/>SDK: aws-sdk-s3 (Rust)"]
-        R2_Bucket["Cloudflare R2<br/>──────────<br/>Sem egress fees<br/>S3-compatible<br/>SDK: aws-sdk-s3 (Rust)"]
+        S3_Bucket["AWS S3<br/>──────────<br/>Região: eu-west-1<br/>Classe: S3 Standard<br/>SDK: aws-sdk-s3 (TypeScript)"]
+        R2_Bucket["Cloudflare R2<br/>──────────<br/>Sem egress fees<br/>S3-compatible<br/>SDK: aws-sdk-s3 (TypeScript)"]
     end
 
     %% ===========================================================
@@ -53,8 +53,8 @@ graph TB
     %% ===========================================================
     subgraph FAMILY_NODES["💻 Nós da Família (agentes de nó)"]
         direction LR
-        PC["PC/NAS Doméstico<br/>──────────<br/>Agent: Rust binary + Axum<br/>Storage: filesystem local<br/>Heartbeat: 1/min"]
-        VPS_Node["VPS Remota<br/>──────────<br/>Agent: Rust binary + Axum<br/>Storage: filesystem<br/>Always-online anchor"]
+        PC["PC/NAS Doméstico<br/>──────────<br/>Agent: NestJS app<br/>Storage: filesystem local<br/>Heartbeat: 1/min"]
+        VPS_Node["VPS Remota<br/>──────────<br/>Agent: NestJS app<br/>Storage: filesystem<br/>Always-online anchor"]
     end
 
     %% ===========================================================
@@ -65,7 +65,7 @@ graph TB
     Caddy -->|"HTTP :8080"| Orchestrator
     Caddy -->|"HTTP :3000"| WebClient
 
-    Orchestrator -->|"SQLx async :5432"| DB_PRIMARY
+    Orchestrator -->|"Prisma :5432"| DB_PRIMARY
     Orchestrator -->|"TCP :6379"| Redis_P
     Orchestrator --> FFmpeg_D
 
