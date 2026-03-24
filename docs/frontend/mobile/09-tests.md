@@ -18,11 +18,13 @@ Define a piramide de testes do app mobile, as ferramentas utilizadas, os padroes
         +---------+
 ```
 
+<!-- do blueprint: 12-testing_strategy.md (piramide 70/20/10, Core SDK prioritario), mobile/08-flows.md (5 fluxos criticos) -->
+
 | Nivel | Ferramenta | O que Testa | Meta de Cobertura |
 |-------|------------|-------------|-------------------|
-| Unit | {{Jest / Vitest}} | Hooks, utils, logica isolada | {{80%+}} |
-| Integration | {{React Native Testing Library}} | Componentes + interacoes | {{60%+}} |
-| E2E | {{Detox / Maestro}} | Fluxos completos no dispositivo/emulador | {{Fluxos criticos 100%}} |
+| Unit | Jest + React Native Testing Library | Hooks, stores Zustand, utils, logica de negocio (Core SDK no mobile) | 80%+ (90%+ em crypto/upload) |
+| Integration | React Native Testing Library + MSW | Componentes com API mocked, fluxo de telas, TanStack Query | 60%+ nas features criticas |
+| E2E | Maestro | Fluxos completos em dispositivo/emulador (iOS + Android) | 100% dos 5 fluxos criticos |
 
 ---
 
@@ -122,12 +124,22 @@ describe('Login Flow', () => {
 
 > Quais sao as metas de cobertura por camada?
 
+<!-- do blueprint: 12-testing_strategy.md (cobertura prioritaria em Core SDK crypto e chunking) -->
+
 | Camada | Meta | Medicao |
 |--------|------|---------|
-| Domain (models, utils) | 90%+ | {{Jest coverage}} |
-| Application (hooks) | 80%+ | {{Jest coverage}} |
-| UI (components) | 60%+ | {{RNTL + Jest}} |
-| E2E (fluxos criticos) | 100% | {{Detox/Maestro reports}} |
+| Core SDK (crypto, chunking, hashing) | 90%+ | Jest coverage — **prioridade maxima**: corrupção de dados é catastrófica |
+| Domain (models, utils, mappers) | 90%+ | Jest coverage |
+| Application (hooks Zustand, hooks TanStack Query) | 80%+ | Jest coverage |
+| Infrastructure (api-client, sync-engine) | 75%+ | Jest + MSW mocks |
+| UI (components primitivos e compostos) | 60%+ | React Native Testing Library |
+| E2E (5 fluxos criticos) | 100% | Maestro flow reports |
+
+**Areas com cobertura obrigatoria (qualquer PR que toque deve ter testes):**
+- `features/upload/services/sync-engine` — sync automatico em background
+- `features/auth/services/vault` — desbloqueio do vault com senha
+- `features/upload/store/upload-store` — fila persistida (SQLite)
+- `packages/core-sdk/crypto` — AES-256-GCM + envelope encryption
 
 <!-- APPEND:cobertura -->
 
@@ -153,18 +165,23 @@ describe('Login Flow', () => {
 
 > Testes rodam automaticamente no pipeline?
 
-- [ ] Testes unitarios rodam em cada PR
-- [ ] Testes de integracao rodam em cada PR
-- [ ] E2E roda antes de merge na main
-- [ ] Cobertura e reportada no PR
-- [ ] Testes falhos bloqueiam merge
+<!-- do blueprint: 12-testing_strategy.md (CI GitHub Actions), mobile/00-frontend-vision.md (EAS Build) -->
 
-| Etapa | Comando | Timeout |
-|-------|---------|---------|
-| Unit + Integration | `npm run test` | {{60s}} |
-| E2E (iOS) | `npm run test:e2e:ios` | {{600s}} |
-| E2E (Android) | `npm run test:e2e:android` | {{600s}} |
-| Coverage report | `npm run test:coverage` | {{90s}} |
+- [x] Testes unitarios rodam em cada PR
+- [x] Testes de integracao rodam em cada PR
+- [x] E2E roda antes de merge na main (via EAS Build + Maestro no emulador)
+- [x] Cobertura e reportada no PR (threshold: 80% geral, 90% Core SDK)
+- [x] Testes falhos bloqueiam merge
+
+| Etapa | Comando | Timeout | Quando roda |
+|-------|---------|---------|-------------|
+| Type check | `pnpm tsc --noEmit` | 30s | Todo PR |
+| Lint | `pnpm eslint` | 30s | Todo PR |
+| Unit + Integration | `pnpm jest --coverage` | 120s | Todo PR |
+| E2E iOS (emulador) | `maestro test maestro/flows/` | 600s | Merge na main |
+| E2E Android (emulador) | `maestro test maestro/flows/` | 600s | Merge na main |
+| Coverage report | Gerado junto com Jest | — | Todo PR |
+| EAS Build (preview) | `eas build --profile preview` | — | Tag de release |
 
 > Para pipeline completo, (ver 13-cicd-conventions.md).
 
@@ -174,4 +191,6 @@ describe('Login Flow', () => {
 
 | Data | Decisao | Motivo |
 |------|---------|--------|
-| {{YYYY-MM-DD}} | {{Decisao sobre testes}} | {{Justificativa}} |
+| 2026-03-24 | Maestro como ferramenta E2E em vez de Detox | Maestro tem sintaxe YAML mais simples, sem necessidade de build nativo separado, melhor integracao com EAS Build e suporte nativo a iOS e Android sem configuracao adicional |
+| 2026-03-24 | Cobertura 90%+ obrigatoria em Core SDK (crypto, chunking) | Corrupcao de dados e catastrofica em sistema zero-knowledge — nao ha backend para recuperar dados corrompidos; testes sao a unica salvaguarda |
+| 2026-03-24 | MSW para mocking de API em testes de integracao | Permite testar componentes com chamadas HTTP reais sem dependencia de servidor; mais proximo do comportamento real do que mocks de funcao |

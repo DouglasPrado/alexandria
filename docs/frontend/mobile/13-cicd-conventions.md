@@ -28,20 +28,23 @@ Release
 
 | Etapa | Ferramenta | Timeout | Bloqueia Merge? |
 |-------|------------|---------|-----------------|
-| Lint | {{ESLint}} | {{30s}} | {{Sim}} |
-| Type Check | {{TypeScript}} | {{60s}} | {{Sim}} |
-| Unit Tests | {{Jest}} | {{60s}} | {{Sim}} |
-| Build Check | {{Metro Bundler}} | {{120s}} | {{Sim}} |
-| E2E (iOS) | {{Detox / Maestro}} | {{600s}} | {{Sim (na main)}} |
-| E2E (Android) | {{Detox / Maestro}} | {{600s}} | {{Sim (na main)}} |
-| EAS Build | {{EAS Build}} | {{1800s}} | {{N/A}} |
-| Submit | {{EAS Submit}} | {{300s}} | {{N/A}} |
+| Lint | ESLint (flat config) | 30s | Sim |
+| Type Check | `pnpm tsc --noEmit` (workspace completo) | 60s | Sim |
+| Unit + Integration Tests | Jest + React Native Testing Library + MSW | 120s | Sim |
+| Coverage gate | Jest coverage (80% geral; 90% Core SDK) | — | Sim |
+| Build Check | `expo export` (Metro dry run) | 120s | Sim (na main) |
+| E2E iOS | Maestro (emulador iOS) | 600s | Sim (merge na main) |
+| E2E Android | Maestro (emulador Android) | 600s | Sim (merge na main) |
+| EAS Build (preview) | EAS Build cloud (iOS + Android) | 1800s | N/A — artefato de staging |
+| EAS Submit (production) | EAS Submit → App Store / Google Play | 300s | N/A — manual em releases |
+
+<!-- do blueprint: 09-tests.md (comandos e timeouts do pipeline) -->
 
 <details>
 <summary>Exemplo — GitHub Actions + EAS Build</summary>
 
 ```yaml
-name: CI
+name: CI — Mobile
 on:
   pull_request:
     branches: [main]
@@ -53,14 +56,18 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run type-check
-      - run: npm run test -- --coverage
+          node-version: 22
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @alexandria/mobile lint
+      - run: pnpm --filter @alexandria/mobile tsc --noEmit
+      - run: pnpm --filter @alexandria/mobile test --coverage
+        env:
+          SENTRY_DSN: ''          # desabilitado em CI
 
-  build:
+  build-check:
     needs: ci
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -70,8 +77,24 @@ jobs:
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
-      - run: npm ci
-      - run: eas build --platform all --profile staging --non-interactive
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - run: pnpm install --frozen-lockfile
+      - run: eas build --platform all --profile preview --non-interactive
+        working-directory: apps/mobile
+
+  e2e:
+    needs: build-check
+    runs-on: macos-latest          # necessario para emulador iOS
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mobile-dev-inc/action-maestro-cloud@v1.9.7
+        with:
+          api-key: ${{ secrets.MAESTRO_CLOUD_API_KEY }}
+          app-file: apps/mobile/builds/alexandria.ipa
+          flow-file: apps/mobile/maestro/flows/
 ```
 
 </details>
@@ -94,21 +117,22 @@ jobs:
 
 | Canal | Plataforma | Ferramenta | Aprovacao |
 |-------|-----------|------------|-----------|
-| TestFlight | iOS | App Store Connect | {{Automatica / Manual}} |
-| Internal Testing | Android | Google Play Console | {{Automatica}} |
-| App Store | iOS | App Store Connect | {{Review da Apple (1-3 dias)}} |
-| Google Play | Android | Google Play Console | {{Review do Google (horas-dias)}} |
-| OTA Update | iOS + Android | Expo Updates | {{Sem review — apenas JS}} |
+| TestFlight | iOS | EAS Submit → App Store Connect | Automatica (Internal Testing group); External requer review da Apple |
+| Internal Testing | Android | EAS Submit → Google Play Console | Automatica (Internal Testing track) |
+| App Store | iOS | EAS Submit → App Store Connect | Review da Apple (tipicamente 1-3 dias) |
+| Google Play | Android | EAS Submit → Google Play Console | Review do Google (horas a alguns dias) |
+| OTA Update | iOS + Android | EAS Update | Sem review — apenas mudancas em JS/assets; respeita `runtimeVersion` |
 
 ### OTA Updates (Over-The-Air)
 
 | Aspecto | Configuracao |
 |---------|-------------|
-| Ferramenta | {{Expo Updates / CodePush}} |
-| Quando usar | Mudancas apenas em JS/assets (sem mudanca nativa) |
-| Rollout | {{Progressivo: 10% -> 50% -> 100%}} |
-| Rollback | {{Automatico se crash rate > threshold}} |
-| Frequencia | {{A cada fix ou feature pequena}} |
+| Ferramenta | EAS Update (Expo Updates v3) |
+| Quando usar | Mudancas apenas em JS/assets — sem alteracoes em modulos nativos, configs de build ou `runtimeVersion` |
+| Channels | `preview` para QA; `production` para usuarios — promover manualmente apos validar no preview |
+| Rollback | Manual via EAS Dashboard — reverter para update anterior; Sentry alerta crash rate > 2% pos-update |
+| Frequencia | Hotfixes e features pequenas sem mudancas nativas; qualquer mudanca nativa requer EAS Build completo |
+| Verificacao de compatibilidade | `runtimeVersion` no `app.config.ts` — OTA rejeitada se versao nativa incompativel |
 
 ---
 
@@ -116,11 +140,13 @@ jobs:
 
 > Quais ambientes existem?
 
-| Ambiente | Identificador | Branch | API |
-|----------|--------------|--------|----|
-| Development | {{dev client}} | Local | {{http://localhost:3000}} |
-| Staging | {{com.app.staging}} | {{develop}} | {{https://staging-api.app.com}} |
-| Production | {{com.app}} | {{main}} | {{https://api.app.com}} |
+| Ambiente | Identificador (Bundle ID) | Branch | API | EAS Channel |
+|----------|--------------------------|--------|-----|-------------|
+| Development | `com.alexandria.dev` | qualquer | `http://localhost:8080` (Orquestrador local via Docker Compose) | — (Expo Go / dev build) |
+| Preview | `com.alexandria.preview` | develop / PRs | Build EAS preview — API configurada via `EXPO_PUBLIC_API_URL` no channel | `preview` |
+| Production | `com.alexandria` | main | `https://api.alexandria.familia.com` (VPS self-hosted) | `production` |
+
+<!-- do blueprint: 06-system-architecture.md (sem staging — time de 1 pessoa; Docker Compose local replica producao) -->
 
 <!-- APPEND:ambientes -->
 
@@ -163,11 +189,12 @@ jobs:
 
 | Ferramenta | Proposito | Configuracao |
 |------------|-----------|-------------|
-| ESLint | Linting de codigo | {{eslint.config.js}} |
-| Prettier | Formatacao de codigo | {{.prettierrc}} |
-| TypeScript | Tipagem estatica (strict mode) | {{tsconfig.json}} |
-| Husky | Git hooks (pre-commit) | {{.husky/}} |
-| lint-staged | Rodar lint apenas em arquivos staged | {{.lintstagedrc}} |
+| ESLint | Linting — regras Expo + React Native + TypeScript | `eslint.config.js` (flat config) na raiz do monorepo |
+| Prettier | Formatacao consistente de codigo | `.prettierrc` na raiz do monorepo |
+| TypeScript | Tipagem estatica com `strict: true` | `apps/mobile/tsconfig.json` (extends da raiz) |
+| Husky | Git hooks — pre-commit e commit-msg | `.husky/pre-commit` executa lint-staged; `.husky/commit-msg` valida conventional commits |
+| lint-staged | Lint apenas em arquivos staged (nao todo o projeto) | Configurado em `package.json` root: `*.{ts,tsx}` → eslint + prettier |
+| Commitlint | Valida mensagens de commit (conventional commits) | `commitlint.config.js` na raiz do monorepo |
 
 ---
 
@@ -203,4 +230,8 @@ jobs:
 
 | Data | Decisao | Motivo |
 |------|---------|--------|
-| {{YYYY-MM-DD}} | {{Decisao sobre CI/CD ou convencoes}} | {{Justificativa}} |
+| 2026-03-24 | EAS Build + EAS Update em vez de builds locais + CodePush | EAS Build roda em cloud (nao bloqueia maquina local), gera artefatos assinados reproduziveis e integra nativamente com EAS Update para OTA; CodePush foi descontinuado pela Microsoft |
+| 2026-03-24 | Maestro para E2E em vez de Detox | Maestro tem sintaxe YAML sem necessidade de compilar testes, suporta iOS e Android sem configuracao separada, e integra com Maestro Cloud para rodar em CI sem emulador local |
+| 2026-03-24 | `pnpm --filter @alexandria/mobile` para comandos do monorepo | Isola comandos ao workspace do mobile sem interferir com web/node-agent; pnpm workspaces garante hoisting correto de dependencias compartilhadas (core-sdk) |
+| 2026-03-24 | Sem ambiente de staging dedicado | Time de 1 pessoa com 5-10 usuarios familiares; Docker Compose local replica producao; EAS channel `preview` substitui staging para validacao de builds |
+| 2026-03-24 | `runtimeVersion` explicitamente gerenciado em `app.config.ts` | Controla quais OTA updates sao compativeis com qual versao nativa — previne OTA quebrar app apos mudanca de modulo nativo |

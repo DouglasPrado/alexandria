@@ -14,12 +14,14 @@ Define a hierarquia de componentes, padroes de composicao e o template de docume
 
 | Componente | Props Principais | Variantes |
 | --- | --- | --- |
-| Button | {{variant, size, disabled, loading}} | {{primary, secondary, ghost, destructive}} |
-| Input | {{type, placeholder, error, disabled}} | {{text, password, search, number}} |
-| Card | {{padding, border, shadow}} | {{default, outlined, elevated}} |
-| Modal | {{open, onClose, title, size}} | {{default, confirmation, fullscreen}} |
-| Badge | {{variant, count}} | {{default, dot, count}} |
-| Avatar | {{src, name, size}} | {{image, initials, fallback}} |
+| Button | `variant, size, disabled, loading, icon?, asChild?` | `primary, secondary, ghost, destructive, outline, link` |
+| Input | `type, placeholder, error?, disabled, value, onChange` | `text, password, search` |
+| Card | `padding?, className?, asChild?` | `default, outlined, elevated` |
+| Modal | `open, onOpenChange, title, description?, size?` | `default, confirmation (AlertDialog), fullscreen` |
+| Badge | `variant, children` | `default, secondary, destructive, outline` |
+| Avatar | `src?, name, size?, fallback?` | `image, initials, fallback` |
+| Progress | `value, max?, label?` | `linear, indeterminate` |
+| Skeleton | `className?, variant?` | `text, card, gallery-item, list-row` |
 
 <!-- APPEND:primitivos -->
 
@@ -29,12 +31,12 @@ Define a hierarquia de componentes, padroes de composicao e o template de docume
 
 | Componente | Props Principais | Descricao |
 | --- | --- | --- |
-| TitleBar | {{title, showControls, draggable}} | Barra de titulo customizada (frameless window) com botoes de minimizar, maximizar e fechar |
-| SystemTray | {{tooltip, icon, contextMenu}} | Gerenciamento do icone e menu de contexto na system tray |
-| MenuBar | {{items, onItemClick}} | Barra de menu da aplicacao (File, Edit, View, Help) |
-| NativeNotification | {{title, body, icon, onClick}} | Wrapper para notificacoes nativas do sistema operacional |
-| FileDialog | {{type, filters, defaultPath}} | Dialogo nativo de abrir/salvar arquivo via IPC |
-| UpdateBanner | {{version, onUpdate, onDismiss}} | Banner de atualizacao disponivel com acoes de instalar ou ignorar |
+| TitleBar | `title?: string, showControls?: boolean, draggable?: boolean, children?` | Barra de titulo frameless com WindowControls (Windows/Linux); macOS usa decoracao nativa |
+| WindowControls | `onMinimize, onMaximize, onClose, platform: 'win32' \| 'linux'` | Botoes min/max/close para janelas sem decoracao nativa; ocultos no macOS |
+| SystemTray | `tooltip: string, iconPath: string, menu: TrayMenuItem[]` | Icone e menu de contexto na system tray; persiste mesmo com janela oculta |
+| NativeNotification | `title: string, body: string, icon?: string, onClick?: () => void` | Wrapper para `new Notification()` do Electron com permissao OS |
+| FileDialog | `type: 'open' \| 'save', filters: FileFilter[], defaultPath?: string, multiple?: boolean` | Invoca `dialog.showOpenDialog` / `showSaveDialog` via IPC — retorna path(s) selecionados |
+| UpdateBanner | `version: string, releaseNotes?: string, onUpdate: () => void, onDismiss: () => void` | Banner persistente no topo da janela quando nova versao esta disponivel |
 
 <!-- APPEND:desktop-components -->
 
@@ -44,11 +46,13 @@ Define a hierarquia de componentes, padroes de composicao e o template de docume
 
 | Componente | Primitivos Usados | Contexto de Uso |
 | --- | --- | --- |
-| Form | {{Input, Button, Select}} | {{Formularios com validacao}} |
-| Sidebar | {{Button, Avatar, Badge}} | {{Navegacao lateral}} |
-| Navbar | {{Button, Avatar, Input}} | {{Navegacao superior}} |
-| DataTable | {{Input, Button, Badge, Pagination}} | {{Listagem de dados tabulares}} |
-| Pagination | {{Button}} | {{Navegacao entre paginas de dados}} |
+| AppSidebar | `Button, Avatar, Badge, Tooltip` | Navegacao principal entre features (galeria, sync, cluster, vault, settings) |
+| SearchBar | `Input, Button, DropdownMenu` | Busca de arquivos por nome, data ou tipo — abre command palette |
+| NodeStatusRow | `Badge, Avatar, Progress, Button` | Linha de tabela representando um no com status, capacidade e acoes |
+| ProviderForm | `Input, Select, Button, Badge` | Formulario de cadastro/edicao de provedor cloud (S3/R2/B2) com teste de conectividade |
+| MemberCard | `Avatar, Badge, Button, DropdownMenu` | Card de membro com avatar, role badge e acoes (alterar role, remover) |
+| AlertBanner | `Badge, Button` | Alerta de saude do cluster (no offline, replicacao baixa, token expirado) |
+| SeedPhraseGrid | `Input, Button` | Grid 3x4 de 12 palavras com mascara/reveal e copia segura para clipboard |
 
 <!-- APPEND:compostos -->
 
@@ -58,11 +62,23 @@ Define a hierarquia de componentes, padroes de composicao e o template de docume
 
 | Componente | Feature/Dominio | Dados que Consome |
 | --- | --- | --- |
-| {{UserProfile}} | {{auth}} | {{Dados do usuario autenticado}} |
-| {{FileUploader}} | {{storage}} | {{Configuracoes de upload, progresso}} |
-| {{BillingPanel}} | {{billing}} | {{Plano atual, faturas, metodos de pagamento}} |
-| {{DashboardGrid}} | {{dashboard}} | {{Metricas, graficos, atividade recente}} |
-| {{Outro componente}} | {{Feature}} | {{Dados}} |
+| `UnlockScreen` | `auth` | — (formulario de senha; sem dados pre-carregados) |
+| `SeedPhraseInput` | `auth` | 12 palavras em array para validacao BIP-39 |
+| `AuthGuard` | `auth` | `authStore.isUnlocked` — redireciona para UnlockScreen se vault travado |
+| `GalleryGrid` | `gallery` | `galleryStore.files[]` — thumbnails com metadata (nome, data, tipo, tamanho) |
+| `MediaViewer` | `gallery` | `galleryStore.selectedFile` — URL do preview + metadados EXIF |
+| `TimelineBar` | `gallery` | `galleryStore.timelineIndex` — contagens de fotos por ano/mes |
+| `AlbumList` | `gallery` | `galleryStore.albums[]` — lista de albuns com cover thumbnail |
+| `SyncDashboard` | `sync` | `syncStore.status, syncStore.queue[], syncStore.watchedFolders[]` |
+| `UploadProgressItem` | `sync` | `syncStore.queue[n]` — nome, tamanho, progresso (%), status (pending/uploading/done/error) |
+| `FolderPicker` | `sync` | `settingsStore.syncFolders[]` — abre FileDialog e dispara `sync:start` via IPC |
+| `ClusterHealthPanel` | `cluster` | `clusterStore.health` — nos total/online/suspect/lost, chunks replicados, alertas |
+| `NodeCard` | `cluster` | `clusterStore.nodes[n]` — nome, tipo, capacidade, status, heartbeat |
+| `InviteForm` | `cluster` | — (formulario; submete via API para gerar token) |
+| `ProviderSetup` | `cluster` | `vaultStore.providers[]` — credenciais S3/R2/B2 do vault do membro |
+| `VaultItem` | `vault` | `vaultStore.items[n]` — tipo, nome, valor mascarado, data de criacao |
+| `ProviderCredentialForm` | `vault` | `vaultStore.editingItem` — formulario de criacao/edicao de credencial |
+| `SettingsPage` | `settings` | `settingsStore` — tema, pasta sync, notificacoes, auto-start, versao do app |
 
 <!-- APPEND:feature-components -->
 

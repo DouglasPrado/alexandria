@@ -28,17 +28,31 @@ Define a estrategia de gerenciamento de estado separando claramente os tipos de 
 
 > Como gerenciamos dados vindos do backend?
 
-- **Ferramenta:** {{TanStack Query / SWR / outro}}
-- **Beneficios:** cache automatico, revalidacao, sincronizacao, loading/error states
+<!-- do blueprint: mobile/00-frontend-vision.md (TanStack Query v5), shared/06-data-layer.md (hooks e stale times) -->
+
+- **Ferramenta:** TanStack Query v5
+- **Beneficios:** cache automatico, revalidacao, sincronizacao, loading/error states, offline support nativo
 - **Padrao:** queries em `features/xxx/api/` + hooks em `features/xxx/hooks/`
 
 | Configuracao | Valor |
 | --- | --- |
-| Stale Time | {{5 minutos / conforme dominio}} |
-| Cache Time | {{30 minutos}} |
-| Retry | {{3 tentativas com backoff exponencial}} |
-| Refetch on App Focus | {{Sim / Nao}} |
-| Refetch on Reconnect | {{Sim — revalidar ao voltar online}} |
+| Stale Time | Por dominio — veja tabela abaixo |
+| Cache Time (gcTime) | 5-10 min conforme dominio |
+| Retry | 3 tentativas com backoff exponencial (1s, 2s, 4s); apenas GET e erros de rede/5xx |
+| Refetch on App Focus | Sim — `refetchOnWindowFocus` ativo (equivalente a foreground no mobile) |
+| Refetch on Reconnect | Sim — `onlineManager` do TanStack Query detecta reconexao via NetInfo |
+
+**Stale Times por dominio:**
+
+| Dominio | staleTime | gcTime | Polling | Justificativa |
+| --- | --- | --- | --- | --- |
+| `gallery` (lista) | 30s | 5min | — | Novos arquivos aparecem apos upload; polling nao necessario |
+| `gallery` (detalhe) | 30s | 5min | 3s (se `processing`) | Acompanhar pipeline de otimizacao ate status `ready` |
+| `cluster` | 60s | 10min | — | Dados do cluster mudam raramente |
+| `nodes` | 30s | 5min | — | Heartbeat via servidor; status muda com pouca frequencia |
+| `alerts` | 10s | 2min | — | Alertas precisam de visibilidade rapida |
+| `members` | 60s | 10min | — | Membros mudam raramente |
+| `recovery` | 0 | 0 | 5s (durante recovery) | Sem cache; sempre fresco durante processo critico |
 
 > Detalhes completos sobre data fetching: (ver 06-data-layer.md)
 
@@ -48,12 +62,17 @@ Define a estrategia de gerenciamento de estado separando claramente os tipos de 
 
 > Quais dados precisam ser globais?
 
-| Store | Dados | Persistencia (Sim/Nao) | Quando Inicializa |
+<!-- do blueprint: 09-state-models.md (estados de File, Node, Cluster, Alert), mobile/01-architecture.md (dominios) -->
+
+| Store | Dados | Persistencia | Quando Inicializa |
 | --- | --- | --- | --- |
-| {{authStore}} | {{Usuario logado, token, permissoes}} | {{Sim (SecureStore / MMKV)}} | {{Login / Abertura do app}} |
-| {{preferencesStore}} | {{Tema, idioma, notificacoes}} | {{Sim (MMKV / AsyncStorage)}} | {{Montagem do app}} |
-| {{uiStore}} | {{Notificacoes, loading global}} | {{Nao}} | {{Montagem do app}} |
-| {{Outra store}} | {{Dados}} | {{Sim/Nao}} | {{Quando}} |
+| `authStore` | `member` (id, name, role), `token` JWT, `isAuthenticated`, `vaultUnlocked`, `clusterId` | Sim — `expo-secure-store` (token + memberId) | Cold start (restoreSession) / Login |
+| `uploadStore` | `queue: UploadItem[]` (arquivos pendentes, em progresso, concluidos), `syncEnabled`, `wifiOnly` | Sim — SQLite (queue persistida entre restarts) | Montagem do app; Sync Engine carrega queue ao iniciar |
+| `settingsStore` | `theme` (light/dark/system), `notificationsEnabled`, `syncFrequency`, `spaceReleaseThreshold` | Sim — `expo-secure-store` | Montagem do app (antes de renderizar RootLayout) |
+| `galleryStore` | `cursor` (paginacao), `activeFilter` (data, tipo), `selectedItems` (multi-select) | Nao | Montagem de GalleryScreen |
+| `clusterStore` | `cluster: ClusterDTO | null`, `members: MemberDTO[]` | Nao — server state via TanStack Query; store guarda sele&ccedil;ao de cluster | Ao autenticar e carregar cluster |
+| `alertsStore` | `unreadCount: number` | Nao | Poll periodico via `useAlerts` (10s staleTime); badge no TabBar |
+| `appLifecycleStore` | `appState` (foreground/background), `lastBackgroundAt`, `isOnline` | Nao | Montagem do app (`AppState.addEventListener`) |
 
 <!-- APPEND:stores -->
 
@@ -132,12 +151,21 @@ const useAuthStore = create<AuthState>()(
 - **Padrao:** Event Bus leve para comunicacao entre features
 - **Eventos tipicos:** `user:login`, `file:uploaded`, `subscription:updated`
 
+<!-- do blueprint: 09-state-models.md (transicoes: File, Node, Alert, Cluster), mobile/01-architecture.md (comunicacao entre dominios) -->
+
 | Evento | Emissor | Ouvinte(s) | Payload |
 | --- | --- | --- | --- |
-| {{user:login}} | {{auth}} | {{dashboard, analytics}} | {{userId, role}} |
-| {{file:uploaded}} | {{storage}} | {{dashboard, notifications}} | {{fileId, fileName, size}} |
-| {{subscription:updated}} | {{billing}} | {{dashboard, storage}} | {{planId, limits}} |
-| {{Outro evento}} | {{Emissor}} | {{Ouvinte(s)}} | {{Payload}} |
+| `member:authenticated` | `auth` | `cluster`, `upload`, `alerts` | `{ memberId, role, clusterId }` |
+| `member:logout` | `auth` | Todos os dominios | `{}` — limpar stores |
+| `file:upload:queued` | `upload` | `gallery` | `{ fileId, name, mediaType, previewUri }` |
+| `file:upload:completed` | `upload` | `gallery`, `alerts` | `{ fileId, optimizedSize, replicaCount }` |
+| `file:upload:failed` | `upload` | `alerts` | `{ fileId, name, errorCode }` |
+| `file:status:changed` | `gallery` | `upload`, `alerts` | `{ fileId, oldStatus, newStatus }` — ex: `processing → ready` |
+| `space:release:confirmed` | `upload` | `gallery` | `{ freedBytes, fileIds }` — thumbnails substituem originais |
+| `node:status:changed` | `nodes` | `alerts`, `cluster` | `{ nodeId, oldStatus, newStatus }` — ex: `online → suspect` |
+| `cluster:alert:new` | `alerts` | `alertsStore` (unreadCount++) | `{ alertId, type, severity }` |
+| `sync:engine:started` | `upload` | `appLifecycleStore` | `{ queueSize }` |
+| `network:reconnected` | `appLifecycleStore` | `upload` (flush queue) | `{}` |
 
 <!-- APPEND:eventos -->
 

@@ -140,6 +140,74 @@ Paleta base derivada de Beautiful Blues (Coolors) — transmite confianca, segur
 }
 ```
 
+### Tokens de Cor no Mobile (NativeWind v4)
+
+No app mobile, os tokens de cor nao usam CSS variables — sao mapeados para o sistema de temas do NativeWind v4 via `tailwind.config.js`. Os nomes dos tokens sao os mesmos, garantindo consistencia visual entre web e mobile.
+
+<!-- do blueprint: mobile/00-frontend-vision.md — NativeWind v4 como sistema de estilizacao mobile -->
+
+```js
+// tailwind.config.js (apps/mobile)
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        primary:     { DEFAULT: '#011F4B', foreground: '#F8FAFC' },
+        accent:      { DEFAULT: '#03396C', foreground: '#F8FAFC' },
+        secondary:   { DEFAULT: '#005B96', foreground: '#F8FAFC' },
+        info:        { DEFAULT: '#6497B1', foreground: '#F8FAFC' },
+        muted:       { DEFAULT: '#B3CDE0', foreground: '#374151' },
+        destructive: { DEFAULT: '#DC2626', foreground: '#F8FAFC' },
+        success:     { DEFAULT: '#059669', foreground: '#F8FAFC' },
+        warning:     { DEFAULT: '#D97706', foreground: '#1F2937' },
+        background:  '#F8FAFC',
+        foreground:  '#011F4B',
+        card:        '#FFFFFF',
+        border:      '#CBD5E1',
+      },
+    },
+  },
+};
+```
+
+**Dark mode mobile:** via `useColorScheme()` do React Native + `colorScheme` prop no NativeWind. O NativeWind v4 suporta `dark:` prefix nativamente.
+
+### Tokens de Cor no Desktop (Electron + Tailwind CSS v4)
+
+O app desktop usa os **mesmos CSS variables** do web (`globals.css`) — o renderer process do Electron executa Chromium completo, que suporta CSS custom properties e Tailwind v4 nativamente. Nenhuma adaptacao de tokens e necessaria.
+
+<!-- do blueprint: desktop/00-frontend-vision.md — Electron 34, Tailwind CSS v4, Chromium renderer -->
+
+```css
+/* apps/desktop/src/renderer/styles/globals.css — identico ao web */
+@import './themes.css'; /* reexporta o globals.css do packages/config */
+```
+
+**Diferenca relevante — carregamento de fontes:**
+
+No desktop, fontes NAO devem ser carregadas via CDN (Google Fonts) pois o app precisa funcionar offline. As fontes sao **empacotadas localmente** no app:
+
+```css
+/* apps/desktop/src/renderer/styles/fonts.css */
+@font-face {
+  font-family: 'Merriweather';
+  src: url('../assets/fonts/Merriweather-Regular.woff2') format('woff2');
+  font-weight: 400;
+}
+@font-face {
+  font-family: 'Merriweather';
+  src: url('../assets/fonts/Merriweather-Bold.woff2') format('woff2');
+  font-weight: 700;
+}
+@font-face {
+  font-family: 'Montserrat';
+  src: url('../assets/fonts/Montserrat-Variable.woff2') format('woff2');
+  font-weight: 300 700;
+}
+```
+
+> Fontes ficam em `apps/desktop/src/renderer/assets/fonts/` e sao empacotadas pelo electron-vite no build final.
+
 <!-- APPEND:cores -->
 
 ### Tipografia
@@ -231,7 +299,7 @@ Paleta base derivada de Beautiful Blues (Coolors) — transmite confianca, segur
 - [x] Light + Dark
 - [ ] Customizavel pelo usuario
 
-**Estrategia de temas:**
+**Estrategia de temas — Web:**
 
 O Alexandria usa **CSS variables com classe `.dark`** no `<html>`, seguindo o padrao shadcn/ui + `next-themes`. A troca de tema e feita via `ThemeProvider` do `next-themes`, que persiste a preferencia no `localStorage` e respeita `prefers-color-scheme` do sistema como default.
 
@@ -261,12 +329,80 @@ export default function RootLayout({ children }) {
 }
 ```
 
-**Regras de alternancia:**
+**Regras de alternancia — Web:**
 
 - Default: `system` (respeita preferencia do OS)
 - Toggle manual via botao no header (icone sol/lua)
 - Preferencia salva no `localStorage` como `theme`
 - Transicoes CSS desabilitadas durante troca para evitar flash
+
+**Estrategia de temas — Mobile:**
+
+<!-- do blueprint: mobile/00-frontend-vision.md — NativeWind v4, expo SDK -->
+
+O app mobile usa `useColorScheme()` do React Native para detectar a preferencia do sistema (light/dark). O NativeWind v4 aplica `dark:` prefixes automaticamente baseado no `colorScheme`. A preferencia manual do usuario e persistida via `expo-secure-store` e aplicada via `colorScheme` prop no provider raiz.
+
+```tsx
+// app/_layout.tsx (apps/mobile)
+import { useColorScheme } from 'react-native';
+import { ThemeProvider } from '@/store/theme-store';
+
+export default function RootLayout() {
+  const systemScheme = useColorScheme(); // 'light' | 'dark'
+  return (
+    <ThemeProvider defaultTheme={systemScheme ?? 'light'}>
+      <Stack />
+    </ThemeProvider>
+  );
+}
+```
+
+**Regras de alternancia — Mobile:**
+
+- Default: `system` (respeita preferencia do OS via `useColorScheme`)
+- Toggle manual via Settings → Aparencia
+- Preferencia salva via `expo-secure-store` (chave `user_theme`)
+- NativeWind v4 aplica `dark:` classnames automaticamente
+
+**Estrategia de temas — Desktop:**
+
+<!-- do blueprint: desktop/00-frontend-vision.md — Electron 34, Zustand v5, CSS variables -->
+
+O app desktop usa `nativeTheme` da API do Electron para detectar a preferencia do sistema e aplica a classe `.dark` no `<html>` do renderer. A preferencia manual do usuario e persistida via `electron-store`.
+
+```typescript
+// main/index.ts — detectar preferencia do sistema
+import { nativeTheme, ipcMain } from 'electron';
+
+nativeTheme.on('updated', () => {
+  const isDark = nativeTheme.shouldUseDarkColors;
+  mainWindow.webContents.send('theme:system-changed', isDark ? 'dark' : 'light');
+});
+
+ipcMain.handle('theme:set', (_event, theme: 'light' | 'dark' | 'system') => {
+  if (theme === 'system') {
+    nativeTheme.themeSource = 'system';
+  } else {
+    nativeTheme.themeSource = theme;
+  }
+  store.set('user_theme', theme); // persistir via electron-store
+});
+```
+
+```typescript
+// renderer/store/settings-store.ts — aplicar no DOM
+window.electronAPI.on('theme:system-changed', (theme: string) => {
+  document.documentElement.classList.toggle('dark', theme === 'dark');
+});
+```
+
+**Regras de alternancia — Desktop:**
+
+- Default: `system` (via `nativeTheme.shouldUseDarkColors`)
+- Toggle manual via Settings → Aparencia ou menu no tray
+- Preferencia salva via `electron-store` (chave `user_theme`)
+- `nativeTheme.themeSource` controla a preferencia do Chromium embutido
+- Classe `.dark` aplicada no `<html>` do renderer via IPC event
 
 ---
 
@@ -317,6 +453,8 @@ Fonte **complementar** para icones estaticos de UI estrutural.
 
 > Quais ferramentas conectam design e codigo?
 
+**Web:**
+
 | Ferramenta | Proposito | Referencia |
 | --- | --- | --- |
 | shadcn/ui | Biblioteca de componentes base (Radix + Tailwind) | https://ui.shadcn.com |
@@ -326,11 +464,41 @@ Fonte **complementar** para icones estaticos de UI estrutural.
 | Coolors | Paleta de cores e validacao de contraste | https://coolors.co |
 | Fontpair | Escolha de pares tipograficos | https://www.fontpair.co |
 
+**Mobile:**
+
+<!-- do blueprint: mobile/00-frontend-vision.md — NativeWind v4, expo-image, FlashList -->
+
+| Ferramenta | Proposito | Referencia |
+| --- | --- | --- |
+| NativeWind v4 | Tailwind CSS para React Native — mesmos tokens do web | https://www.nativewind.dev |
+| expo-font | Carregamento de fontes customizadas (Merriweather + Montserrat) | https://docs.expo.dev/versions/latest/sdk/font/ |
+| expo-image | Cache de imagens nativo de alta performance (thumbnails) | https://docs.expo.dev/versions/latest/sdk/image/ |
+| FlashList (Shopify) | Virtualizacao de listas longas (galeria de fotos) | https://shopify.github.io/flash-list/ |
+| react-native-reanimated | Animacoes nativas de alta performance | https://docs.swmansion.com/react-native-reanimated/ |
+| react-native-gesture-handler | Gestos nativos (swipe, pinch, long press) | https://docs.swmansion.com/react-native-gesture-handler/ |
+
+**Desktop:**
+
+<!-- do blueprint: desktop/00-frontend-vision.md — Electron 34, electron-vite 3, electron-builder, shadcn/ui, TanStack Virtual -->
+
+| Ferramenta | Proposito | Referencia |
+| --- | --- | --- |
+| shadcn/ui | Componentes base (Radix UI + Tailwind) — mesmos do web | https://ui.shadcn.com |
+| electron-vite | Build + HMR para main e renderer; substituicao ao webpack | https://electron-vite.org |
+| electron-builder | Empacotamento DMG (macOS), NSIS (Windows), AppImage (Linux) | https://www.electron.build |
+| electron-store | Persistencia de preferencias do usuario (tema, pastas sync, etc.) | https://github.com/sindresorhus/electron-store |
+| electron-updater | Auto-update via GitHub Releases; suporte a staged rollout | https://www.electron.build/auto-update |
+| TanStack Virtual | Virtualizacao de galeria com dezenas de milhares de fotos | https://tanstack.com/virtual |
+| chokidar | File watching para o Sync Engine; suporta FSEvents e inotify | https://github.com/paulmillr/chokidar |
+| Tailwind CSS v4 | Framework utilitario — mesmos tokens do web via `packages/config` | https://tailwindcss.com |
+
 ---
 
 ## Catalogo de Componentes Base
 
-> Quais sao os componentes primitivos do design system? Todos via shadcn/ui (Radix UI + Tailwind).
+### Web (shadcn/ui + Radix UI + Tailwind)
+
+> Componentes primitivos via shadcn/ui (Radix UI + Tailwind). Consumidos pelo app web (Next.js 16).
 
 | Componente | Variantes | Status | Prioridade |
 | --- | --- | --- | --- |
@@ -350,6 +518,69 @@ Fonte **complementar** para icones estaticos de UI estrutural.
 | Tabs | default, underline (galeria views) | Pronto | P1 |
 | Table | sortable, selectable (file listing) | Pronto | P2 |
 | Command | palette (busca global de arquivos) | Planejado | P2 |
+
+### Mobile (React Native + NativeWind v4)
+
+> Componentes primitivos nativos para o app mobile. Implementados com React Native + NativeWind. Nao usam Radix UI (nao existe para RN).
+
+<!-- do blueprint: mobile/00-frontend-vision.md — React Native, NativeWind v4, FlashList, expo-image -->
+
+| Componente | Implementacao | Status | Prioridade |
+| --- | --- | --- | --- |
+| Button | `Pressable` + NativeWind; variantes: primary, secondary, ghost, destructive | Planejado | P0 |
+| TextInput | `TextInput` nativo + NativeWind; variantes: text, password, search | Planejado | P0 |
+| Card | `View` + NativeWind; variantes: default, outlined, elevated | Planejado | P0 |
+| Avatar | `expo-image` com fallback de iniciais | Planejado | P0 |
+| Badge | `View` + `Text` NativeWind; variantes: status, counter, role | Planejado | P0 |
+| Modal | `Modal` RN ou `BottomSheet` (react-native-bottom-sheet); confirmacao, fullscreen | Planejado | P0 |
+| Toast / Snackbar | `react-native-toast-message`; success, error, warning, info | Planejado | P0 |
+| Skeleton | `View` animado com `react-native-reanimated`; gallery, card, list | Planejado | P1 |
+| ProgressBar | `Animated.View` ou `react-native-reanimated`; upload progress linear | Planejado | P1 |
+| PhotoThumbnail | `expo-image` com blurhash placeholder + `Pressable` | Planejado | P0 |
+| GalleryGrid | `FlashList` 3 colunas com `PhotoThumbnail`; 60fps garantido | Planejado | P0 |
+| NodeHealthBadge | `View` + icone + `Text`; variantes: online, suspect, lost, draining | Planejado | P1 |
+| UploadProgressBar | Linear com percentual + nome do arquivo; animado via reanimated | Planejado | P1 |
+| ActionSheet | `BottomSheet` (react-native-bottom-sheet); acoes contextuais nativas | Planejado | P1 |
+| SeedPhraseDisplay | Grid 3x4 de palavras com `expo-secure-store` integration | Planejado | P1 |
+
+### Desktop (Electron + shadcn/ui + Tailwind CSS v4)
+
+> Componentes do app desktop. Reutiliza todos os primitivos shadcn/ui do web. Adiciona componentes desktop-specific para integracao com o sistema operacional.
+
+<!-- do blueprint: desktop/01-architecture.md — 6 features: auth, gallery, sync, cluster, vault, settings -->
+<!-- do blueprint: desktop/00-frontend-vision.md — system tray, frameless window, background sync -->
+
+**Primitivos compartilhados (via packages/ui — identicos ao web):**
+
+| Componente | Variantes | Status | Prioridade |
+| --- | --- | --- | --- |
+| Button | primary, secondary, ghost, destructive, outline | Reutiliza web | P0 |
+| Input | text, password, search | Reutiliza web | P0 |
+| Card | default, outlined, elevated | Reutiliza web | P0 |
+| Badge | default, secondary, destructive, outline | Reutiliza web | P0 |
+| Dialog | default, confirmation | Reutiliza web | P0 |
+| Toast (Sonner) | success, error, warning, info | Reutiliza web | P0 |
+| Progress | linear (upload/sync) | Reutiliza web | P1 |
+| Skeleton | card, gallery, list | Reutiliza web | P1 |
+| DropdownMenu | com icones, com atalhos | Reutiliza web | P1 |
+| Tabs | galeria views (grid/timeline/album) | Reutiliza web | P1 |
+
+**Componentes desktop-specific (exclusivos do app desktop):**
+
+| Componente | Descricao | Status | Prioridade |
+| --- | --- | --- | --- |
+| `TitleBar` | Barra de titulo personalizada para janela frameless; exibe nome da janela + `WindowControls`; macOS oculta controles (usa native) | Planejado | P0 |
+| `WindowControls` | Botoes min/max/close nativos para Windows e Linux; ocultos no macOS (usa decoracao nativa) | Planejado | P0 |
+| `TrayMenu` | Menu de contexto do system tray: show/hide janela, status do sync, ultimo upload, quit | Planejado | P0 |
+| `SyncStatusIndicator` | Icone animado no tray refletindo estado do Sync Engine: idle, syncing, error, paused | Planejado | P0 |
+| `UploadQueuePanel` | Lista de arquivos na fila de upload com progresso individual, cancelar, retry | Planejado | P0 |
+| `FolderPicker` | Botao que abre `dialog.showOpenDialog` do Electron para selecionar pasta de sync | Planejado | P0 |
+| `NodeHealthDot` | Indicador colorido (verde/amarelo/vermelho) do status de um no; tooltip com detalhes | Planejado | P1 |
+| `ClusterHealthBar` | Barra de status compacta no rodape: nos online/total, chunks replicados, alertas ativos | Planejado | P1 |
+| `SeedPhraseDisplay` | Grid 3x4 de 12 palavras BIP-39 com mascara/reveal e botao de copia — usado no onboarding e recovery | Planejado | P1 |
+| `UnlockScreen` | Tela de desbloqueio do vault: input de senha + feedback de tentativas + botao de recovery | Planejado | P0 |
+| `OnboardingWizard` | Wizard passo-a-passo para primeiro uso: criar cluster OU entrar em cluster existente via convite | Planejado | P1 |
+| `UpdateBanner` | Banner no topo da janela quando nova versao disponivel: changelog + botao de instalar | Planejado | P2 |
 
 <!-- APPEND:catalogo -->
 

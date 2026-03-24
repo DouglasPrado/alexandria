@@ -53,14 +53,17 @@ export function UserList({ users }: { users: User[] }) {
 
 | Metrica | Meta | Descricao |
 |---------|------|-----------|
-| Cold Start Time | {{< 2s}} | Tempo desde toque no icone ate primeira tela interativa |
-| Warm Start Time | {{< 1s}} | Tempo ao reabrir app em background |
-| Frame Rate | {{60fps consistente}} | Sem frame drops durante scroll e animacoes |
-| JS Thread FPS | {{> 55fps}} | Performance do thread JavaScript |
-| Memory Usage | {{< 200MB}} | Consumo de memoria RAM em uso normal |
-| Memory Peak | {{< 350MB}} | Pico de memoria em operacoes pesadas |
-| Battery Consumption | {{< 5% por hora de uso ativo}} | Impacto na bateria durante uso |
-| TTI (Time to Interactive) | {{< 3s em cold start}} | Tempo ate o app responder a toques |
+| Cold Start Time | < 2s | Tempo desde toque no icone ate primeira tela interativa |
+| Warm Start Time | < 1s | Tempo ao reabrir app em background |
+| Frame Rate | 60fps consistente | Sem frame drops durante scroll e animacoes |
+| JS Thread FPS | > 55fps | Performance do thread JavaScript |
+| Memory Usage | < 200MB | Consumo de memoria RAM em uso normal |
+| Memory Peak | < 350MB | Pico de memoria em operacoes pesadas (galeria com 1000+ fotos) |
+| Battery Consumption | < 5% por hora de uso ativo | Impacto na bateria durante uso normal (sem sync em background) |
+| TTI (Time to Interactive) | < 3s em cold start | Tempo ate o app responder a toques |
+| Background Sync | < 15s por ciclo | Tempo para detectar novas fotos e enfileirar uploads |
+| Thumbnail Load | < 200ms | Tempo para exibir thumbnail a partir do cache `expo-image` |
+| Encryption throughput | > 10MB/s | Throughput do Core SDK (AES-256-GCM) no device |
 
 ---
 
@@ -70,11 +73,13 @@ export function UserList({ users }: { users: User[] }) {
 
 | Recurso | Budget | Atual |
 |---------|--------|-------|
-| Bundle JS (Hermes bytecode) | {{< 15MB}} | {{A medir}} |
-| App binary (iOS) | {{< 50MB}} | {{A medir}} |
-| App binary (Android APK) | {{< 30MB}} | {{A medir}} |
-| Imagens bundled | {{< 5MB}} | {{A medir}} |
-| Memoria em idle | {{< 80MB}} | {{A medir}} |
+| Bundle JS (Hermes bytecode) | < 15MB | A medir (pre-launch) |
+| App binary (iOS IPA) | < 50MB | A medir (pre-launch) |
+| App binary (Android APK) | < 30MB | A medir (pre-launch) |
+| Assets bundled (icons, fonts) | < 5MB | A medir (pre-launch) |
+| Memoria em idle (app aberto, sem galeria) | < 80MB | A medir (pre-launch) |
+| Cache de thumbnails em disco (`expo-image`) | < 500MB | Configuravel via `cachePolicy` |
+| SQLite upload queue | < 50MB | Proporcional a fila de upload |
 
 <!-- APPEND:budget -->
 
@@ -113,12 +118,14 @@ export function UserList({ users }: { users: User[] }) {
 
 | Ferramenta | Proposito | Frequencia |
 |------------|-----------|------------|
-| Flipper | Profiling em desenvolvimento (CPU, memoria, rede) | {{Continuo em dev}} |
-| React DevTools Profiler | Analise de re-renders e performance de componentes | {{Continuo em dev}} |
-| Sentry Performance | Monitoramento de transacoes e slow frames em producao | {{Continuo em producao}} |
-| Firebase Performance | App startup time, slow/frozen frames, network | {{Continuo em producao}} |
-| {{Xcode Instruments / Android Profiler}} | Profiling nativo detalhado | {{Antes de releases}} |
-| Bundle Analyzer | Analise de tamanho do bundle | {{Cada release}} |
+| Flipper | Profiling em desenvolvimento (CPU, memoria, rede) | Continuo em dev |
+| React DevTools Profiler | Analise de re-renders e performance de componentes | Continuo em dev |
+| Hermes Profiler | Profiling de CPU e memoria do engine JavaScript | Continuo em dev (quando investigando lentidao) |
+| Sentry Performance | Monitoramento de transacoes e slow frames em producao | Continuo em producao |
+| Xcode Instruments | Profiling nativo detalhado em iOS (Allocations, Time Profiler) | Antes de releases e quando CPU/memoria acima do budget |
+| Android Profiler | Profiling nativo em Android (Memory, CPU, Network) | Antes de releases e quando CPU/memoria acima do budget |
+| Bundle Analyzer (`expo-atlas`) | Analise de tamanho e composicao do bundle JS | A cada release |
+| `expo diagnostics` | Verificacao do ambiente e dependencias | Em resolucao de problemas |
 
 > Para integracao com CI, (ver 13-cicd-conventions.md).
 
@@ -128,4 +135,8 @@ export function UserList({ users }: { users: User[] }) {
 
 | Data | Decisao | Motivo |
 |------|---------|--------|
-| {{YYYY-MM-DD}} | {{Decisao sobre performance}} | {{Justificativa}} |
+| 2026-03-24 | FlashList em vez de FlatList para GalleryGrid e UploadQueueList | FlatList tem overhead de medição de itens em cada render; FlashList reutiliza células de forma mais eficiente, crucial para galeria com 1000+ miniaturas |
+| 2026-03-24 | `expo-image` em vez de FastImage para cache de thumbnails | expo-image tem suporte nativo a blurhash (placeholder), cache em disco configuravel por policy, e manutencao oficial pela equipe Expo; FastImage esta deprecated |
+| 2026-03-24 | Hermes habilitado por padrao (nao desabilitar) | Bytecode pre-compilado reduz cold start em 2-3x; sem custo adicional de configuracao no Expo SDK |
+| 2026-03-24 | Animacoes exclusivamente via Reanimated (nao JS-thread) | Animacoes no JS thread sofrem jank durante operacoes pesadas (upload, criptografia); Reanimated roda no UI thread via Worklets |
+| 2026-03-24 | Criptografia AES-256-GCM no Core SDK executada em background task | Criptografia de chunks grandes (4MB) bloqueia o JS thread por ~100-300ms; isolar em task nativa evita frame drops na galeria |

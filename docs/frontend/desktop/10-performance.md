@@ -56,13 +56,13 @@ export function getSettingsWindow(): BrowserWindow {
 
 | Metrica | Meta | Descricao |
 |---------|------|-----------|
-| Cold Startup Time | {{< 3s}} | Tempo desde clicar no icone ate a janela estar interativa |
-| Warm Startup Time | {{< 1s}} | Tempo de startup com cache (app ja foi aberto antes) |
-| Memory Usage (Renderer) | {{< 150MB}} | Consumo de memoria do processo renderer |
-| Memory Usage (Main) | {{< 50MB}} | Consumo de memoria do processo main |
-| CPU Idle | {{< 1%}} | Uso de CPU quando a aplicacao esta em idle |
-| Disk I/O (Startup) | {{< 50MB reads}} | Leitura de disco durante inicializacao |
-| IPC Latency | {{< 5ms}} | Tempo de ida e volta de uma mensagem IPC |
+| Cold Startup Time | < 3s | Tempo desde clicar no icone ate a janela estar interativa |
+| Warm Startup Time | < 1s | Tempo de startup com cache (app ja foi aberto antes) |
+| Memory Usage (Renderer) | < 150MB | Consumo de memoria do processo renderer |
+| Memory Usage (Main) | < 80MB | Consumo de memoria do processo main (inclui Sync Engine + Node Agent + Vault Manager) |
+| CPU Idle | < 1% | Uso de CPU quando a aplicacao esta em idle (sync engine pausado, janela minimizada) |
+| Disk I/O (Startup) | < 50MB reads | Leitura de disco durante inicializacao |
+| IPC Latency | < 5ms | Tempo de ida e volta de uma mensagem IPC local |
 
 ---
 
@@ -72,12 +72,12 @@ export function getSettingsWindow(): BrowserWindow {
 
 | Recurso | Budget | Atual |
 |---------|--------|-------|
-| Installer size (Windows NSIS) | {{< 80MB}} | {{A medir}} |
-| Installer size (macOS DMG) | {{< 90MB}} | {{A medir}} |
-| Installer size (Linux AppImage) | {{< 100MB}} | {{A medir}} |
-| JavaScript total (renderer) | {{< 200KB gzipped}} | {{A medir}} |
-| CSS total | {{< 50KB gzipped}} | {{A medir}} |
-| Unpacked app size | {{< 250MB (Electron) / < 20MB (Tauri)}} | {{A medir}} |
+| Installer size (Windows NSIS) | < 80MB | A medir no primeiro build |
+| Installer size (macOS DMG) | < 90MB | A medir no primeiro build |
+| Installer size (Linux AppImage) | < 100MB | A medir no primeiro build |
+| JavaScript total (renderer) | < 200KB gzipped | electron-vite + code splitting por rota (React.lazy) |
+| CSS total | < 50KB gzipped | Tailwind CSS v4 com purge; apenas utilitarios usados |
+| Unpacked app size (Electron) | < 250MB | Node.js runtime ~70MB + app ~10MB + dependencias nativas |
 
 <!-- APPEND:budget -->
 
@@ -116,11 +116,11 @@ export function getSettingsWindow(): BrowserWindow {
 
 | Ferramenta | Proposito | Frequencia |
 |------------|-----------|------------|
-| Electron DevTools | Profiling de CPU e memoria no renderer | {{Durante desenvolvimento}} |
-| `process.memoryUsage()` | Metricas de memoria no main process | {{Continuo em producao}} |
-| `app.getAppMetrics()` | Metricas de todos os processos | {{Continuo em producao}} |
-| Bundle Analyzer | Analise de tamanho do bundle | {{Cada release}} |
-| {{APM tool — Sentry / Datadog}} | Monitoramento de performance em producao | {{Continuo}} |
+| Electron DevTools | Profiling de CPU e memoria no renderer | Durante desenvolvimento (F12 / Cmd+Opt+I) |
+| `process.memoryUsage()` | Metricas de memoria no main process — logadas a cada 60s | Continuo em producao (arquivo de log local) |
+| `app.getAppMetrics()` | CPU/memoria de todos os processos (main + renderer + GPU) | Continuo em producao (log local + IPC para renderer) |
+| electron-vite bundle analyzer | Analise de tamanho do bundle JS/CSS | A cada release (CI: `npm run build:analyze`) |
+| Sentry SDK (`@sentry/electron`) | Crash reports, performance traces, startup time | Continuo em producao (opt-in pelo usuario nas configuracoes) |
 
 > Para integracao com CI, (ver 13-cicd-convencoes.md).
 
@@ -130,4 +130,6 @@ export function getSettingsWindow(): BrowserWindow {
 
 | Data | Decisao | Motivo |
 |------|---------|--------|
-| {{YYYY-MM-DD}} | {{Decisao sobre performance}} | {{Justificativa}} |
+| 2026-03-24 | TanStack Virtual para galeria de fotos | Galeria pode ter 50k+ arquivos; renderizacao completa seria inviavel — virtual list renderiza apenas os itens visiveis na viewport |
+| 2026-03-24 | Deferred initialization para servicos nao-criticos | Auto-updater, analytics e tray menu inicializam apos `ready-to-show` para reduzir cold startup time abaixo de 3s |
+| 2026-03-24 | Sentry como APM (opt-in) em vez de Datadog | Custo proporcional para projeto familiar; opt-in respeita principio Zero-Knowledge — nenhum telemetria sem consentimento |

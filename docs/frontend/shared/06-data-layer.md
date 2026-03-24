@@ -20,20 +20,76 @@ Responsabilidades do API Client:
 - Retry automatico (com backoff exponencial para falhas de rede e 5xx)
 - Base URL configuration (por ambiente: dev localhost:8080, prod via Caddy reverse proxy)
 
+**Web:**
+
 | Configuracao | Valor |
 | --- | --- |
 | Base URL | `/api` (proxy via Next.js → Orquestrador :8080) |
 | Timeout | 30 segundos (uploads: 5 minutos) |
 | Retry Policy | 3 tentativas, backoff exponencial (1s, 2s, 4s), apenas para GET e status 5xx/network error |
-| Auth Header | `Authorization: Bearer <jwt>` (injetado via interceptor) |
+| Auth Header | `Authorization: Bearer <jwt>` (injetado via interceptor; token vem de cookie httpOnly) |
+
+**Mobile:**
+
+<!-- do blueprint: mobile/00-frontend-vision.md (expo-secure-store para JWT), 06-system-architecture.md (REST TLS 1.3) -->
+
+| Configuracao | Valor |
+| --- | --- |
+| Base URL | `https://<orchestrator-domain>:8080` (dominio configurado em `app.config.ts`, nao proxy) |
+| Timeout | 30 segundos (uploads: sem limite — streaming progressivo) |
+| Retry Policy | 3 tentativas, backoff exponencial (1s, 2s, 4s), apenas GET/5xx/network error |
+| Auth Header | `Authorization: Bearer <jwt>` (token obtido de `expo-secure-store` via interceptor) |
+| Offline | Requests falham graciosamente; upload enfileirado no SQLite para retry quando online |
 
 <!-- do blueprint: 06-system-architecture.md (HTTPS/REST TLS 1.3, porta 8080) -->
 
-**Localizacao:** `src/lib/api-client.ts`
+**Desktop:**
 
-### Implementacao
+<!-- do blueprint: desktop/00-frontend-vision.md — Electron 34, IPC; desktop/01-architecture.md — renderer nunca acessa Node.js diretamente -->
 
-O API client e um wrapper sobre `fetch` nativo (sem axios) para manter o bundle leve e compativel com Server Components (RSC). A configuracao e centralizada e exporta funcoes tipadas.
+| Configuracao | Valor |
+| --- | --- |
+| Base URL | `https://<orchestrator-domain>:8080` (salvo em `electron-store`, configurado no onboarding) |
+| Timeout | 30 segundos (uploads: sem limite — stream progressivo via IPC) |
+| Retry Policy | 3 tentativas, backoff exponencial — executado no main process |
+| Auth Header | `Authorization: Bearer <jwt>` (main process le JWT do `safeStorage`, nunca expoe ao renderer) |
+| Camada de transporte | IPC: renderer invoca `window.electronAPI.invoke(channel, params)` → main faz HTTP real |
+
+> **Arquitetura critica:** O renderer nunca faz requests HTTP direto. O `apiClient` do renderer e um stub IPC — cada metodo chama `invoke(channel)` no main process, que executa o fetch Node.js real com TLS 1.3. Isso mantem o renderer sandboxed e o JWT fora do contexto web.
+
+```typescript
+// apps/desktop/src/main/services/api-client.ts — cliente HTTP real (Node.js)
+import fetch from 'node-fetch';
+import { safeStorage } from 'electron';
+import { store } from '../store';
+
+const BASE_URL = store.get('orchestratorUrl') as string;
+
+export async function apiRequest<T>(
+  path: string,
+  options?: RequestInit
+): Promise<T> {
+  const encryptedToken = store.get('auth.token') as Buffer | undefined;
+  const token = encryptedToken ? safeStorage.decryptString(encryptedToken) : null;
+
+  const res = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options?.headers,
+    },
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  return res.json() as Promise<T>;
+}
+```
+
+**Localizacao Web:** `src/lib/api-client.ts` | **Localizacao Mobile:** `src/services/api-client.ts` | **Localizacao Desktop (main):** `src/main/services/api-client.ts`
+
+### Implementacao Web
+
+O API client web e um wrapper sobre `fetch` nativo (sem axios) para manter o bundle leve e compativel com Server Components (RSC). A configuracao e centralizada e exporta funcoes tipadas.
 
 ```typescript
 // src/lib/api-client.ts
@@ -180,6 +236,39 @@ features/
 | useInviteMember | Mutation | POST /invites | — | Gera token de convite assinado |
 | useAcceptInvite | Mutation | POST /invites/:token/accept | — | Aceita convite e ingressa no cluster |
 | useRecoveryStatus | Query | GET /recovery/status | — | Polling 5s durante recovery via seed |
+
+### Hooks Mobile-Específicos
+
+<!-- do blueprint: mobile/00-frontend-vision.md (expo-background-fetch, expo-media-library), mobile/05-state.md (uploadStore, syncEngine) -->
+
+Os hooks abaixo sao exclusivos do app mobile. Os hooks da tabela acima sao compartilhados (mesmos endpoints, mesmo TanStack Query).
+
+| Hook | Tipo | Descrição | Específico Mobile |
+| --- | --- | --- | --- |
+| `useSyncEngine` | Service hook | Inicia/para Sync Engine background; detecta novas midias no camera roll via `expo-media-library`; enfileira no `uploadStore` | Sim — `expo-background-fetch` |
+| `useUploadQueue` | Store hook | Acessa `uploadStore.queue`; expoe progresso, status e acoes (pause, retry, cancel) por item | Sim — SQLite persistido |
+| `useSpaceRelease` | Mutation | Solicita liberacao de espaco: substitui originais por thumbnails localmente apos confirmar 3+ replicas | Sim — `expo-file-system` |
+| `useMediaPermission` | Native hook | Solicita permissao de acesso ao camera roll (`expo-media-library.requestPermissionsAsync`) | Sim |
+| `useNotificationPermission` | Native hook | Solicita permissao de push notifications (`expo-notifications.requestPermissionsAsync`) | Sim |
+| `useAppState` | Lifecycle hook | Detecta foreground/background via `AppState`; revalida queries ao voltar para foreground | Sim |
+| `useNetworkStatus` | Native hook | Detecta conectividade via `@react-native-community/netinfo`; pausa sync em modo offline | Sim |
+
+### Hooks Desktop-Específicos
+
+<!-- do blueprint: desktop/01-architecture.md — IPC channels; desktop/05-state.md — syncStore, nodeAgent -->
+
+Os hooks abaixo sao exclusivos do app desktop. Os hooks da tabela principal acima sao compartilhados (mesmos endpoints, mesmo TanStack Query — mas `queryFn` usa `window.electronAPI.invoke` em vez de `fetch` direto).
+
+| Hook | Tipo | Descricao | Canal IPC |
+| --- | --- | --- | --- |
+| `useSyncEngine` | Service hook | Inicia/para Sync Engine no main process; escuta eventos `sync:progress` e `sync:queue-update` via IPC | `sync:start`, `sync:stop` |
+| `useNodeAgent` | Service hook | Acessa status do Node Agent (heartbeat, chunks armazenados, capacidade); escuta `node:status` | `node:status` (push) |
+| `useClusterHealth` | Query | Saude do cluster via IPC → main → API; polling 30s automatico | `cluster:health` |
+| `useVaultUnlock` | Mutation | Envia senha para main process desbloquear vault; recebe `{ success, memberId }` | `vault:unlock` |
+| `useFileDownload` | Mutation | Solicita download ao main process (IPC); main bucha chunks, decripta, salva localmente | `file:download` |
+| `useFolderPicker` | Mutation | Abre `dialog.showOpenDialog` no main via IPC; retorna path selecionado | `dialog:open-folder` |
+| `useAppUpdate` | Service hook | Escuta `app:update-available` do auto-updater; dispara `update:install` ao confirmar | `app:update-available`, `update:install` |
+| `useWindowBounds` | Utility hook | Le/persiste posicao e tamanho da janela via electron-store | `window:get-bounds`, `window:save-bounds` |
 
 <!-- APPEND:hooks -->
 
@@ -347,7 +436,17 @@ export function parseFileResponse(data: unknown): FileDTO {
 
 > O frontend usa uma camada BFF para agregar dados?
 
-- [x] Sim — Next.js Route Handlers + Server Actions
+**Web:** [x] Sim — Next.js Route Handlers + Server Actions
+
+**Mobile:** [ ] Nao — App mobile chama o Orquestrador diretamente via REST API (HTTPS/TLS 1.3). Nao ha camada BFF intermediaria. O JWT e obtido do `expo-secure-store` e injetado diretamente no header `Authorization` pelo API client mobile.
+
+**Desktop:** [ ] Nao — Nao ha BFF. O main process atua como **IPC bridge**: renderer invoca channels → main executa o fetch HTTP real com Node.js → retorna resultado ao renderer via IPC. O main process e o unico que conhece a URL do orquestrador e o JWT.
+
+<!-- do blueprint: desktop/01-architecture.md — renderer nunca importa Node.js; IPC e o unico canal -->
+
+> **Diferenca arquitetural desktop:** O "BFF" no desktop e o proprio main process. Ele agrega chamadas, gerencia autenticacao e protege o renderer de acesso direto a rede. A diferenca e que nao ha HTTP entre renderer e main — o protocolo e IPC (Chromium IPC, nao HTTP).
+
+<!-- do blueprint: 06-system-architecture.md (Web Client Next.js comunica com Orquestrador via REST) -->
 
 <!-- do blueprint: 06-system-architecture.md (Web Client Next.js comunica com Orquestrador via REST) -->
 
@@ -391,6 +490,51 @@ O Next.js 16 atua como BFF leve via Route Handlers (`app/api/`) e Server Actions
 | Server Cache (Next.js) | RSC `fetch` com `revalidate` | 60s para dados do cluster; 30s para galeria | `revalidatePath` apos Server Actions; `revalidateTag` por dominio |
 | CDN (assets estaticos) | Caddy serve com hash no filename | 1 ano (imutavel por hash) | Deploy gera novos hashes automaticamente |
 | Preview Cache | Thumbnails/previews servidos com `Cache-Control: immutable` | Permanente (content-addressable por hash) | Nunca invalida — hash muda se conteudo muda |
+
+### Camadas de Cache Mobile-Específicas
+
+<!-- do blueprint: mobile/00-frontend-vision.md (expo-image, SQLite), mobile/05-state.md (uploadStore SQLite) -->
+
+| Camada | Estrategia | TTL | Invalidacao |
+| --- | --- | --- | --- |
+| expo-image Disk Cache | Thumbnails/previews cacheados em disco por `expo-image` | Permanente (content-addressable, mesmo comportamento do web) | Nunca invalida — nova URL = novo cache |
+| expo-image Memory Cache | LRU em memoria para thumbnails visiveis na tela atual | Sessao (limpo ao fechar app) | Automatico pelo LRU do expo-image |
+| SQLite — Upload Queue | Fila de uploads persistida entre restarts e sessoes | Permanente ate upload confirmado + 3 replicas | Item removido da queue apos `file:upload:completed` |
+| SQLite — Metadata Cache | Cache local de metadados de arquivos para gallery offline | 24h; invalidado ao abrir o app e reconectar | `invalidateQueries` ao voltar para foreground |
+| TanStack Query Memory | Mesmo padrao do web — staleTime/gcTime por dominio | Ver tabela de dominios (mobile/05-state.md) | `invalidateQueries` apos mutations |
+
+**Configuracao expo-image para thumbnails:**
+
+```tsx
+// components/ui/PhotoThumbnail.tsx
+import { Image } from 'expo-image';
+
+// blurhash placeholder enquanto thumbnail carrega
+const BLUR_HASH = '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
+
+<Image
+  source={{ uri: previewUrl }}
+  placeholder={{ blurhash: BLUR_HASH }}
+  contentFit="cover"
+  cachePolicy="disk"          // persiste em disco permanentemente
+  transition={200}            // fade in suave
+  style={{ width: '100%', aspectRatio: 1 }}
+/>
+```
+
+### Camadas de Cache Desktop-Específicas
+
+<!-- do blueprint: desktop/00-frontend-vision.md — electron-store, offline-capable; desktop/05-state.md — vaultStore em memoria -->
+
+| Camada | Estrategia | TTL | Invalidacao |
+| --- | --- | --- | --- |
+| TanStack Query Memory | Mesmo padrao do web — staleTime/gcTime por dominio | Ver tabela de dominios (desktop/05-state.md) | `invalidateQueries` apos mutations; IPC push events disparam invalidacao manual |
+| electron-store (Disk) | Settings, JWT criptografado, watchedFolders, window bounds | Permanente ate usuario alterar | Escrita sincrona a cada mudanca via IPC `store:set` |
+| Vault (Memory only) | Credenciais decriptadas mantidas em memoria no main process apos unlock | Sessao (limpo ao bloquear vault ou fechar app) | `vault:lock` IPC event → main process limpa objeto em memoria |
+| Preview/Thumbnail (Memory) | TanStack Query caches URLs de thumbnail; re-fetch se stale | gcTime 5min | `invalidateQueries(['files'])` apos novos uploads |
+| IPC Response Cache | Nenhum — cada `invoke` e sincrono ao main process que consulta cache propria ou faz fetch | — | Gerenciado pelo TanStack Query no renderer |
+
+> **Nao ha disk cache de thumbnails no desktop v1.** O app exibe previews via URL que o main process resolve (download sob demanda + memory cache do TanStack Query). Disk cache de thumbnails pode ser adicionado em v2 se performance exigir.
 
 <!-- APPEND:cache -->
 

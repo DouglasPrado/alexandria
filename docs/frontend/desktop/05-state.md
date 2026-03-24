@@ -28,16 +28,38 @@ Define a estrategia de gerenciamento de estado separando claramente os tipos de 
 
 > Como gerenciamos dados vindos do backend?
 
-- **Ferramenta:** {{TanStack Query / SWR / outro}}
+- **Ferramenta:** TanStack Query v5
 - **Beneficios:** cache automatico, revalidacao, sincronizacao, loading/error states
 - **Padrao:** queries em `renderer/features/xxx/api/` + hooks em `renderer/features/xxx/hooks/`
 
-| Configuracao | Valor |
-| --- | --- |
-| Stale Time | {{5 minutos / conforme dominio}} |
-| Cache Time | {{30 minutos}} |
-| Retry | {{3 tentativas com backoff exponencial}} |
-| Refetch on Window Focus | {{Sim / Nao}} |
+<!-- do blueprint: desktop/00-frontend-vision.md — TanStack Query v5; 02-architecture_principles.md — Embrace Failure, retry com backoff exponencial -->
+
+| Configuracao | Valor | Observacao |
+| --- | --- | --- |
+| Stale Time | 5 minutos (padrao) | 1 minuto para `cluster/health` e `node/status` — dados criticos de saude |
+| Cache Time | 30 minutos | Suficiente para navegacao entre features sem refetch desnecessario |
+| Retry | 3 tentativas com backoff exponencial | Alinhado com principio "Embrace Failure" do blueprint |
+| Refetch on Window Focus | Sim | Importante: user pode ter estado fora do app e cluster pode ter mudado |
+| Refetch on Reconnect | Sim | Dispositivos desktop perdem/recuperam rede; queries desatualizadas sao re-executadas |
+
+> **Nota Desktop:** As queries nao chamam o orquestrador diretamente do renderer. Elas passam pelo main process via IPC. O `queryFn` chama `window.electronAPI.invoke(channel, params)`, e o main process executa o fetch HTTP real.
+
+```typescript
+// renderer/features/cluster/api/cluster-api.ts
+export const clusterQueries = {
+  health: () => queryOptions({
+    queryKey: ['cluster', 'health'],
+    queryFn: () => window.electronAPI.invoke('cluster:health'),
+    staleTime: 1 * 60 * 1000, // 1 minuto — dado critico
+    refetchInterval: 30 * 1000, // polling a cada 30s quando janela ativa
+  }),
+  nodes: () => queryOptions({
+    queryKey: ['cluster', 'nodes'],
+    queryFn: () => window.electronAPI.invoke('cluster:nodes-list'),
+    staleTime: 5 * 60 * 1000,
+  }),
+};
+```
 
 > Detalhes completos sobre data fetching: (ver 06-data-layer.md)
 
@@ -53,12 +75,20 @@ Define a estrategia de gerenciamento de estado separando claramente os tipos de 
 | Tauri store plugin (Tauri) | Preferencias, tokens, configuracoes | App data directory |
 | SQLite (opcional) | Dados estruturados, cache offline | `userData/app.db` |
 
-| Dado Persistido | Store | Encriptado? | Quando Sincroniza |
+<!-- do blueprint: desktop/00-frontend-vision.md — electron-store para persistencia; 02-architecture_principles.md — Zero-Knowledge (dados sensiveis nunca em texto puro no disco) -->
+
+| Dado Persistido | Store (electron-store key) | Encriptado? | Quando Sincroniza |
 | --- | --- | --- | --- |
-| {{Preferencias do usuario}} | {{preferencesStore}} | {{Nao}} | {{Na inicializacao + a cada mudanca}} |
-| {{Token de autenticacao}} | {{authStore}} | {{Sim (safeStorage)}} | {{Login / Refresh}} |
-| {{Window bounds}} | {{windowStore}} | {{Nao}} | {{Ao fechar janela}} |
-| {{Outro dado}} | {{Store}} | {{Sim/Nao}} | {{Quando}} |
+| JWT token de autenticacao | `auth.token` | Sim (`safeStorage.encryptString`) | Login bem-sucedido / token refresh |
+| Tema selecionado pelo usuario | `settings.theme` | Nao | Sempre que usuario muda tema |
+| Pastas monitoradas pelo Sync Engine | `sync.watchedFolders[]` | Nao | Adicionar / remover pasta |
+| Posicao e tamanho da janela principal | `window.bounds` | Nao | Ao fechar / minimizar janela |
+| Preferencia de notificacoes | `settings.notifications` | Nao | Sempre que usuario altera |
+| Auto-start com o sistema operacional | `settings.autoStart` | Nao | Sempre que usuario altera |
+
+> **O vault do membro NAO e persistido aqui.** O vault (credenciais de provedores, tokens OAuth) e um arquivo AES-256-GCM separado, gerenciado pelo `VaultManager` no main process. A senha do vault nunca e salva em nenhum storage.
+
+> **Dados sensiveis seguros:** JWT usa `safeStorage.encryptString()` do Electron (OS keychain no macOS, DPAPI no Windows, libsecret no Linux) — nunca armazenado em texto puro.
 
 <details>
 <summary>Exemplo — electron-store com Zustand</summary>
@@ -123,13 +153,18 @@ window.electronAPI.on('app:update-available', (info) => {
 
 > Quais dados precisam ser globais?
 
-| Store | Dados | Persistencia (Sim/Nao) | Quando Inicializa |
+<!-- do blueprint: desktop/01-architecture.md — 6 features: auth, gallery, sync, cluster, vault, settings -->
+<!-- do blueprint: 09-state-models.md — estados de File (processing/ready/error/corrupted) e Node (online/suspect/lost/draining/disconnected) -->
+
+| Store | Dados | Persistencia | Quando Inicializa |
 | --- | --- | --- | --- |
-| {{authStore}} | {{Usuario logado, token, permissoes}} | {{Sim (disco, encriptado)}} | {{Login / Inicializacao do app}} |
-| {{preferencesStore}} | {{Tema, idioma, sidebar state}} | {{Sim (disco)}} | {{Inicializacao do app}} |
-| {{uiStore}} | {{Notificacoes, loading global}} | {{Nao}} | {{Montagem do app}} |
-| {{appStore}} | {{Status de update, versao, estado de conexao}} | {{Nao}} | {{Inicializacao do main process}} |
-| {{Outra store}} | {{Dados}} | {{Sim/Nao}} | {{Quando}} |
+| `authStore` | `isVaultUnlocked`, `member` (nome, role, clusterId), `token` (JWT) | Sim — token via `safeStorage` | App start (token) + vault unlock (member) |
+| `galleryStore` | `files[]`, `selectedFile`, `viewMode` (grid/timeline), `timelinePosition`, `activeAlbum` | Nao | Gallery feature mount |
+| `syncStore` | `engineStatus` (idle/syncing/paused/error), `queue[]` (uploads pendentes), `watchedFolders[]` | Parcial — `watchedFolders` em disco | App start + IPC events do Sync Engine |
+| `clusterStore` | `health` (nodes total/online/lost), `nodes[]` (com estado FSM), `alerts[]` | Nao | App start + polling 30s |
+| `vaultStore` | `items[]` (credenciais em memoria), `isUnlocked`, `editingItem` | Nao — vault em memoria apenas; limpo ao bloquear | Vault unlock; limpo no vault:locked |
+| `settingsStore` | `theme`, `notifications`, `autoStart`, `syncFolders[]` | Sim — disco (nao encriptado) | App start (lido do electron-store) |
+| `appStore` | `updateInfo` (versao disponivel), `isOnline`, `mainWindowVisible` | Nao | Main process via IPC events |
 
 <!-- APPEND:stores -->
 
@@ -176,12 +211,20 @@ const useAuthStore = create<AuthState>()(
 - **Padrao:** Event Bus leve para comunicacao entre features
 - **Eventos tipicos:** `user:login`, `file:uploaded`, `subscription:updated`
 
-| Evento | Emissor | Ouvinte(s) | Payload |
-| --- | --- | --- | --- |
-| {{user:login}} | {{auth}} | {{dashboard, analytics}} | {{userId, role}} |
-| {{file:uploaded}} | {{storage}} | {{dashboard, notifications}} | {{fileId, fileName, size}} |
-| {{subscription:updated}} | {{billing}} | {{dashboard, storage}} | {{planId, limits}} |
-| {{Outro evento}} | {{Emissor}} | {{Ouvinte(s)}} | {{Payload}} |
+<!-- do blueprint: desktop/01-architecture.md — IPC channels; 09-state-models.md — transicoes de File e Node -->
+<!-- Origem dos eventos: IPC (main→renderer) ou Zustand subscriptions (renderer interno) -->
+
+| Evento | Origem | Emissor | Ouvinte(s) | Payload |
+| --- | --- | --- | --- | --- |
+| `vault:unlocked` | Renderer (Zustand) | `authStore` | `galleryStore`, `syncStore`, `clusterStore`, `vaultStore` | `{ memberId, role }` |
+| `vault:locked` | Renderer (Zustand) | `authStore` | `galleryStore`, `vaultStore` | — (limpa dados sensiveis em memoria) |
+| `sync:progress` | IPC (main→renderer) | Sync Engine | `syncStore` | `{ fileId, fileName, progress, status }` |
+| `sync:queue-update` | IPC (main→renderer) | Sync Engine | `syncStore` | `{ queue: UploadQueueItem[] }` |
+| `node:status-changed` | IPC (main→renderer) | Node Agent | `clusterStore` | `{ nodeId, status: NodeStatus }` |
+| `file:ready` | IPC (main→renderer) | Node Agent (manifest recebido) | `galleryStore` | `{ fileId, previewUrl, metadata }` |
+| `cluster:alert-fired` | IPC (main→renderer) | Scheduler (via orquestrador) | `clusterStore`, `appStore` | `{ alertId, severity, message }` |
+| `app:update-available` | IPC (main→renderer) | Auto-Updater | `appStore` | `{ version, releaseNotes }` |
+| `app:online-status` | IPC (main→renderer) | Main (net.isOnline) | `appStore` | `{ isOnline: boolean }` |
 
 <!-- APPEND:eventos -->
 

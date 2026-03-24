@@ -10,19 +10,33 @@ Define a organizacao de pastas, a estrategia de modularizacao e as regras de imp
 
 ```
 src/
-  main/                     # Main process (Electron) / Rust backend (Tauri)
-    ipc/                    # IPC handlers
-      user-handlers.ts
-      file-handlers.ts
-    menu/                   # Application menu
+  main/                     # Main process (Node.js — Electron)
+    ipc/                    # IPC handlers (um arquivo por dominio)
+      auth-handlers.ts      # vault:unlock, vault:lock
+      sync-handlers.ts      # sync:start, sync:stop, sync:progress
+      file-handlers.ts      # file:list, file:download
+      cluster-handlers.ts   # cluster:health
+      settings-handlers.ts  # settings:get, settings:set
+    sync-engine/            # Sync Engine: chokidar watcher + fila de upload
+      file-watcher.ts       # chokidar.watch() — detecta novos arquivos
+      upload-queue.ts       # Fila persistente de uploads pendentes
+      sync-engine.ts        # Orquestrador do sync
+    node-agent/             # Node Agent: heartbeat + armazenamento de chunks
+      heartbeat.ts          # Envia heartbeat ao orquestrador a cada 60s
+      chunk-store.ts        # Armazena/recupera chunks no filesystem local
+      node-agent.ts         # Bootstrap e lifecycle do agente
+    vault/                  # Vault Manager: AES-256-GCM para credenciais do membro
+      vault-manager.ts      # Encrypt/decrypt vault com senha do membro
+      vault-crypto.ts       # Derivacao de chave (PBKDF2 + AES-256-GCM)
+    menu/                   # Application menu nativo
       app-menu.ts
-    tray/                   # System tray
-      tray-manager.ts
-    updater/                # Auto-update logic
-      auto-updater.ts
-    windows/                # Gerenciamento de janelas
-      main-window.ts
-      settings-window.ts
+    tray/                   # System tray — sync em background
+      tray-manager.ts       # Icone, menu do tray, show/hide janela
+    updater/                # Auto-update via GitHub Releases
+      auto-updater.ts       # electron-updater: check, download, install
+    windows/                # Gerenciamento de janelas BrowserWindow
+      main-window.ts        # Janela principal (galeria)
+      onboarding-window.ts  # Primeiro uso: configurar cluster / entrar no cluster
     index.ts                # Entry point do main process
 
   preload/                  # Preload scripts (Electron)
@@ -30,13 +44,42 @@ src/
 
   renderer/                 # UI (renderer process)
     features/               # Modulos por dominio de negocio
-      {{feature-1}}/
+      auth/                 # Desbloqueio de vault, login, seed phrase recovery
         components/
         hooks/
         api/
         types/
         utils/
-      {{feature-2}}/
+      gallery/              # Galeria de fotos/videos, timeline, viewer, download
+        components/
+        hooks/
+        api/
+        types/
+        utils/
+      sync/                 # Sync Engine UI: fila de uploads, pastas monitoradas, progresso
+        components/
+        hooks/
+        api/
+        types/
+        utils/
+      cluster/              # Saude do cluster, nos, convites, provedores cloud (admin)
+        components/
+        hooks/
+        api/
+        types/
+        utils/
+      vault/                # Credenciais de provedores, tokens OAuth, senhas
+        components/
+        hooks/
+        api/
+        types/
+        utils/
+      settings/             # Preferencias: pasta sync, tray, notificacoes, auto-start
+        components/
+        hooks/
+        api/
+        types/
+        utils/
 
     components/             # Componentes compartilhados
       ui/                   # Primitivos (Button, Input, Card)
@@ -71,11 +114,12 @@ src/
 
 | Feature | Descricao | Componentes Principais |
 | --- | --- | --- |
-| {{auth}} | {{Autenticacao e gestao de sessao}} | {{LoginForm, RegisterForm, AuthGuard}} |
-| {{dashboard}} | {{Painel principal e metricas}} | {{DashboardGrid, MetricCard, RecentActivity}} |
-| {{billing}} | {{Planos, pagamentos e faturas}} | {{PlanSelector, InvoiceList, PaymentForm}} |
-| {{storage}} | {{Upload e gerenciamento de arquivos}} | {{FileUploader, FileList, FilePreview}} |
-| {{Outra feature}} | {{Descricao}} | {{Componentes}} |
+| `auth` | Desbloqueio do vault local com senha, login no orquestrador, recovery via seed phrase de 12 palavras | `UnlockScreen`, `SeedPhraseInput`, `AuthGuard`, `LoginForm` |
+| `gallery` | Galeria de fotos/videos em grid, timeline cronologica, viewer de midia, navegacao por album/evento, download sob demanda | `GalleryGrid`, `MediaViewer`, `TimelineBar`, `AlbumList`, `MediaCard` |
+| `sync` | Interface do Sync Engine: progresso de uploads, fila de arquivos pendentes, configuracao de pastas monitoradas, placeholder files | `SyncQueue`, `FolderPicker`, `UploadProgressItem`, `SyncStatusBadge`, `SyncDashboard` |
+| `cluster` | Saude do cluster, lista de nos online/offline, convite de membros, configuracao de provedores cloud — restrito ao Administrador Familiar | `ClusterHealthPanel`, `NodeCard`, `NodeStatusBadge`, `InviteForm`, `ProviderSetup`, `RecoveryPanel` |
+| `vault` | Credenciais de provedores cloud (S3, R2, B2), tokens OAuth, senhas — desencriptados localmente com AES-256-GCM | `VaultItem`, `ProviderCredentialForm`, `VaultUnlockModal`, `VaultList` |
+| `settings` | Preferencias do app: pasta de sync, comportamento do tray, notificacoes, tema, auto-start com o SO | `SettingsPage`, `SyncFolderList`, `NotificationToggle`, `ThemeSelector`, `AutoStartToggle` |
 
 <!-- APPEND:features -->
 
@@ -112,31 +156,34 @@ renderer/features/
 - [ ] Projeto unico
 - [ ] Monorepo (Turborepo)
 - [ ] Monorepo (Nx)
-- [ ] Outro: {{especificar}}
+- [x] Monorepo (pnpm workspaces)
 
-Se monorepo:
+<!-- do blueprint: 00-context.md — "Monorepo com core-sdk compartilhado entre orquestrador, agentes de no e clientes" -->
 
 ```
-apps/
-  desktop/                  # App desktop (Electron / Tauri)
-  web/                      # App web (se existir)
-  admin/                    # Painel administrativo
+alexandria/                   # Raiz do monorepo
+  apps/
+    desktop/                  # App desktop (Electron — este projeto)
+    web/                      # Web client (Next.js)
+    orchestrator/             # Backend NestJS (orquestrador)
 
-packages/
-  ui/                       # Design system compartilhado
-  api-client/               # Cliente de API
-  config/                   # Configuracoes compartilhadas (ESLint, TS, Tailwind)
-  utils/                    # Utilitarios compartilhados
-  shared-types/             # Tipos compartilhados entre apps
+  packages/
+    core-sdk/                 # Criptografia, BIP-39, hashing, tipos base — compartilhado entre TODOS
+    ui/                       # Design system: componentes React compartilhados entre desktop e web
+    config/                   # Configs compartilhadas: ESLint, TypeScript, Tailwind, Prettier
+    node-agent/               # Agente de No — pode rodar standalone (NAS/VPS) ou embutido no desktop
+
+  pnpm-workspace.yaml
+  turbo.json                  # Pipeline de build (opcional — pode usar pnpm scripts simples)
+  package.json
 ```
 
 | Package | Responsabilidade | Consumido por |
 | --- | --- | --- |
-| {{ui}} | {{Design system e componentes base}} | {{desktop, web, admin}} |
-| {{api-client}} | {{Cliente HTTP tipado}} | {{desktop, web, admin}} |
-| {{config}} | {{Configs de ESLint, TypeScript, Tailwind}} | {{Todos}} |
-| {{utils}} | {{Funcoes utilitarias compartilhadas}} | {{Todos}} |
-| {{shared-types}} | {{Tipos IPC e modelos compartilhados}} | {{desktop}} |
+| `core-sdk` | Criptografia AES-256-GCM, BIP-39, PBKDF2, SHA-256, tipos base (File, Chunk, Member, Node) | `desktop` (main), `orchestrator`, `node-agent` |
+| `ui` | Design system Alexandria: Button, Card, Badge, Modal, GalleryGrid, MediaCard — tokens CSS compartilhados | `desktop` (renderer), `web` |
+| `config` | Configs compartilhadas de ESLint, TypeScript (tsconfig base), Tailwind (tokens), Prettier | Todos os apps e packages |
+| `node-agent` | Agente de No: heartbeat, armazenamento de chunks, scrubbing — importado pelo desktop/main e roda standalone em NAS/VPS | `desktop` (main process), deploy standalone |
 
 ---
 

@@ -10,14 +10,17 @@ Define como o app mobile e monitorado em producao, incluindo crash reporting, er
 
 | Aspecto | Configuracao |
 |---------|-------------|
-| Ferramenta principal | {{Sentry React Native / Firebase Crashlytics}} |
-| Ferramenta secundaria | {{Crashlytics para crash nativo / Sentry para JS}} |
-| Ambiente | {{Production + Staging}} |
-| Source Maps | {{Sim — upload no build via EAS}} |
-| dSYMs (iOS) | {{Upload automatico no build}} |
-| ProGuard mapping (Android) | {{Upload automatico no build}} |
-| Alertas | {{Slack / Email / PagerDuty}} |
-| Sample Rate | {{100% crashes, 10% traces}} |
+| Ferramenta principal | Sentry React Native — crash reporting JS + erros de API + performance monitoring |
+| Crashes nativos | Sentry captura crashes nativos iOS/Android via SDK nativo integrado ao Expo |
+| Ambiente | Production + Preview (builds EAS); desabilitado em desenvolvimento |
+| Source Maps | Upload automatico no EAS Build via `@sentry/react-native/metro` |
+| dSYMs (iOS) | Upload automatico via `sentry-cli` durante EAS build |
+| ProGuard mapping (Android) | Upload automatico via `sentry-cli` durante EAS build |
+| Alertas | Push notification (via Expo Notifications) para o admin + email configuravel |
+| Sample Rate | 100% crashes e erros; 10% de traces de performance |
+| Redaction | `beforeSend` filtra `token`, `vault-key`, `password`, `seed` de todos os eventos |
+
+<!-- do blueprint: 15-observability.md (politica de redaction de dados sensiveis, never log seeds/tokens) -->
 
 > Erros capturados: crashes nativos (iOS/Android), exceptions JS nao tratadas, erros de API, promise rejections, erros de navegacao.
 
@@ -56,17 +59,27 @@ export default Sentry.wrap(RootLayout);
 
 | Ferramenta | Proposito | Eventos Rastreados |
 |------------|-----------|-------------------|
-| {{Firebase Analytics}} | Analytics principal | Screen views, acoes do usuario, conversoes |
-| {{Mixpanel / Amplitude}} | Product analytics | Funis, retencao, cohorts |
-| {{Sentry}} | Error analytics | Crashes, erros, performance |
+| Sentry React Native | Error analytics + performance | Crashes, erros de API, slow renders, vault unlock failures |
+| `expo-insights` (EAS) | Build e update analytics | Taxa de adocao de OTA updates, crash rate por versao |
+
+<!-- do blueprint: sistema self-hosted familiar; Firebase Analytics nao se aplica (nao e SaaS); analytics e via Sentry + EAS Insights -->
 
 | Evento | Parametros | Quando Dispara |
 |--------|-----------|----------------|
-| `screen_view` | `screen_name`, `screen_class` | Navegacao entre telas |
-| `login` | `method` (email, biometric, oauth) | Login com sucesso |
-| `sign_up` | `method` | Cadastro completo |
-| `purchase` | `item_id`, `value`, `currency` | Compra/assinatura |
-| {{evento_custom}} | {{parametros}} | {{quando}} |
+| `screen_view` | `screen_name`, `screen_class` | Navegacao entre telas (automatico via Sentry) |
+| `vault_unlock_success` | `duration_ms` | Vault desbloqueado com sucesso |
+| `vault_unlock_failed` | `attempt_number` | Senha incorreta no vault unlock |
+| `upload_queued` | `file_type`, `file_size_kb`, `source` (manual/auto) | Arquivo adicionado a fila de upload |
+| `upload_completed` | `file_type`, `duration_ms`, `chunk_count`, `replica_count` | Upload concluido e replicado |
+| `upload_failed` | `file_type`, `error_code` | Falha no upload apos retries |
+| `space_release_confirmed` | `files_count`, `freed_mb` | Usuario confirmou liberacao de espaco |
+| `sync_engine_started` | `queue_size` | Background sync iniciado |
+| `sync_engine_stopped` | `reason` (success/error/network) | Background sync concluido |
+| `onboarding_completed` | `role`, `duration_ms` | Novo membro completou onboarding |
+| `node_alert_received` | `alert_type`, `severity` | Alerta de no recebido via push |
+| `gallery_photo_viewed` | `file_type`, `status` (ready/processing) | Foto aberta no detalhe |
+
+<!-- do blueprint: 15-observability.md (eventos criticos: upload concluido, alerta gerado, membro adicionado) -->
 
 ---
 
@@ -92,10 +105,14 @@ export default Sentry.wrap(RootLayout);
 
 | Metrica | Meta | Alerta se |
 |---------|------|-----------|
-| Latencia p95 | {{< 500ms}} | {{> 1s por 5 min}} |
-| Taxa de erro | {{< 1%}} | {{> 5% por 2 min}} |
-| Timeout rate | {{< 0.1%}} | {{> 1% por 5 min}} |
-| Disponibilidade | {{99.9%}} | {{< 99% por 10 min}} |
+| Latencia p95 (API metadata) | < 500ms | > 1s por 5 min — Orquestrador sobrecarregado |
+| Taxa de erro 5xx | < 1% | > 5% por 2 min — problema no Orquestrador |
+| Timeout rate | < 0.1% | > 1% por 5 min — rede ou Orquestrador lento |
+| Disponibilidade do Orquestrador | > 99.5% (SLA) | < 99% por 10 min — verificar VPS |
+| Upload chunk latencia p95 | < 2s por chunk (4MB) | > 5s — saturacao de banda ou no lento |
+| Heartbeat latencia | < 5s | > 10s — conectividade do no comprometida |
+
+<!-- do blueprint: 15-observability.md (Golden Signals: latencia p95 > 500ms → warn; erros >1% → warn) -->
 
 ---
 
@@ -105,11 +122,16 @@ export default Sentry.wrap(RootLayout);
 
 | Metrica | Ferramenta | Meta |
 |---------|-----------|------|
-| App Startup Time | {{Sentry / Firebase Performance}} | {{< 2s cold start}} |
-| Slow Frames | {{Firebase Performance}} | {{< 5% do total}} |
-| Frozen Frames | {{Firebase Performance}} | {{< 1% do total}} |
-| Memory Usage | {{Sentry}} | {{< 200MB medio}} |
-| Network Latency | {{Sentry / Firebase}} | {{p95 < 500ms}} |
+| App Startup Time (cold start) | Sentry Performance (App Start transaction) | < 2s |
+| App Startup Time (warm start) | Sentry Performance | < 1s |
+| Slow Frames (< 60fps) | Sentry Performance | < 5% do total |
+| Frozen Frames (> 700ms sem render) | Sentry Performance | < 1% do total |
+| Memory Usage | Sentry (memory breadcrumbs) | < 200MB medio |
+| Network Latency p95 | Sentry Performance (HTTP spans) | < 500ms para API metadata |
+| Vault Unlock Duration | Sentry (custom span `vault_unlock`) | < 500ms |
+| Encryption Throughput | Custom metric via Sentry | > 10MB/s (AES-256-GCM) |
+
+<!-- do blueprint: 10-performance.md (metas de cold start, memory, frame rate) -->
 
 ---
 
@@ -119,17 +141,19 @@ export default Sentry.wrap(RootLayout);
 
 | Aspecto | Configuracao |
 |---------|-------------|
-| Ferramenta | {{Expo Updates / CodePush}} |
-| Rollout | {{Progressivo: 10% -> 50% -> 100%}} |
-| Rollback automatico | {{Se crash rate > 2% apos update}} |
-| Metricas | {{Taxa de sucesso, tempo de download, crashes pos-update}} |
+| Ferramenta | Expo Updates (EAS Update) — OTA para JS bundle; EAS Build para atualizacoes nativas |
+| Rollout | Progressivo via EAS channels: `preview` (alpha testers) → `production` (100%) |
+| Rollback automatico | Sentry + EAS Insights: se crash rate > 2% apos update, reverter para versao anterior via EAS Update |
+| Metricas | EAS Insights: taxa de adocao por versao, crash rate por build, tempo de download |
+
+<!-- do blueprint: 00-frontend-vision.md (EAS Build para distribuicao) -->
 
 | Metrica | Meta | Alerta se |
 |---------|------|-----------|
-| Update success rate | {{> 99%}} | {{< 95%}} |
-| Download time | {{< 5s}} | {{> 15s medio}} |
-| Post-update crash rate | {{< 0.5%}} | {{> 2%}} |
-| Update adoption (24h) | {{> 80%}} | {{< 50%}} |
+| Update success rate | > 99% | < 95% — verificar EAS Update logs |
+| Download time | < 5s | > 15s medio — bundle muito grande ou rede ruim |
+| Post-update crash rate | < 0.5% | > 2% — rollback imediato via EAS |
+| Update adoption (24h) | > 80% | < 50% — verificar se app esta rodando em background |
 
 ---
 
@@ -139,10 +163,14 @@ export default Sentry.wrap(RootLayout);
 
 | Fluxo | Eventos Rastreados | Meta de Conclusao |
 |-------|--------------------|--------------------|
-| {{Onboarding}} | {{start, step_1, step_2, complete}} | {{80%+ completo}} |
-| {{Checkout}} | {{cart_view, payment_start, payment_complete}} | {{90%+ sucesso}} |
-| {{Login}} | {{form_view, submit, success/failure}} | {{95%+ sucesso}} |
-| {{Feature principal}} | {{open, interact, complete}} | {{70%+ completo}} |
+| Onboarding (convite) | `invite_link_opened` → `vault_setup` → `seed_backup_confirmed` → `onboarding_completed` | 95%+ (fluxo critico de adesao) |
+| Vault Unlock (cold start) | `vault_unlock_screen_view` → `password_entered` → `vault_unlock_success` / `vault_unlock_failed` | 99%+ sucesso (falha = usuario nao acessa o app) |
+| Upload manual | `upload_started` → `upload_queued` → `upload_completed` | 98%+ conclusao |
+| Background sync | `sync_engine_started` → `files_detected` → `upload_queued` | 99%+ sem erro critico |
+| Liberacao de espaco | `space_release_opened` → `files_selected` → `space_release_confirmed` | 85%+ conclusao (fluxo opcional mas importante) |
+| Recuperacao (seed) | `recovery_started` → `seed_entered` → `vault_rebuilt` → `recovery_completed` | 100% (P1 — falha e catastrofica) |
+
+<!-- do blueprint: 08-use_cases.md (UC-001 a UC-007), 15-observability.md (eventos criticos: recovery, upload, alertas) -->
 
 <!-- APPEND:flows -->
 
@@ -154,16 +182,17 @@ export default Sentry.wrap(RootLayout);
 
 | Flag | Descricao | Status |
 |------|-----------|--------|
-| {{new-dashboard}} | {{Novo design do dashboard}} | {{10% rollout}} |
-| {{ai-search}} | {{Busca com IA}} | {{Inativo}} |
-| {{redesigned-checkout}} | {{Checkout redesenhado}} | {{Ativo para beta users}} |
-| {{flag-adicional}} | {{Descricao}} | {{Status}} |
+| `enable-background-sync` | Ativa o Sync Engine automatico em background | Ativo (producao) |
+| `enable-space-liberation` | Habilita fluxo de liberacao de espaco apos 3 replicas | Ativo (producao) |
+| `enable-biometric-vault` | Vault unlock via Face ID / Touch ID (fase 2) | Inativo (planejado) |
+| `enable-video-streaming` | Streaming de video sob demanda em vez de download (RF-065) | Inativo (fase 3) |
+| `enable-erasure-coding` | Erasure coding em vez de replicacao 3x (RF-041) | Inativo (fase 3) |
 
 <!-- APPEND:flags -->
 
-Ferramenta: {{LaunchDarkly / Unleash / Flagsmith / Firebase Remote Config}}
+Ferramenta: `expo-constants` + variaveis de ambiente EAS (`EXPO_PUBLIC_*`) — nao ha servico externo de feature flags; flags sao configuradas por channel EAS (`preview`, `production`) via `.env`.
 
-Fluxo: Feature flag -> Avaliacao -> Conditional rendering -> Metricas -> Decisao (manter/remover)
+Fluxo: Variavel `EXPO_PUBLIC_FLAG_X=true` no EAS channel → `const enabled = process.env.EXPO_PUBLIC_FLAG_X === 'true'` → Conditional rendering → Metricas via Sentry (event com flag como parametro) → Decisao (manter/remover)
 
 > Para metricas de performance, (ver 10-performance.md).
 
@@ -173,4 +202,7 @@ Fluxo: Feature flag -> Avaliacao -> Conditional rendering -> Metricas -> Decisao
 
 | Data | Decisao | Motivo |
 |------|---------|--------|
-| {{YYYY-MM-DD}} | {{Decisao sobre observabilidade}} | {{Justificativa}} |
+| 2026-03-24 | Sentry React Native como ferramenta unica (sem Firebase Analytics) | Alexandria e self-hosted e nao e SaaS — Firebase Analytics nao se aplica a um app familiar sem monetizacao; Sentry cobre crash reporting, performance e error tracking em uma ferramenta |
+| 2026-03-24 | `beforeSend` obrigatorio para redaction de dados sensiveis no Sentry | Tokens JWT, vault-key, seed phrase e credentials nunca podem aparecer em relatorios de crash — redaction no cliente antes de enviar e a unica garantia |
+| 2026-03-24 | Feature flags via variaveis de ambiente EAS (sem LaunchDarkly/Unleash) | App familiar self-hosted com 1-10 usuarios nao justifica um servico de feature flags; EAS channels (preview/production) com EXPO_PUBLIC_* e suficiente para controlar rollout |
+| 2026-03-24 | `recovery` flow monitorado com meta de 100% (P1) | Falha no recovery e perda permanente de acesso ao cluster — mesmo um fracasso e inaceitavel; monitorar em Sentry com alerta imediato se qualquer etapa do fluxo falhar |

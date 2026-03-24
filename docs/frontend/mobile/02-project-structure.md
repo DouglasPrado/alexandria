@@ -27,13 +27,43 @@ src/
     +not-found.tsx        # 404 screen
 
   features/               # Modulos por dominio de negocio
-    {{feature-1}}/
+    auth/                 # Login, vault unlock, seed phrase recovery
+      components/
+      hooks/
+      api/
+      types/
+      services/           # secure-storage, vault
+    gallery/              # Galeria, timeline, busca, visualizacao
       components/
       hooks/
       api/
       types/
       utils/
-    {{feature-2}}/
+    upload/               # Sync Engine, fila offline, liberacao de espaco
+      components/
+      hooks/
+      api/
+      types/
+      services/           # sync-engine, upload-queue
+    cluster/              # Cluster info, membros, convites
+      components/
+      hooks/
+      api/
+      types/
+    nodes/                # Nos de storage, saude, registro (admin)
+      components/
+      hooks/
+      api/
+      types/
+    alerts/               # Alertas de saude do cluster
+      components/
+      hooks/
+      api/
+      types/
+    settings/             # Configuracoes do app, perfil, logout
+      components/
+      hooks/
+      types/
 
   components/             # Componentes compartilhados
     ui/                   # Primitivos (Button, Input, Card)
@@ -59,13 +89,17 @@ src/
 
 **Recomendado: por feature.** Organizar por feature (dominio de negocio) agrupa tudo que e relacionado no mesmo lugar — componentes, hooks, API, tipos. Isso reduz a necessidade de navegar entre pastas distantes e facilita a exclusao ou refatoracao de uma feature inteira.
 
-| Feature | Descricao | Componentes Principais |
-| --- | --- | --- |
-| {{auth}} | {{Autenticacao e gestao de sessao}} | {{LoginForm, RegisterForm, AuthGuard}} |
-| {{dashboard}} | {{Painel principal e metricas}} | {{DashboardGrid, MetricCard, RecentActivity}} |
-| {{billing}} | {{Planos, pagamentos e faturas}} | {{PlanSelector, InvoiceList, PaymentForm}} |
-| {{storage}} | {{Upload e gerenciamento de arquivos}} | {{FileUploader, FileList, FilePreview}} |
-| {{Outra feature}} | {{Descricao}} | {{Componentes}} |
+<!-- do blueprint: 00-context.md (atores), 01-vision.md (personas), mobile/01-architecture.md (dominios) -->
+
+| Feature    | Descricao                                                                                     | Componentes Principais                                                                     |
+| ---------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `auth`     | Login com JWT, desbloqueio do vault com senha, recovery via seed phrase de 12 palavras        | LoginScreen, VaultUnlockScreen, SeedRecoveryScreen, AuthGuard                             |
+| `gallery`  | Galeria compartilhada do cluster, timeline cronologica, busca por data/evento, fullscreen     | GalleryScreen, TimelineScreen, PhotoDetailScreen, VideoDetailScreen, PhotoThumbnail, AlbumGrid |
+| `upload`   | Sync Engine automatico (camera roll), upload manual, fila offline persistida, liberacao de espaco | UploadQueueScreen, SyncSettingsScreen, UploadProgressBar, SpaceReleaseModal            |
+| `cluster`  | Saude geral do cluster, lista de membros, convite por link/token, gestao de roles (admin)     | ClusterDashboardScreen, MembersScreen, InviteMemberSheet, MemberCard                      |
+| `nodes`    | Lista de nos de armazenamento, saude individual, registro de novo no, drain (admin only)      | NodesScreen, NodeDetailScreen, RegisterNodeSheet, NodeHealthBadge                         |
+| `alerts`   | Alertas de saude: no offline, replicacao baixa, integridade comprometida, token expirado      | AlertsScreen, AlertBadge, AlertDetailSheet                                                |
+| `settings` | Notificacoes, configuracoes de sync, limiar de liberacao de espaco, perfil, logout            | SettingsScreen, ProfileScreen, SyncSettingsScreen, NotificationSettingsScreen             |
 
 <!-- APPEND:features -->
 
@@ -104,28 +138,33 @@ features/
 - [ ] Projeto unico
 - [ ] Monorepo (Turborepo)
 - [ ] Monorepo (Nx)
-- [ ] Outro: {{especificar}}
+- [x] Outro: pnpm workspaces
 
-Se monorepo:
+<!-- do blueprint: 00-context.md (Monorepo com core-sdk compartilhado entre orquestrador, agentes de no e clientes), 06-system-architecture.md -->
+
+O Alexandria usa **pnpm workspaces** com monorepo. O app mobile em `apps/mobile/` compartilha o `core-sdk` com o orquestrador e o agente de no. Essa e a decisao arquitetural mais importante: criptografia, chunking e envelope encryption rodam no proprio dispositivo mobile via Core SDK.
 
 ```
 apps/
-  mobile/                 # App React Native / Expo
-  admin/                  # Painel administrativo (web)
+  web/                    # Web client (Next.js 16)
+  mobile/                 # App React Native / Expo  ← este documento
+  node-agent/             # Agente de no (NestJS)
 
 packages/
-  ui/                     # Design system compartilhado
-  api-client/             # Cliente de API
-  config/                 # Configuracoes compartilhadas (ESLint, TS)
-  utils/                  # Utilitarios compartilhados
+  core-sdk/               # Criptografia AES-256-GCM, BIP-39, chunking, consistent hashing
+  orchestrator/           # Orquestrador NestJS (backend)
+  config/                 # Configs compartilhadas: ESLint, TypeScript, Prettier
+
+pnpm-workspace.yaml
+turbo.json                # Build pipeline (se Turborepo for adotado)
 ```
 
-| Package | Responsabilidade | Consumido por |
-| --- | --- | --- |
-| {{ui}} | {{Design system e componentes base}} | {{mobile, admin}} |
-| {{api-client}} | {{Cliente HTTP tipado}} | {{mobile, admin}} |
-| {{config}} | {{Configs de ESLint, TypeScript}} | {{Todos}} |
-| {{utils}} | {{Funcoes utilitarias compartilhadas}} | {{Todos}} |
+| Package        | Responsabilidade                                                                    | Consumido por                       |
+| -------------- | ----------------------------------------------------------------------------------- | ----------------------------------- |
+| `core-sdk`     | AES-256-GCM, BIP-39 seed phrase, chunking ~4MB, SHA-256, consistent hashing        | mobile, web, node-agent, orchestrator |
+| `config`       | Configs compartilhadas de ESLint, TypeScript (tsconfig base), Prettier              | Todos os packages e apps            |
+
+> O `core-sdk` e o ativo mais critico do monorepo. Qualquer bug aqui afeta todos os clientes. Mudancas no core-sdk exigem testes em todos os consumers antes de merge.
 
 ---
 
@@ -133,14 +172,20 @@ packages/
 
 > Quais sao as regras de importacao entre modulos?
 
+<!-- do blueprint: mobile/01-architecture.md (regras de dependencia entre camadas) -->
+
 | De | Para | Permitido? | Observacao |
 | --- | --- | --- | --- |
-| `features/auth` | `features/billing` | Nao | Features nao importam de outras features |
-| `features/auth` | `components/ui` | Sim | Componentes compartilhados sao acessiveis |
-| `features/auth` | `hooks/` | Sim | Hooks globais sao acessiveis |
-| `features/auth` | `services/` | Sim | API client e servicos sao compartilhados |
-| `components/ui` | `features/auth` | Nao | Componentes compartilhados nao conhecem features |
-| `app/` | `features/auth` | Sim | Screens importam features para montar telas |
+| `features/gallery` | `features/upload` | Nao | Features nao importam de outras features diretamente |
+| `features/alerts` | `features/cluster` | Nao | Comunicacao via store compartilhado (alertsStore, clusterStore) |
+| `features/upload` | `packages/core-sdk` | Sim | Core SDK e dependencia externa do monorepo, nao uma feature |
+| `features/*` | `components/ui` | Sim | Primitivos UI compartilhados sao acessiveis por todas as features |
+| `features/*` | `hooks/` | Sim | Hooks globais (useTheme, useNetwork, usePermissions) sao compartilhados |
+| `features/*` | `services/api-client` | Sim | API client centralizado e compartilhado |
+| `features/*` | `store/` | Sim | Stores globais (authStore, settingsStore) sao acessiveis |
+| `components/ui` | `features/*` | Nao | Componentes UI nao conhecem dominios de negocio |
+| `app/` | `features/*` | Sim | Screens Expo Router importam features para montar telas |
+| `app/` | `components/` | Sim | Screens podem usar componentes compartilhados diretamente |
 
 <!-- APPEND:regras-importacao -->
 

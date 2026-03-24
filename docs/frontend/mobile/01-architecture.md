@@ -62,13 +62,17 @@ Native Module Layer (Camera, Biometrics, Push, Storage Nativo)
 
 > O app esta organizado por dominio de negocio (features)?
 
-| Dominio | Responsabilidade | Componentes Proprios | Estado Proprio |
-| --- | --- | --- | --- |
-| {{auth}} | {{Autenticacao e autorizacao}} | {{LoginForm, AuthGuard}} | {{authStore}} |
-| {{dashboard}} | {{Painel principal e metricas}} | {{DashboardGrid, MetricCard}} | {{dashboardStore}} |
-| {{billing}} | {{Planos, pagamentos e faturas}} | {{PlanSelector, InvoiceList}} | {{billingStore}} |
-| {{storage}} | {{Upload e gerenciamento de arquivos}} | {{FileUploader, FileList}} | {{storageStore}} |
-| {{Outro dominio}} | {{Responsabilidade}} | {{Componentes}} | {{Store}} |
+<!-- do blueprint: 00-context.md (atores, limites), 01-vision.md (personas), 04-domain-model.md (entidades) -->
+
+| Dominio    | Responsabilidade                                                                                              | Componentes Proprios                                                      | Estado Proprio                     |
+| ---------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------- |
+| auth       | Login com JWT, desbloqueio do vault com senha do membro, recovery via seed phrase de 12 palavras              | LoginScreen, VaultUnlockScreen, SeedRecoveryScreen, AuthGuard             | authStore (token, member, vault)   |
+| gallery    | Galeria de fotos e videos do cluster — timeline cronologica, busca por data/evento, visualizacao em tela cheia | GalleryScreen, TimelineScreen, PhotoDetailScreen, VideoDetailScreen, AlbumGrid, PhotoThumbnail | galleryStore (cursor, filters)  |
+| upload     | Sync Engine automatico (camera roll), upload manual, fila offline persistida, progress tracking, liberacao de espaco | UploadQueueScreen, SyncSettingsScreen, UploadProgressBar, SpaceReleaseModal | uploadStore (queue, progress)   |
+| cluster    | Informacoes do cluster familiar, saude geral, convite de membros, lista de membros e suas roles              | ClusterDashboardScreen, MembersScreen, InviteMemberSheet, MemberCard       | clusterStore (cluster, members)    |
+| nodes      | Lista de nos de armazenamento, saude individual, registro de novo no, drain e remocao (admin only)           | NodesScreen, NodeDetailScreen, RegisterNodeSheet, NodeHealthBadge          | nodesStore (nodes)                 |
+| alerts     | Alertas de saude do cluster — no offline, replicacao baixa, integridade comprometida, token expirado         | AlertsScreen, AlertBadge, AlertDetailSheet                                 | alertsStore (alerts, unreadCount)  |
+| settings   | Configuracoes do app: notificacoes, sync automatico, limiar de liberacao de espaco, perfil do membro, logout | SettingsScreen, ProfileScreen, SyncSettingsScreen, NotificationSettingsScreen | settingsStore (preferences)     |
 
 <!-- APPEND:dominios -->
 
@@ -94,23 +98,69 @@ Native Module Layer (Camera, Biometrics, Push, Storage Nativo)
 
 > Diagrama: [mobile-architecture.mmd](../diagrams/mobile/mobile-architecture.mmd)
 
-{{Descreva o diagrama de arquitetura ou referencie o arquivo Mermaid}}
+<!-- do blueprint: 06-system-architecture.md (Web Client, Orquestrador REST API), 02-architecture_principles.md (Zero-Knowledge, Offline-first) -->
+
+O app mobile segue uma arquitetura em 5 camadas (Clean Architecture adaptada para React Native). As features sao organizadas por dominio de negocio. O Sync Engine roda como servico background na camada de Infrastructure, detectando midias no camera roll via expo-media-library e enfileirando uploads com persistencia em SQLite. A criptografia ocorre na camada de Infrastructure via Core SDK antes de qualquer transmissao ao Orquestrador.
 
 ```mermaid
 graph TD
-    UI[UI Layer] --> App[Application Layer]
-    App --> Domain[Domain Layer]
-    App --> Infra[Infrastructure Layer]
-    Infra -.-> Domain
-    Infra --> Native[Native Module Layer]
-
-    subgraph Features
-        Auth[auth/]
-        Dashboard[dashboard/]
-        Billing[billing/]
+    subgraph UI["UI Layer (Screens + Navigators + Components)"]
+        GalleryS[GalleryScreen]
+        UploadS[UploadQueueScreen]
+        ClusterS[ClusterDashboardScreen]
+        AlertsS[AlertsScreen]
+        AuthS[LoginScreen / VaultUnlock]
     end
 
-    UI --> Features
+    subgraph App["Application Layer (Hooks + Stores)"]
+        GH[useGallery / useTimeline]
+        UH[useUpload / useSyncEngine]
+        CH[useCluster / useNodes]
+        AH[useAlerts]
+        AuthH[useAuth / useVault]
+        GStore[galleryStore]
+        UStore[uploadStore]
+        CStore[clusterStore]
+        AStore[alertsStore]
+        AuthStore[authStore]
+    end
+
+    subgraph Domain["Domain Layer (Models + Rules + Interfaces)"]
+        File[File Model]
+        Node[Node Model]
+        Cluster[Cluster Model]
+        Member[Member Model]
+        Alert[Alert Model]
+        IStorage[IStorageProvider]
+        ISync[ISyncEngine]
+        ICrypto[ICryptoService]
+    end
+
+    subgraph Infra["Infrastructure Layer (API + SQLite + CoreSDK)"]
+        API[ApiClient\nREST HTTPS/TLS1.3]
+        SQLite[SQLite\nUpload Queue + Cache]
+        CoreSDK[Core SDK\nAES-256-GCM + BIP-39]
+        SyncEngine[Sync Engine\nexpo-background-fetch]
+        SecureStore[SecureStore\nVault + JWT]
+    end
+
+    subgraph Native["Native Module Layer"]
+        MediaLib[expo-media-library\nCamera Roll]
+        BgFetch[expo-background-fetch\nBackground Tasks]
+        Notif[expo-notifications\nPush Alerts]
+        Image[expo-image\nCache de Thumbnails]
+    end
+
+    UI --> App
+    App --> Domain
+    App --> Infra
+    Infra -.->|implementa| Domain
+    Infra --> Native
+
+    SyncEngine --> MediaLib
+    SyncEngine --> BgFetch
+    API -->|HTTPS TLS 1.3| Orquestrador[(Orquestrador\nNestJS :8080)]
+    CoreSDK -->|cifra antes do upload| API
 ```
 
 > Mantenha o diagrama atualizado conforme a arquitetura evolui. (ver 00-frontend-vision.md para contexto geral)

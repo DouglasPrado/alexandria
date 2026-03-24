@@ -8,15 +8,23 @@ Define o papel do frontend desktop no sistema, os principios que guiam decisoes 
 
 > Qual e a responsabilidade principal do frontend desktop neste sistema?
 
-| Responsabilidade        | Descricao                                                                    |
-| ----------------------- | ---------------------------------------------------------------------------- |
-| Interface do usuario    | {{Como o frontend desktop apresenta informacoes ao usuario}}                 |
-| Renderizacao de dados   | {{Como os dados do backend/main process sao transformados em UI}}            |
-| Interacao com APIs      | {{Como o frontend se comunica com o backend via main process ou diretamente}}|
-| Gerenciamento de estado | {{Como o estado da aplicacao e mantido e sincronizado entre processos}}      |
-| Experiencia do usuario  | {{Como o frontend garante fluidez, acessibilidade e performance nativa}}     |
+| Responsabilidade        | Descricao                                                                                                                                          |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Interface do usuario    | Galeria de midia, upload manual, navegacao por timeline, gerenciamento de cluster e monitoramento de saude — tudo em app nativo multiplataforma    |
+| Renderizacao de dados   | Miniaturas e previews carregados via IPC do main process; metadata dos arquivos exibida em tempo real conforme o Sync Engine processa novos itens  |
+| Interacao com APIs      | Main process consume a API REST do orquestrador via HTTPS; renderer se comunica exclusivamente com o main via IPC tipado (nunca diretamente com a API) |
+| Gerenciamento de estado | Zustand stores no renderer sincronizadas com eventos IPC do main process (sync progress, node health, upload queue)                                |
+| Experiencia do usuario  | App roda em background via system tray; sync e silencioso; galeria e responsiva e rapida mesmo com acervo de dezenas de milhares de fotos           |
 
-{{Descreva o papel do frontend desktop no contexto do produto}}
+<!-- do blueprint: 00-context.md — Sync Engine e Agente de No rodam nos dispositivos dos membros -->
+
+O cliente desktop e o **hub operacional** do Alexandria em computadores. Ele opera em tres camadas simultaneas:
+
+1. **Interface** — galeria, upload, painel do admin, configuracao do cluster
+2. **Sync Engine** — monitora pastas configuradas, detecta novos arquivos e enfileira uploads automaticamente
+3. **Agente de No** — armazena chunks locais, envia heartbeats ao orquestrador, participa do scrubbing periodico
+
+Por rodar com Node.js nativo no main process, o cliente desktop e o unico cliente capaz de executar o Agente de No e o Sync Engine integrados — sem daemon separado, sem instalacao adicional.
 
 ---
 
@@ -24,21 +32,25 @@ Define o papel do frontend desktop no sistema, os principios que guiam decisoes 
 
 > Quais regras fundamentais guiam as decisoes de frontend desktop?
 
-| Principio                         | Descricao                                                                             | Implicacao Pratica                                                        |
-| --------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Frontend como aplicacao nativa    | O frontend roda como aplicacao desktop, com acesso a recursos do sistema operacional  | Aproveitar APIs nativas (file system, notifications, tray, menus)         |
-| Separacao de processos            | Main process e renderer process tem responsabilidades distintas                       | Logica de sistema no main, UI no renderer, comunicacao via IPC            |
-| Orientacao a features             | O codigo e organizado por dominio de negocio, nao por tipo de arquivo                 | Pastas por feature (`features/auth/`, `features/billing/`)                |
-| Performance by default            | Decisoes de performance sao tomadas desde o inicio, nao como otimizacao tardia        | Lazy loading de janelas, preload scripts otimizados                       |
-| {{Principio adicional}}           | {{Descricao}}                                                                         | {{Implicacao}}                                                            |
+| Principio                         | Descricao                                                                                                       | Implicacao Pratica                                                                                  |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Frontend como aplicacao nativa    | O app roda como cidadao de primeira classe no SO: system tray, menus nativos, notificacoes, file associations   | Usar Electron APIs para tray, `Menu`, `Notification`, `shell.openPath`, `dialog`                   |
+| Separacao de processos            | Main process tem responsabilidade de sistema (IPC, file system, HTTP, node agent); renderer cuida apenas da UI  | Toda logica de negocio fica no main; renderer e stateless alem de estado de UI                      |
+| Background-first                  | O valor central do app e o sync automatico, que acontece sem janela aberta                                       | App nao fecha ao fechar janela — persiste no tray; sync continua em background indefinidamente       |
+| Zero-Knowledge no cliente         | Criptografia AES-256-GCM acontece no main process antes de qualquer upload; renderer nunca ve dados em claro    | File keys sao derivadas em memoria no main process; renderer recebe apenas URLs de preview locais   |
+| Orientacao a features             | Codigo organizado por dominio de negocio, nao por tipo de arquivo                                               | Pastas por feature: `features/gallery/`, `features/sync/`, `features/cluster/`, `features/vault/`  |
+| Performance by default            | Galeria com dezenas de milhares de itens deve ser fluida; janelas secundarias criadas sob demanda               | Virtualizacao de lista (TanStack Virtual), lazy load de janelas, thumbnails em cache local           |
+
+<!-- do blueprint: 02-architecture_principles.md — Zero-Knowledge por Padrao, Simplicidade Operacional, Embrace Failure -->
 
 <!-- APPEND:principios -->
 
 <details>
 <summary>Exemplo — Principios em acao</summary>
 
-- **Separacao de processos:** O main process gerencia janelas, menus e tray. O renderer process cuida apenas da UI. Comunicacao acontece via IPC tipado.
-- **Performance by default:** Janelas secundarias sao criadas sob demanda com `BrowserWindow` lazy, evitando consumo de memoria desnecessario.
+- **Separacao de processos:** O main process registra o file watcher (chokidar), enfileira uploads, executa chunks e heartbeats. O renderer exibe apenas o progresso via IPC events — nunca toca o file system diretamente.
+- **Background-first:** `mainWindow.on('close', e => { e.preventDefault(); mainWindow.hide() })` — fechar a janela apenas a oculta; o app permanece no tray sincronizando em background.
+- **Zero-Knowledge no cliente:** `aes256gcm.encrypt(chunkBuffer, derivedFileKey)` ocorre no main process antes do `storageProvider.put()`. O renderer recebe apenas o thumbnail gerado localmente.
 
 </details>
 
@@ -48,13 +60,17 @@ Define o papel do frontend desktop no sistema, os principios que guiam decisoes 
 
 > Em quais plataformas o frontend desktop sera executado?
 
-- [ ] Windows (10+)
-- [ ] macOS (12+)
-- [ ] Linux (Ubuntu, Fedora, Arch)
-- [ ] Outro: {{especificar}}
+- [x] macOS (12+)
+- [x] Windows (10+)
+- [x] Linux (Ubuntu 22+, Fedora 38+)
+- [ ] Outro: —
 
-**Plataforma primaria:** {{plataforma primaria}}
-**Plataforma secundaria:** {{plataforma secundaria}}
+**Plataforma primaria:** macOS 12+ (Apple Silicon e Intel)
+**Plataforma secundaria:** Windows 10/11
+
+> Linux e suportado principalmente para NAS e mini-PCs que atuam como nos de armazenamento — nesses casos o app pode rodar em modo headless (apenas Agente de No, sem galeria).
+
+<!-- do blueprint: 00-context.md — Dispositivos da familia: computadores, NAS e VPS como nos de armazenamento -->
 
 ---
 
@@ -62,56 +78,38 @@ Define o papel do frontend desktop no sistema, os principios que guiam decisoes 
 
 > Qual o stack principal do frontend desktop?
 
-| Camada           | Tecnologia                                                    | Justificativa                |
-| ---------------- | ------------------------------------------------------------- | ---------------------------- |
-| Framework Desktop| {{Electron / Tauri}}                                          | {{Justificativa da escolha}} |
-| Runtime          | {{Chromium + Node.js (Electron) / WebView + Rust (Tauri)}}    | {{Justificativa da escolha}} |
-| UI Library       | {{React / Vue / Svelte}}                                      | {{Justificativa da escolha}} |
-| State Management | {{Zustand / Jotai / Redux Toolkit}}                           | {{Justificativa da escolha}} |
-| Data Fetching    | {{TanStack Query / SWR}}                                      | {{Justificativa da escolha}} |
-| Styling          | {{Tailwind CSS / Styled Components / CSS Modules}}            | {{Justificativa da escolha}} |
-| Build Tool       | {{Vite / Webpack / electron-vite}}                            | {{Justificativa da escolha}} |
+| Camada            | Tecnologia          | Justificativa                                                                                                   |
+| ----------------- | ------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Framework Desktop | Electron 34         | Node.js nativo no main process permite rodar Sync Engine e Agente de No sem daemon separado; ecossistema maduro |
+| Runtime           | Chromium + Node.js  | Node.js essencial para acesso a file system, crypto nativo, HTTP e core-sdk compartilhado do monorepo           |
+| UI Library        | React 19            | Componentes reativos, hooks, ecossistema rico; consistencia com o cliente web (Next.js)                         |
+| State Management  | Zustand v5          | API minimalista sem boilerplate; stores isoladas por feature; facil sincronizar com eventos IPC                 |
+| Data Fetching     | TanStack Query v5   | Cache automatico para chamadas ao orquestrador via main process; devtools integrado                             |
+| Styling           | Tailwind CSS v4     | Engine CSS-first, zero-JS runtime; tokens do design system Alexandria compartilhados via CSS variables          |
+| Build Tool        | electron-vite 3     | HMR para main e renderer, builds rapidos, configuracao pre-otimizada para Electron                              |
+| Empacotamento     | electron-builder    | DMG (macOS), NSIS installer (Windows), AppImage + .deb (Linux); auto-update via GitHub Releases                 |
+| IPC               | electron (ipcMain / ipcRenderer) | Comunicacao tipada entre processos via channels nomeados; validacao com Zod no main         |
+| File Watcher      | chokidar            | Monitoramento eficiente de pastas para o Sync Engine; suporte a macOS FSEvents, Windows ReadDirectoryChanges    |
 
-<details>
-<summary>Exemplo — Stack com Electron</summary>
+> Electron foi escolhido sobre Tauri porque o Sync Engine e o Agente de No requerem acesso profundo ao Node.js (crypto, fs, net, child_process para FFmpeg), o que eliminaria a vantagem de peso do Tauri e adicionaria complexidade Rust ao monorepo TypeScript.
 
-| Camada           | Tecnologia                  | Justificativa                                            |
-| ---------------- | --------------------------- | -------------------------------------------------------- |
-| Framework Desktop| Electron 34                 | Chromium + Node.js, ecossistema maduro, ampla adocao     |
-| UI Library       | React 19                    | Componentes reativos, hooks, ecossistema rico            |
-| State Management | Zustand v5                  | API simples, sem boilerplate, stores isoladas            |
-| Data Fetching    | TanStack Query v5           | Cache automatico, revalidacao, devtools                  |
-| Styling          | Tailwind CSS v4             | Engine reescrita, CSS-first config, zero-JS runtime      |
-| Build Tool       | electron-vite               | Builds rapidos, HMR para main e renderer                 |
-| Empacotamento    | electron-builder            | DMG, NSIS, AppImage, .deb — multi-plataforma             |
+<!-- do blueprint: 00-context.md — Monorepo com core-sdk compartilhado; restricao TypeScript/NestJS -->
+<!-- do blueprint: 02-architecture_principles.md — Simplicidade Operacional: sem adicionar Rust ao stack -->
 
-</details>
-
-<details>
-<summary>Exemplo — Stack com Tauri</summary>
-
-| Camada           | Tecnologia                  | Justificativa                                            |
-| ---------------- | --------------------------- | -------------------------------------------------------- |
-| Framework Desktop| Tauri 2                     | WebView nativo + Rust backend, binario leve (~10MB)      |
-| UI Library       | React 19                    | Componentes reativos, hooks, ecossistema rico            |
-| State Management | Zustand v5                  | API simples, sem boilerplate, stores isoladas            |
-| Data Fetching    | TanStack Query v5           | Cache automatico, revalidacao, devtools                  |
-| Styling          | Tailwind CSS v4             | Engine reescrita, CSS-first config, zero-JS runtime      |
-| Build Tool       | Vite                        | Build rapido, HMR nativo, integrado com Tauri            |
-| Empacotamento    | tauri-cli                   | DMG, MSI, AppImage, .deb — multi-plataforma              |
-
-</details>
+---
 
 ## Tipos de Usuarios
 
 > Quem sao os usuarios do frontend desktop? Quais perfis de acesso existem?
 
-| Perfil            | Descricao               | Nivel de Acesso | Funcionalidades Principais |
-| ----------------- | ----------------------- | --------------- | -------------------------- |
-| {{Administrador}} | {{Descricao do perfil}} | {{Total}}       | {{Funcionalidades}}        |
-| {{Usuario comum}} | {{Descricao do perfil}} | {{Limitado}}    | {{Funcionalidades}}        |
-| {{Visitante}}     | {{Descricao do perfil}} | {{Publico}}     | {{Funcionalidades}}        |
-| {{Outro perfil}}  | {{Descricao do perfil}} | {{Nivel}}       | {{Funcionalidades}}        |
+| Perfil                  | Descricao                                                                                           | Nivel de Acesso | Funcionalidades Principais                                                                                  |
+| ----------------------- | --------------------------------------------------------------------------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------- |
+| Administrador Familiar  | Membro tecnico que configura e opera o cluster; normalmente o unico com acesso ao painel de admin   | Total           | Criar cluster, convidar membros, adicionar/remover nos, configurar provedores cloud, executar recovery, ver health dashboard |
+| Membro Familiar         | Pai/mae, tios, avos — usam o app para salvar e visualizar fotos/videos sem necessidade tecnica      | Padrao          | Galeria compartilhada, upload manual de arquivos, download de midia, ver notificacoes de sync               |
+| Fotografo Amador        | Membro que produz alto volume de midia; precisa de sync automatico e liberacao de espaco no disco   | Padrao          | Configurar pasta de sync automatico, ver progresso de upload, aceitar placeholder files (thumbnails locais) |
+| Guardiao de Memorias    | Membro mais velho, curador do acervo; navega por timeline e organiza por eventos                    | Padrao (leitura enfatizada) | Timeline cronologica, busca por data/evento, navegacao por album, download de midia sob demanda |
+
+<!-- do blueprint: 00-context.md — personas: Administrador Familiar, Membro Familiar, Fotografo Amador, Guardiao de Memorias -->
 
 <!-- APPEND:usuarios -->
 

@@ -10,11 +10,11 @@ Define o modelo de seguranca do frontend desktop, cobrindo autenticacao, proteca
 
 | Aspecto | Implementacao |
 |---------|---------------|
-| Tipo de autenticacao | {{JWT / Session / OAuth 2.0 / outro}} |
-| Armazenamento do token | {{safeStorage (encriptado no OS) / electron-store encriptado}} |
-| Refresh token strategy | {{Refresh automatico / Redirect para login}} |
-| Expiracao | {{Tempo de expiracao do token}} |
-| Logout | {{Limpar token do disco + invalidar sessao no servidor}} |
+| Tipo de autenticacao | JWT assinado com chave do cluster (Ed25519); sem senhas — acesso via convite + vault unlock |
+| Armazenamento do token | `safeStorage.encryptString()` → electron-store key `auth.token`; nunca em texto puro em disco |
+| Refresh token strategy | JWT re-emitido automaticamente quando valido e com < 1h restante; vault deve estar desbloqueado |
+| Expiracao | 24h (alinhado com `13-security.md`); sessao encerrada se vault for bloqueado antes disso |
+| Logout | Limpa `auth.token` do electron-store + zera Zustand stores em memoria + POST `/auth/logout` no orquestrador |
 
 <details>
 <summary>Exemplo — Armazenamento seguro com safeStorage (Electron)</summary>
@@ -44,8 +44,8 @@ function getToken(): string | null {
 
 > Como rotas protegidas sao implementadas?
 
-- Client-side: {{Auth context / route guard component no renderer}}
-- Fallback: {{Redirect para /login com return URL}}
+- Client-side: `AuthGuard` component verifica `authStore.isVaultUnlocked` em cada rota protegida
+- Fallback: Redirect para `/unlock` (vault nao desbloqueado) ou `/onboarding` (cluster nao configurado)
 
 > Para estrutura completa de janelas e rotas, (ver 07-rotas.md).
 
@@ -81,9 +81,21 @@ function getToken(): string | null {
 // preload/index.ts
 import { contextBridge, ipcRenderer } from 'electron';
 
-// Whitelist explicita de canais permitidos
-const ALLOWED_CHANNELS = ['user:get', 'file:save', 'app:get-version'] as const;
-const ALLOWED_EVENTS = ['app:update-available', 'app:deep-link'] as const;
+// Whitelist explicita de canais Alexandria
+const ALLOWED_CHANNELS = [
+  'vault:unlock', 'vault:lock', 'vault:status',
+  'file:list', 'file:download', 'file:upload-batch',
+  'sync:start', 'sync:stop', 'sync:add-folder', 'sync:remove-folder',
+  'cluster:health', 'cluster:nodes-list',
+  'node:register', 'node:drain',
+  'settings:get', 'settings:set',
+  'app:get-version', 'app:get-metrics',
+] as const;
+const ALLOWED_EVENTS = [
+  'app:update-available', 'sync:progress', 'sync:queue-update',
+  'node:status-changed', 'file:ready', 'cluster:alert-fired',
+  'app:online-status', 'app:theme-changed',
+] as const;
 
 contextBridge.exposeInMainWorld('electronAPI', {
   invoke: (channel: string, ...args: unknown[]) => {
@@ -111,13 +123,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 | Vulnerabilidade | Protecao | Implementacao |
 |-----------------|----------|---------------|
-| XSS (Cross-Site Scripting) | Sanitizacao de inputs, escape de output | {{React auto-escape + DOMPurify para HTML dinamico}} |
-| Remote Code Execution | Sandbox + context isolation | {{nodeIntegration: false, sandbox: true}} |
-| Prototype Pollution | Validacao de payloads IPC | {{Zod schemas + Object.freeze}} |
-| Path Traversal | Validacao de caminhos de arquivo | {{Sanitizar paths no main process antes de acessar FS}} |
-| Clickjacking | Frame protection | {{`webPreferences.webSecurity: true`}} |
-| Injection | Validacao de inputs | {{Zod schemas + sanitizacao}} |
-| Sensitive Data Exposure | Encriptacao de dados em disco | {{safeStorage para tokens, electron-store com encryptionKey}} |
+| XSS (Cross-Site Scripting) | Sanitizacao de inputs, escape de output | React auto-escapa output por padrao; DOMPurify para qualquer HTML dinamico (ex: preview de doc) |
+| Remote Code Execution | Sandbox + context isolation | `nodeIntegration: false`, `sandbox: true`, `contextIsolation: true` em todas as janelas |
+| Prototype Pollution | Validacao de payloads IPC | Zod schemas validam entrada de cada handler; `Object.freeze` em constantes criticas |
+| Path Traversal | Validacao de caminhos de arquivo | Main process valida que paths estao dentro de `userData`, `downloads` ou pastas selecionadas pelo usuario |
+| Clickjacking | Frame protection | `webPreferences.webSecurity: true`; CSP `frame-ancestors 'none'` |
+| Injection | Validacao de inputs | Zod schemas em todos os handlers IPC; Prisma type-safe elimina SQL injection no orquestrador |
+| Sensitive Data Exposure | Encriptacao de dados em disco | JWT via `safeStorage` (OS keychain); vault em arquivo AES-256-GCM separado; secrets nunca em texto puro |
+| Supply Chain Attack | Lockfile + auditoria de dependencias | `pnpm-lock.yaml` commitado; `pnpm audit` no CI; Dependabot para alertas de vulnerabilidades |
 
 <!-- APPEND:vulnerabilidades -->
 
@@ -127,18 +140,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 > O renderer aplica CSP?
 
-{{Descreva a politica CSP aplicada no renderer ou indique que sera configurada}}
+O renderer nunca chama a API do orquestrador diretamente — toda comunicacao externa passa pelo main process via IPC. Por isso, `connect-src` pode ser `'none'`, eliminando uma superficie de ataque inteira. Fonts sao bundled localmente (`@font-face` WOFF2), sem CDN.
 
 ```
 Content-Security-Policy:
   default-src 'self';
   script-src 'self';
   style-src 'self' 'unsafe-inline';
-  img-src 'self' data: https:;
-  connect-src 'self' {{api-domain}};
+  img-src 'self' data: blob:;
+  connect-src 'none';
   font-src 'self';
+  media-src 'self' blob:;
   frame-ancestors 'none';
+  object-src 'none';
 ```
+
+> `blob:` em `img-src` e `media-src` e necessario para thumbnails gerados localmente (URL.createObjectURL). `connect-src 'none'` e possivel porque o renderer nunca faz fetch direto — tudo passa por `window.electronAPI.invoke()`.
+
+<!-- do blueprint: 13-security.md — zero-knowledge; renderer nao acessa API diretamente -->
 
 > Em apps desktop, CSP no renderer e especialmente importante para prevenir carregamento de scripts remotos maliciosos.
 
@@ -150,9 +169,9 @@ Content-Security-Policy:
 
 | Plataforma | Ferramenta | Certificado | Descricao |
 |------------|-----------|-------------|-----------|
-| Windows | SignTool / electron-builder | {{EV Code Signing Certificate}} | Assinatura Authenticode para .exe e .msi |
-| macOS | codesign / electron-builder | {{Apple Developer ID}} | Assinatura + Notarization via Apple |
-| Linux | GPG | {{GPG key}} | Assinatura de pacotes .deb e .rpm |
+| Windows | SignTool via electron-builder | Code Signing Certificate (Standard OV para distribuicao interna familiar; EV se publicar na Microsoft Store) | Assinatura Authenticode para .exe e NSIS installer |
+| macOS | codesign + notarytool via electron-builder | Apple Developer ID Application ($99/ano) + notarization obrigatoria para macOS 15+ | Assinatura + notarization evita bloqueio do Gatekeeper |
+| Linux | GPG via electron-builder | Chave GPG do projeto (Douglas Prado) | Assinatura de .deb, .rpm e AppImage; verificavel por `gpg --verify` |
 
 > Aplicacoes nao assinadas geram alertas de seguranca no OS e podem ser bloqueadas pelo SmartScreen (Windows) ou Gatekeeper (macOS).
 
@@ -164,11 +183,11 @@ Content-Security-Policy:
 
 | Aspecto | Implementacao |
 |---------|---------------|
-| Canal de distribuicao | {{GitHub Releases / S3 + CloudFront / servidor proprio}} |
-| Verificacao de assinatura | {{electron-updater verifica assinatura do binario}} |
-| HTTPS obrigatorio | {{Sim — download apenas via HTTPS}} |
-| Rollback | {{Manter versao anterior para rollback automatico em caso de falha}} |
-| Verificacao de integridade | {{Checksum SHA-256 do pacote de update}} |
+| Canal de distribuicao | GitHub Releases (`electron-updater` com `provider: 'github'`); publico e verificavel |
+| Verificacao de assinatura | `electron-updater` verifica assinatura do binario automaticamente (usando certificado embutido no app) |
+| HTTPS obrigatorio | Sim — `electron-updater` rejeita downloads via HTTP |
+| Rollback | Versao anterior mantida em cache local; rollback manual se nova versao falhar ao iniciar |
+| Verificacao de integridade | `electron-updater` gera e verifica SHA-512 checksum de cada artefato de update |
 
 ---
 
@@ -210,4 +229,6 @@ Content-Security-Policy:
 
 | Data | Decisao | Motivo |
 |------|---------|--------|
-| {{YYYY-MM-DD}} | {{Decisao sobre seguranca}} | {{Justificativa}} |
+| 2026-03-24 | `safeStorage` para JWT em vez de keychain nativo direto | API Electron abstrai OS keychain (macOS), DPAPI (Windows) e libsecret (Linux) sem dependencias nativas extras; integra com electron-store via base64 |
+| 2026-03-24 | `connect-src 'none'` no CSP do renderer | Renderer nao faz fetch direto — toda comunicacao e via IPC. CSP mais restritiva elimina superficie de SSRF/exfiltration no renderer |
+| 2026-03-24 | GitHub Releases como canal de auto-update | Distribuicao publica e auditavel; electron-updater tem suporte nativo; sem custo de infraestrutura adicional para projeto familiar open-source |

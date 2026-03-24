@@ -85,22 +85,49 @@ Infrastructure Layer (API Client, IPC Client, Storage)
 <summary>Exemplo — IPC tipado (Electron)</summary>
 
 ```typescript
-// shared/ipc-channels.ts
+// shared/ipc-channels.ts — canais Alexandria
 export const IPC_CHANNELS = {
-  GET_USER: 'user:get',
-  SAVE_FILE: 'file:save',
-  APP_UPDATE_AVAILABLE: 'app:update-available',
+  // Auth / Vault
+  VAULT_UNLOCK:       'vault:unlock',       // renderer → main: desbloqueia vault com senha
+  VAULT_LOCK:         'vault:lock',          // renderer → main: trava vault
+
+  // Sync Engine
+  SYNC_START:         'sync:start',          // renderer → main: inicia sync de pasta
+  SYNC_STOP:          'sync:stop',           // renderer → main: para sync
+  SYNC_PROGRESS:      'sync:progress',       // main → renderer: push progresso de upload
+  SYNC_QUEUE_UPDATE:  'sync:queue-update',   // main → renderer: push fila atualizada
+
+  // Node Agent
+  NODE_STATUS:        'node:status',         // main → renderer: push status heartbeat
+  NODE_CHUNK_PUT:     'node:chunk-put',      // main: armazena chunk localmente
+
+  // Gallery
+  FILE_LIST:          'file:list',           // renderer → main: lista arquivos do cluster
+  FILE_DOWNLOAD:      'file:download',       // renderer → main: baixa arquivo do cluster
+
+  // Cluster (admin)
+  CLUSTER_HEALTH:     'cluster:health',      // renderer → main: saude do cluster
+
+  // App
+  APP_UPDATE_AVAILABLE: 'app:update-available', // main → renderer: nova versao disponivel
 } as const;
 
-// main/ipc/user-handlers.ts
-ipcMain.handle(IPC_CHANNELS.GET_USER, async (event, userId: string) => {
-  return await userService.getById(userId);
+// main/ipc/sync-handlers.ts
+ipcMain.handle(IPC_CHANNELS.SYNC_START, async (_event, folderPath: string) => {
+  return await syncEngine.watchFolder(folderPath);
+});
+
+// main emite progresso para o renderer
+syncEngine.on('progress', (item: SyncProgressItem) => {
+  mainWindow.webContents.send(IPC_CHANNELS.SYNC_PROGRESS, item);
 });
 
 // renderer/services/ipc-client.ts
 export const ipcClient = {
-  getUser: (userId: string) =>
-    window.electronAPI.invoke(IPC_CHANNELS.GET_USER, userId),
+  startSync: (folderPath: string) =>
+    window.electronAPI.invoke(IPC_CHANNELS.SYNC_START, folderPath),
+  onSyncProgress: (cb: (item: SyncProgressItem) => void) =>
+    window.electronAPI.on(IPC_CHANNELS.SYNC_PROGRESS, cb),
 };
 ```
 
@@ -128,11 +155,12 @@ export const ipcClient = {
 
 | Dominio | Responsabilidade | Componentes Proprios | Estado Proprio |
 | --- | --- | --- | --- |
-| {{auth}} | {{Autenticacao e autorizacao}} | {{LoginForm, AuthGuard}} | {{authStore}} |
-| {{dashboard}} | {{Painel principal e metricas}} | {{DashboardGrid, MetricCard}} | {{dashboardStore}} |
-| {{billing}} | {{Planos, pagamentos e faturas}} | {{PlanSelector, InvoiceList}} | {{billingStore}} |
-| {{storage}} | {{Upload e gerenciamento de arquivos}} | {{FileUploader, FileList}} | {{storageStore}} |
-| {{Outro dominio}} | {{Responsabilidade}} | {{Componentes}} | {{Store}} |
+| `auth` | Desbloqueio do vault local, login no orquestrador, recovery via seed phrase de 12 palavras | `UnlockScreen`, `SeedPhraseInput`, `AuthGuard` | `authStore` |
+| `gallery` | Galeria de fotos/videos, timeline cronologica, navegacao por album/evento, download sob demanda | `GalleryGrid`, `MediaViewer`, `TimelineBar`, `AlbumList` | `galleryStore` |
+| `sync` | Progresso do Sync Engine, fila de uploads, configuracao de pastas monitoradas, status de cada arquivo | `SyncQueue`, `FolderPicker`, `UploadProgressItem`, `SyncStatusBadge` | `syncStore` |
+| `cluster` | Saude do cluster, nos online/offline, convite de membros, configuracao de provedores cloud (admin) | `ClusterHealthPanel`, `NodeCard`, `InviteForm`, `ProviderSetup` | `clusterStore` |
+| `vault` | Credenciais de provedores cloud, tokens OAuth, senhas — desencriptados localmente com senha do membro | `VaultItem`, `ProviderCredentialForm`, `VaultUnlockModal` | `vaultStore` |
+| `settings` | Preferencias do app: pasta de sync, comportamento do tray, notificacoes, tema, auto-start | `SettingsPage`, `SyncFolderList`, `NotificationToggle` | `settingsStore` |
 
 <!-- APPEND:dominios -->
 
@@ -158,31 +186,55 @@ export const ipcClient = {
 
 > Diagrama: [desktop-architecture.mmd](../diagrams/frontend/desktop-architecture.mmd)
 
-{{Descreva o diagrama de arquitetura ou referencie o arquivo Mermaid}}
+O diagrama abaixo mostra a separacao entre Main Process e Renderer Process, os modulos internos de cada processo, e como os dominios do renderer se conectam ao main via IPC.
+
+<!-- do blueprint: 06-system-architecture.md — Agente de No e Sync Engine rodam nos dispositivos; 00-context.md — Sync Engine detecta novos arquivos e os envia ao cluster -->
 
 ```mermaid
 graph TD
-    Main[Main Process] <-->|IPC| Renderer[Renderer Process]
+    Main["Main Process (Node.js)"] <-->|"IPC (tipado/validado)"| Renderer[Renderer Process]
 
-    Main --> Windows[Window Management]
-    Main --> Menu[Application Menu]
-    Main --> Tray[System Tray]
-    Main --> Updater[Auto-Updater]
-    Main --> FS[File System]
+    subgraph Main Process
+        SyncEngine["Sync Engine\n(chokidar)"]
+        NodeAgent["Node Agent\n(heartbeat, chunks)"]
+        VaultMgr["Vault Manager\n(AES-256-GCM)"]
+        IPCHandlers[IPC Handlers]
+        AutoUpdater[Auto-Updater]
+        TrayMgr[System Tray]
+        WindowMgr[Window Manager]
+    end
 
-    Renderer --> UI[UI Layer]
-    UI --> App[Application Layer]
-    App --> Domain[Domain Layer]
-    App --> Infra[Infrastructure Layer]
-    Infra -.-> Domain
+    subgraph Renderer Process
+        UI[UI Layer]
+        AppLayer[Application Layer]
+        DomainLayer[Domain Layer]
+        InfraLayer[Infrastructure Layer]
+    end
 
     subgraph Features
-        Auth[auth/]
-        Dashboard[dashboard/]
-        Billing[billing/]
+        Auth["auth/\n(unlock, seed recovery)"]
+        Gallery["gallery/\n(timeline, viewer)"]
+        Sync["sync/\n(queue, progress)"]
+        Cluster["cluster/\n(health, nos, convites)"]
+        Vault["vault/\n(credenciais)"]
+        Settings["settings/\n(preferencias)"]
     end
 
     UI --> Features
+    UI --> AppLayer
+    AppLayer --> DomainLayer
+    AppLayer --> InfraLayer
+    InfraLayer -.->|"implementa interfaces"| DomainLayer
+
+    InfraLayer -->|"ipcRenderer.invoke()"| IPCHandlers
+    IPCHandlers --> SyncEngine
+    IPCHandlers --> NodeAgent
+    IPCHandlers --> VaultMgr
+
+    SyncEngine -->|"ipcMain push events"| Renderer
+    NodeAgent -->|"status events"| Renderer
+
+    NodeAgent -->|"HTTPS/REST"| Orchestrator[(Orquestrador)]
 ```
 
 > Mantenha o diagrama atualizado conforme a arquitetura evolui. (ver 00-frontend-vision.md para contexto geral)

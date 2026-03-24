@@ -20,12 +20,14 @@ Define a piramide de testes do frontend desktop, as ferramentas utilizadas, os p
         └─────────┘
 ```
 
+<!-- do blueprint: 12-testing_strategy.md — piramide 70/20/10; desktop/08-flows.md — 5 fluxos criticos; 02-architecture_principles.md — Embrace Failure -->
+
 | Nivel | Ferramenta | O que Testa | Meta de Cobertura |
 |-------|------------|-------------|-------------------|
-| Unit | {{Vitest / Jest}} | Hooks, utils, logica isolada | {{80%+}} |
-| Integration | {{Testing Library}} | Componentes + interacoes no renderer | {{60%+}} |
-| IPC | {{Vitest + mocks}} | Handlers IPC, comunicacao main↔renderer | {{90%+}} |
-| E2E | {{Playwright + Electron / Spectron}} | Fluxos completos do usuario na app desktop | {{Fluxos criticos 100%}} |
+| Unit | Vitest | Hooks, utils, logica de dominio, IPC stubs | 80%+ (90%+ em crypto/vault/chunking) |
+| Integration | Testing Library + Vitest | Componentes + interacoes no renderer com IPC mockado | 60%+ |
+| IPC | Vitest + mock `window.electronAPI` | Handlers IPC main↔renderer: vault, sync, cluster | 90%+ |
+| E2E | Playwright + `_electron` | Fluxos completos na app Electron real (unlock, sync, recovery) | 5 fluxos criticos: 100% |
 
 ---
 
@@ -44,28 +46,36 @@ Define a piramide de testes do frontend desktop, as ferramentas utilizadas, os p
 <summary>Exemplo — Teste de IPC handler</summary>
 
 ```typescript
-// Teste de handler no main process
-describe('user IPC handlers', () => {
-  it('deve retornar usuario por ID', async () => {
-    const mockUser = { id: '1', name: 'Test User' };
-    vi.spyOn(userService, 'getById').mockResolvedValue(mockUser);
+// Teste de handler vault:unlock no main process
+describe('vault IPC handlers', () => {
+  it('deve desbloquear vault com senha correta', async () => {
+    const mockMember = { id: 'mem-1', name: 'Douglas', role: 'admin', clusterId: 'cls-1' };
+    vi.spyOn(vaultManager, 'unlock').mockResolvedValue(mockMember);
 
-    const result = await handleGetUser({} as IpcMainInvokeEvent, '1');
+    const result = await handleVaultUnlock({} as IpcMainInvokeEvent, 'senha-correta');
 
-    expect(result).toEqual(mockUser);
-    expect(userService.getById).toHaveBeenCalledWith('1');
+    expect(result).toEqual({ success: true, member: mockMember });
+    expect(vaultManager.unlock).toHaveBeenCalledWith('senha-correta');
+  });
+
+  it('deve retornar erro com senha incorreta', async () => {
+    vi.spyOn(vaultManager, 'unlock').mockRejectedValue(new Error('Invalid password'));
+
+    const result = await handleVaultUnlock({} as IpcMainInvokeEvent, 'senha-errada');
+
+    expect(result).toEqual({ success: false, error: 'Invalid password' });
   });
 });
 
-// Teste de IPC call no renderer
-describe('ipcClient', () => {
-  it('deve invocar canal correto para buscar usuario', async () => {
-    const mockInvoke = vi.fn().mockResolvedValue({ id: '1', name: 'Test' });
+// Teste de IPC call vault:unlock no renderer
+describe('ipcClient vault', () => {
+  it('deve invocar canal correto para desbloquear vault', async () => {
+    const mockInvoke = vi.fn().mockResolvedValue({ success: true, member: { id: 'mem-1' } });
     window.electronAPI = { invoke: mockInvoke };
 
-    await ipcClient.getUser('1');
+    await ipcClient.vaultUnlock('minha-senha');
 
-    expect(mockInvoke).toHaveBeenCalledWith('user:get', '1');
+    expect(mockInvoke).toHaveBeenCalledWith('vault:unlock', 'minha-senha');
   });
 });
 ```
@@ -139,12 +149,15 @@ describe('useAuth', () => {
 ```typescript
 import { _electron as electron } from 'playwright';
 
-describe('App E2E', () => {
+describe('Alexandria E2E — Vault Unlock + Gallery', () => {
   let app: ElectronApplication;
   let page: Page;
 
   beforeAll(async () => {
-    app = await electron.launch({ args: ['.'] });
+    app = await electron.launch({
+      args: ['.'],
+      env: { ...process.env, NODE_ENV: 'test' },
+    });
     page = await app.firstWindow();
   });
 
@@ -152,16 +165,26 @@ describe('App E2E', () => {
     await app.close();
   });
 
-  it('deve exibir janela principal', async () => {
-    const title = await page.title();
-    expect(title).toBe('Minha Aplicacao');
+  it('deve exibir tela de desbloqueio do vault na inicializacao', async () => {
+    await expect(page.locator('[data-testid="unlock-screen"]')).toBeVisible();
   });
 
-  it('deve navegar para configuracoes via menu', async () => {
+  it('deve desbloquear vault e redirecionar para galeria', async () => {
+    await page.locator('[data-testid="vault-password-input"]').fill('senha-de-teste');
+    await page.locator('[data-testid="unlock-button"]').click();
+
+    await expect(page.locator('[data-testid="gallery-view"]')).toBeVisible({ timeout: 5000 });
+  });
+
+  it('deve exibir status do sync na sidebar apos unlock', async () => {
+    await expect(page.locator('[data-testid="sync-status-indicator"]')).toBeVisible();
+  });
+
+  it('deve abrir configuracoes via menu Exibir', async () => {
     await app.evaluate(({ Menu }) => {
       Menu.getApplicationMenu()?.getMenuItemById('settings')?.click();
     });
-    await expect(page.locator('h1')).toHaveText('Configuracoes');
+    await expect(page.locator('[data-testid="settings-page"]')).toBeVisible();
   });
 });
 ```
@@ -176,11 +199,11 @@ describe('App E2E', () => {
 
 | Camada | Meta | Medicao |
 |--------|------|---------|
-| Domain (models, utils) | 90%+ | {{Vitest coverage}} |
-| Application (hooks) | 80%+ | {{Vitest coverage}} |
-| UI (components) | 60%+ | {{Testing Library + Vitest}} |
-| IPC Handlers (main) | 90%+ | {{Vitest coverage}} |
-| E2E (fluxos criticos) | 100% | {{Playwright reports}} |
+| Domain (models, utils) | 90%+ | Vitest coverage (`npm run test:coverage`) |
+| Application (hooks) | 80%+ | Vitest coverage (`npm run test:coverage`) |
+| UI (components) | 60%+ | Testing Library + Vitest (`npm run test:coverage`) |
+| IPC Handlers (main) | 90%+ | Vitest coverage (`npm run test:ipc`) |
+| E2E (fluxos criticos) | 100% | Playwright reports (`npm run test:e2e`) |
 
 <!-- APPEND:cobertura -->
 
@@ -190,19 +213,19 @@ describe('App E2E', () => {
 
 > Testes rodam automaticamente no pipeline?
 
-- [ ] Testes unitarios rodam em cada PR
-- [ ] Testes de integracao rodam em cada PR
-- [ ] Testes de IPC rodam em cada PR
-- [ ] E2E roda antes de merge na main
-- [ ] Cobertura e reportada no PR
-- [ ] Testes falhos bloqueiam merge
+- [x] Testes unitarios rodam em cada PR
+- [x] Testes de integracao rodam em cada PR
+- [x] Testes de IPC rodam em cada PR
+- [x] E2E roda antes de merge na main
+- [x] Cobertura e reportada no PR
+- [x] Testes falhos bloqueiam merge
 
 | Etapa | Comando | Timeout |
 |-------|---------|---------|
-| Unit + Integration | `npm run test` | {{60s}} |
-| IPC Tests | `npm run test:ipc` | {{30s}} |
-| E2E | `npm run test:e2e` | {{300s}} |
-| Coverage report | `npm run test:coverage` | {{90s}} |
+| Unit + Integration | `npm run test` | 60s |
+| IPC Tests | `npm run test:ipc` | 30s |
+| E2E | `npm run test:e2e` | 300s |
+| Coverage report | `npm run test:coverage` | 90s |
 
 > Para pipeline completo, (ver 13-cicd-convencoes.md).
 
@@ -212,4 +235,4 @@ describe('App E2E', () => {
 
 | Data | Decisao | Motivo |
 |------|---------|--------|
-| {{YYYY-MM-DD}} | {{Decisao sobre testes}} | {{Justificativa}} |
+| 2026-03-24 | Vitest para unit/IPC, Playwright+Electron para E2E | Vitest e nativo ao electron-vite e suporta mocking de IPC sem setup extra; Playwright tem suporte oficial a `_electron` API |
