@@ -5,7 +5,7 @@ description: Cria paginas visuais no Paper (paper.design) a partir do frontend b
 
 # Paper — Design Visual a partir do Blueprint
 
-Cria paginas visuais no Paper (paper.design) usando as ferramentas MCP. O fluxo segue 6 fases:
+Cria paginas visuais no Paper (paper.design) usando as ferramentas MCP. O fluxo segue 6 passos:
 
 1. **Tokens** — cores, tipografia, espacamento, breakpoints no artboard Design System
 2. **Planejamento de Telas** — mapa completo de todas as paginas, seus componentes, acoes e ordem de construcao

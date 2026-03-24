@@ -5,13 +5,23 @@ description: Preenche a secao de Estrutura do Projeto (02-project-structure.md) 
 
 # Frontend Blueprint — Estrutura do Projeto
 
-Preenche `docs/frontend/02-project-structure.md` com base no blueprint tecnico e no contexto do projeto.
+Preenche `docs/frontend/{client}/02-project-structure.md` com base no blueprint tecnico e no contexto do projeto.
+
+## Identificacao do Cliente
+
+Este skill aceita um parametro de cliente: `web`, `mobile`, ou `desktop`.
+Se o parametro nao for fornecido, pergunte:
+
+> "Para qual cliente voce esta preenchendo este documento? (web / mobile / desktop)"
+
+Caminho de saida: `docs/frontend/{client}/02-project-structure.md`
+Leia tambem os documentos compartilhados em `docs/frontend/shared/` para contexto.
 
 ## Leitura de Contexto
 
 1. Leia `docs/blueprint/06-system-architecture.md` — componentes e deploy
-2. Leia `docs/frontend/01-architecture.md` — arquitetura do frontend (ja preenchida)
-3. Leia `docs/frontend/02-project-structure.md` — template a preencher
+2. Leia `docs/frontend/{client}/01-architecture.md` — arquitetura do frontend (ja preenchida)
+3. Leia `docs/frontend/{client}/02-project-structure.md` — template a preencher
 4. Leia `docs/prd.md` — complemento se necessario
 
 ## Analise de Lacunas
@@ -27,6 +37,23 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 
 > **Versões atualizadas:** Ao referenciar tecnologias específicas com versões, use o MCP context7 para consultar documentação atualizada. Primeiro chame `mcp__context7__resolve-library-id` para obter o ID da biblioteca, depois `mcp__context7__query-docs` para consultar versões e exemplos.
 
+## Contexto por Plataforma
+
+### Se web:
+- Estrutura app/ router (Next.js) ou routes/ (Remix)
+- Diretorio public/, middleware, API routes
+- Organizacao de layouts, loading states, error boundaries
+
+### Se mobile:
+- Expo Router com app/ ou estrutura screens/ tradicional
+- Diretorio assets/, navegacao, componentes nativos
+- Configuracao de plataformas (ios/, android/)
+
+### Se desktop:
+- Separacao main/ (processo principal) e renderer/ (UI)
+- Diretorio ipc/ para comunicacao entre processos
+- Configuracao de build e empacotamento (electron-builder, tauri.conf.json)
+
 ## Geracao
 
 > **Modo de escrita:**
@@ -34,7 +61,7 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
-Preencha `docs/frontend/02-project-structure.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+Preencha `docs/frontend/{client}/02-project-structure.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
 - Informacoes explicitas do blueprint tecnico
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- do blueprint: XX-arquivo.md -->`)
@@ -45,4 +72,4 @@ Apresente o documento preenchido ao usuario. Aplique ajustes solicitados. Salve 
 
 ## Proxima Etapa
 
-> "Estrutura do Projeto preenchida. Rode `/frontend-design-system` para preencher Design System."
+> "Estrutura do Projeto preenchida para {client}. Rode `/frontend-design-system {client}` para preencher Design System."

@@ -1,9 +1,9 @@
 ---
 name: codegen-contracts
-description: Phase 0 do codegen. Gera o shared kernel do projeto — tipos TypeScript compartilhados, schema do banco, scaffold de diretorios e configuracoes base. Roda UMA VEZ no inicio do projeto.
+description: Setup inicial do codegen. Gera o shared kernel do projeto — tipos TypeScript compartilhados, schema do banco, scaffold de diretorios e configuracoes base. Roda UMA VEZ no inicio do projeto.
 ---
 
-# Codegen — Contratos Compartilhados (Phase 0)
+# Codegen — Contratos Compartilhados (Setup Inicial)
 
 Voce vai gerar o "shared kernel" do projeto — os tipos, schema e scaffold que todas as features futuras importarao. Este skill roda UMA VEZ no inicio e cria a fundacao tipada do projeto.
 
@@ -162,7 +162,7 @@ Se houver erros, corrija antes de prosseguir.
 
 ## Passo 6: Apresentar Resultado
 
-> "Phase 0 concluida. Scaffold gerado:
+> "Setup inicial concluido. Scaffold gerado:
 >
 > - **{{N}} tipos** de entidades em `src/contracts/entities/`
 > - **{{N}} enums** em `src/contracts/enums/`
@@ -172,10 +172,10 @@ Se houver erros, corrija antes de prosseguir.
 >
 > Os contratos sao a fonte de verdade tipada. Todas as features futuras devem importar de `src/contracts/`.
 >
-> Rode `/codegen` para ver as fases do build plan, ou `/codegen-feature [nome]` para implementar a primeira feature."
+> Rode `/codegen` para ver as entregas do build plan, ou `/codegen-feature [nome]` para implementar a primeira feature."
 
 ## Passo 7: Commit
 
 Sugira ao usuario:
 
-> "Deseja fazer o commit inicial? Sugestao: `feat: project scaffold and shared contracts (Phase 0)`"
+> "Deseja fazer o commit inicial? Sugestao: `feat: project scaffold and shared contracts (setup inicial)`"

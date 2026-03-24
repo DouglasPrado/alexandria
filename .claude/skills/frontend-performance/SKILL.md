@@ -5,13 +5,23 @@ description: Preenche a secao de Performance (10-performance.md) do frontend blu
 
 # Frontend Blueprint — Performance
 
-Preenche `docs/frontend/10-performance.md` com base no blueprint tecnico e no contexto do projeto.
+Preenche `docs/frontend/{client}/10-performance.md` com base no blueprint tecnico e no contexto do projeto.
+
+## Identificacao do Cliente
+
+Este skill aceita um parametro de cliente: `web`, `mobile`, ou `desktop`.
+Se o parametro nao for fornecido, pergunte:
+
+> "Para qual cliente voce esta preenchendo este documento? (web / mobile / desktop)"
+
+Caminho de saida: `docs/frontend/{client}/10-performance.md`
+Leia tambem os documentos compartilhados em `docs/frontend/shared/` para contexto.
 
 ## Leitura de Contexto
 
 1. Leia `docs/blueprint/14-scalability.md` — estrategias de cache e escala
 2. Leia `docs/blueprint/03-requirements.md` — requisitos nao-funcionais (latencia, throughput)
-3. Leia `docs/frontend/10-performance.md` — template a preencher
+3. Leia `docs/frontend/{client}/10-performance.md` — template a preencher
 4. Leia `docs/prd.md` — complemento se necessario
 
 ## Analise de Lacunas
@@ -27,6 +37,25 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 
 > **Versões atualizadas:** Ao referenciar tecnologias específicas com versões, use o MCP context7 para consultar documentação atualizada. Primeiro chame `mcp__context7__resolve-library-id` para obter o ID da biblioteca, depois `mcp__context7__query-docs` para consultar versões e exemplos.
 
+## Contexto por Plataforma
+
+### Se web:
+- Core Web Vitals: LCP, INP, CLS como metricas primarias
+- Code splitting e lazy loading de rotas
+- Streaming SSR e progressive hydration
+
+### Se mobile:
+- App startup time (cold start e warm start)
+- Frame rate alvo de 60fps
+- Consumo de memoria e bateria
+- Otimizacoes do Hermes engine
+
+### Se desktop:
+- Startup time da aplicacao
+- Uso de memoria (main process + renderer)
+- Consumo de CPU em idle e em uso
+- Tamanho do instalador e atualizacoes delta
+
 ## Geracao
 
 > **Modo de escrita:**
@@ -34,7 +63,7 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
-Preencha `docs/frontend/10-performance.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+Preencha `docs/frontend/{client}/10-performance.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
 - Informacoes explicitas do blueprint tecnico
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- do blueprint: XX-arquivo.md -->`)
@@ -45,4 +74,4 @@ Apresente o documento preenchido ao usuario. Aplique ajustes solicitados. Salve 
 
 ## Proxima Etapa
 
-> "Performance preenchido. Rode `/frontend-security` para preencher Seguranca."
+> "Performance preenchida para {client}. Rode `/frontend-security {client}` para preencher Seguranca."

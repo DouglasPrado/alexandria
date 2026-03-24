@@ -5,7 +5,7 @@ description: Cria paginas visuais no Pencil (pencil.dev) a partir do frontend bl
 
 # Pencil — Design Visual a partir do Blueprint
 
-Cria designs visuais no Pencil (pencil.dev) usando as ferramentas MCP nativas. O fluxo segue 5 fases:
+Cria designs visuais no Pencil (pencil.dev) usando as ferramentas MCP nativas. O fluxo segue 5 passos:
 
 1. **Variables & Temas** — registra tokens via `set_variables` com temas light/dark + representacao visual no DS
 2. **Planejamento de Telas** — mapa completo de todas as paginas, componentes, acoes e ordem de construcao

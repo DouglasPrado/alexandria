@@ -37,22 +37,25 @@ Famílias acumulam grandes volumes de dados digitais sem uma solução que garan
 
 | Componente | Tecnologia |
 |---|---|
-| Backend | Rust |
-| Frontend Web | Next.js |
-| Desktop | Tauri |
-| Mobile | React Native |
-| Banco de dados | PostgreSQL |
-| Filas | Redis |
-| Transcodificação | FFmpeg |
+| Backend | TypeScript (NestJS) |
+| ORM | Prisma |
+| Frontend Web | Next.js 16 (App Router, Turbopack) |
+| UI | React 19, Tailwind CSS v4 |
+| Estado | Zustand v5, TanStack Query v5 |
+| Desktop (fase 2) | Tauri |
+| Mobile (fase 3) | React Native |
+| Banco de dados | PostgreSQL 18 |
+| Filas | Redis 7 |
+| Transcodificação | FFmpeg 7, libvips |
+| Infraestrutura | Docker Compose, Caddy |
 
 ## Fases de entrega
 
 | Fase | Nome | Objetivo |
 |---|---|---|
-| 0 | Fundação | Infraestrutura base, contratos e core SDK |
-| 1 | MVP | Fluxo principal funcionando end-to-end |
-| 2 | Evolução | Features complementares e qualidade |
-| 3 | Escala | Otimização, inteligência e resiliência avançada |
+| 1 | MVP | Cluster, upload, pipeline, replicação 3x, seed recovery, web client |
+| 2 | Consolidação | Timeline, busca EXIF, monitoring avançado, multi-admin, desktop (Tauri) |
+| 3 | Expansão | Mobile (React Native), reconhecimento facial, OCR, erasure coding, P2P |
 
 ## Limites do sistema (v1)
 
@@ -64,6 +67,7 @@ Famílias acumulam grandes volumes de dados digitais sem uma solução que garan
 
 - [PRD completo](docs/PRD.MD)
 - [Blueprint técnico](docs/blueprint/)
+- [Blueprint frontend](docs/frontend/)
 
 ## Licença
 

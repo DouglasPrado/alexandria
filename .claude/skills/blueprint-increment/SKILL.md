@@ -110,7 +110,7 @@ Marcadores disponiveis por documento:
 - `04-domain-model.md`: `<!-- APPEND:glossary -->`, `<!-- APPEND:entities -->`
 - `09-state-models.md`: `<!-- APPEND:state-models -->`
 - `10-architecture_decisions.md`: `<!-- APPEND:adrs -->`
-- `11-build_plan.md`: `<!-- APPEND:technical-risks -->`, `<!-- APPEND:phases -->`
+- `11-build_plan.md`: `<!-- APPEND:technical-risks -->`, `<!-- APPEND:deliverables -->`
 - `12-testing_strategy.md`: `<!-- APPEND:coverage -->`, `<!-- APPEND:ci-pipeline -->`
 - `13-security.md`: `<!-- APPEND:threats -->`, `<!-- APPEND:roles -->`
 

@@ -1,6 +1,6 @@
 ---
 name: frontend-increment
-description: Incrementa o frontend blueprint com nova funcionalidade ou correcao sem sobrescrever conteudo existente. Usa Edit (nao Write) para preservar tudo.
+description: Incrementa o frontend blueprint com nova funcionalidade ou correcao sem sobrescrever conteudo existente. Usa Edit (nao Write) para preservar tudo. Suporta multiplos clientes (web, mobile, desktop) e docs compartilhados.
 ---
 
 # Frontend Blueprint — Incrementar ou Corrigir
@@ -11,7 +11,22 @@ preservando todo o conteudo ja preenchido. Use este skill para:
 - **Corrigir** informacoes existentes (props erradas, rotas renomeadas, fluxos atualizados, etc.)
 - **Atualizar** versoes de tecnologias, endpoints, nomes, ou qualquer dado que mudou
 
-## Passo 1: Receber a Alteracao
+## Passo 1: Selecao de Cliente
+
+Pergunte ao usuario qual cliente deseja atualizar:
+
+> "Qual cliente voce quer atualizar?
+> - **web** — Cliente web
+> - **mobile** — Cliente mobile
+> - **desktop** — Cliente desktop
+> - **shared** — Documentos compartilhados (design system, data layer, API dependencies)
+> - **all** — Todos os clientes e documentos compartilhados
+>
+> Qual cliente?"
+
+Aguarde a resposta antes de prosseguir.
+
+## Passo 2: Receber a Alteracao
 
 Pergunte ao usuario:
 
@@ -27,31 +42,47 @@ Pergunte ao usuario:
 
 Aguarde a resposta antes de prosseguir.
 
-## Passo 2: Leitura do Estado Atual
+## Passo 3: Leitura do Estado Atual
 
-Leia TODOS os documentos existentes em `docs/frontend/`:
+Leia os documentos conforme o cliente selecionado:
 
-1. `docs/frontend/00-frontend-vision.md`
-2. `docs/frontend/01-architecture.md`
-3. `docs/frontend/02-project-structure.md`
-4. `docs/frontend/03-design-system.md`
-5. `docs/frontend/04-components.md`
-6. `docs/frontend/05-state.md`
-7. `docs/frontend/06-data-layer.md`
-8. `docs/frontend/07-routes.md`
-9. `docs/frontend/08-flows.md`
-10. `docs/frontend/09-tests.md`
-11. `docs/frontend/10-performance.md`
-12. `docs/frontend/11-security.md`
-13. `docs/frontend/12-observability.md`
-14. `docs/frontend/13-cicd-conventions.md`
+### Se `shared`:
+1. `docs/frontend/shared/03-design-system.md`
+2. `docs/frontend/shared/06-data-layer.md`
+3. `docs/frontend/shared/15-api-dependencies.md`
+
+### Se cliente especifico (web, mobile, ou desktop):
+Leia os documentos compartilhados E os do cliente:
+
+**Shared:**
+1. `docs/frontend/shared/03-design-system.md`
+2. `docs/frontend/shared/06-data-layer.md`
+3. `docs/frontend/shared/15-api-dependencies.md`
+
+**Per-client** (`docs/frontend/{client}/`):
+1. `docs/frontend/{client}/00-frontend-vision.md`
+2. `docs/frontend/{client}/01-architecture.md`
+3. `docs/frontend/{client}/02-project-structure.md`
+4. `docs/frontend/{client}/04-components.md`
+5. `docs/frontend/{client}/05-state.md`
+6. `docs/frontend/{client}/07-routes.md`
+7. `docs/frontend/{client}/08-flows.md`
+8. `docs/frontend/{client}/09-tests.md`
+9. `docs/frontend/{client}/10-performance.md`
+10. `docs/frontend/{client}/11-security.md`
+11. `docs/frontend/{client}/12-observability.md`
+12. `docs/frontend/{client}/13-cicd-conventions.md`
+13. `docs/frontend/{client}/14-copies.md`
+
+### Se `all`:
+Leia TODOS os documentos em `docs/frontend/shared/` e `docs/frontend/{cada cliente existente}/`.
 
 Leia tambem os arquivos relevantes de `docs/blueprint/` para contexto do sistema (entidades, fluxos, requisitos).
 Leia `docs/prd.md` se existir, como complemento.
 
 > **Versões atualizadas:** Ao referenciar tecnologias específicas com versões, use o MCP context7 para consultar documentação atualizada. Primeiro chame `mcp__context7__resolve-library-id` para obter o ID da biblioteca, depois `mcp__context7__query-docs` para consultar versões e exemplos.
 
-## Passo 3: Classificar Tipo de Alteracao
+## Passo 4: Classificar Tipo de Alteracao
 
 Identifique o tipo de alteracao:
 
@@ -60,30 +91,33 @@ Identifique o tipo de alteracao:
 - **Atualizacao** — versao de lib, rota renomeada, componente movido
 - **Remocao** — feature removida do escopo, componente depreciado
 
-## Passo 4: Analise de Impacto
+## Passo 5: Analise de Impacto
 
-Identifique quais documentos sao impactados. Apresente ao usuario:
+Identifique quais documentos sao impactados. Apresente ao usuario com coluna de cliente:
 
-| Doc | Impactado? | Tipo | O que fazer |
-|-----|-----------|------|-------------|
-| 00-visao | {{Sim/Nao}} | {{Adicao/Correcao/Atualizacao/Remocao}} | {{Descricao}} |
-| 01-architecture | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 02-estrutura | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 03-design-system | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 04-components | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 05-state | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 06-data-layer | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 07-routes | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 08-flows | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 09-tests | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 10-performance | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 11-security | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 12-observability | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 13-cicd | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| Cliente | Doc | Impactado? | Tipo | O que fazer |
+|---------|-----|-----------|------|-------------|
+| shared | 03-design-system | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| shared | 06-data-layer | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| shared | 15-api-dependencies | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 00-visao | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 01-architecture | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 02-estrutura | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 04-components | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 05-state | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 07-routes | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 08-flows | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 09-tests | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 10-performance | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 11-security | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 12-observability | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 13-cicd | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+
+> **Aviso cross-client:** Se a alteracao impacta documentos em `shared/`, avise o usuario que a mudanca afetara TODOS os clientes.
 
 > Confirme com o usuario antes de prosseguir: "Estes sao os documentos que serao atualizados. Deseja ajustar algo?"
 
-## Passo 5: Aplicar Alteracoes
+## Passo 6: Aplicar Alteracoes
 
 **Use SEMPRE Edit tool, NUNCA Write tool** — Write sobrescreve o arquivo inteiro.
 
@@ -128,6 +162,7 @@ Para CADA documento marcado como impactado, aplique conforme o tipo:
 - **Fluxos (correcao)**: Edit nos passos especificos do fluxo
 - **NUNCA altere** linhas nao relacionadas a alteracao solicitada
 - **Alteracoes minimas**: mude o minimo necessario para aplicar a correcao
+- **Paths corretos**: use `docs/frontend/shared/` para docs compartilhados e `docs/frontend/{client}/` para docs per-client
 
 ### Exemplo de insercao em tabela:
 
@@ -185,22 +220,23 @@ Para CADA documento marcado como impactado, aplique conforme o tipo:
 <!-- APPEND:fluxos -->
 ```
 
-## Passo 6: Revisao
+## Passo 7: Revisao
 
 Apresente ao usuario um resumo do que foi adicionado:
 
-> "Funcionalidade **{{nome}}** documentada. Alteracoes em **{{N}}** documentos:
+> "Funcionalidade **{{nome}}** documentada para **{{cliente}}**. Alteracoes em **{{N}}** documentos:
 >
-> | Doc | Alteracao |
-> |-----|----------|
-> | 04-components | +{{X}} componentes |
-> | 05-state | +{{Y}} stores, +{{Z}} eventos |
-> | ... | ... |
+> | Cliente | Doc | Alteracao |
+> |---------|-----|----------|
+> | {{client}} | 04-components | +{{X}} componentes |
+> | {{client}} | 05-state | +{{Y}} stores, +{{Z}} eventos |
+> | shared | 06-data-layer | +{{W}} hooks |
+> | ... | ... | ... |
 >
 > Revise os documentos atualizados e solicite ajustes se necessario."
 
-## Passo 7: Proximo
+## Passo 8: Proximo
 
-> "Feature documentada. Para adicionar outra funcionalidade, rode
+> "Feature documentada para **{{cliente}}**. Para adicionar outra funcionalidade, rode
 > `/frontend-increment` novamente.
 > Para revisar o blueprint completo, rode `/frontend`."

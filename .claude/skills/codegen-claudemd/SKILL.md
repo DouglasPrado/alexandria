@@ -120,8 +120,8 @@ Antes de iniciar qualquer tarefa, leia os docs listados abaixo conforme o tipo d
 
 ## Skills de Codegen Disponiveis
 
-- `/codegen` — apresenta fases do build plan e guia a execucao
-- `/codegen-contracts` — gera tipos, schema e scaffold do projeto (Phase 0)
+- `/codegen` — apresenta entregas do build plan e guia a execucao
+- `/codegen-contracts` — gera tipos, schema e scaffold do projeto (setup inicial)
 - `/codegen-feature` — implementa uma feature completa (vertical slice, TDD)
 - `/codegen-verify` — verifica codigo gerado contra o blueprint
 ```
@@ -142,4 +142,4 @@ Antes de iniciar qualquer tarefa, leia os docs listados abaixo conforme o tipo d
 
 ## Passo 6: Proximo Passo
 
-> "CLAUDE.md pronto. Rode `/codegen` para ver as fases do build plan, ou `/codegen-contracts` para gerar o scaffold e tipos compartilhados (Phase 0)."
+> "CLAUDE.md pronto. Rode `/codegen` para ver as entregas do build plan, ou `/codegen-contracts` para gerar o scaffold e tipos compartilhados (setup inicial)."

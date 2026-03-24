@@ -1,6 +1,6 @@
 ---
 name: codegen-verify
-description: Verifica se o codigo gerado esta aderente ao blueprint. Compara tipos, schema, endpoints, fluxos e regras de negocio documentados contra o codigo implementado. Roda apos cada feature ou fase.
+description: Verifica se o codigo gerado esta aderente ao blueprint. Compara tipos, schema, endpoints, fluxos e regras de negocio documentados contra o codigo implementado. Roda apos cada feature ou conjunto de entregas.
 ---
 
 # Codegen — Verificacao contra Blueprint
@@ -10,7 +10,7 @@ Voce vai comparar o codigo gerado com os blueprints para encontrar discrepancias
 ## Quando Usar
 
 - Apos implementar 3-5 features (verificacao periodica)
-- Ao concluir uma fase do build plan (verificacao de fase)
+- Ao concluir um conjunto de entregas (verificacao periodica)
 - Quando suspeitar que algo divergiu do blueprint
 - Antes de uma release
 
@@ -21,10 +21,10 @@ Pergunte ao usuario:
 > "Qual escopo de verificacao?
 >
 > 1. **Feature especifica** — verifica uma feature contra os docs relevantes
-> 2. **Fase do build plan** — verifica todas as entregas de uma fase
+> 2. **Conjunto de entregas** — verifica um grupo de entregas do build plan
 > 3. **Completa** — verifica todo o projeto contra todos os blueprints
 >
-> Escolha o escopo (ou informe o nome da feature/fase)."
+> Escolha o escopo (ou informe o nome da feature/entrega)."
 
 Aguarde a resposta.
 
@@ -33,8 +33,8 @@ Aguarde a resposta.
 ### Para Feature Especifica:
 Carregue apenas os docs relevantes para a feature (mesmo mapeamento do `/codegen-feature`).
 
-### Para Fase do Build Plan:
-1. Leia `docs/blueprint/11-build_plan.md` — identifique as entregas da fase
+### Para Conjunto de Entregas:
+1. Leia `docs/blueprint/11-build_plan.md` — identifique as entregas selecionadas
 2. Carregue os docs relevantes para cada entrega
 
 ### Para Verificacao Completa:
@@ -123,7 +123,7 @@ Para cada componente documentado:
 > "## Relatorio de Verificacao — {{escopo}}
 >
 > **Data:** {{data}}
-> **Escopo:** {{feature/fase/completa}}
+> **Escopo:** {{feature/entregas/completa}}
 >
 > ### Resumo
 >

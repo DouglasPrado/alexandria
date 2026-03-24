@@ -11,7 +11,7 @@ Voce vai preencher a secao de Evolucao e Migracao do blueprint. Esta e a ultima 
 
 1. Leia `docs/prd.md` — fonte primaria (visao de longo prazo)
 2. Leia `docs/blueprint/10-architecture_decisions.md` — decisoes e trade-offs aceitos
-3. Leia `docs/blueprint/11-build_plan.md` — fases e roadmap
+3. Leia `docs/blueprint/11-build_plan.md` — entregas e roadmap
 4. Leia `docs/blueprint/14-scalability.md` — limites atuais e projecoes
 5. Leia `docs/blueprint/16-evolution.md` — template a preencher
 
@@ -36,7 +36,7 @@ Se o PRD nao cobrir visao de longo prazo ou estrategia de versionamento, pergunt
 
 Preencha `docs/blueprint/16-evolution.md`:
 
-- **Roadmap tecnico**: tabela com item, prioridade, justificativa e fase planejada
+- **Roadmap tecnico**: tabela com item, prioridade, justificativa e entrega associada
 - **Debitos tecnicos**: tabela com debito, impacto, esforco e prioridade
 - **Versionamento**: versao atual, estrategia SemVer, versionamento de API (URI, header, etc.)
 - **Deprecacao**: tabela com funcionalidade, data de deprecacao, periodo de transicao e alternativa

@@ -5,12 +5,22 @@ description: Preenche a secao de Observabilidade (12-observability.md) do fronte
 
 # Frontend Blueprint — Observabilidade
 
-Preenche `docs/frontend/12-observability.md` com base no blueprint tecnico e no contexto do projeto.
+Preenche `docs/frontend/{client}/12-observability.md` com base no blueprint tecnico e no contexto do projeto.
+
+## Identificacao do Cliente
+
+Este skill aceita um parametro de cliente: `web`, `mobile`, ou `desktop`.
+Se o parametro nao for fornecido, pergunte:
+
+> "Para qual cliente voce esta preenchendo este documento? (web / mobile / desktop)"
+
+Caminho de saida: `docs/frontend/{client}/12-observability.md`
+Leia tambem os documentos compartilhados em `docs/frontend/shared/` para contexto.
 
 ## Leitura de Contexto
 
 1. Leia `docs/blueprint/15-observability.md` — logs, metricas, traces, alertas
-2. Leia `docs/frontend/12-observability.md` — template a preencher
+2. Leia `docs/frontend/{client}/12-observability.md` — template a preencher
 3. Leia `docs/prd.md` — complemento se necessario
 
 ## Analise de Lacunas
@@ -27,6 +37,25 @@ Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 pergun
 
 > **Versões atualizadas:** Ao referenciar tecnologias específicas com versões, use o MCP context7 para consultar documentação atualizada. Primeiro chame `mcp__context7__resolve-library-id` para obter o ID da biblioteca, depois `mcp__context7__query-docs` para consultar versões e exemplos.
 
+## Contexto por Plataforma
+
+### Se web:
+- Sentry para error tracking
+- Web Vitals RUM (Real User Monitoring)
+- Lighthouse CI para auditorias automatizadas
+
+### Se mobile:
+- Sentry React Native para error tracking
+- Firebase Crashlytics para crash reporting
+- Firebase Analytics para eventos de uso
+- Monitoramento de OTA updates
+
+### Se desktop:
+- Sentry Electron para error tracking
+- Crash reporting nativo do processo main
+- Telemetria de auto-update (sucesso/falha)
+- Monitoramento de recursos do sistema (CPU, memoria, disco)
+
 ## Geracao
 
 > **Modo de escrita:**
@@ -34,7 +63,7 @@ Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 pergun
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
-Preencha `docs/frontend/12-observability.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+Preencha `docs/frontend/{client}/12-observability.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
 - Informacoes do blueprint tecnico (fonte primaria)
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- do blueprint: 15-observability.md -->`)
@@ -45,4 +74,4 @@ Apresente o documento preenchido ao usuario. Aplique ajustes solicitados. Salve 
 
 ## Proxima Etapa
 
-> "Observabilidade preenchido. Rode `/frontend-cicd` para preencher CI/CD e Convencoes."
+> "Observabilidade preenchida para {client}. Rode `/frontend-cicd {client}` para preencher CI/CD e Convencoes."

@@ -234,17 +234,17 @@ Para {{público-alvo}} que {{necessidade ou problema enfrentado}}, o {{nome do p
 
 **Explicitamente excluído:**
 
-- {{Exclusão 1 — será tratado na fase N}}
+- {{Exclusão 1 — será tratado em entrega futura}}
 - {{Exclusão 2 — pertence a outro time/projeto}}
 
-### 10.2 Fases de entrega
+### 10.2 Entregas priorizadas
 
-| Fase | Nome | Objetivo | Entregáveis | Critério de entrada na próxima fase |
-|------|------|----------|-------------|--------------------------------------|
-| 0 | Fundação | {{Infraestrutura e contratos}} | {{Lista de entregáveis}} | {{Critério}} |
-| 1 | MVP | {{Fluxo principal funcionando}} | {{Lista de entregáveis}} | {{Critério}} |
-| 2 | Evolução | {{Features complementares}} | {{Lista de entregáveis}} | {{Critério}} |
-| 3 | Escala | {{Otimização e expansão}} | {{Lista de entregáveis}} | {{Critério}} |
+| ID | Nome | Prioridade | Objetivo | Entregáveis | Dependências |
+|----|------|-----------|----------|-------------|--------------|
+| ENT-001 | Fundação | Must | {{Infraestrutura e contratos}} | {{Lista de entregáveis}} | {{Nenhuma}} |
+| ENT-002 | MVP | Must | {{Fluxo principal funcionando}} | {{Lista de entregáveis}} | {{ENT-001}} |
+| ENT-003 | Evolução | Should | {{Features complementares}} | {{Lista de entregáveis}} | {{ENT-002}} |
+| ENT-004 | Escala | Could | {{Otimização e expansão}} | {{Lista de entregáveis}} | {{ENT-002}} |
 
 ### 10.3 MVP — Definição mínima
 
@@ -295,7 +295,7 @@ Para {{público-alvo}} que {{necessidade ou problema enfrentado}}, o {{nome do p
 
 | Dependência | Time responsável | O que precisa | Status | Impacto se atrasar |
 |-------------|-----------------|---------------|--------|---------------------|
-| {{Dependência 1}} | {{Time}} | {{API, serviço, componente}} | {{Resolvida / Pendente / Em risco}} | {{Bloqueia fase X}} |
+| {{Dependência 1}} | {{Time}} | {{API, serviço, componente}} | {{Resolvida / Pendente / Em risco}} | {{Bloqueia ENT-XXX}} |
 
 ### 12.2 Dependências externas
 
@@ -305,7 +305,7 @@ Para {{público-alvo}} que {{necessidade ou problema enfrentado}}, o {{nome do p
 
 ### 12.3 Dependências técnicas
 
-- {{Ex.: migração do banco X precisa estar concluída antes da fase 1}}
+- {{Ex.: migração do banco X precisa estar concluída antes da ENT-002}}
 - {{Ex.: SDK do parceiro Y precisa ser homologada}}
 - {{Ex.: Feature flag infrastructure precisa estar disponível}}
 

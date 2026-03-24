@@ -15,7 +15,7 @@ Localizacao dos blueprints: {{caminho relativo dos docs}}
 
 ## Stack Tecnologica
 
-{{Extraido de docs/blueprint/06-system_architecture.md}}
+{{Extraido de docs/blueprint/06-system-architecture.md}}
 
 | Camada | Tecnologia | Versao |
 |--------|-----------|--------|
@@ -33,14 +33,14 @@ Localizacao dos blueprints: {{caminho relativo dos docs}}
 Antes de iniciar qualquer tarefa, leia os docs listados abaixo conforme o tipo de trabalho.
 
 ### Schema / Migrations
-- docs/blueprint/04-domain_model.md (entidades, regras de negocio)
-- docs/blueprint/05-data_model.md (tabelas, indices, constraints)
-- docs/blueprint/09-state_models.md (maquinas de estado)
+- docs/blueprint/04-domain-model.md (entidades, regras de negocio)
+- docs/blueprint/05-data-model.md (tabelas, indices, constraints)
+- docs/blueprint/09-state-models.md (maquinas de estado)
 
 ### API / Backend
 - docs/blueprint/07-critical_flows.md (fluxos, tratamento de erros)
 - docs/blueprint/08-use_cases.md (atores, pre/pos condicoes)
-- docs/blueprint/06-system_architecture.md (componentes, comunicacao)
+- docs/blueprint/06-system-architecture.md (componentes, comunicacao)
 
 ### Frontend Components
 - docs/frontend/04-componentes.md (hierarquia de componentes)
@@ -83,7 +83,7 @@ Antes de iniciar qualquer tarefa, leia os docs listados abaixo conforme o tipo d
 
 ### Glossario do Dominio (Linguagem Ubiqua)
 
-{{Extraido de docs/blueprint/04-domain_model.md — secao de glossario}}
+{{Extraido de docs/blueprint/04-domain-model.md — secao de glossario}}
 
 | Termo | Significado | Uso no Codigo |
 |-------|-----------|---------------|
@@ -116,8 +116,8 @@ Antes de iniciar qualquer tarefa, leia os docs listados abaixo conforme o tipo d
 
 | Skill | Uso | Quando |
 |-------|-----|--------|
-| `/codegen` | Apresenta fases do build plan | Inicio de sessao |
-| `/codegen-contracts` | Gera tipos, schema, scaffold | Phase 0 (uma vez) |
+| `/codegen` | Apresenta entregas do build plan | Inicio de sessao |
+| `/codegen-contracts` | Gera tipos, schema, scaffold | Setup inicial (uma vez) |
 | `/codegen-feature` | Implementa feature (TDD) | Dia-a-dia |
 | `/codegen-verify` | Verifica codigo vs blueprint | A cada 3-5 features |
 | `/codegen-claudemd` | Gera/atualiza este arquivo | Setup inicial |

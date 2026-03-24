@@ -5,13 +5,13 @@ description: Preenche a secao de Design System (03-design-system.md) do frontend
 
 # Frontend Blueprint — Design System
 
-Preenche `docs/frontend/03-design-system.md` com base no blueprint tecnico e no contexto do projeto.
+Preenche `docs/frontend/shared/03-design-system.md` com base no blueprint tecnico e no contexto do projeto. Este e um documento **compartilhado** entre todos os clientes (web, mobile, desktop).
 
 ## Leitura de Contexto
 
 1. Leia `docs/blueprint/04-domain-model.md` — entidades e termos do dominio
 2. Leia `docs/blueprint/01-vision.md` — visao e identidade do produto
-3. Leia `docs/frontend/03-design-system.md` — template a preencher
+3. Leia `docs/frontend/shared/03-design-system.md` — template a preencher
 4. Leia `docs/prd.md` — complemento se necessario
 
 ## Analise de Lacunas
@@ -222,7 +222,7 @@ Regras:
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
-Preencha `docs/frontend/03-design-system.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+Preencha `docs/frontend/shared/03-design-system.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
 - Informacoes explicitas do blueprint tecnico
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- do blueprint: XX-arquivo.md -->`)
@@ -233,4 +233,4 @@ Apresente o documento preenchido ao usuario. Aplique ajustes solicitados. Salve 
 
 ## Proxima Etapa
 
-> "Design System preenchido. Rode `/frontend-components` para preencher Componentes."
+> "Design System preenchido (compartilhado entre todos os clientes). Rode `/frontend-components {client}` para preencher Componentes do cliente desejado."

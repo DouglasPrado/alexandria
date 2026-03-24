@@ -5,14 +5,14 @@ description: Preenche a secao de Data Layer (06-data-layer.md) do frontend bluep
 
 # Frontend Blueprint — Data Layer
 
-Preenche `docs/frontend/06-data-layer.md` com base no blueprint tecnico e no contexto do projeto.
+Preenche `docs/frontend/shared/06-data-layer.md` com base no blueprint tecnico e no contexto do projeto. Este e um documento **compartilhado** entre todos os clientes (web, mobile, desktop).
 
 ## Leitura de Contexto
 
 1. Leia `docs/blueprint/05-data-model.md` — modelo de dados e queries
 2. Leia `docs/blueprint/06-system-architecture.md` — API e comunicacao
 3. Leia `docs/blueprint/03-requirements.md` — requisitos nao-funcionais (latencia, cache)
-4. Leia `docs/frontend/06-data-layer.md` — template a preencher
+4. Leia `docs/frontend/shared/06-data-layer.md` — template a preencher
 5. Leia `docs/prd.md` — complemento se necessario
 
 ## Analise de Lacunas
@@ -36,7 +36,7 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
-Preencha `docs/frontend/06-data-layer.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+Preencha `docs/frontend/shared/06-data-layer.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
 - Informacoes explicitas do blueprint tecnico
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- do blueprint: XX-arquivo.md -->`)
@@ -47,4 +47,4 @@ Apresente o documento preenchido ao usuario. Aplique ajustes solicitados. Salve 
 
 ## Proxima Etapa
 
-> "Data Layer preenchido. Rode `/frontend-routes` para preencher Rotas e Navegacao."
+> "Data Layer preenchido (compartilhado entre todos os clientes). Rode `/frontend-routes {client}` para preencher Rotas e Navegacao do cliente desejado."

@@ -5,15 +5,25 @@ description: Preenche a secao de Copies (14-copies.md) do frontend blueprint a p
 
 # Frontend Blueprint — Copies
 
-Preenche `docs/frontend/14-copies.md` com base no blueprint tecnico e no contexto das telas do projeto.
+Preenche `docs/frontend/{client}/14-copies.md` com base no blueprint tecnico e no contexto das telas do projeto.
+
+## Identificacao do Cliente
+
+Este skill aceita um parametro de cliente: `web`, `mobile`, ou `desktop`.
+Se o parametro nao for fornecido, pergunte:
+
+> "Para qual cliente voce esta preenchendo este documento? (web / mobile / desktop)"
+
+Caminho de saida: `docs/frontend/{client}/14-copies.md`
+Leia tambem os documentos compartilhados em `docs/frontend/shared/` para contexto.
 
 ## Leitura de Contexto
 
 1. Leia `docs/blueprint/08-use_cases.md` — casos de uso com textos e mensagens
 2. Leia `docs/blueprint/17-communication.md` — templates de comunicacao
-3. Leia `docs/frontend/14-copies.md` — template a preencher
-4. Leia `docs/frontend/07-routes.md` — para identificar todas as telas/paginas
-5. Leia `docs/frontend/08-flows.md` — para identificar copies dentro dos fluxos criticos
+3. Leia `docs/frontend/{client}/14-copies.md` — template a preencher
+4. Leia `docs/frontend/{client}/07-routes.md` — para identificar todas as telas/paginas
+5. Leia `docs/frontend/{client}/08-flows.md` — para identificar copies dentro dos fluxos criticos
 6. Leia `docs/prd.md` — complemento se necessario
 
 ## Analise de Lacunas
@@ -30,6 +40,23 @@ Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 pergun
 
 > **Versões atualizadas:** Ao referenciar tecnologias específicas com versões, use o MCP context7 para consultar documentação atualizada. Primeiro chame `mcp__context7__resolve-library-id` para obter o ID da biblioteca, depois `mcp__context7__query-docs` para consultar versões e exemplos.
 
+## Contexto por Plataforma
+
+### Se web:
+- Bibliotecas de i18n: i18next, next-intl, react-intl
+- SEO copies: meta titles, descriptions, OpenGraph
+- Acessibilidade: aria-labels, alt texts, screen reader announcements
+
+### Se mobile:
+- Bibliotecas de i18n: expo-localization, react-native-localize
+- Copies especificos: push notifications, app store listing, onboarding
+- Adaptacao de tamanho: textos mais curtos para telas menores
+
+### Se desktop:
+- Mesmas bibliotecas web (i18next, next-intl) + copies especificos
+- Strings de menu bar, system tray, dialogs nativos do OS
+- Tooltips de acoes do sistema, mensagens de auto-update
+
 ## Geracao
 
 > **Modo de escrita:**
@@ -37,7 +64,7 @@ Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 pergun
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar copies de uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
-Preencha `docs/frontend/14-copies.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+Preencha `docs/frontend/{client}/14-copies.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
 - Informacoes do blueprint tecnico (use cases, comunicacao)
 - Rotas de `07-routes.md` para gerar uma subsecao por tela
 - Fluxos de `08-flows.md` para garantir que mensagens de feedback estejam cobertas
@@ -61,4 +88,4 @@ Apresente o documento preenchido ao usuario. Aplique ajustes solicitados. Salve 
 
 ## Proxima Etapa
 
-> "Copies preenchido. O frontend blueprint esta completo! Rode `/frontend` para revisar a cobertura geral, ou `/frontend-increment` para adicionar copies de novas features."
+> "Copies preenchido para {client}. O frontend blueprint esta completo! Rode `/frontend` para revisar a cobertura geral, ou `/frontend-increment` para adicionar copies de novas features."

@@ -5,12 +5,22 @@ description: Preenche a secao de Seguranca (11-security.md) do frontend blueprin
 
 # Frontend Blueprint — Seguranca
 
-Preenche `docs/frontend/11-security.md` com base no blueprint tecnico e no contexto do projeto.
+Preenche `docs/frontend/{client}/11-security.md` com base no blueprint tecnico e no contexto do projeto.
+
+## Identificacao do Cliente
+
+Este skill aceita um parametro de cliente: `web`, `mobile`, ou `desktop`.
+Se o parametro nao for fornecido, pergunte:
+
+> "Para qual cliente voce esta preenchendo este documento? (web / mobile / desktop)"
+
+Caminho de saida: `docs/frontend/{client}/11-security.md`
+Leia tambem os documentos compartilhados em `docs/frontend/shared/` para contexto.
 
 ## Leitura de Contexto
 
 1. Leia `docs/blueprint/13-security.md` — STRIDE, autenticacao, autorizacao, OWASP
-2. Leia `docs/frontend/11-security.md` — template a preencher
+2. Leia `docs/frontend/{client}/11-security.md` — template a preencher
 3. Leia `docs/prd.md` — complemento se necessario
 
 ## Analise de Lacunas
@@ -27,6 +37,26 @@ Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 pergun
 
 > **Versões atualizadas:** Ao referenciar tecnologias específicas com versões, use o MCP context7 para consultar documentação atualizada. Primeiro chame `mcp__context7__resolve-library-id` para obter o ID da biblioteca, depois `mcp__context7__query-docs` para consultar versões e exemplos.
 
+## Contexto por Plataforma
+
+### Se web:
+- Content Security Policy (CSP) headers
+- Protecao contra XSS, CSRF
+- Cookies httpOnly e secure
+- Sanitizacao de inputs
+
+### Se mobile:
+- Keychain (iOS) e Keystore (Android) para armazenamento seguro
+- Certificate pinning para comunicacao com API
+- Deteccao de root/jailbreak
+- ProGuard/R8 para ofuscacao de codigo
+
+### Se desktop:
+- Code signing do aplicativo
+- Verificacao de integridade de auto-updates
+- IPC sandboxing entre processos
+- contextBridge para isolamento de contexto
+
 ## Geracao
 
 > **Modo de escrita:**
@@ -34,7 +64,7 @@ Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 pergun
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
-Preencha `docs/frontend/11-security.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+Preencha `docs/frontend/{client}/11-security.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
 - Informacoes do blueprint tecnico (fonte primaria)
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- do blueprint: 13-security.md -->`)
@@ -45,4 +75,4 @@ Apresente o documento preenchido ao usuario. Aplique ajustes solicitados. Salve 
 
 ## Proxima Etapa
 
-> "Seguranca preenchido. Rode `/frontend-observability` para preencher Observabilidade."
+> "Seguranca preenchida para {client}. Rode `/frontend-observability {client}` para preencher Observabilidade."

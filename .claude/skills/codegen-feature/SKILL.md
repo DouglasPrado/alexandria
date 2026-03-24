@@ -11,7 +11,7 @@ Este e o skill principal do dia-a-dia. O dev guia, voce implementa como "pair".
 
 ## Pre-requisitos
 
-- Phase 0 executada (`/codegen-contracts` — tipos e schema existem)
+- Setup inicial executado (`/codegen-contracts` — tipos e schema existem)
 - CLAUDE.md presente no projeto (via `/codegen-claudemd`)
 
 ## Passo 1: Receber a Feature
