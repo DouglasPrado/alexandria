@@ -88,8 +88,8 @@ Member (convidado): (nao existe) → joined
 
 **Passos:**
 
-1. Membro acessa `/upload` (AppLayout)
-2. FileUploader exibe zona de drag-and-drop + botao "Selecionar Arquivos"
+1. Membro acessa `/gallery` e clica no botao "Upload" no header (ou FAB no mobile)
+2. Modal/drawer de upload abre com FileUploader: zona de drag-and-drop + botao "Selecionar Arquivos"
 3. Membro arrasta ou seleciona arquivo(s)
 4. FileUploader valida tipo MIME (foto/video/documento) e tamanho (RN-F4: foto 50MB, video 10GB, doc 2GB)
 5. Arquivos validos sao adicionados a fila via `uploadStore.addFiles(files)`
@@ -184,7 +184,7 @@ File (backend): processing → ready
 | 11 | Chunk indisponivel durante download | Toast error "Arquivo temporariamente indisponivel. Tente novamente." |
 | 11 | Chunk corrompido | Backend tenta outra replica; se falha → Toast error "Arquivo corrompido" + Badge error |
 | 4 | Nenhum resultado na busca | GalleryEmpty com "Nenhum arquivo encontrado" + sugestao de ajustar filtros |
-| 4 | Galeria vazia (sem uploads) | GalleryEmpty com ilustracao + CTA "Faca seu primeiro upload" → link para /upload |
+| 4 | Galeria vazia (sem uploads) | GalleryEmpty com ilustracao + CTA "Faca seu primeiro upload" → abre modal/drawer de upload |
 
 **Filtros via URL State:**
 

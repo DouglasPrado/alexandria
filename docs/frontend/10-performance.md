@@ -33,9 +33,8 @@ Define a estrategia de performance do frontend, as tecnicas de otimizacao adotad
 ```
 Rota                    Bundle estimado    Componentes pesados
 /login                  ~15KB              LoginForm (leve)
-/gallery                ~40KB              GalleryGrid + @tanstack/react-virtual
+/gallery                ~40KB              GalleryGrid + @tanstack/react-virtual (upload: +35KB dynamic import)
 /gallery/[fileId]       ~30KB              FilePreview (dynamic: video player)
-/upload                 ~35KB              FileUploader + UploadQueue
 /nodes                  ~25KB              NodeList + AddNodeForm
 /health                 ~30KB              HealthDashboard + MetricCards
 /recovery               ~50KB              core-sdk WASM (dynamic, ssr: false)
@@ -113,7 +112,6 @@ function GalleryGrid({ files }: { files: FileDTO[] }) {
 |--------|-----|-------------|-------------|
 | /gallery | < 1.5s | Primeiro thumbnail visivel | Click em thumbnail (abrir preview) |
 | /gallery/[fileId] | < 2.0s | Preview da foto/video | Click "Download" |
-| /upload | < 1.0s | Zona de drag-and-drop | Drop de arquivo |
 | /health | < 2.0s | MetricCard "Nos Online" | Click em alerta |
 | /login | < 1.0s | LoginForm | Submit do formulario |
 | /recovery | < 1.5s | SeedPhraseInput (WASM load) | Paste de seed phrase |

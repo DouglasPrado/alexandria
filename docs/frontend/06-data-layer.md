@@ -348,7 +348,6 @@ O BFF e minimo — a maioria das chamadas vai direto do browser para o Orquestra
 | /gallery/[fileId] | SSR (dados do arquivo + preview) | Primeiro paint com preview ja visivel |
 | /health | SSR + polling CSR (30s) | Dados iniciais via SSR; atualizacao frequente via polling |
 | /nodes | SSR + CSR | Lista inicial via SSR; status atualiza via polling |
-| /upload | CSR only | Interatividade pura (drag-and-drop, progress) |
 | /login | SSR (static) | Pagina estatica, sem dados dinamicos |
 | /recovery | CSR only | Seed phrase nunca deve ser renderizada no servidor |
 | /cluster/setup | CSR only | Seed phrase gerada e exibida somente no cliente |

@@ -20,15 +20,13 @@ src/
         page.tsx
       recovery/
         page.tsx
-    (protected)/              # Rotas autenticadas (galeria, upload, dashboard)
+    (protected)/              # Rotas autenticadas (galeria, dashboard)
       layout.tsx              # AuthGuard + sidebar + header
       page.tsx                # Redirect para /gallery
       gallery/
-        page.tsx
+        page.tsx              # GalleryPage (grid + timeline + busca + upload via modal/drawer)
         [fileId]/
           page.tsx
-      upload/
-        page.tsx
       nodes/
         page.tsx
       health/

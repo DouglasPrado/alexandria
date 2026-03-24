@@ -84,7 +84,7 @@ if (response.status === 401) {
 |-------|----------|----------|----------|
 | Middleware (server) | Cookie `alexandria-token` existe | /login?redirect={path} | Todas as rotas protegidas |
 | AuthGuard (client) | `authStore.isAuthenticated` | /login | Layout de (protected) |
-| RoleGate (client) | `authStore.member.role` | /gallery (sem permissao) | Layout de (admin); /upload |
+| RoleGate (client) | `authStore.member.role` | /gallery (sem permissao) | Layout de (admin); botao de upload na galeria |
 | SetupGuard (server) | Cluster nao existe | /gallery (cluster ja existe) | /cluster/setup |
 
 ### Matriz de acesso por rota
@@ -94,9 +94,8 @@ if (response.status === 401) {
 | /login | ✓ | redirect /gallery | redirect /gallery | redirect /gallery |
 | /invite/:token | ✓ | ✓ | ✓ | ✓ |
 | /recovery | ✓ | — | — | ✓ |
-| /gallery | — | ✓ | ✓ | ✓ |
+| /gallery | — | ✓ (sem upload) | ✓ (com upload) | ✓ (com upload) |
 | /gallery/:fileId | — | ✓ | ✓ | ✓ |
-| /upload | — | — | ✓ | ✓ |
 | /settings | — | ✓ | ✓ | ✓ |
 | /nodes | — | — | — | ✓ |
 | /health | — | — | — | ✓ |
@@ -117,7 +116,7 @@ if (response.status === 401) {
 | CSRF (Cross-Site Request Forgery) | SameSite=Strict + Origin validation | Cookie com `SameSite=Strict`; backend valida header `Origin` em mutations |
 | Clickjacking | X-Frame-Options + CSP frame-ancestors | `X-Frame-Options: DENY` + `frame-ancestors 'none'` via Caddy |
 | Injection (SQL/NoSQL) | Prisma type-safe queries + Zod validation | Frontend valida com Zod; backend usa Prisma (parameterized queries); sem string concatenation em queries |
-| Open Redirect | Whitelist de paths internos | Parametro `?redirect=` aceita apenas paths relativos (`/gallery`, `/upload`); rejeita URLs externas |
+| Open Redirect | Whitelist de paths internos | Parametro `?redirect=` aceita apenas paths relativos (`/gallery`, `/settings`); rejeita URLs externas |
 | Sensitive Data Exposure | Server Components + criptografia | Dados sensiveis nunca renderizados no servidor; seed phrase CSR-only; vault nunca exposto ao frontend |
 | Prototype Pollution | Zod schema validation | Todos os payloads de API validados com Zod schemas antes de uso; sem `Object.assign` de dados externos |
 | Supply Chain | Dependabot + npm audit | `npm audit` no CI; Dependabot para updates automaticos; lock file commitado |

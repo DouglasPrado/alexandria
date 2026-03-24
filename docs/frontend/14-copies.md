@@ -188,11 +188,11 @@ Define todos os textos e conteudos textuais das telas do frontend — labels, pl
 
 <!-- APPEND:copies-detalhe -->
 
-### Tela: Upload (`/upload`)
+### Funcionalidade: Upload (modal/drawer dentro da Galeria)
 
 | Elemento | Chave i18n | Texto | Contexto |
 | --- | --- | --- | --- |
-| Titulo | upload.title | Upload | Header da pagina |
+| Botao header | upload.openButton | Upload | Button no header da GalleryPage (admin/member) |
 | Drop zone titulo | upload.dropTitle | Arraste arquivos aqui | FileUploader |
 | Drop zone subtitulo | upload.dropSubtitle | ou clique para selecionar | FileUploader |
 | Drop zone tipos | upload.dropTypes | Fotos, videos e documentos (max {{limit}}) | FileUploader |

@@ -359,7 +359,8 @@ test.describe('Upload de Arquivo', () => {
   });
 
   test('upload de foto aparece na galeria', async ({ page }) => {
-    await page.goto('/upload');
+    await page.goto('/gallery');
+    await page.getByRole('button', { name: /upload/i }).click();
 
     // Drag-and-drop de arquivo de teste
     const fileInput = page.locator('input[type="file"]');
@@ -380,7 +381,8 @@ test.describe('Upload de Arquivo', () => {
   });
 
   test('rejeita arquivo maior que o limite', async ({ page }) => {
-    await page.goto('/upload');
+    await page.goto('/gallery');
+    await page.getByRole('button', { name: /upload/i }).click();
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles('./e2e/fixtures/oversized-file.bin');
 
@@ -391,7 +393,8 @@ test.describe('Upload de Arquivo', () => {
     // Parar 2 nos de teste para ficar com < 3
     await stopTestNodes(2);
 
-    await page.goto('/upload');
+    await page.goto('/gallery');
+    await page.getByRole('button', { name: /upload/i }).click();
     await expect(page.getByText(/Minimo 3 nos/i)).toBeVisible();
 
     // Restaurar nos
