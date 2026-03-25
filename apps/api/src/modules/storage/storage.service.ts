@@ -6,9 +6,7 @@ import {
   encrypt,
   generateFileKey,
   ConsistentHashRing,
-  type LocalStorageProvider,
   type StorageProvider,
-  type ChunkData,
 } from '@alexandria/core-sdk';
 
 /**
@@ -132,7 +130,7 @@ export class StorageService {
     }
 
     // 8-11. Transaction: create chunk + replica records
-    await this.prisma.$transaction(async (tx: PrismaService) => {
+    await this.prisma.$transaction(async (tx) => {
       for (const chunk of processedChunks) {
         if (chunk.isNew) {
           await tx.chunk.create({
