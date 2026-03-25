@@ -7,7 +7,7 @@
     "dev": "next dev --turbopack --port 3000",
     "build": "next build",
     "start": "next start",
-    "test": "jest",
+    "test": "echo 'No tests yet'",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
   },

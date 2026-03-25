@@ -1,1 +1,3 @@
-// decorators barrel
+export { Public, IS_PUBLIC_KEY } from './public.decorator';
+export { Roles, ROLES_KEY } from './roles.decorator';
+export { CurrentMember, type CurrentMemberPayload } from './current-member.decorator';
