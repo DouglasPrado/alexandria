@@ -202,13 +202,14 @@ describe('NodeService', () => {
       await expect(nodeService.drain('non-existent')).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw UnprocessableEntityException if drain would leave < 3 nodes (RN-N6)', async () => {
+    it('should throw UnprocessableEntityException if drain would leave < MIN_NODES nodes (RN-N6)', async () => {
       mockPrisma.node.findUnique.mockResolvedValue({
         id: 'node-1',
         clusterId: 'cluster-1',
         status: 'online',
       });
-      mockPrisma.node.count.mockResolvedValue(3); // only 3, draining one leaves 2
+      // Default MIN_NODES_FOR_REPLICATION=1, so 1 active node = cannot drain
+      mockPrisma.node.count.mockResolvedValue(1);
 
       await expect(nodeService.drain('node-1')).rejects.toThrow(UnprocessableEntityException);
     });

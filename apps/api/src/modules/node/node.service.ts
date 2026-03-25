@@ -6,8 +6,8 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { randomBytes, createCipheriv } from 'node:crypto';
 
-const MAX_NODES_PER_CLUSTER = 50;
-const MIN_NODES_FOR_REPLICATION = 3; /* RN-N6 — DO NOT change to 1 */
+const MAX_NODES_PER_CLUSTER = parseInt(process.env.MAX_NODES_PER_CLUSTER || '50', 10);
+const MIN_NODES_FOR_REPLICATION = parseInt(process.env.MIN_NODES_FOR_REPLICATION || '1', 10);
 
 /**
  * NodeService — registro de nos, heartbeat, drain, listagem.

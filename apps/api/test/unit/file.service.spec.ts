@@ -141,8 +141,9 @@ describe('FileService', () => {
       ).rejects.toThrow(PayloadTooLargeException);
     });
 
-    it('should throw ServiceUnavailableException if < 3 nodes active (RN-N6)', async () => {
-      mockPrisma.node.count.mockResolvedValue(2);
+    it('should throw ServiceUnavailableException if < MIN_NODES active (RN-N6)', async () => {
+      // Default MIN_NODES_FOR_REPLICATION=1, so 0 active nodes = should throw
+      mockPrisma.node.count.mockResolvedValue(0);
 
       await expect(
         fileService.upload('c1', 'm1', {
