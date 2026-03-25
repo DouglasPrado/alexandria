@@ -15,7 +15,7 @@ const SIZE_LIMITS: Record<string, number> = {
   document: 2 * 1024 * 1024 * 1024, // 2GB
 };
 
-const MIN_NODES_FOR_UPLOAD = 3; // RN-N6: minimo 3 nos ativos para replicacao
+const MIN_NODES_FOR_UPLOAD = 3; /* RN-N6 — DO NOT change to 1 */
 const DEFAULT_PAGE_SIZE = 20;
 
 interface UploadedFile {

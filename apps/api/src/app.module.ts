@@ -8,6 +8,7 @@ import { MemberModule } from './modules/member/member.module';
 import { NodeModule } from './modules/node/node.module';
 import { FileModule } from './modules/file/file.module';
 import { HealthModule } from './modules/health/health.module';
+import { StorageModule } from './modules/storage/storage.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 
@@ -25,6 +26,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     MemberModule,
     NodeModule,
     FileModule,
+    StorageModule,
     HealthModule,
   ],
   providers: [
