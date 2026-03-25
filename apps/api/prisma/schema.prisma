@@ -1,0 +1,259 @@
+// =============================================
+// Alexandria — Prisma Schema
+// Fonte: docs/blueprint/05-data-model.md
+//        docs/backend/04-data-layer.md
+// =============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- Cluster: unidade raiz (grupo familiar) ---
+model Cluster {
+  id                  String   @id @default(uuid()) @db.Uuid
+  clusterId           String   @unique @map("cluster_id") @db.VarChar(64)
+  name                String   @db.VarChar(100)
+  publicKey           Bytes    @map("public_key")
+  encryptedPrivateKey Bytes    @map("encrypted_private_key")
+  status              String   @default("active") @db.VarChar(20)
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  members Member[]
+  nodes   Node[]
+  files   File[]
+  alerts  Alert[]
+  invites Invite[]
+
+  @@map("clusters")
+}
+
+// --- Member: pessoa no cluster com role (admin/member/reader) ---
+model Member {
+  id           String   @id @default(uuid()) @db.Uuid
+  clusterId    String   @map("cluster_id") @db.Uuid
+  name         String   @db.VarChar(100)
+  email        String   @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  role         String   @default("member") @db.VarChar(20)
+  invitedBy    String?  @map("invited_by") @db.Uuid
+  joinedAt     DateTime @default(now()) @map("joined_at") @db.Timestamptz
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  cluster  Cluster  @relation(fields: [clusterId], references: [id])
+  inviter  Member?  @relation("MemberInvites", fields: [invitedBy], references: [id])
+  invitees Member[] @relation("MemberInvites")
+  nodes    Node[]
+  files    File[]
+  vault    Vault?
+  invites  Invite[]
+
+  @@unique([clusterId, email])
+  @@index([clusterId])
+  @@map("members")
+}
+
+// --- Node: dispositivo ou conta cloud que armazena chunks ---
+model Node {
+  id              String    @id @default(uuid()) @db.Uuid
+  clusterId       String    @map("cluster_id") @db.Uuid
+  ownerId         String    @map("owner_id") @db.Uuid
+  type            String    @db.VarChar(20)
+  name            String    @db.VarChar(100)
+  totalCapacity   BigInt    @default(0) @map("total_capacity")
+  usedCapacity    BigInt    @default(0) @map("used_capacity")
+  status          String    @default("online") @db.VarChar(20)
+  endpoint        String    @db.Text
+  configEncrypted Bytes     @map("config_encrypted")
+  lastHeartbeat   DateTime? @map("last_heartbeat") @db.Timestamptz
+  tier            String?   @default("warm") @db.VarChar(10)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  cluster       Cluster        @relation(fields: [clusterId], references: [id])
+  owner         Member         @relation(fields: [ownerId], references: [id])
+  chunkReplicas ChunkReplica[]
+
+  @@index([clusterId])
+  @@index([status])
+  @@index([lastHeartbeat])
+  @@index([clusterId, status])
+  @@map("nodes")
+}
+
+// --- File: arquivo de midia ou documento ---
+model File {
+  id            String   @id @default(uuid()) @db.Uuid
+  clusterId     String   @map("cluster_id") @db.Uuid
+  uploadedBy    String   @map("uploaded_by") @db.Uuid
+  originalName  String   @map("original_name") @db.VarChar(500)
+  mediaType     String   @map("media_type") @db.VarChar(20)
+  mimeType      String   @map("mime_type") @db.VarChar(100)
+  originalSize  BigInt   @map("original_size")
+  optimizedSize BigInt?  @map("optimized_size")
+  contentHash   String?  @map("content_hash") @db.VarChar(64)
+  metadata      Json?
+  status        String   @default("processing") @db.VarChar(20)
+  errorMessage  String?  @map("error_message") @db.Text
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  cluster  Cluster   @relation(fields: [clusterId], references: [id])
+  uploader Member    @relation(fields: [uploadedBy], references: [id])
+  preview  Preview?
+  manifest Manifest?
+
+  @@index([clusterId])
+  @@index([clusterId, status])
+  @@index([contentHash])
+  @@index([uploadedBy])
+  @@index([createdAt])
+  @@index([clusterId, mediaType])
+  @@map("files")
+}
+
+// --- Preview: thumbnail/video preview para exibicao ---
+model Preview {
+  id          String   @id @default(uuid()) @db.Uuid
+  fileId      String   @unique @map("file_id") @db.Uuid
+  type        String   @db.VarChar(20)
+  size        BigInt
+  format      String   @db.VarChar(10)
+  contentHash String   @map("content_hash") @db.VarChar(64)
+  storagePath String   @map("storage_path") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@map("previews")
+}
+
+// --- Manifest: mapa de reconstituicao de arquivo ---
+model Manifest {
+  id               String   @id @default(uuid()) @db.Uuid
+  fileId           String   @unique @map("file_id") @db.Uuid
+  chunksJson       Json     @map("chunks_json")
+  fileKeyEncrypted Bytes    @map("file_key_encrypted")
+  signature        Bytes
+  replicatedTo     Json     @default("[]") @map("replicated_to")
+  version          Int      @default(1)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  file           File            @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  manifestChunks ManifestChunk[]
+
+  @@map("manifests")
+}
+
+// --- Chunk: bloco ~4MB criptografado (content-addressable) ---
+model Chunk {
+  id             String   @id @db.VarChar(64) // SHA-256 content-addressable
+  size           Int
+  referenceCount Int      @default(1) @map("reference_count")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  manifestChunks ManifestChunk[]
+  replicas       ChunkReplica[]
+
+  @@index([referenceCount])
+  @@map("chunks")
+}
+
+// --- ManifestChunk: juncao N:M entre manifest e chunk (deduplicacao) ---
+model ManifestChunk {
+  id         String @id @default(uuid()) @db.Uuid
+  manifestId String @map("manifest_id") @db.Uuid
+  chunkId    String @map("chunk_id") @db.VarChar(64)
+  chunkIndex Int    @map("chunk_index")
+
+  manifest Manifest @relation(fields: [manifestId], references: [id], onDelete: Cascade)
+  chunk    Chunk    @relation(fields: [chunkId], references: [id])
+
+  @@unique([manifestId, chunkIndex])
+  @@index([manifestId])
+  @@index([chunkId])
+  @@map("manifest_chunks")
+}
+
+// --- ChunkReplica: copia de chunk em no especifico ---
+model ChunkReplica {
+  id         String    @id @default(uuid()) @db.Uuid
+  chunkId    String    @map("chunk_id") @db.VarChar(64)
+  nodeId     String    @map("node_id") @db.Uuid
+  status     String    @default("healthy") @db.VarChar(20)
+  verifiedAt DateTime? @map("verified_at") @db.Timestamptz
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  chunk Chunk @relation(fields: [chunkId], references: [id])
+  node  Node  @relation(fields: [nodeId], references: [id])
+
+  @@unique([chunkId, nodeId])
+  @@index([chunkId])
+  @@index([nodeId])
+  @@index([verifiedAt])
+  @@index([nodeId, status])
+  @@map("chunk_replicas")
+}
+
+// --- Vault: cofre criptografado individual por membro ---
+model Vault {
+  id                  String   @id @default(uuid()) @db.Uuid
+  memberId            String   @unique @map("member_id") @db.Uuid
+  vaultData           Bytes    @map("vault_data")
+  encryptionAlgorithm String   @default("AES-256-GCM") @map("encryption_algorithm") @db.VarChar(30)
+  replicatedTo        Json     @default("[]") @map("replicated_to")
+  isAdminVault        Boolean  @default(false) @map("is_admin_vault")
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("vaults")
+}
+
+// --- Alert: notificacao de condicao anomala ---
+model Alert {
+  id              String    @id @default(uuid()) @db.Uuid
+  clusterId       String    @map("cluster_id") @db.Uuid
+  type            String    @db.VarChar(30)
+  message         String    @db.Text
+  severity        String    @db.VarChar(10)
+  resolved        Boolean   @default(false)
+  relatedEntityId String?   @map("related_entity_id") @db.Uuid
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  resolvedAt      DateTime? @map("resolved_at") @db.Timestamptz
+
+  cluster Cluster @relation(fields: [clusterId], references: [id])
+
+  @@index([clusterId, resolved])
+  @@index([clusterId, severity])
+  @@index([createdAt])
+  @@map("alerts")
+}
+
+// --- Invite: convite para ingresso no cluster ---
+model Invite {
+  id         String    @id @default(uuid()) @db.Uuid
+  clusterId  String    @map("cluster_id") @db.Uuid
+  email      String    @db.VarChar(255)
+  role       String    @default("member") @db.VarChar(20)
+  token      String    @unique @db.VarChar(500)
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz
+  createdBy  String    @map("created_by") @db.Uuid
+  acceptedAt DateTime? @map("accepted_at") @db.Timestamptz
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  cluster Cluster @relation(fields: [clusterId], references: [id])
+  creator Member  @relation(fields: [createdBy], references: [id])
+
+  @@index([clusterId, email])
+  @@index([expiresAt])
+  @@map("invites")
+}

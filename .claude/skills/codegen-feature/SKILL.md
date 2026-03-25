@@ -38,7 +38,11 @@ Aguarde a resposta.
 
 Leia o `CLAUDE.md` para identificar a categoria da feature e quais docs consultar.
 
-### 2.2: Context Excerpting — Carregar apenas o necessario
+### 2.2: Consultar Rastreabilidade
+
+Leia `docs/shared/MAPPING.md` para identificar quais docs de backend e frontend correspondem aos docs do blueprint relevantes para a feature.
+
+### 2.3: Context Excerpting — Carregar apenas o necessario
 
 Para cada doc relevante:
 
@@ -48,22 +52,36 @@ Para cada doc relevante:
 
 **Mapa de docs por tipo de feature:**
 
-| Tipo | Docs a consultar |
-|------|-----------------|
-| CRUD de entidade | 04-domain-model (entidade), 05-data-model (tabela), 08-use_cases (UC da entidade), frontend/04-components |
-| Fluxo de negocio | 07-critical_flows (fluxo), 08-use_cases (UCs do fluxo), 09-state-models (estados), frontend/08-flows |
-| Autenticacao | 07-critical_flows (auth flow), 13-security, frontend/11-security |
-| Dashboard/Relatorio | frontend/04-components, frontend/06-data-layer, 07-critical_flows |
-| Integracao externa | 06-system-architecture (componente), 07-critical_flows (fluxo de integracao) |
+| Tipo | Blueprint | Backend | Frontend |
+|------|-----------|---------|----------|
+| CRUD de entidade | 04-domain-model, 05-data-model, 08-use_cases | 03-domain, 04-data-layer, 05-api-contracts, 06-services, 07-controllers | {{client}}/04-components, shared/06-data-layer |
+| Fluxo de negocio | 07-critical_flows, 08-use_cases, 09-state-models | 06-services, 09-errors, 12-events | {{client}}/08-flows, {{client}}/05-state |
+| Autenticacao | 07-critical_flows, 13-security | 08-middlewares, 11-permissions | {{client}}/11-security, {{client}}/07-routes |
+| Dashboard/Relatorio | 07-critical_flows | 05-api-contracts, 06-services | {{client}}/04-components, shared/06-data-layer |
+| Integracao externa | 06-system-architecture | 13-integrations, 12-events | {{client}}/08-flows |
 
-### 2.3: Ler Contratos Existentes
+**Docs compartilhados (sempre consultar quando relevante):**
+- `docs/shared/glossary.md` — linguagem ubiqua
+- `docs/shared/event-mapping.md` — quando a feature envolve eventos backend → frontend
+- `docs/shared/error-ux-mapping.md` — quando a feature tem tratamento de erros
+
+### 2.4: Identificar Clientes Frontend
+
+Verifique quais clientes frontend existem em `docs/frontend/` (web, mobile, desktop).
+Se a feature for backend-only, pule o frontend. Se for full-stack, pergunte:
+
+> "A feature sera implementada em quais clientes? {{lista de clientes existentes}}"
+
+Ou, se apenas um cliente existir, use-o automaticamente.
+
+### 2.5: Ler Contratos Existentes
 
 Leia `src/contracts/` para entender os tipos ja gerados:
 - Entidades relevantes para esta feature
 - Enums usados
 - Tipos de API existentes
 
-### 2.4: Ler Codigo Existente Relacionado
+### 2.6: Ler Codigo Existente Relacionado
 
 Se a feature depende de codigo ja implementado (ex: middleware de auth, servicos base), leia esses arquivos.
 
@@ -71,12 +89,14 @@ Se a feature depende de codigo ja implementado (ex: middleware de auth, servicos
 
 | Item | Tokens estimados |
 |------|-----------------|
-| Secoes dos blueprints (excerpted) | ~20-40k |
+| Secoes dos blueprints (excerpted) | ~15-25k |
+| Secoes do backend docs (excerpted) | ~10-20k |
+| Secoes do frontend docs (excerpted) | ~10-15k |
 | Contratos existentes | ~10-20k |
 | Codigo relacionado | ~10-20k |
-| **Total** | **~40-80k** |
+| **Total** | **~55-100k** |
 
-Se estiver acima de 80k, reduza: carregue menos secoes dos blueprints ou resuma o codigo existente.
+Se estiver acima de 100k, reduza: carregue menos secoes ou resuma o codigo existente.
 
 ## Passo 3: Apresentar Plano da Feature
 
@@ -84,11 +104,11 @@ Antes de codar, apresente o plano:
 
 > "Feature: **{{nome}}**
 >
-> **Baseado nos blueprints, vou implementar:**
+> **Baseado nos blueprints e docs de implementacao, vou implementar:**
 >
 > 1. **Banco**: {{migrations/alteracoes no schema}}
-> 2. **Backend**: {{endpoints, services, validators}}
-> 3. **Frontend**: {{componentes, pages, hooks}}
+> 2. **Backend**: {{endpoints, services, validators — conforme backend docs}}
+> 3. **Frontend ({{clientes}})**: {{componentes, pages, hooks}}
 > 4. **Testes**: {{unit tests, integration tests}}
 >
 > **Entidades envolvidas:** {{lista}}
@@ -104,14 +124,16 @@ Aguarde confirmacao do dev.
 **ANTES de qualquer implementacao**, escreva os testes:
 
 ### 4.1: Testes de Backend
-- Testes unitarios para regras de negocio (baseados nas regras do domain model)
-- Testes de integracao para endpoints (baseados nos use cases)
-- Testes de estado (baseados nas state machines, se houver)
+- Testes unitarios para regras de negocio (baseados em `backend/03-domain.md` e `backend/06-services.md`)
+- Testes de integracao para endpoints (baseados em `backend/05-api-contracts.md`)
+- Testes de estado (baseados em `blueprint/09-state-models.md`, se houver)
+- Estrategia conforme `backend/14-tests.md`
 
 ### 4.2: Testes de Frontend
 - Testes de componente (renderizacao, interacao)
 - Testes de hook/estado
 - Testes de integracao (fluxo completo)
+- Estrategia conforme `frontend/{{client}}/09-tests.md`
 
 **Cada teste deve:**
 - Ter um nome descritivo baseado no use case ou regra de negocio
@@ -131,24 +153,28 @@ Implemente o codigo minimo para os testes passarem:
 - Adicione novas tabelas ou campos ao schema
 - Gere e aplique migrations
 
-### 5.2: Backend
-- Repository/data access
-- Service/use case (regras de negocio)
-- Controller/route (endpoints)
-- Validacao de input
-- Tratamento de erros (conforme fluxos criticos)
+### 5.2: Backend (conforme docs/backend/)
+- Repository/data access (conforme `backend/04-data-layer.md`)
+- Service/use case (conforme `backend/06-services.md`)
+- Controller/route (conforme `backend/07-controllers.md`)
+- Validacao de input (conforme `backend/10-validation.md`)
+- Tratamento de erros (conforme `backend/09-errors.md`)
+- Middlewares se necessario (conforme `backend/08-middlewares.md`)
+- Permissoes se necessario (conforme `backend/11-permissions.md`)
 
-### 5.3: Frontend
-- Componentes (conforme frontend/04-components)
-- Hooks de estado (conforme frontend/05-state)
-- Data layer/API client (conforme frontend/06-data-layer)
-- Rotas (conforme frontend/07-routes)
+### 5.3: Frontend (conforme docs/frontend/)
+- Componentes (conforme `frontend/{{client}}/04-components.md`)
+- Hooks de estado (conforme `frontend/{{client}}/05-state.md`)
+- Data layer/API client (conforme `frontend/shared/06-data-layer.md`)
+- Rotas (conforme `frontend/{{client}}/07-routes.md`)
+- Copies/textos (conforme `frontend/{{client}}/14-copies.md`)
 
 **Regras:**
 - Use os tipos de `src/contracts/` — NAO crie tipos locais duplicados
-- Siga a linguagem ubiqua do glossario
+- Siga a linguagem ubiqua do glossario (`docs/shared/glossary.md`)
 - Implemente apenas o que os testes exigem
 - Se novos tipos foram necessarios, adicione-os em `src/contracts/` primeiro
+- Use o error-ux-mapping para mapear erros de backend → resposta visual
 
 Execute os testes — todos devem **PASSAR** (GREEN).
 
@@ -162,6 +188,7 @@ Refatore o codigo mantendo os testes verdes:
 - Melhore nomes (use a linguagem ubiqua)
 - Simplifique logica complexa
 - Verifique que segue os principios arquiteturais do blueprint
+- Verifique aderencia com as camadas definidas em `backend/01-architecture.md`
 
 Execute os testes apos cada refatoracao — devem continuar passando.
 
@@ -183,7 +210,7 @@ Se a feature introduziu novos tipos:
 > |--------|---------|--------|
 > | Schema | {{lista}} | — |
 > | Backend | {{lista}} | {{N}} testes |
-> | Frontend | {{lista}} | {{N}} testes |
+> | Frontend ({{client}}) | {{lista}} | {{N}} testes |
 > | Contracts | {{lista de novos tipos}} | — |
 >
 > **Total: {{N}} testes, todos passando.**

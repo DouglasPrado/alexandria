@@ -28,26 +28,42 @@ Leia os seguintes documentos:
 1. `docs/blueprint/11-build_plan.md` — entregas, dependencias, criterios de aceite
 2. `docs/blueprint/01-vision.md` — visao geral (para nao perder o norte)
 3. `docs/blueprint/06-system-architecture.md` — stack e componentes (somente secao de Componentes)
+4. `docs/backend/00-backend-vision.md` — stack e padroes do backend
+5. `docs/shared/MAPPING.md` — rastreabilidade entre docs
 
-## Passo 3: Apresentar Status do Projeto
+## Passo 3: Identificar Clientes Frontend
+
+Verifique quais clientes frontend existem:
+
+```
+docs/frontend/web/       → Cliente web
+docs/frontend/mobile/    → Cliente mobile
+docs/frontend/desktop/   → Cliente desktop
+docs/frontend/shared/    → Design system, data layer, API deps (compartilhado)
+```
+
+Liste apenas os clientes que possuem docs preenchidos (nao apenas templates).
+
+## Passo 4: Apresentar Status do Projeto
 
 Analise o estado atual do projeto:
 
-### 3.1: Identificar Entregas do Build Plan
+### 4.1: Identificar Entregas do Build Plan
 Extraia todas as entregas com seus objetivos, itens e dependencias.
 
-### 3.2: Verificar Progresso
+### 4.2: Verificar Progresso
 Para cada entrega, verifique se os itens ja existem no codigo:
 - Leia a estrutura de diretorios do projeto
 - Verifique se os endpoints/componentes da entrega existem
 - Classifique: **Nao iniciada** / **Em progresso** / **Concluida**
 
-### 3.3: Apresentar Dashboard
+### 4.3: Apresentar Dashboard
 
 > "## Status do Projeto
 >
 > **Visao:** {{elevator pitch de 01-vision}}
 > **Stack:** {{resumo de 06-system-architecture}}
+> **Clientes frontend:** {{web, mobile, desktop — apenas os que existem}}
 >
 > | Entrega | Prioridade | Status | Dependencias | Progresso |
 > |---------|-----------|--------|--------------|-----------|
@@ -63,7 +79,7 @@ Para cada entrega, verifique se os itens ja existem no codigo:
 >
 > Qual feature deseja implementar?"
 
-## Passo 4: Guiar Execucao
+## Passo 5: Guiar Execucao
 
 Quando o dev escolher uma feature:
 
@@ -73,7 +89,7 @@ Quando o dev escolher uma feature:
 3. Se tudo ok, sugira:
    > "Rode `/codegen-feature {{nome-da-feature}}` para implementar."
 
-## Passo 5: Verificacao de Entregas
+## Passo 6: Verificacao de Entregas
 
 Quando todas as entregas Must estiverem concluidas:
 
@@ -100,4 +116,18 @@ Quando todas as entregas Must estiverem concluidas:
        ↓                    (repete por feature)
        ↓
 /codegen-verify → Verifica aderencia (periodico)
+```
+
+## Hierarquia de Documentacao
+
+```
+docs/blueprint/     ← Fonte primaria (O QUE construir)
+docs/backend/       ← Spec de implementacao server (COMO construir backend)
+docs/frontend/      ← Spec de implementacao client (COMO construir frontend)
+  ├── shared/       ← Design system, data layer, API deps
+  ├── web/          ← Cliente web
+  ├── mobile/       ← Cliente mobile
+  └── desktop/      ← Cliente desktop
+docs/shared/        ← Conectores cross-suite (glossario, mappings)
+docs/business/      ← Modelo de negocio
 ```

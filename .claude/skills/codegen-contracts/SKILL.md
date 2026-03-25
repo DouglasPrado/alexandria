@@ -11,7 +11,8 @@ Voce vai gerar o "shared kernel" do projeto — os tipos, schema e scaffold que 
 
 ## Pre-requisitos
 
-- Blueprints preenchidos (pelo menos 04-domain-model, 05-data-model, 06-system-architecture)
+- Blueprint tecnico preenchido (pelo menos 04-domain-model, 05-data-model, 06-system-architecture)
+- Backend docs gerados (`docs/backend/`)
 - CLAUDE.md gerado no projeto-alvo (via `/codegen-claudemd`)
 
 ## Passo 1: Receber o Projeto-Alvo
@@ -26,11 +27,26 @@ Aguarde a resposta.
 
 Leia os seguintes documentos **completos**:
 
+### Do Blueprint Tecnico:
 1. `docs/blueprint/04-domain-model.md` — entidades, glossario, regras de negocio
 2. `docs/blueprint/05-data-model.md` — tabelas, campos, tipos, constraints, indices
 3. `docs/blueprint/06-system-architecture.md` — stack, componentes, protocolos
 4. `docs/blueprint/02-architecture_principles.md` — principios guia
-5. `docs/frontend/02-project-structure.md` — estrutura de diretorios do frontend
+
+### Do Backend (spec de implementacao):
+5. `docs/backend/00-backend-vision.md` — stack e padroes do backend
+6. `docs/backend/01-architecture.md` — camadas arquiteturais
+7. `docs/backend/02-project-structure.md` — estrutura de diretorios do backend
+8. `docs/backend/03-domain.md` — entidades, value objects, domain events
+9. `docs/backend/04-data-layer.md` — repositories, ORM, migrations
+
+### Do Frontend:
+10. Identifique quais clientes existem em `docs/frontend/` (web, mobile, desktop)
+11. Leia `docs/frontend/shared/03-design-system.md` — design tokens compartilhados
+12. Para cada cliente existente, leia `docs/frontend/{{client}}/02-project-structure.md`
+
+### Dos Docs Compartilhados:
+13. `docs/shared/glossary.md` — linguagem ubiqua e convencoes de nomenclatura
 
 > **Versões atualizadas:** Ao referenciar tecnologias específicas com versões, use o MCP context7 para consultar documentação atualizada. Primeiro chame `mcp__context7__resolve-library-id` para obter o ID da biblioteca, depois `mcp__context7__query-docs` para consultar versões e exemplos.
 
@@ -42,30 +58,34 @@ Se algum doc tiver mais de 50k tokens, use Context Excerpting:
 
 A partir dos docs, extraia:
 
-### Do Domain Model (04):
+### Do Domain Model (blueprint/04) + Backend Domain (backend/03):
 - Lista de entidades com seus atributos e tipos
 - Enums e valores possiveis
 - Regras de negocio por entidade
 - Relacionamentos entre entidades
+- Value objects e domain events
 
-### Do Data Model (05):
+### Do Data Model (blueprint/05) + Backend Data Layer (backend/04):
 - Tecnologia de banco (PostgreSQL, MySQL, MongoDB, etc.)
 - Tabelas com campos, tipos e constraints
 - Indices e queries criticas
 - Estrategia de migration
+- Patterns de repository
 
-### Da System Architecture (06):
+### Da System Architecture (blueprint/06) + Backend Architecture (backend/01):
 - Stack tecnologica completa (linguagem, framework, ORM, etc.)
 - Componentes do sistema
 - Protocolos de comunicacao
+- Camadas e regras de dependencia
 
-### Dos Principios (02):
+### Dos Principios (blueprint/02):
 - Patterns arquiteturais (Clean Architecture, DDD, Hexagonal, etc.)
 - Convencoes de organizacao de codigo
 
-### Da Estrutura Frontend (frontend/02):
-- Estrutura de pastas do frontend
-- Framework e bibliotecas
+### Da Estrutura Frontend:
+- Clientes ativos (web, mobile, desktop)
+- Estrutura de pastas por cliente
+- Framework e bibliotecas por cliente
 
 Apresente ao usuario um resumo:
 
@@ -75,6 +95,7 @@ Apresente ao usuario um resumo:
 > **Entidades:** {{lista de entidades}}
 > **Banco:** {{tecnologia}} com {{N}} tabelas
 > **Principios:** {{patterns principais}}
+> **Clientes frontend:** {{web, mobile, desktop — apenas os existentes}}
 >
 > Confirma? Ou quer ajustar algo antes de gerar?"
 
@@ -82,7 +103,7 @@ Aguarde confirmacao.
 
 ## Passo 4: Gerar Scaffold
 
-Crie a estrutura de diretorios conforme a arquitetura definida nos blueprints. A estrutura DEVE seguir o que esta documentado em `06-system-architecture.md` e `frontend/02-project-structure.md`.
+Crie a estrutura de diretorios conforme a arquitetura definida nos blueprints e docs de backend/frontend. A estrutura DEVE seguir o que esta documentado em `backend/02-project-structure.md` e `frontend/{{client}}/02-project-structure.md`.
 
 Gere na seguinte ordem:
 
@@ -121,7 +142,7 @@ src/contracts/
 
 ### 4.3: Schema do Banco
 
-Gere o schema completo baseado no `05-data-model.md`:
+Gere o schema completo baseado em `docs/blueprint/05-data-model.md` e `docs/backend/04-data-layer.md`:
 - Se a stack usa Prisma: `prisma/schema.prisma`
 - Se usa Drizzle: `src/db/schema.ts`
 - Se usa TypeORM: entities com decorators
@@ -137,16 +158,17 @@ O schema DEVE incluir:
 
 ### 4.4: Scaffold de Diretorios
 
-Crie a estrutura de pastas com arquivos `index.ts` (ou equivalente) vazios para:
+Crie a estrutura de pastas conforme `backend/02-project-structure.md` com arquivos `index.ts` (ou equivalente) vazios para:
 - Camada de servicos/use cases
 - Camada de repositorios/data access
 - Camada de rotas/controllers
 - Camada de middlewares
-- Camada de frontend (conforme frontend/02)
+
+Para cada cliente frontend existente, crie a estrutura conforme `frontend/{{client}}/02-project-structure.md`.
 
 ### 4.5: Configuracao de Testes
 
-- Setup de test runner conforme `12-testing_strategy.md` (se disponivel)
+- Setup de test runner conforme `docs/backend/14-tests.md` e `docs/blueprint/12-testing_strategy.md`
 - Arquivo de configuracao (jest.config, vitest.config, etc.)
 - Helper/factory para criacao de fixtures baseadas nas entidades
 
@@ -168,7 +190,8 @@ Se houver erros, corrija antes de prosseguir.
 > - **{{N}} enums** em `src/contracts/enums/`
 > - **{{N}} tipos de API** em `src/contracts/api/`
 > - **Schema** com {{N}} tabelas em `{{caminho do schema}}`
-> - **Estrutura** de {{N}} diretorios criados
+> - **Backend** com {{N}} diretorios conforme `backend/02-project-structure.md`
+> - **Frontend** ({{clientes}}) com {{N}} diretorios cada
 >
 > Os contratos sao a fonte de verdade tipada. Todas as features futuras devem importar de `src/contracts/`.
 >

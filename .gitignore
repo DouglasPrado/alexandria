@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build
+dist/
+.next/
+out/
+.turbo/
+
+# Prisma
+packages/api/prisma/client/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Test
+coverage/
+
+# Docker
+docker-compose.override.yml
+
+# Tauri
+src-tauri/target/
+
+# Secrets — NUNCA commite
+*.pem
+*.key
+credentials.json

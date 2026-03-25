@@ -1,0 +1,1 @@
+// verificacao local de integridade

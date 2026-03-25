@@ -23,26 +23,44 @@ Aguarde a resposta do usuario.
 
 **NAO leia o conteudo completo dos docs.** Leia apenas os headers (titulos e subtitulos) de cada documento para entender a estrutura. Use Bash com `grep` para extrair apenas as linhas que comecam com `#`:
 
-Para cada doc em `docs/blueprint/`, `docs/frontend/`, `docs/business/`:
+Para cada doc em `docs/blueprint/`, `docs/backend/`, `docs/frontend/`, `docs/business/`, `docs/shared/`:
 1. Extraia os headers (`# `, `## `, `### `)
 2. Identifique quais secoes contem conteudo real (nao apenas `{{placeholders}}`)
 3. Monte um mapa: `doc → secoes preenchidas`
 
-## Passo 3: Analisar Stack e Convencoes
+## Passo 3: Identificar Clientes Frontend
+
+Verifique quais clientes existem em `docs/frontend/`:
+
+```
+docs/frontend/shared/    → Docs compartilhados (design system, data layer, API deps)
+docs/frontend/web/       → Cliente web
+docs/frontend/mobile/    → Cliente mobile
+docs/frontend/desktop/   → Cliente desktop
+```
+
+Liste apenas os que possuem docs preenchidos.
+
+## Passo 4: Analisar Stack e Convencoes
 
 Leia estes docs **completos** (sao essenciais para o CLAUDE.md):
 
 1. `docs/blueprint/02-architecture_principles.md` — principios que guiam decisoes de codigo
 2. `docs/blueprint/06-system-architecture.md` — stack tecnologica, componentes, protocolos
-3. `docs/blueprint/04-domain-model.md` — **somente a secao Glossario/Linguagem Ubiqua** (grep por "Glossario" ou "Linguagem")
+3. `docs/backend/00-backend-vision.md` — stack e padroes do backend
+4. `docs/backend/01-architecture.md` — camadas arquiteturais do backend
+5. `docs/blueprint/04-domain-model.md` — **somente a secao Glossario/Linguagem Ubiqua** (grep por "Glossario" ou "Linguagem")
+6. `docs/shared/glossary.md` — linguagem ubiqua e convencoes de nomenclatura
+7. `docs/shared/MAPPING.md` — rastreabilidade entre docs
 
 Extraia:
 - **Stack**: linguagens, frameworks, ORMs, bancos, filas
 - **Convencoes de nomenclatura**: PascalCase para entidades, camelCase para campos, etc.
 - **Principios arquiteturais**: patterns (Clean Architecture, DDD, etc.)
 - **Glossario**: termos do dominio que devem ser usados no codigo
+- **Camadas do backend**: e suas regras de dependencia
 
-## Passo 4: Gerar o CLAUDE.md
+## Passo 5: Gerar o CLAUDE.md
 
 Use o template em `docs/templates/claudemd-template.md` como base (se existir). Caso contrario, gere seguindo esta estrutura:
 
@@ -51,48 +69,92 @@ Use o template em `docs/templates/claudemd-template.md` como base (se existir). 
 
 ## Fonte de Verdade
 
-Todo codigo DEVE implementar fielmente o que esta documentado nos blueprints.
-Localizacao dos blueprints: {{caminho relativo dos docs}}
+Todo codigo DEVE implementar fielmente o que esta documentado nos blueprints e docs de implementacao.
+
+**Hierarquia de documentacao:**
+- `docs/blueprint/` — O QUE construir (fonte primaria)
+- `docs/backend/` — COMO construir o backend (spec de implementacao)
+- `docs/frontend/` — COMO construir o frontend (spec de implementacao)
+  - `shared/` — Design system, data layer, API deps (compartilhado entre clientes)
+  - `web/` — Cliente web
+  - `mobile/` — Cliente mobile
+  - `desktop/` — Cliente desktop
+- `docs/shared/` — Conectores cross-suite (glossario, mappings)
+- `docs/business/` — Modelo de negocio
 
 **Regras inviolaveis:**
-- NUNCA gere codigo sem antes ler os docs de blueprint relevantes para a tarefa
-- Use a linguagem ubiqua do dominio (nomes de entidades, campos, acoes)
+- NUNCA gere codigo sem antes ler os docs relevantes para a tarefa
+- Use a linguagem ubiqua do dominio (`docs/shared/glossary.md`)
 - Sempre leia `src/contracts/` antes de implementar qualquer feature
 - Test-first: escreva testes ANTES da implementacao (XP)
+- Consulte `docs/shared/MAPPING.md` para rastreabilidade entre docs
 
 ## Stack Tecnologica
 
-{{Extraido de 06-system-architecture.md}}
+{{Extraido de backend/00-backend-vision.md e blueprint/06-system-architecture.md}}
+
+## Clientes Frontend
+
+{{Lista de clientes ativos com stack de cada um}}
 
 ## Mapa de Contexto por Tarefa
 
 Antes de iniciar qualquer tarefa, leia os docs listados abaixo conforme o tipo de trabalho:
 
 ### Schema / Migrations
-{{lista de docs relevantes com caminho relativo}}
+- `docs/blueprint/05-data-model.md`
+- `docs/backend/04-data-layer.md`
 
 ### API / Backend
-{{lista de docs relevantes com caminho relativo}}
+- `docs/backend/05-api-contracts.md`
+- `docs/backend/06-services.md`
+- `docs/backend/07-controllers.md`
+- `docs/backend/09-errors.md`
+- `docs/backend/10-validation.md`
 
 ### Frontend Components
-{{lista de docs relevantes com caminho relativo}}
+- `docs/frontend/shared/03-design-system.md`
+- `docs/frontend/{{client}}/04-components.md`
+- `docs/frontend/shared/06-data-layer.md`
 
 ### Routing / Navigation
-{{lista de docs relevantes com caminho relativo}}
+- `docs/frontend/{{client}}/07-routes.md`
+- `docs/frontend/{{client}}/08-flows.md`
+
+### Domain / Business Rules
+- `docs/blueprint/04-domain-model.md`
+- `docs/backend/03-domain.md`
+- `docs/shared/glossary.md`
 
 ### Security
-{{lista de docs relevantes com caminho relativo}}
+- `docs/blueprint/13-security.md`
+- `docs/backend/08-middlewares.md`
+- `docs/backend/11-permissions.md`
+- `docs/frontend/{{client}}/11-security.md`
+
+### Events / Integrations
+- `docs/backend/12-events.md`
+- `docs/backend/13-integrations.md`
+- `docs/shared/event-mapping.md`
+
+### Error Handling
+- `docs/backend/09-errors.md`
+- `docs/shared/error-ux-mapping.md`
 
 ### Testing
-{{lista de docs relevantes com caminho relativo}}
+- `docs/backend/14-tests.md`
+- `docs/frontend/{{client}}/09-tests.md`
+- `docs/blueprint/12-testing_strategy.md`
 
 ### Observabilidade
-{{lista de docs relevantes com caminho relativo}}
+- `docs/blueprint/15-observability.md`
+- `docs/frontend/{{client}}/12-observability.md`
 
 ## Convencoes de Codigo
 
 ### Nomenclatura
-- Entidades: PascalCase (conforme glossario do dominio)
+- Conforme `docs/shared/glossary.md`
+- Entidades: PascalCase
 - Campos/propriedades: camelCase
 - Rotas API: {{padrao extraido da arquitetura}}
 - Arquivos: {{padrao extraido da estrutura do projeto}}
@@ -100,18 +162,22 @@ Antes de iniciar qualquer tarefa, leia os docs listados abaixo conforme o tipo d
 ### Principios Arquiteturais
 {{Extraido de 02-architecture_principles.md — resumo de 1 linha por principio}}
 
+### Camadas do Backend
+{{Extraido de backend/01-architecture.md — regras de dependencia}}
+
 ### Glossario do Dominio (Linguagem Ubiqua)
-{{Tabela com os termos principais extraidos de 04-domain-model.md}}
+{{Tabela com os termos principais extraidos de docs/shared/glossary.md}}
 
 ## Sempre Ler Antes de Codar
 
 - `src/contracts/` — tipos compartilhados e interfaces
 - `{{arquivo de schema}}` — schema do banco de dados
 - `package.json` — dependencias instaladas
+- `docs/shared/glossary.md` — linguagem ubiqua
 
 ## Workflow de Desenvolvimento (XP)
 
-1. Leia os docs do blueprint relevantes para a feature
+1. Leia os docs relevantes (blueprint + backend/frontend)
 2. Leia `src/contracts/` para tipos existentes
 3. **RED**: Escreva os testes primeiro
 4. **GREEN**: Implemente o minimo para os testes passarem
@@ -126,20 +192,22 @@ Antes de iniciar qualquer tarefa, leia os docs listados abaixo conforme o tipo d
 - `/codegen-verify` — verifica codigo gerado contra o blueprint
 ```
 
-## Passo 5: Salvar e Apresentar
+## Passo 6: Salvar e Apresentar
 
 1. Salve o arquivo em `{{projeto-alvo}}/CLAUDE.md`
 2. Apresente ao usuario um resumo do que foi gerado:
 
 > "CLAUDE.md gerado em `{{caminho}}`. O arquivo contem:
+> - Hierarquia de docs (blueprint → backend → frontend → shared)
 > - Mapa de contexto com **{{N}} categorias** de tarefa
 > - Stack: {{resumo da stack}}
+> - Clientes frontend: {{lista}}
 > - **{{N}} termos** do glossario do dominio
 > - **{{N}} principios** arquiteturais
 > - Workflow XP com TDD
 >
 > Revise o arquivo e ajuste conforme necessario."
 
-## Passo 6: Proximo Passo
+## Passo 7: Proximo Passo
 
 > "CLAUDE.md pronto. Rode `/codegen` para ver as entregas do build plan, ou `/codegen-contracts` para gerar o scaffold e tipos compartilhados (setup inicial)."
