@@ -231,7 +231,24 @@ export class FileService {
 
     // Legacy format: read from local filesystem (for previews created before node storage)
     const { readFile } = await import('node:fs/promises');
-    const data = await readFile(preview.storagePath);
+    const { resolve, isAbsolute } = await import('node:path');
+    const { existsSync } = await import('node:fs');
+
+    // Resolve relative paths from data/ directory
+    let fsPath = preview.storagePath;
+    if (!isAbsolute(fsPath)) {
+      fsPath = resolve(process.cwd(), 'data', fsPath);
+    }
+    // Try adding extension if missing
+    if (!existsSync(fsPath) && !fsPath.includes('.')) {
+      fsPath = `${fsPath}.${preview.format}`;
+    }
+
+    if (!existsSync(fsPath)) {
+      throw new NotFoundException('Preview file not found — file may need re-processing');
+    }
+
+    const data = await readFile(fsPath);
     return { data, format: preview.format, size: Number(preview.size) };
   }
 }
