@@ -1,10 +1,14 @@
 // Alexandria Core SDK — Public API
-// Cada modulo sera implementado durante a Fase 0
 
-export * from './crypto';
-export * from './chunking';
-export * from './hashing';
-export * from './consistent-hash';
-export * from './manifest';
-export * from './vault';
-export * from './storage-provider';
+// Hashing — SHA-256 content-addressable (RN-CH2)
+export { hash, hashStream } from './hashing';
+
+// Chunking — divisao em blocos ~4MB e reassembly (RN-CH1)
+export { split, reassemble, DEFAULT_CHUNK_SIZE, type ChunkData } from './chunking';
+
+// Modulos a implementar nas proximas features:
+// export * from './crypto';
+// export * from './consistent-hash';
+// export * from './manifest';
+// export * from './vault';
+// export * from './storage-provider';
