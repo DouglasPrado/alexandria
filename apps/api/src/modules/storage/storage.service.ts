@@ -31,9 +31,18 @@ export class StorageService implements OnModuleInit {
    */
   async onModuleInit() {
     try {
+      // Load all nodes (including lost/suspect — they may be available after restart)
       const nodes = await this.prisma.node.findMany({
-        where: { status: 'online' },
+        where: { status: { in: ['online', 'suspect', 'lost'] } },
       });
+
+      // Reset heartbeats on boot — nodes are "alive" if the orchestrator just started
+      if (nodes.length > 0) {
+        await this.prisma.node.updateMany({
+          where: { id: { in: nodes.map((n) => n.id) } },
+          data: { status: 'online', lastHeartbeat: new Date() },
+        });
+      }
 
       for (const node of nodes) {
         try {
