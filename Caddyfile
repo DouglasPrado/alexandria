@@ -1,0 +1,38 @@
+# Alexandria — Caddy Reverse Proxy
+# TLS automatico via Let's Encrypt
+# Fonte: docs/blueprint/06-system-architecture.md (Infraestrutura e Deploy)
+#
+# Uso: substitua {$DOMAIN} pela variavel de ambiente ou dominio real
+# Ex: DOMAIN=app.alexandria.local docker compose up
+
+{$DOMAIN:localhost} {
+	# API — proxy para orchestrator NestJS
+	handle /api/* {
+		reverse_proxy api:3333
+	}
+
+	# Health checks — proxy para orchestrator
+	handle /health/* {
+		reverse_proxy api:3333
+	}
+
+	# Web client — proxy para Next.js
+	handle {
+		reverse_proxy web:3000
+	}
+
+	# Security headers
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		X-XSS-Protection "1; mode=block"
+		Referrer-Policy strict-origin-when-cross-origin
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	}
+
+	# Logging
+	log {
+		output stdout
+		format json
+	}
+}

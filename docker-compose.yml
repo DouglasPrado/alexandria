@@ -1,0 +1,104 @@
+# =============================================
+# Alexandria — Production Docker Compose
+# Fonte: docs/blueprint/06-system-architecture.md (Topologia de Producao)
+# =============================================
+#
+# Usage:
+#   cp .env.example .env  # preencha JWT_SECRET, DOMAIN, etc.
+#   docker compose up -d
+#
+# Topologia:
+#   Caddy (:443/:80) → API (:3333) + Web (:3000)
+#   PostgreSQL 18 (:5432)
+#   Redis 7 (:6379)
+
+services:
+  # --- Caddy: reverse proxy + TLS automatico ---
+  caddy:
+    image: caddy:2-alpine
+    container_name: alexandria-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_started
+
+  # --- API: NestJS Orchestrator ---
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: alexandria-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3333
+      DATABASE_URL: postgresql://alexandria:${DB_PASSWORD:-alexandria}@postgres:5432/alexandria?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      CORS_ORIGIN: https://${DOMAIN:-localhost}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3333/api/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # --- Web: Next.js Client ---
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: alexandria-web
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: https://${DOMAIN:-localhost}/api
+
+  # --- PostgreSQL 18 ---
+  postgres:
+    image: postgres:18
+    container_name: alexandria-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: alexandria
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-alexandria}
+      POSTGRES_DB: alexandria
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alexandria"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --- Redis 7 ---
+  redis:
+    image: redis:7-alpine
+    container_name: alexandria-redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
