@@ -116,6 +116,30 @@ export class NodeService {
     });
   }
 
+  /** Detalhe de um nó */
+  async findById(nodeId: string, clusterId: string) {
+    const node = await this.prisma.node.findUnique({
+      where: { id: nodeId },
+      include: { _count: { select: { chunkReplicas: true } } },
+    });
+
+    if (!node || node.clusterId !== clusterId) {
+      throw new NotFoundException('No nao encontrado');
+    }
+
+    return {
+      id: node.id,
+      name: node.name,
+      type: node.type,
+      status: node.status,
+      totalCapacity: Number(node.totalCapacity),
+      usedCapacity: Number(node.usedCapacity),
+      chunksStored: (node as any)._count?.chunkReplicas ?? 0,
+      lastHeartbeat: node.lastHeartbeat?.toISOString() ?? null,
+      createdAt: node.createdAt.toISOString(),
+    };
+  }
+
   /** Lista nos de um cluster */
   async listByCluster(clusterId: string) {
     const nodes = await this.prisma.node.findMany({
@@ -147,13 +171,13 @@ export class NodeService {
       throw new NotFoundException('No nao encontrado');
     }
 
-    // RN-N6: Min 3 active nodes after drain
+    // Check: after drain, must still have MIN_NODES_FOR_REPLICATION active nodes
     const activeNodeCount = await this.prisma.node.count({
       where: { clusterId: node.clusterId, status: 'online' },
     });
-    if (activeNodeCount <= MIN_NODES_FOR_REPLICATION) {
+    if (activeNodeCount - 1 < MIN_NODES_FOR_REPLICATION) {
       throw new UnprocessableEntityException(
-        'Nao e possivel drenar — minimo de 3 nos ativos necessario para replicacao',
+        `Nao e possivel drenar — apos remocao restam ${activeNodeCount - 1} nos, minimo necessario: ${MIN_NODES_FOR_REPLICATION}`,
       );
     }
 
