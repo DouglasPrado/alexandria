@@ -9,5 +9,6 @@ module.exports = {
   testEnvironment: 'node',
   moduleNameMapper: {
     '^@contracts/(.*)$': '<rootDir>/../../src/contracts/$1',
+    '^@alexandria/core-sdk$': '<rootDir>/../../packages/core-sdk/src/index.ts',
   },
 };
