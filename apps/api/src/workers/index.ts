@@ -1,2 +1,1 @@
-// workers barrel
-// TODO: photo.worker.ts, video.worker.ts
+export { MediaProcessor } from './media-processor';
