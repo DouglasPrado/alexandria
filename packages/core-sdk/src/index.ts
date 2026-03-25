@@ -18,8 +18,10 @@ export {
   generateKeypair,
 } from './crypto/envelope';
 
+// Consistent Hashing — distribuicao de chunks entre nos (ADR-006)
+export { ConsistentHashRing } from './consistent-hash';
+
 // Modulos a implementar nas proximas features:
-// export * from './consistent-hash';
 // export * from './manifest';
 // export * from './vault';
 // export * from './storage-provider';
