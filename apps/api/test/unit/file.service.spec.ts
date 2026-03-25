@@ -31,6 +31,12 @@ const mockPrisma = {
   },
 };
 
+const mockQueue = {
+  add: jest.fn().mockResolvedValue({ id: 'job-1' }),
+};
+
+const QUEUE_TOKEN = 'BullQueue_media-pipeline';
+
 describe('FileService', () => {
   let fileService: FileService;
 
@@ -41,6 +47,7 @@ describe('FileService', () => {
       providers: [
         FileService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: QUEUE_TOKEN, useValue: mockQueue },
       ],
     }).compile();
 

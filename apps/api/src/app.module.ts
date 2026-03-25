@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
+import { BullModule } from '@nestjs/bullmq';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ClusterModule } from './modules/cluster/cluster.module';
@@ -11,7 +12,21 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 
 @Module({
-  imports: [PrismaModule, AuthModule, ClusterModule, MemberModule, NodeModule, FileModule, HealthModule],
+  imports: [
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379', 10),
+      },
+    }),
+    PrismaModule,
+    AuthModule,
+    ClusterModule,
+    MemberModule,
+    NodeModule,
+    FileModule,
+    HealthModule,
+  ],
   providers: [
     // Global guards: JWT auth + RBAC roles
     { provide: APP_GUARD, useClass: JwtAuthGuard },

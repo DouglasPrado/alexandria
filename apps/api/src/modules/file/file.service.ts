@@ -4,6 +4,8 @@ import {
   PayloadTooLargeException,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
 
 /** Limites de tamanho por tipo de midia (RN-F4) */
@@ -13,7 +15,7 @@ const SIZE_LIMITS: Record<string, number> = {
   document: 2 * 1024 * 1024 * 1024, // 2GB
 };
 
-const MIN_NODES_FOR_UPLOAD = 3;
+const MIN_NODES_FOR_UPLOAD = 3; // RN-N6: minimo 3 nos ativos para replicacao
 const DEFAULT_PAGE_SIZE = 20;
 
 interface UploadedFile {
@@ -29,7 +31,10 @@ interface UploadedFile {
  */
 @Injectable()
 export class FileService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @InjectQueue('media-pipeline') private readonly mediaQueue: Queue,
+  ) {}
 
   /**
    * Classifica MIME type para media type (RN-F1).
@@ -56,7 +61,7 @@ export class FileService {
     });
     if (activeNodes < MIN_NODES_FOR_UPLOAD) {
       throw new ServiceUnavailableException(
-        'Nos insuficientes para replicacao minima. Minimo 3 nos ativos necessarios.',
+        `Nos insuficientes para replicacao minima. Minimo ${MIN_NODES_FOR_UPLOAD} no(s) ativo(s) necessario(s).`,
       );
     }
 
@@ -84,7 +89,17 @@ export class FileService {
       },
     });
 
-    // TODO: Enqueue BullMQ job for media pipeline (optimize → chunk → encrypt → distribute)
+    // Enqueue BullMQ job for media pipeline (optimize → chunk → encrypt → distribute)
+    await this.mediaQueue.add(
+      'process-file',
+      { fileId: record.id, buffer: file.buffer.toString('base64') },
+      {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 5000 },
+        removeOnComplete: true,
+        removeOnFail: false,
+      },
+    );
 
     return {
       id: record.id,
@@ -182,7 +197,7 @@ export class FileService {
     return {
       data,
       meta: {
-        cursor: data.length > 0 ? data[data.length - 1].id : null,
+        cursor: data.length > 0 ? data[data.length - 1]!.id : null,
         hasMore,
       },
     };

@@ -7,7 +7,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { randomBytes, createCipheriv } from 'node:crypto';
 
 const MAX_NODES_PER_CLUSTER = 50;
-const MIN_NODES_FOR_REPLICATION = 3;
+const MIN_NODES_FOR_REPLICATION = 3; // RN-N6: minimo 3 nos ativos para replicacao
 
 /**
  * NodeService — registro de nos, heartbeat, drain, listagem.
@@ -180,12 +180,12 @@ export class NodeService {
    * Em producao, a chave viria do vault do admin.
    * Para simplificar no MVP, usa chave derivada do env.
    */
-  private encryptConfig(config: string): Buffer {
+  private encryptConfig(config: string): Uint8Array<ArrayBuffer> {
     const key = Buffer.alloc(32, 0); // Placeholder — will use vault key in production
     const iv = randomBytes(12);
     const cipher = createCipheriv('aes-256-gcm', key, iv);
     const encrypted = Buffer.concat([cipher.update(config, 'utf-8'), cipher.final()]);
     const authTag = cipher.getAuthTag();
-    return Buffer.concat([iv, authTag, encrypted]);
+    return new Uint8Array(Buffer.concat([iv, authTag, encrypted])) as Uint8Array<ArrayBuffer>;
   }
 }
