@@ -159,15 +159,21 @@ export class StorageService implements OnModuleInit {
       });
     }
 
-    // 7. Distribute new chunks to 3 nodes via ConsistentHashRing + StorageProvider
+    // 7. Distribute new chunks to available nodes via ConsistentHashRing + StorageProvider
+    const availableNodes = this.ring.getNodeCount();
+    const replicationFactor = Math.min(3, availableNodes); // Use available nodes, max 3
     let replicasCount = 0;
     const replicaRecords: Array<{ chunkId: string; nodeId: string }> = [];
 
+    if (replicationFactor === 0) {
+      console.warn('[StorageService] No nodes in ring — chunks stored in DB only, not distributed');
+    }
+
     for (const chunk of processedChunks) {
-      if (!chunk.isNew) continue;
+      if (!chunk.isNew || replicationFactor === 0) continue;
 
       try {
-        const targetNodes = this.ring.getNodes(chunk.chunkId, 3);
+        const targetNodes = this.ring.getNodes(chunk.chunkId, replicationFactor);
 
         for (const nodeId of targetNodes) {
           const provider = this.providers.get(nodeId);
@@ -177,9 +183,8 @@ export class StorageService implements OnModuleInit {
             replicasCount++;
           }
         }
-      } catch {
-        // Se nao ha nos suficientes no ring, armazena sem replicacao
-        // Os chunks ficam no banco e serao distribuidos quando nos conectarem
+      } catch (err) {
+        console.error(`[StorageService] Failed to distribute chunk ${chunk.chunkId.substring(0, 16)}:`, err instanceof Error ? err.message : err);
       }
     }
 
