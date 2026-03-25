@@ -1,7 +1,7 @@
 # Alexandria
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![CI](https://github.com/{{org}}/alexandria/actions/workflows/ci.yml/badge.svg)](https://github.com/DouglasPrado/alexandria/actions)
+[![CI](https://github.com/DouglasPrado/alexandria/actions/workflows/ci.yml/badge.svg)](https://github.com/DouglasPrado/alexandria/actions)
 [![Docker Pulls](https://img.shields.io/docker/pulls/DouglasPrado/alexandria.svg)](https://hub.docker.com/r/DouglasPrado/alexandria)
 [![GitHub Stars](https://img.shields.io/github/stars/DouglasPrado/alexandria.svg)](https://github.com/DouglasPrado/alexandria/stargazers)
 
