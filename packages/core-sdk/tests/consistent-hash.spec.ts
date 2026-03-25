@@ -136,8 +136,8 @@ describe('ConsistentHashRing', () => {
   describe('capacity-proportional distribution', () => {
     it('should distribute more keys to nodes with higher capacity', () => {
       const ring = new ConsistentHashRing();
-      ring.addNode('small', 100);  // 100 GB
-      ring.addNode('large', 400);  // 400 GB — 4x more capacity
+      ring.addNode('small', 100); // 100 GB
+      ring.addNode('large', 400); // 400 GB — 4x more capacity
 
       const counts: Record<string, number> = { small: 0, large: 0 };
       const totalKeys = 10_000;

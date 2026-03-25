@@ -169,7 +169,16 @@ describe('reassemble()', () => {
   });
 
   it('should be the inverse of split — round-trip integrity', () => {
-    const sizes = [0, 1, 1023, 1024, DEFAULT_CHUNK_SIZE - 1, DEFAULT_CHUNK_SIZE, DEFAULT_CHUNK_SIZE + 1, 3 * DEFAULT_CHUNK_SIZE];
+    const sizes = [
+      0,
+      1,
+      1023,
+      1024,
+      DEFAULT_CHUNK_SIZE - 1,
+      DEFAULT_CHUNK_SIZE,
+      DEFAULT_CHUNK_SIZE + 1,
+      3 * DEFAULT_CHUNK_SIZE,
+    ];
 
     for (const size of sizes) {
       const original = Buffer.alloc(size);

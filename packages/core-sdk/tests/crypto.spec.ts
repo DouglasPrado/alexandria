@@ -1,9 +1,4 @@
-import {
-  encrypt,
-  decrypt,
-  generateKey,
-  type EncryptedData,
-} from '../src/crypto';
+import { encrypt, decrypt, generateKey, type EncryptedData } from '../src/crypto';
 
 /**
  * Testes do modulo de criptografia — AES-256-GCM.

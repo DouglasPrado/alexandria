@@ -45,7 +45,9 @@ describe('validateMnemonic()', () => {
   });
 
   it('should reject non-BIP-39 words', () => {
-    expect(validateMnemonic('hello world foo bar baz qux quux corge grault garply waldo fred')).toBe(false);
+    expect(
+      validateMnemonic('hello world foo bar baz qux quux corge grault garply waldo fred'),
+    ).toBe(false);
   });
 
   it('should reject empty string', () => {

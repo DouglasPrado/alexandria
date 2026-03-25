@@ -24,7 +24,14 @@ const masterKey = deriveMasterKey(generateMnemonic());
 const adminContents: VaultContents = {
   credentials: { email: 'admin@familia.com', role: 'admin' },
   nodeConfigs: [
-    { nodeId: 'node-1', type: 's3', endpoint: 'https://s3.amazonaws.com', bucket: 'alexandria', accessKey: 'AKIA...', secretKey: 'wJal...' },
+    {
+      nodeId: 'node-1',
+      type: 's3',
+      endpoint: 'https://s3.amazonaws.com',
+      bucket: 'alexandria',
+      accessKey: 'AKIA...',
+      secretKey: 'wJal...',
+    },
     { nodeId: 'node-2', type: 'local', path: '/mnt/nas' },
   ],
   clusterConfig: { name: 'Familia Prado', nodeList: ['node-1', 'node-2'] },
@@ -109,7 +116,10 @@ describe('updateVault()', () => {
 
     const newContents: VaultContents = {
       ...adminContents,
-      nodeConfigs: [...adminContents.nodeConfigs, { nodeId: 'node-3', type: 'r2', endpoint: 'https://r2.cloudflare.com', bucket: 'backup' }],
+      nodeConfigs: [
+        ...adminContents.nodeConfigs,
+        { nodeId: 'node-3', type: 'r2', endpoint: 'https://r2.cloudflare.com', bucket: 'backup' },
+      ],
     };
 
     const updated = updateVault(original, password, masterKey, newContents);
@@ -159,7 +169,14 @@ describe('round-trip integrity', () => {
     const contents: VaultContents = {
       credentials: { email: 'test@test.com', role: 'reader' },
       nodeConfigs: [
-        { nodeId: 'n1', type: 'b2', endpoint: 'https://b2.backblaze.com', bucket: 'test', accessKey: 'key123', secretKey: 'sec456' },
+        {
+          nodeId: 'n1',
+          type: 'b2',
+          endpoint: 'https://b2.backblaze.com',
+          bucket: 'test',
+          accessKey: 'key123',
+          secretKey: 'sec456',
+        },
       ],
       clusterConfig: { name: 'Test Cluster', nodeList: ['n1'] },
     };

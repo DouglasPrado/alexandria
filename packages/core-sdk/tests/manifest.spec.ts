@@ -7,7 +7,12 @@ import {
   type ManifestData,
 } from '../src/manifest';
 import { generateKey, encrypt, decrypt } from '../src/crypto';
-import { generateMnemonic, deriveMasterKey, generateKeypair, generateFileKey } from '../src/crypto/envelope';
+import {
+  generateMnemonic,
+  deriveMasterKey,
+  generateKeypair,
+  generateFileKey,
+} from '../src/crypto/envelope';
 import type { ManifestChunkEntry } from '../src/manifest';
 
 /**
@@ -151,7 +156,9 @@ describe('serializeManifest() / deserializeManifest()', () => {
     expect(restored.fileId).toBe(original.fileId);
     expect(restored.chunks).toEqual(original.chunks);
     expect(restored.version).toBe(original.version);
-    expect(restored.fileKeyEncrypted.ciphertext.equals(original.fileKeyEncrypted.ciphertext)).toBe(true);
+    expect(restored.fileKeyEncrypted.ciphertext.equals(original.fileKeyEncrypted.ciphertext)).toBe(
+      true,
+    );
     expect(restored.fileKeyEncrypted.iv.equals(original.fileKeyEncrypted.iv)).toBe(true);
     expect(restored.fileKeyEncrypted.authTag.equals(original.fileKeyEncrypted.authTag)).toBe(true);
     expect(restored.signature.equals(original.signature)).toBe(true);
