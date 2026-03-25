@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { MediaProcessor } from '../../src/workers/media-processor';
 import { PrismaService } from '../../src/prisma/prisma.service';
+import { StorageService } from '../../src/modules/storage/storage.service';
 
 /**
  * Testes do MediaProcessor — pipeline de processamento de midia.
@@ -36,6 +37,12 @@ const mockPrisma = {
   $transaction: jest.fn((fn: Function) => fn(mockPrisma)),
 };
 
+const mockStorageService = {
+  distributeChunks: jest.fn().mockResolvedValue({ chunksCount: 1, replicasCount: 3 }),
+  registerNode: jest.fn(),
+  unregisterNode: jest.fn(),
+};
+
 // Mock sharp for photo processing
 jest.mock('sharp', () => {
   const mockSharp = jest.fn().mockReturnValue({
@@ -57,6 +64,7 @@ describe('MediaProcessor', () => {
       providers: [
         MediaProcessor,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: StorageService, useValue: mockStorageService },
       ],
     }).compile();
 
@@ -64,8 +72,7 @@ describe('MediaProcessor', () => {
   });
 
   describe('processFile()', () => {
-    it('should optimize photo and update status to ready', async () => {
-      const fileBuffer = Buffer.alloc(5_000_000, 0xaa); // 5MB "photo"
+    const setupFileMock = (overrides: Record<string, unknown> = {}) => {
       mockPrisma.file.findUnique.mockResolvedValue({
         id: 'file-1',
         clusterId: 'cluster-1',
@@ -74,51 +81,26 @@ describe('MediaProcessor', () => {
         originalName: 'natal.jpg',
         originalSize: BigInt(5_000_000),
         status: 'processing',
+        ...overrides,
       });
-      mockPrisma.file.update.mockImplementation((args: any) => ({
-        ...args.data,
-        id: 'file-1',
-      }));
+      mockPrisma.file.update.mockResolvedValue({});
       mockPrisma.preview.create.mockResolvedValue({ id: 'preview-1' });
-      mockPrisma.chunk.findUnique.mockResolvedValue(null); // no dedup
-      mockPrisma.chunk.create.mockResolvedValue({});
-      mockPrisma.manifest.create.mockResolvedValue({ id: 'manifest-1' });
-      mockPrisma.manifestChunk.create.mockResolvedValue({});
+    };
 
-      await processor.processFile('file-1', fileBuffer);
+    it('should optimize photo and call StorageService.distributeChunks', async () => {
+      setupFileMock();
+      await processor.processFile('file-1', Buffer.alloc(5_000_000, 0xaa));
 
-      // Should update file to ready with optimized size
-      expect(mockPrisma.file.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { id: 'file-1' },
-          data: expect.objectContaining({
-            status: 'ready',
-            optimizedSize: expect.any(BigInt),
-            contentHash: expect.stringMatching(/^[a-f0-9]{64}$/),
-          }),
-        }),
+      expect(mockStorageService.distributeChunks).toHaveBeenCalledWith(
+        'file-1',
+        expect.any(Buffer), // optimized content
+        expect.any(Buffer), // master key
       );
     });
 
     it('should generate preview/thumbnail for photos', async () => {
-      const fileBuffer = Buffer.alloc(5_000_000);
-      mockPrisma.file.findUnique.mockResolvedValue({
-        id: 'file-1',
-        clusterId: 'cluster-1',
-        mediaType: 'photo',
-        mimeType: 'image/jpeg',
-        originalName: 'foto.jpg',
-        originalSize: BigInt(5_000_000),
-        status: 'processing',
-      });
-      mockPrisma.file.update.mockResolvedValue({});
-      mockPrisma.preview.create.mockResolvedValue({ id: 'preview-1' });
-      mockPrisma.chunk.findUnique.mockResolvedValue(null);
-      mockPrisma.chunk.create.mockResolvedValue({});
-      mockPrisma.manifest.create.mockResolvedValue({ id: 'manifest-1' });
-      mockPrisma.manifestChunk.create.mockResolvedValue({});
-
-      await processor.processFile('file-1', fileBuffer);
+      setupFileMock();
+      await processor.processFile('file-1', Buffer.alloc(5_000_000));
 
       expect(mockPrisma.preview.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -131,27 +113,10 @@ describe('MediaProcessor', () => {
       );
     });
 
-    it('should extract metadata from photos', async () => {
-      const fileBuffer = Buffer.alloc(5_000_000);
-      mockPrisma.file.findUnique.mockResolvedValue({
-        id: 'file-1',
-        clusterId: 'cluster-1',
-        mediaType: 'photo',
-        mimeType: 'image/jpeg',
-        originalName: 'foto.jpg',
-        originalSize: BigInt(5_000_000),
-        status: 'processing',
-      });
-      mockPrisma.file.update.mockResolvedValue({});
-      mockPrisma.preview.create.mockResolvedValue({ id: 'preview-1' });
-      mockPrisma.chunk.findUnique.mockResolvedValue(null);
-      mockPrisma.chunk.create.mockResolvedValue({});
-      mockPrisma.manifest.create.mockResolvedValue({ id: 'manifest-1' });
-      mockPrisma.manifestChunk.create.mockResolvedValue({});
+    it('should extract and save metadata from photos', async () => {
+      setupFileMock();
+      await processor.processFile('file-1', Buffer.alloc(5_000_000));
 
-      await processor.processFile('file-1', fileBuffer);
-
-      // Should update with metadata
       expect(mockPrisma.file.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
@@ -165,64 +130,28 @@ describe('MediaProcessor', () => {
     });
 
     it('should bypass optimization for documents (RN-F3)', async () => {
-      const docBuffer = Buffer.alloc(100_000); // 100KB PDF
-      mockPrisma.file.findUnique.mockResolvedValue({
-        id: 'file-2',
-        clusterId: 'cluster-1',
-        mediaType: 'document',
-        mimeType: 'application/pdf',
-        originalName: 'contract.pdf',
-        originalSize: BigInt(100_000),
-        status: 'processing',
-      });
-      mockPrisma.file.update.mockResolvedValue({});
-      mockPrisma.preview.create.mockResolvedValue({ id: 'preview-2' });
-      mockPrisma.chunk.findUnique.mockResolvedValue(null);
-      mockPrisma.chunk.create.mockResolvedValue({});
-      mockPrisma.manifest.create.mockResolvedValue({ id: 'manifest-2' });
-      mockPrisma.manifestChunk.create.mockResolvedValue({});
+      setupFileMock({ id: 'file-2', mediaType: 'document', mimeType: 'application/pdf', originalName: 'contract.pdf', originalSize: BigInt(100_000) });
+      const docBuffer = Buffer.alloc(100_000);
 
       await processor.processFile('file-2', docBuffer);
 
-      // For documents, optimizedSize should equal original (no optimization)
-      expect(mockPrisma.file.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            status: 'ready',
-            optimizedSize: BigInt(100_000),
-          }),
-        }),
+      // StorageService receives the original buffer (no optimization)
+      expect(mockStorageService.distributeChunks).toHaveBeenCalledWith(
+        'file-2',
+        docBuffer, // same buffer, no resize
+        expect.any(Buffer),
       );
     });
 
-    it('should chunk content and create manifest', async () => {
-      const fileBuffer = Buffer.alloc(100_000);
-      mockPrisma.file.findUnique.mockResolvedValue({
-        id: 'file-3',
-        clusterId: 'cluster-1',
-        mediaType: 'document',
-        mimeType: 'application/pdf',
-        originalName: 'doc.pdf',
-        originalSize: BigInt(100_000),
-        status: 'processing',
-      });
-      mockPrisma.file.update.mockResolvedValue({});
-      mockPrisma.preview.create.mockResolvedValue({});
-      mockPrisma.chunk.findUnique.mockResolvedValue(null);
-      mockPrisma.chunk.create.mockResolvedValue({});
-      mockPrisma.manifest.create.mockResolvedValue({ id: 'manifest-3' });
-      mockPrisma.manifestChunk.create.mockResolvedValue({});
+    it('should call distributeChunks for all file types', async () => {
+      setupFileMock({ id: 'file-3', mediaType: 'document', mimeType: 'application/pdf', originalName: 'doc.pdf', originalSize: BigInt(100_000) });
 
-      await processor.processFile('file-3', fileBuffer);
+      await processor.processFile('file-3', Buffer.alloc(100_000));
 
-      // Should create chunks and manifest
-      expect(mockPrisma.chunk.create).toHaveBeenCalled();
-      expect(mockPrisma.manifest.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            fileId: 'file-3',
-          }),
-        }),
+      expect(mockStorageService.distributeChunks).toHaveBeenCalledWith(
+        'file-3',
+        expect.any(Buffer),
+        expect.any(Buffer),
       );
     });
 
@@ -261,33 +190,16 @@ describe('MediaProcessor', () => {
       );
     });
 
-    it('should handle video as stub (status ready with original size)', async () => {
+    it('should handle video and call distributeChunks with original buffer', async () => {
       const videoBuffer = Buffer.alloc(500_000);
-      mockPrisma.file.findUnique.mockResolvedValue({
-        id: 'file-5',
-        clusterId: 'cluster-1',
-        mediaType: 'video',
-        mimeType: 'video/mp4',
-        originalName: 'clip.mp4',
-        originalSize: BigInt(500_000),
-        status: 'processing',
-      });
-      mockPrisma.file.update.mockResolvedValue({});
-      mockPrisma.preview.create.mockResolvedValue({});
-      mockPrisma.chunk.findUnique.mockResolvedValue(null);
-      mockPrisma.chunk.create.mockResolvedValue({});
-      mockPrisma.manifest.create.mockResolvedValue({ id: 'manifest-5' });
-      mockPrisma.manifestChunk.create.mockResolvedValue({});
+      setupFileMock({ id: 'file-5', mediaType: 'video', mimeType: 'video/mp4', originalName: 'clip.mp4', originalSize: BigInt(500_000) });
 
       await processor.processFile('file-5', videoBuffer);
 
-      // Video stub: optimizedSize = originalSize (no FFmpeg yet)
-      expect(mockPrisma.file.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            status: 'ready',
-          }),
-        }),
+      expect(mockStorageService.distributeChunks).toHaveBeenCalledWith(
+        'file-5',
+        videoBuffer, // video stub: original buffer, no transcoding
+        expect.any(Buffer),
       );
     });
   });

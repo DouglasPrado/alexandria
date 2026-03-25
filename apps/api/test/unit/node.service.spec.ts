@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { NodeService } from '../../src/modules/node/node.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
+import { StorageService } from '../../src/modules/storage/storage.service';
 
 /**
  * Testes do NodeService — registro de nos, heartbeat, drain, listagem.
@@ -32,6 +33,12 @@ const mockPrisma = {
   },
 };
 
+const mockStorageService = {
+  registerNode: jest.fn(),
+  unregisterNode: jest.fn(),
+  distributeChunks: jest.fn(),
+};
+
 describe('NodeService', () => {
   let nodeService: NodeService;
 
@@ -42,6 +49,7 @@ describe('NodeService', () => {
       providers: [
         NodeService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: StorageService, useValue: mockStorageService },
       ],
     }).compile();
 
@@ -75,6 +83,62 @@ describe('NodeService', () => {
       expect(result.name).toBe('NAS Escritorio');
       expect(result.type).toBe('s3');
       expect(result.status).toBe('online');
+    });
+
+    it('should register node in StorageService hash ring', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.node.create.mockImplementation((args: any) => ({
+        id: 'node-1',
+        name: args.data.name,
+        type: args.data.type,
+        status: 'online',
+        totalCapacity: BigInt(100e9),
+        usedCapacity: BigInt(0),
+        lastHeartbeat: new Date(),
+        createdAt: new Date(),
+      }));
+
+      await nodeService.register('cluster-1', 'admin-1', {
+        name: 'S3 Bucket',
+        type: 's3',
+        endpoint: 'https://s3.amazonaws.com',
+        bucket: 'alexandria',
+        accessKey: 'AKIA...',
+        secretKey: 'secret...',
+        region: 'us-east-1',
+      });
+
+      expect(mockStorageService.registerNode).toHaveBeenCalledWith(
+        'node-1',
+        expect.any(Number),
+        expect.any(Object), // StorageProvider instance
+      );
+    });
+
+    it('should create LocalStorageProvider for local type nodes', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.node.create.mockImplementation((args: any) => ({
+        id: 'node-local',
+        name: args.data.name,
+        type: args.data.type,
+        status: 'online',
+        totalCapacity: BigInt(100e9),
+        usedCapacity: BigInt(0),
+        lastHeartbeat: new Date(),
+        createdAt: new Date(),
+      }));
+
+      await nodeService.register('cluster-1', 'admin-1', {
+        name: 'NAS Local',
+        type: 'local',
+        endpoint: '/mnt/alexandria/chunks',
+      });
+
+      expect(mockStorageService.registerNode).toHaveBeenCalledWith(
+        'node-local',
+        expect.any(Number),
+        expect.any(Object),
+      );
     });
 
     it('should throw UnprocessableEntityException if cluster has 50 nodes (RN-C4)', async () => {

@@ -29,6 +29,9 @@ const mockPrisma = {
   manifestChunk: {
     count: jest.fn(),
   },
+  preview: {
+    findUnique: jest.fn(),
+  },
 };
 
 const mockQueue = {
@@ -250,6 +253,29 @@ describe('FileService', () => {
           skip: 1,
         }),
       );
+    });
+  });
+
+  describe('getPreview()', () => {
+    it('should return preview metadata for existing file', async () => {
+      mockPrisma.preview.findUnique.mockResolvedValue({
+        fileId: 'file-1',
+        storagePath: '/data/previews/file-1.webp',
+        format: 'webp',
+        size: BigInt(50000),
+      });
+
+      const result = await fileService.getPreview('file-1');
+
+      expect(result.storagePath).toBe('/data/previews/file-1.webp');
+      expect(result.format).toBe('webp');
+      expect(result.size).toBe(50000);
+    });
+
+    it('should throw NotFoundException if preview not found', async () => {
+      mockPrisma.preview.findUnique.mockResolvedValue(null);
+
+      await expect(fileService.getPreview('no-preview')).rejects.toThrow();
     });
   });
 });

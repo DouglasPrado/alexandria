@@ -4,15 +4,22 @@ import {
   Get,
   Param,
   Query,
+  Res,
   HttpCode,
   HttpStatus,
   UseInterceptors,
   UploadedFile,
+  NotFoundException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileService } from './file.service';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { CurrentMember, type CurrentMemberPayload } from '../../common/decorators/current-member.decorator';
+import {
+  CurrentMember,
+  type CurrentMemberPayload,
+} from '../../common/decorators/current-member.decorator';
+import type { Response } from 'express';
+import { createReadStream, existsSync } from 'node:fs';
 
 @Controller('files')
 export class FileController {
@@ -53,19 +60,32 @@ export class FileController {
     return this.fileService.findById(id);
   }
 
-  /** GET /api/files/:id/preview — Preview/thumbnail (JWT) */
+  /** GET /api/files/:id/preview — Serve preview binary (JWT) */
   @Get(':id/preview')
-  async preview(@Param('id') id: string) {
-    // Placeholder — will serve preview binary in media pipeline feature
-    await this.fileService.findById(id); // validates file exists
-    return { message: 'Preview endpoint — pipeline not yet implemented' };
+  async preview(@Param('id') id: string, @Res() res: Response) {
+    const preview = await this.fileService.getPreview(id);
+
+    if (!existsSync(preview.storagePath)) {
+      throw new NotFoundException('Preview file not found on disk');
+    }
+
+    const mimeTypes: Record<string, string> = {
+      webp: 'image/webp',
+      mp4: 'video/mp4',
+      png: 'image/png',
+    };
+
+    res.setHeader('Content-Type', mimeTypes[preview.format] || 'application/octet-stream');
+    res.setHeader('Content-Length', preview.size);
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+
+    createReadStream(preview.storagePath).pipe(res);
   }
 
   /** GET /api/files/:id/download — Download arquivo (JWT, UC-005) */
   @Get(':id/download')
   async download(@Param('id') id: string) {
-    // Placeholder — will stream reassembled chunks in storage integration feature
-    await this.fileService.findById(id); // validates file exists
-    return { message: 'Download endpoint — storage integration not yet implemented' };
+    await this.fileService.findById(id);
+    return { message: 'Download endpoint — full reassembly not yet implemented' };
   }
 }

@@ -202,4 +202,24 @@ export class FileService {
       },
     };
   }
+
+  /**
+   * Retorna preview de um arquivo (thumbnail/video preview).
+   * Busca o registro de preview e retorna o path + formato para streaming.
+   */
+  async getPreview(fileId: string): Promise<{ storagePath: string; format: string; size: number }> {
+    const preview = await this.prisma.preview.findUnique({
+      where: { fileId },
+    });
+
+    if (!preview) {
+      throw new NotFoundException('Preview nao encontrado — arquivo ainda em processamento');
+    }
+
+    return {
+      storagePath: preview.storagePath,
+      format: preview.format,
+      size: Number(preview.size),
+    };
+  }
 }

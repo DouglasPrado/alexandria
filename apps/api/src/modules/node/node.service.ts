@@ -4,6 +4,8 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { StorageService } from '../storage/storage.service';
+import { S3StorageProvider, LocalStorageProvider } from '@alexandria/core-sdk';
 import { randomBytes, createCipheriv } from 'node:crypto';
 
 const MAX_NODES_PER_CLUSTER = parseInt(process.env.MAX_NODES_PER_CLUSTER || '50', 10);
@@ -15,7 +17,10 @@ const MIN_NODES_FOR_REPLICATION = parseInt(process.env.MIN_NODES_FOR_REPLICATION
  */
 @Injectable()
 export class NodeService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storageService: StorageService,
+  ) {}
 
   /**
    * Registra no de armazenamento (UC-003).
@@ -65,6 +70,19 @@ export class NodeService {
         tier: 'warm',
       },
     });
+
+    // Register node in StorageService hash ring with appropriate provider
+    const provider =
+      dto.type === 'local'
+        ? new LocalStorageProvider(dto.endpoint || '/tmp/alexandria/chunks')
+        : new S3StorageProvider({
+            endpoint: dto.endpoint || '',
+            region: dto.region || 'us-east-1',
+            bucket: dto.bucket || '',
+            accessKeyId: dto.accessKey || '',
+            secretAccessKey: dto.secretKey || '',
+          });
+    this.storageService.registerNode(node.id, 100, provider);
 
     return {
       id: node.id,
