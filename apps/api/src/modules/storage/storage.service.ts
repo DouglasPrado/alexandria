@@ -214,4 +214,40 @@ export class StorageService {
       replicasCount,
     };
   }
+
+  /**
+   * Armazena dados arbitrarios em um no (preview, manifest, etc.).
+   * Usa o ConsistentHashRing para selecionar o no destino.
+   *
+   * @param key - Chave de armazenamento (ex: "preview:file-id")
+   * @param data - Buffer a armazenar
+   * @returns { nodeId, key } — no onde foi armazenado
+   */
+  async storeInNode(key: string, data: Buffer): Promise<{ nodeId: string; key: string }> {
+    const targetNodes = this.ring.getNodes(key, 1);
+    const nodeId = targetNodes[0]!;
+    const provider = this.providers.get(nodeId);
+
+    if (!provider) {
+      throw new Error(`Provider not found for node ${nodeId}`);
+    }
+
+    await provider.put(key, data);
+    return { nodeId, key };
+  }
+
+  /**
+   * Recupera dados de um no especifico.
+   *
+   * @param nodeId - ID do no
+   * @param key - Chave de armazenamento
+   * @returns Buffer com os dados
+   */
+  async getFromNode(nodeId: string, key: string): Promise<Buffer> {
+    const provider = this.providers.get(nodeId);
+    if (!provider) {
+      throw new Error(`Node ${nodeId} not found in ring`);
+    }
+    return provider.get(key);
+  }
 }

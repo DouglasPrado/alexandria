@@ -7,6 +7,7 @@ import {
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
+import { StorageService } from '../storage/storage.service';
 
 /** Limites de tamanho por tipo de midia (RN-F4) */
 const SIZE_LIMITS: Record<string, number> = {
@@ -33,6 +34,7 @@ interface UploadedFile {
 export class FileService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly storageService: StorageService,
     @InjectQueue('media-pipeline') private readonly mediaQueue: Queue,
   ) {}
 
@@ -204,10 +206,10 @@ export class FileService {
   }
 
   /**
-   * Retorna preview de um arquivo (thumbnail/video preview).
-   * Busca o registro de preview e retorna o path + formato para streaming.
+   * Retorna preview binario de um arquivo, buscado do no de storage.
+   * storagePath format: "nodeId:key"
    */
-  async getPreview(fileId: string): Promise<{ storagePath: string; format: string; size: number }> {
+  async getPreview(fileId: string): Promise<{ data: Buffer; format: string; size: number }> {
     const preview = await this.prisma.preview.findUnique({
       where: { fileId },
     });
@@ -216,8 +218,15 @@ export class FileService {
       throw new NotFoundException('Preview nao encontrado — arquivo ainda em processamento');
     }
 
+    // storagePath = "nodeId:preview:fileId.format"
+    const colonIndex = preview.storagePath.indexOf(':');
+    const nodeId = preview.storagePath.substring(0, colonIndex);
+    const key = preview.storagePath.substring(colonIndex + 1);
+
+    const data = await this.storageService.getFromNode(nodeId, key);
+
     return {
-      storagePath: preview.storagePath,
+      data,
       format: preview.format,
       size: Number(preview.size),
     };

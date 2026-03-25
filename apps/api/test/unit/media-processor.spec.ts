@@ -39,6 +39,8 @@ const mockPrisma = {
 
 const mockStorageService = {
   distributeChunks: jest.fn().mockResolvedValue({ chunksCount: 1, replicasCount: 3 }),
+  storeInNode: jest.fn().mockResolvedValue({ nodeId: 'node-1', key: 'preview:file-1.webp' }),
+  getFromNode: jest.fn(),
   registerNode: jest.fn(),
   unregisterNode: jest.fn(),
 };

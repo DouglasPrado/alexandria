@@ -3,8 +3,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { hash } from '@alexandria/core-sdk';
 import { StorageService } from '../modules/storage/storage.service';
 import sharp from 'sharp';
-import { writeFile, mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
 
 const MAX_PHOTO_WIDTH = 1920;
 const THUMBNAIL_WIDTH = 300;
@@ -106,11 +104,9 @@ export class MediaProcessor {
     type: string = 'thumbnail',
     format: string = 'webp',
   ): Promise<void> {
-    const previewDir = join(process.cwd(), 'data', 'previews');
-    await mkdir(previewDir, { recursive: true });
-    const fileName = `${fileId}.${format}`;
-    const filePath = join(previewDir, fileName);
-    await writeFile(filePath, data);
+    // Store preview in storage node (S3/local) via StorageService
+    const key = `preview:${fileId}.${format}`;
+    const stored = await this.storageService.storeInNode(key, data);
 
     await this.prisma.preview.create({
       data: {
@@ -119,7 +115,7 @@ export class MediaProcessor {
         size: BigInt(data.length),
         format,
         contentHash: hash(data),
-        storagePath: filePath,
+        storagePath: `${stored.nodeId}:${stored.key}`, // nodeId:key format for retrieval
       },
     });
   }

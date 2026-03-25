@@ -9,7 +9,6 @@ import {
   HttpStatus,
   UseInterceptors,
   UploadedFile,
-  NotFoundException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileService } from './file.service';
@@ -19,7 +18,6 @@ import {
   type CurrentMemberPayload,
 } from '../../common/decorators/current-member.decorator';
 import type { Response } from 'express';
-import { createReadStream, existsSync } from 'node:fs';
 
 @Controller('files')
 export class FileController {
@@ -60,14 +58,10 @@ export class FileController {
     return this.fileService.findById(id);
   }
 
-  /** GET /api/files/:id/preview — Serve preview binary (JWT) */
+  /** GET /api/files/:id/preview — Serve preview binary from storage node (JWT) */
   @Get(':id/preview')
   async preview(@Param('id') id: string, @Res() res: Response) {
     const preview = await this.fileService.getPreview(id);
-
-    if (!existsSync(preview.storagePath)) {
-      throw new NotFoundException('Preview file not found on disk');
-    }
 
     const mimeTypes: Record<string, string> = {
       webp: 'image/webp',
@@ -76,10 +70,9 @@ export class FileController {
     };
 
     res.setHeader('Content-Type', mimeTypes[preview.format] || 'application/octet-stream');
-    res.setHeader('Content-Length', preview.size);
+    res.setHeader('Content-Length', preview.data.length);
     res.setHeader('Cache-Control', 'public, max-age=86400');
-
-    createReadStream(preview.storagePath).pipe(res);
+    res.end(preview.data);
   }
 
   /** GET /api/files/:id/download — Download arquivo (JWT, UC-005) */

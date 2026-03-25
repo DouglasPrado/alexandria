@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { NotFoundException, PayloadTooLargeException } from '@nestjs/common';
 import { FileService } from '../../src/modules/file/file.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
+import { StorageService } from '../../src/modules/storage/storage.service';
 
 /**
  * Testes do FileService — upload, listagem, detalhes.
@@ -38,6 +39,12 @@ const mockQueue = {
   add: jest.fn().mockResolvedValue({ id: 'job-1' }),
 };
 
+const mockStorageService = {
+  getFromNode: jest.fn().mockResolvedValue(Buffer.from('preview-binary')),
+  storeInNode: jest.fn(),
+  distributeChunks: jest.fn(),
+};
+
 const QUEUE_TOKEN = 'BullQueue_media-pipeline';
 
 describe('FileService', () => {
@@ -50,6 +57,7 @@ describe('FileService', () => {
       providers: [
         FileService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: StorageService, useValue: mockStorageService },
         { provide: QUEUE_TOKEN, useValue: mockQueue },
       ],
     }).compile();
@@ -257,19 +265,20 @@ describe('FileService', () => {
   });
 
   describe('getPreview()', () => {
-    it('should return preview metadata for existing file', async () => {
+    it('should fetch preview binary from storage node', async () => {
       mockPrisma.preview.findUnique.mockResolvedValue({
         fileId: 'file-1',
-        storagePath: '/data/previews/file-1.webp',
+        storagePath: 'node-1:preview:file-1.webp',
         format: 'webp',
         size: BigInt(50000),
       });
+      mockStorageService.getFromNode.mockResolvedValue(Buffer.from('preview-data'));
 
       const result = await fileService.getPreview('file-1');
 
-      expect(result.storagePath).toBe('/data/previews/file-1.webp');
+      expect(result.data).toEqual(Buffer.from('preview-data'));
       expect(result.format).toBe('webp');
-      expect(result.size).toBe(50000);
+      expect(mockStorageService.getFromNode).toHaveBeenCalledWith('node-1', 'preview:file-1.webp');
     });
 
     it('should throw NotFoundException if preview not found', async () => {

@@ -175,4 +175,44 @@ describe('StorageService', () => {
       expect(mockPrisma.$transaction).toHaveBeenCalled();
     });
   });
+
+  describe('storeInNode()', () => {
+    it('should store data in a node via StorageProvider and return nodeId + key', async () => {
+      const data = Buffer.from('preview binary data');
+      const result = await storageService.storeInNode('preview:file-1', data);
+
+      expect(result.nodeId).toBeDefined();
+      expect(result.key).toBe('preview:file-1');
+    });
+
+    it('should store in first available node from hash ring', async () => {
+      const data = Buffer.alloc(1024, 0xab);
+      const result = await storageService.storeInNode('preview:file-2', data);
+
+      // Should pick a node from the ring
+      expect(['node-1', 'node-2', 'node-3']).toContain(result.nodeId);
+    });
+  });
+
+  describe('getFromNode()', () => {
+    it('should retrieve data from a specific node', async () => {
+      const data = Buffer.from('stored content');
+
+      // Store first
+      const stored = await storageService.storeInNode('test-key', data);
+
+      // Retrieve — mock provider.get returns the data
+      const node1Provider = (storageService as any).providers.get(stored.nodeId);
+      node1Provider.get.mockResolvedValue(data);
+
+      const result = await storageService.getFromNode(stored.nodeId, 'test-key');
+      expect(result.equals(data)).toBe(true);
+    });
+
+    it('should throw if node not found', async () => {
+      await expect(
+        storageService.getFromNode('non-existent-node', 'key'),
+      ).rejects.toThrow();
+    });
+  });
 });
