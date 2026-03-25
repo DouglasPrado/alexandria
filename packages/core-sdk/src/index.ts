@@ -21,8 +21,9 @@ export {
 // Consistent Hashing — distribuicao de chunks entre nos (ADR-006)
 export { ConsistentHashRing } from './consistent-hash';
 
-// StorageProvider — interface unificada + local filesystem (Interfaces sobre Implementacoes)
+// StorageProvider — interface unificada + implementacoes (Interfaces sobre Implementacoes)
 export { type StorageProvider, LocalStorageProvider } from './storage-provider';
+export { S3StorageProvider, type S3StorageConfig } from './storage-provider/s3';
 
 // Modulos a implementar nas proximas features:
 // export * from './manifest';

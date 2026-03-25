@@ -168,6 +168,10 @@ importers:
         version: 5.9.3
 
   packages/core-sdk:
+    dependencies:
+      '@aws-sdk/client-s3':
+        specifier: ^3.700.0
+        version: 3.1016.0
     devDependencies:
       '@types/jest':
         specifier: ^29.5.0
