@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { hash } from '@alexandria/core-sdk';
 import { StorageService } from '../modules/storage/storage.service';
@@ -19,6 +19,8 @@ const THUMBNAIL_QUALITY = 60;
  */
 @Injectable()
 export class MediaProcessor {
+  private readonly logger = new Logger(MediaProcessor.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly storageService: StorageService,
@@ -30,42 +32,56 @@ export class MediaProcessor {
    */
   async processFile(fileId: string, fileBuffer: Buffer): Promise<void> {
     const file = await this.prisma.file.findUnique({ where: { id: fileId } });
-    if (!file) return;
+    if (!file) {
+      this.logger.warn(`File ${fileId} not found — skipping`);
+      return;
+    }
+
+    this.logger.log(`[${fileId}] Starting pipeline — ${file.mediaType} "${file.originalName}" (${(fileBuffer.length / 1024).toFixed(0)}KB)`);
+    const startTime = Date.now();
 
     try {
       let optimizedContent: Buffer;
       let metadata: Record<string, unknown> = {};
 
       if (file.mediaType === 'photo') {
+        this.logger.log(`[${fileId}] Optimizing photo → WebP ${MAX_PHOTO_WIDTH}px`);
         const result = await this.processPhoto(fileBuffer);
         optimizedContent = result.optimized;
         metadata = result.metadata;
+        this.logger.log(`[${fileId}] Optimized: ${(fileBuffer.length / 1024).toFixed(0)}KB → ${(optimizedContent.length / 1024).toFixed(0)}KB (${((1 - optimizedContent.length / fileBuffer.length) * 100).toFixed(0)}% reduction)`);
 
-        // Generate thumbnail preview
+        this.logger.log(`[${fileId}] Generating thumbnail ${THUMBNAIL_WIDTH}px`);
         const thumbnail = await this.generateThumbnail(fileBuffer);
         await this.createPreview(fileId, thumbnail);
+        this.logger.log(`[${fileId}] Preview stored (${(thumbnail.length / 1024).toFixed(1)}KB)`);
       } else if (file.mediaType === 'video') {
+        this.logger.log(`[${fileId}] Video — bypass optimization (FFmpeg not yet integrated)`);
         optimizedContent = fileBuffer;
         metadata = { note: 'video transcoding pending — FFmpeg integration' };
         await this.createPreview(fileId, Buffer.alloc(1024, 0), 'video_preview', 'mp4');
       } else {
+        this.logger.log(`[${fileId}] Document — bypass optimization (RN-F3)`);
         optimizedContent = fileBuffer;
         metadata = { pages: 1 };
         await this.createPreview(fileId, Buffer.alloc(512, 0), 'generic_icon', 'png');
       }
 
-      // Update metadata before distribution
       await this.prisma.file.update({
         where: { id: fileId },
         data: { metadata: metadata as Record<string, string> },
       });
 
-      // Distribute chunks via StorageService (encrypt + send to S3 nodes)
-      // Uses a placeholder master key — in production, derived from cluster seed
+      this.logger.log(`[${fileId}] Distributing chunks → encrypt (AES-256-GCM) + replicate to nodes`);
       const masterKey = Buffer.alloc(32, 0xab); // TODO: get real master key from cluster vault
-      await this.storageService.distributeChunks(fileId, optimizedContent, masterKey);
+      const result = await this.storageService.distributeChunks(fileId, optimizedContent, masterKey);
+
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      this.logger.log(`[${fileId}] Pipeline complete in ${elapsed}s — ${result.chunksCount} chunks, ${result.replicasCount} replicas → status: ready`);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown processing error';
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      this.logger.error(`[${fileId}] Pipeline FAILED in ${elapsed}s — ${message}`);
       await this.prisma.file.update({
         where: { id: fileId },
         data: {
