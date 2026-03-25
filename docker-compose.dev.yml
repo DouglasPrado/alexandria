@@ -1,5 +1,8 @@
 # Alexandria — Development Environment
-# Usage: docker compose -f docker-compose.dev.yml up -d
+# Usage:
+#   docker compose -f docker-compose.dev.yml up -d
+#   pnpm --filter @alexandria/api db:migrate:dev
+#   pnpm --filter @alexandria/api db:seed
 
 services:
   postgres:
