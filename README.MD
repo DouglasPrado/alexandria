@@ -1,9 +1,9 @@
 # Alexandria
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![CI](https://github.com/{{org}}/alexandria/actions/workflows/ci.yml/badge.svg)](https://github.com/{{org}}/alexandria/actions)
-[![Docker Pulls](https://img.shields.io/docker/pulls/{{org}}/alexandria.svg)](https://hub.docker.com/r/{{org}}/alexandria)
-[![GitHub Stars](https://img.shields.io/github/stars/{{org}}/alexandria.svg)](https://github.com/{{org}}/alexandria/stargazers)
+[![CI](https://github.com/{{org}}/alexandria/actions/workflows/ci.yml/badge.svg)](https://github.com/DouglasPrado/alexandria/actions)
+[![Docker Pulls](https://img.shields.io/docker/pulls/DouglasPrado/alexandria.svg)](https://hub.docker.com/r/DouglasPrado/alexandria)
+[![GitHub Stars](https://img.shields.io/github/stars/DouglasPrado/alexandria.svg)](https://github.com/DouglasPrado/alexandria/stargazers)
 
 > **Distributed family storage with end-to-end encryption and 12-word recovery.**
 
@@ -49,14 +49,14 @@ Full setup guide (VPS, DNS, cloud providers): [docs/getting-started.md](docs/get
 
 ## Documentation
 
-| Document | Description |
-| -------- | ----------- |
-| [Getting Started](docs/getting-started.md) | Installation, setup, first cluster |
-| [Architecture](docs/blueprint/06-system-architecture.md) | System components and deployment topology |
-| [Technical Blueprint](docs/blueprint/) | Full technical specification |
-| [Contributing](CONTRIBUTING.md) | How to contribute code, docs, or bug reports |
-| [Security](SECURITY.md) | Vulnerability disclosure policy |
-| [Changelog](CHANGELOG.md) | Release history |
+| Document                                                 | Description                                  |
+| -------------------------------------------------------- | -------------------------------------------- |
+| [Getting Started](docs/getting-started.md)               | Installation, setup, first cluster           |
+| [Architecture](docs/blueprint/06-system-architecture.md) | System components and deployment topology    |
+| [Technical Blueprint](docs/blueprint/)                   | Full technical specification                 |
+| [Contributing](CONTRIBUTING.md)                          | How to contribute code, docs, or bug reports |
+| [Security](SECURITY.md)                                  | Vulnerability disclosure policy              |
+| [Changelog](CHANGELOG.md)                                | Release history                              |
 
 ---
 
@@ -94,27 +94,27 @@ Full setup guide (VPS, DNS, cloud providers): [docs/getting-started.md](docs/get
 
 ## Why Alexandria?
 
-|  | Google Photos | iCloud | Nextcloud | Alexandria |
-|--|--|--|--|--|
-| Storage cost | $3–30/mo | $1–10/mo | $0 + VPS | **$0** (free tiers) |
-| Privacy | Google reads photos | Apple can access | Self-hosted | **Zero-knowledge** |
-| Vendor lock-in | Google account | Apple account | Your server | **None — 12-word recovery** |
-| Multi-provider redundancy | ❌ | ❌ | ❌ | **✅ (3+ providers)** |
-| Media optimization | ✅ | ✅ | ❌ | **✅ (10–20× compression)** |
-| Self-hosted | ❌ | ❌ | ✅ | **✅** |
-| License | Proprietary | Proprietary | AGPL-3.0 | **MIT** |
+|                           | Google Photos       | iCloud           | Nextcloud   | Alexandria                  |
+| ------------------------- | ------------------- | ---------------- | ----------- | --------------------------- |
+| Storage cost              | $3–30/mo            | $1–10/mo         | $0 + VPS    | **$0** (free tiers)         |
+| Privacy                   | Google reads photos | Apple can access | Self-hosted | **Zero-knowledge**          |
+| Vendor lock-in            | Google account      | Apple account    | Your server | **None — 12-word recovery** |
+| Multi-provider redundancy | ❌                  | ❌               | ❌          | **✅ (3+ providers)**       |
+| Media optimization        | ✅                  | ✅               | ❌          | **✅ (10–20× compression)** |
+| Self-hosted               | ❌                  | ❌               | ✅          | **✅**                      |
+| License                   | Proprietary         | Proprietary      | AGPL-3.0    | **MIT**                     |
 
 ---
 
 ## Supported Storage Providers
 
-| Provider | Protocol | Free Tier |
-| -------- | -------- | --------- |
-| Cloudflare R2 | S3-compatible | 10GB storage + zero egress fees |
-| AWS S3 | S3-compatible | 5GB (Free Tier) |
-| Backblaze B2 | S3-compatible | 10GB |
-| Local filesystem | Native | Unlimited (your disk) |
-| Any S3-compatible provider | S3-compatible | Varies |
+| Provider                   | Protocol      | Free Tier                       |
+| -------------------------- | ------------- | ------------------------------- |
+| Cloudflare R2              | S3-compatible | 10GB storage + zero egress fees |
+| AWS S3                     | S3-compatible | 5GB (Free Tier)                 |
+| Backblaze B2               | S3-compatible | 10GB                            |
+| Local filesystem           | Native        | Unlimited (your disk)           |
+| Any S3-compatible provider | S3-compatible | Varies                          |
 
 Adding support for new providers: see [docs/contributing/add-storage-provider.md](docs/contributing/add-storage-provider.md).
 
@@ -163,4 +163,4 @@ Copyright (c) 2026 Douglas Prado
 <!-- ALL-CONTRIBUTORS-LIST:START -->
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-*Want your name here? Check [CONTRIBUTING.md](CONTRIBUTING.md) to get started.*
+_Want your name here? Check [CONTRIBUTING.md](CONTRIBUTING.md) to get started._
