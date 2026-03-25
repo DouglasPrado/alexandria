@@ -6,8 +6,10 @@ export { hash, hashStream } from './hashing';
 // Chunking — divisao em blocos ~4MB e reassembly (RN-CH1)
 export { split, reassemble, DEFAULT_CHUNK_SIZE, type ChunkData } from './chunking';
 
+// Crypto — AES-256-GCM encrypt/decrypt (RN-CH3, Zero-Knowledge)
+export { encrypt, decrypt, generateKey, type EncryptedData } from './crypto';
+
 // Modulos a implementar nas proximas features:
-// export * from './crypto';
 // export * from './consistent-hash';
 // export * from './manifest';
 // export * from './vault';
