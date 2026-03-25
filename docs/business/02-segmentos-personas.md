@@ -1,39 +1,43 @@
-# Segmentos e Personas
+# OSS Segments & Personas
 
-Esta seção define **quem são os usuários** do Alexandria. Segmenta o público-alvo, dimensiona a oportunidade de adoção, traça o perfil ideal de usuário e cria personas detalhadas que guiam decisões de produto e comunidade.
+<!-- updated: opensource — open-core -->This section defines **who uses and contributes to Alexandria**. Segments the target audience (users, contributors, sponsors), sizes the adoption opportunity, defines ideal profiles, and creates detailed personas that guide product and community decisions.
 
-> **Nota:** O Alexandria é open-source e gratuito. "Segmentos" e "mercado" referem-se a grupos de adoção, não a clientes pagantes. O valor é medido em **adoção**, **contribuições da comunidade** e **dados preservados**.
-
----
-
-## Segmentos de Usuário
-
-> Quais grupos distintos de usuários o produto atende? Cada segmento tem necessidades suficientemente diferentes para justificar tratamento distinto.
-
-| Segmento | Descrição | Tamanho Estimado | Complexidade de Adoção | Disposição a Investir Tempo | Prioridade |
-| --- | --- | --- | --- | --- | --- |
-| Famílias técnicas (self-hosters) | Famílias com pelo menos 1 membro técnico que já roda serviços em casa (NAS, Plex, Home Assistant). Querem controle total sobre seus dados. | ~2-5M globalmente (comunidades r/selfhosted, r/homelab) | Self-service — instala sozinho com documentação | Alta — dispostos a configurar VPS, DNS, buckets | P0 |
-| Data hoarders / preservacionistas | Entusiastas de preservação digital que acumulam TBs de mídia e se preocupam com bit rot, redundância e durabilidade de longo prazo. | ~500K-1M globalmente (r/datahoarder, Archive.org voluntários) | Self-service — expertise técnica acima da média | Alta — já investem em hardware e soluções de backup | P0 |
-| Famílias não-técnicas preocupadas com privacidade | Famílias que desconfiam de Big Tech mas não sabem configurar alternativas. Precisam de setup simples ou de um membro técnico que faça por eles. | ~10-50M globalmente (movimento "degoogle") | Assistida — precisam de guia passo-a-passo ou ajuda de membro técnico | Baixa — querem que "simplesmente funcione" | P1 |
-| Fotógrafos amadores / criadores de conteúdo | Pessoas que geram grandes volumes de fotos e vídeos (10-50GB/mês) e precisam de armazenamento barato com organização. | ~5-10M globalmente | Self-service a assistida | Média — dispostos a aprender se economizar dinheiro | P2 |
-
-> Para o MVP, foco em **famílias técnicas** (P0) e **data hoarders** (P0) — são os early adopters naturais que toleram configuração manual e podem contribuir com feedback técnico e código.
+> **Note:** Alexandria is open-core. Segments include both **individual users** (self-hosters), **companies** (adopters and sponsors), **maintainers**, and **occasional contributors**. Value is measured in **adoption**, **community contributions**, and **memories preserved**.
 
 ---
 
-## Dimensionamento de Mercado (Adoção)
+## OSS User Segments
 
-> Dimensionamento em três níveis para entender o potencial real de adoção. Números conservadores baseados em comunidades existentes.
+> What distinct groups does Alexandria serve? Each segment has different needs, adoption patterns, and contribution potential.
 
-| Nível | Segmento | Valor | Método de Cálculo |
-| --- | --- | --- | --- |
-| **TAM** (Mercado Total) | Todas as famílias com >100GB de fotos/vídeos que gostariam de solução de backup distribuído | ~200M de domicílios globalmente <!-- inferido do PRD --> | Domicílios com smartphone + >100GB de mídia acumulada (estimativa conservadora: 10% dos 2B de smartphones) |
-| **Mercado Alcançável** | Self-hosters + data hoarders + privacy-conscious tech-savvy | ~5-10M de usuários potenciais | r/selfhosted (1.5M), r/datahoarder (700K), r/degoogle (300K) + comunidades análogas em outras plataformas; multiplicador 2-3x para não-Reddit |
-| **Meta Ano 1** | Early adopters que instalam e usam ativamente | ~500-1.000 instalações ativas | Base: projetos similares open-source (Immich: ~50K stars em 2 anos; Photoprism: ~35K stars). Meta conservadora para v1 com MVP funcional |
+| Segment | Description | Estimated Size | Adoption Complexity | Time Investment | Priority |
+| ------- | ----------- | -------------- | ------------------- | --------------- | -------- |
+| **Individual Developers** (self-hosters) | Families with at least 1 technical member who already runs home services (NAS, Plex, Home Assistant). Want full data control. | ~2–5M globally (r/selfhosted, r/homelab communities) | Self-service — installs independently with documentation | High — willing to configure VPS, DNS, buckets | P0 |
+| **Data Hoarders / Preservationists** | Digital preservation enthusiasts who accumulate TBs of media and care about bit rot, redundancy, and long-term durability. | ~500K–1M globally (r/datahoarder, Archive.org volunteers) | Self-service — above-average technical expertise | High — already invest in hardware and backup solutions | P0 |
+| **Companies (users)** | Small companies or teams adopting Alexandria for internal media/document archiving in production. Potential open-core conversion to managed service. | Emerging segment — bootstrapped startups, design agencies, small media orgs | Self-service with some support | Medium | P2 |
+| **Companies (sponsors)** | Companies that benefit from Alexandria and fund development via GitHub Sponsors or OpenCollective. Typically use it in production. | Small — 5–20 companies in Year 1 | N/A (sponsorship, not adoption) | Low (financial only) | P1 |
+| **Maintainers** | Core team maintaining the project (currently Douglas). Responsible for releases, security, architecture decisions. | 1 now; target 2–3 by Year 1 | N/A (promoted from contributors) | Very High | P0 |
+| **Occasional Contributors** | Developers who file issues, submit PRs for bug fixes, improve docs, or add integrations. May contribute 1–10 PRs. | Target: 50–100 in Year 1 | Low barrier (good-first-issue label, CONTRIBUTING.md) | Low-Medium | P1 |
+
+> For the MVP, focus on **Individual Developers** (P0) and **Data Hoarders** (P0) — natural early adopters who tolerate manual setup and can contribute technical feedback and code.
 
 ---
 
-## ICP — Ideal User Profile
+## Market Sizing (Adoption)
+
+> Three-level sizing to understand real adoption potential. Conservative numbers based on existing communities.
+
+| Level | Segment | Value | Calculation Method |
+| ----- | ------- | ----- | ------------------ |
+| **Total Developer Market** | All developers + self-hosters who could use or contribute to Alexandria | ~10M globally | r/selfhosted (1.5M), r/datahoarder (700K), r/degoogle (300K) + analogous non-Reddit communities; 2–3× multiplier |
+| **Reachable Community** | Self-hosters + data hoarders + privacy-conscious tech-savvy with ≥200GB media | ~2–5M potential users | Subset with both technical ability and the specific pain Alexandria solves |
+| **Active Contributors Target (Year 1)** | Early adopters who install and actively use + those who submit PRs | 500–1,000 active installations; 10–50 code contributors | Baseline: similar OSS projects (Immich: ~50K stars in 2 years; PhotoPrism: ~35K stars in 4 years). Conservative target for v1 with functional MVP |
+
+---
+
+## Ideal Adopter Profile + Ideal Contributor Profile
+
+### Ideal Adopter Profile
 
 > Qual é o perfil do usuário ideal — aquele que extrai mais valor do produto e tem maior probabilidade de adotar, reter e contribuir?
 
@@ -50,9 +54,21 @@ Esta seção define **quem são os usuários** do Alexandria. Segmenta o públic
 
 ---
 
+### Ideal Contributor Profile
+
+| Attribute | Value |
+| --------- | ----- |
+| Technical profile | Backend or full-stack developer; TypeScript/Node.js experience preferred |
+| Motivation | Solves their own storage problem; wants to learn distributed systems or cryptography |
+| First contribution | Fixes a bug found while self-hosting, improves docs, or adds a storage provider adapter |
+| Engagement | Files detailed issues; reads existing code before asking questions; tests PRs locally |
+| Progression path | First PR → regular contributor → committer → maintainer |
+
+---
+
 ## Personas
 
-### Persona 1: Douglas, o Admin Familiar
+### Persona 1: Douglas, the Family Admin
 
 | Atributo | Descrição |
 | --- | --- |
@@ -91,7 +107,7 @@ Esta seção define **quem são os usuários** do Alexandria. Segmenta o públic
 
 ---
 
-### Persona 2: Maria, a Mãe que Usa
+### Persona 2: Maria, the Non-Technical Family Member
 
 | Atributo | Descrição |
 | --- | --- |
@@ -129,7 +145,7 @@ Esta seção define **quem são os usuários** do Alexandria. Segmenta o públic
 
 ---
 
-### Persona 3: Vovô João, o Guardião de Memórias
+### Persona 3: Grandpa João, the Memory Guardian
 
 | Atributo | Descrição |
 | --- | --- |
@@ -166,6 +182,22 @@ Esta seção define **quem são os usuários** do Alexandria. Segmenta o públic
 
 ---
 
+### Persona 4: Lucas, the First-Time Contributor
+
+| Attribute | Description |
+| --------- | ----------- |
+| **Name** | Lucas, the First-Time Contributor |
+| **Age** | 22–30 years old |
+| **Location** | Any city — works remotely as a junior/mid developer |
+| **Role** | Junior/Mid developer, TypeScript/Node.js |
+| **Motivation** | Wants real OSS contributions for portfolio; interested in distributed systems |
+| **Behavior** | Finds Alexandria via r/selfhosted or GitHub Explore; installs it; hits a bug; opens an issue; fixes it |
+| **Goal** | Merged PR on a real project; learn how distributed systems are built in practice |
+| **Frustration** | "Good first issues" that are stale or unclear; code review that never comes; complex local setup |
+| **Representative quote** | "I want to contribute to a real project, not just tutorial code. And I actually use this thing." |
+
+---
+
 ### Early Adopters
 
 > Quem são os primeiros usuários que adotariam o produto? Early adopters sentem a dor mais intensamente e aceitam uma solução imperfeita.
@@ -179,6 +211,6 @@ Esta seção define **quem são os usuários** do Alexandria. Segmenta o públic
 | **O que toleram** | Interface web básica, setup manual de provedores cloud, bugs em edge cases, features incompletas (sem mobile app ainda) |
 | **Quantidade alvo** | 50-100 instalações ativas no primeiro ano, com pelo menos 10 contribuidores de código |
 
-> Early adopters do Alexandria são técnicos que vão ler o README inteiro, fazer fork, abrir issues detalhadas e potencialmente contribuir código. Não representam o mercado total — são os "build with us" iniciais.
+> Alexandria early adopters are technical users who will read the entire README, fork the repo, open detailed issues, and potentially contribute code. They don't represent the total market — they are the "build with us" initial cohort.
 
-> **Critério de validação:** Se 50 early adopters usarem o sistema por 6 meses sem perda de dados e com NPS > 8, o produto está pronto para expandir para o segmento P1 (famílias não-técnicas).
+> **Validation criterion:** If 50 early adopters use the system for 6 months without data loss and with NPS > 8, the product is ready to expand to the P1 segment (non-technical families via the managed service).

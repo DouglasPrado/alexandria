@@ -152,3 +152,13 @@ Alexandria e um sistema self-hosted. Nao recebe nem envia webhooks para servicos
 | Resend | GET /health (SDK) | 300s | Alerta P3, enfileirar emails na DLQ |
 
 > (ver [14-tests.md](14-tests.md) para estrategia de testes)
+
+---
+
+<!-- added: opensource -->
+## Integration Development Guide
+
+- **Adding new integrations**: implement the relevant interface (`StorageProvider`, `EmailClient`, etc.) in `src/infrastructure/`; register in the module providers; add env var configuration; write contract tests
+- **Plugin system**: community integrations that don't belong in core can be published as separate npm packages (`@alexandria/storage-gdrive`, `@alexandria/storage-mega`, etc.); they import `@alexandria/core-sdk` and implement the `StorageProvider` interface
+- **Testing integrations**: use mock adapters (`MockStorageProvider`) for unit tests; use `testcontainers` or sandbox environments for integration tests — never hit real external services in CI
+- **Registry**: community plugins listed in `docs/ecosystem.md`; submit a PR to add your integration to the official list

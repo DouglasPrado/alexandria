@@ -1,14 +1,14 @@
-# Estrutura de Custos
+# Project Costs
 
-Esta seção mapeia **quanto custa operar o Alexandria**, separando custos fixos e variáveis, identificando recursos e atividades-chave, e projetando sustentabilidade financeira.
+<!-- updated: opensource — open-core -->This section maps **how much it costs to operate Alexandria** as an open-core project, separating infrastructure costs from community costs, identifying key resources and activities, and projecting sustainability runway.
 
-> **Nota:** O Alexandria é um projeto open-source pessoal/familiar na v1. Os custos são mínimos — tempo do mantenedor + infraestrutura básica. Não há salários, escritório ou equipe paga. A seção inclui projeções para a fase de serviço gerenciado (ano 2+).
+> **Note:** Alexandria is a personal/family open-source project in v1. Costs are minimal — maintainer time + basic infrastructure. No salaries, no office, no paid team. Section includes projections for the managed service phase (Year 2+).
 
 ---
 
-## Custos Fixos
+## Infrastructure Costs vs Community Costs
 
-### Ano 1 — Fase Open-Source
+### Fixed Costs — Year 1 (Open-Source Phase)
 
 | Item | Valor Mensal (R$) | Categoria | Observações |
 | --- | --- | --- | --- |
@@ -20,7 +20,7 @@ Esta seção mapeia **quanto custa operar o Alexandria**, separando custos fixos
 | Claude Code / Copilot (ferramentas de dev) | R$ 100 | Ferramentas | Assinatura pessoal do mantenedor <!-- inferido do PRD --> |
 | **Total Custos Fixos (Ano 1)** | **R$ 135** | | |
 
-### Ano 2+ — Fase Serviço Gerenciado (projeção)
+### Fixed Costs — Year 2+ (Managed Service Phase, projection)
 
 | Item | Valor Mensal (R$) | Categoria | Observações |
 | --- | --- | --- | --- |
@@ -33,13 +33,13 @@ Esta seção mapeia **quanto custa operar o Alexandria**, separando custos fixos
 
 ---
 
-## Custos Variáveis
+## Variable Costs
 
-### Ano 1 — Custo por instalação self-hosted: R$0 para o projeto
+### Year 1 — Cost per self-hosted installation: $0 for the project
 
 O software é self-hosted — cada usuário paga sua própria infraestrutura. O custo para o projeto é apenas suporte via comunidade (tempo do mantenedor).
 
-### Ano 2+ — Serviço Gerenciado (por família)
+### Year 2+ — Managed Service (per family)
 
 | Item | Custo Unitário (R$) | Driver de Volume | Observações |
 | --- | --- | --- | --- |
@@ -51,7 +51,7 @@ O software é self-hosted — cada usuário paga sua própria infraestrutura. O 
 
 ---
 
-## COGS vs OpEx
+## Infrastructure Costs vs Community Costs (COGS / OpEx)
 
 ### Ano 1 — Open-Source
 
@@ -87,7 +87,7 @@ O software é self-hosted — cada usuário paga sua própria infraestrutura. O 
 
 ---
 
-## Curva de Escala (Serviço Gerenciado)
+## Scaling Curve (Managed Service)
 
 | Métrica | 100 Famílias | 500 Famílias | 2.000 Famílias |
 | --- | --- | --- | --- |
@@ -103,7 +103,7 @@ O software é self-hosted — cada usuário paga sua própria infraestrutura. O 
 
 ---
 
-## Recursos Críticos
+## Critical Resources
 
 | Recurso | Categoria | Custo Mensal (R$) | Essencial para |
 | --- | --- | --- | --- |
@@ -115,7 +115,7 @@ O software é self-hosted — cada usuário paga sua própria infraestrutura. O 
 
 ---
 
-## Atividades-Chave
+## Key Activities
 
 | Atividade | Responsável | Frequência |
 | --- | --- | --- |
@@ -127,7 +127,7 @@ O software é self-hosted — cada usuário paga sua própria infraestrutura. O 
 
 ---
 
-## Fornecedores e Parceiros
+## Vendors & Partners
 
 | Fornecedor | Serviço | Custo Mensal (R$) | Criticidade | Alternativa | Custo de Troca |
 | --- | --- | --- | --- | --- | --- |
@@ -141,9 +141,9 @@ O software é self-hosted — cada usuário paga sua própria infraestrutura. O 
 
 ---
 
-## Burn Rate
+## Sustainability Runway
 
-### Ano 1 — Open-Source
+### Year 1 — Open-Source
 
 | Componente | Valor Mensal (R$) |
 | --- | --- |
@@ -153,7 +153,7 @@ O software é self-hosted — cada usuário paga sua própria infraestrutura. O 
 | (-) Doações estimadas (após mês 6) | R$ 500 |
 | **Burn Rate Líquido** | **R$ 0 (ou positivo após mês 6)** |
 
-### Ano 2 — Serviço Gerenciado (primeiros meses)
+### Year 2 — Managed Service (first months)
 
 | Componente | Valor Mensal (R$) |
 | --- | --- |
@@ -167,9 +167,9 @@ O software é self-hosted — cada usuário paga sua própria infraestrutura. O 
 
 ---
 
-## Break-even
+## Self-Sustainability Point
 
-### Cenário Open-Source (doações cobrem infra)
+### Scenario: Open-Source (donations cover infra)
 
 **MRR necessário para break-even:** R$135/mês (custos fixos)
 
@@ -177,7 +177,7 @@ O software é self-hosted — cada usuário paga sua própria infraestrutura. O 
 
 **Previsão:** Mês 3-6 após lançamento (se adoção mínima ocorrer) <!-- inferido do PRD -->
 
-### Cenário Serviço Gerenciado
+### Scenario: Managed Service
 
 **MRR necessário para break-even:** R$1.000/mês (custos fixos) / (R$65 ARPU - R$18 custo variável) = **~22 famílias pagantes**
 
@@ -187,7 +187,7 @@ O software é self-hosted — cada usuário paga sua própria infraestrutura. O 
 
 ## Runway
 
-### Ano 1
+### Year 1
 
 | Item | Valor |
 | --- | --- |
@@ -200,9 +200,9 @@ O software é self-hosted — cada usuário paga sua própria infraestrutura. O 
 
 ---
 
-## Análise de Sensibilidade
+## Sensitivity Analysis
 
-### Ano 1 (Open-Source)
+### Year 1 (Open-Source)
 
 | Cenário | Burn Rate (R$) | Runway | Premissa Principal |
 | --- | --- | --- | --- |
@@ -210,7 +210,7 @@ O software é self-hosted — cada usuário paga sua própria infraestrutura. O 
 | Base | R$ 135 | Ilimitado (custo pessoal) | Crescimento moderado; doações cobrem infra após mês 6 |
 | Pessimista | R$ 135 | Ilimitado (custo pessoal) | Pouca adoção; sem doações; mas custo é desprezível |
 
-### Ano 2 (Serviço Gerenciado)
+### Year 2 (Managed Service)
 
 | Cenário | Burn Rate Líquido (R$) | Break-even em | Premissa Principal |
 | --- | --- | --- | --- |

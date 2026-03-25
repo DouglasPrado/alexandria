@@ -105,7 +105,26 @@ Proporção alvo: **70% unitários, 20% integração, 10% E2E/sistema**. O Alexa
 
 ---
 
-## Automação e CI
+<!-- added: opensource -->
+## Contributor Testing Guide
+
+- **Running tests locally**:
+  ```bash
+  npm run test          # unit tests only (~30s)
+  npm run test:int      # integration (requires Docker)
+  npm run test:e2e      # full E2E (Docker Compose)
+  npm run lint          # ESLint + Prettier
+  npm run typecheck     # TypeScript strict mode
+  ```
+- **Adding tests**: place unit tests in `*.spec.ts` alongside source files; integration tests in `test/integration/`; use factories from `test/factories/` for test data
+- **CI checks on PRs**: lint → typecheck → unit → integration — ALL must pass before merge; no exceptions
+- **Minimum coverage**: PRs must not decrease existing coverage percentage; `npm run test:coverage` shows current state
+- **Test containers**: integration tests use `testcontainers` for PostgreSQL and Redis — no external services required
+- **Snapshots**: if you change API response shapes, update snapshots with `npm run test -- --updateSnapshot`
+
+---
+
+## CI Automation
 
 | Etapa do Pipeline | Testes Executados | Gatilho | Bloqueante? |
 |---|---|---|---|

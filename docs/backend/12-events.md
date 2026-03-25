@@ -200,3 +200,13 @@ Todos os eventos seguem o envelope padrao abaixo. O campo `payload` varia por ti
 | AlertCleanup | Semanal domingo 06:00 | Deletar alertas resolvidos com mais de 90 dias | 300s |
 
 > (ver [13-integrations.md](13-integrations.md) para clients de APIs externas)
+
+---
+
+<!-- added: opensource -->
+## Event System for Contributors
+
+- **Adding new events**: create event class in `src/domain/events/` following `PascalCase` + `Event` suffix (e.g., `ChunkExpiredEvent`); register in the event registry; document schema in this file
+- **Event handlers**: implement `@OnEvent('EventName')` in any NestJS service; handlers are automatically discovered. Keep handlers idempotent — events may be delivered more than once.
+- **Queue adapters**: Redis (BullMQ) is the default; community can contribute adapters for RabbitMQ, SQS, etc. by implementing the `QueueAdapter` interface in `src/infrastructure/queue/`
+- **Webhook support**: external systems can subscribe to Alexandria events via `POST /api/v1/webhooks`; webhooks are delivered with HMAC-SHA256 signatures for verification

@@ -1,20 +1,20 @@
-# Estratégia de Marketing
+# Positioning & Community Awareness
 
-Esta seção define **como o Alexandria atrai, engaja e converte usuários**. Cobre posicionamento, go-to-market, canais de aquisição, growth loops, conteúdo e orçamento.
+<!-- updated: opensource — open-core -->This section defines **how Alexandria attracts, engages, and converts users and contributors**. Covers positioning, go-to-market, community channels, growth loops, content strategy, and community investment.
 
-> **Nota:** O Alexandria é open-source com orçamento de marketing zero. A estratégia é 100% orgânica: código de qualidade + documentação excelente + presença em comunidades. "Marketing" aqui é produção de conteúdo e participação ativa em comunidades, não anúncios pagos.
+> **Note:** Alexandria has a zero marketing budget. The strategy is 100% organic: quality code + excellent documentation + community presence. "Marketing" here means content creation and active community participation, not paid ads.
 
 ---
 
-## Posicionamento
+## OSS Positioning
 
 **Framework de posicionamento:** Anti-[Concorrente] + Feito exclusivamente para [nicho]
 
-**Declaração de posicionamento:**
+**Positioning statement:**
 
-"Somos o anti-Google Photos. Enquanto eles centralizam suas memórias em um único provedor que vê tudo, cobra cada vez mais e pode encerrar sua conta a qualquer momento, o Alexandria distribui seus dados criptografados entre seus próprios dispositivos e provedores — com recovery completo via 12 palavras."
+"The open-source alternative to Google Photos — without the vendor lock-in, without the privacy compromise, without the rising costs. Alexandria distributes your encrypted family memories across your own devices and cloud providers, recoverable with 12 words."
 
-"Alexandria: armazenamento familiar distribuído feito exclusivamente para famílias que querem preservar memórias por décadas sem depender de Big Tech."
+"Alexandria: the first distributed family storage system built for families who want to preserve memories for decades without depending on Big Tech."
 
 **Atributos da marca:**
 
@@ -24,16 +24,16 @@ Esta seção define **como o Alexandria atrai, engaja e converte usuários**. Co
 | Tom de voz | Direto e honesto; usa analogias (biblioteca, bibliotecário); sem hype; reconhece limitações |
 | Valores | Durabilidade acima de tudo, privacidade por design, código aberto, autonomia do usuário |
 
-**Tagline / Slogan:** "Suas memórias, seus dispositivos, suas regras. Recovery em 12 palavras."
+**Tagline / Slogan:** "Your memories, your devices, your rules. Recovery in 12 words."
 
-**Alternativas de tagline:**
-- "Lots of Copies Keep Stuff Safe — para sua família."
-- "O Google Drive familiar que ninguém pode encerrar."
-- "Armazenamento distribuído que sobrevive a qualquer desastre."
+**Tagline alternatives:**
+- "Lots of Copies Keep Stuff Safe — for your family."
+- "The family storage system nobody can shut down."
+- "Distributed storage that survives any disaster."
 
 ---
 
-## Go-to-Market
+## OSS Launch Strategy (GTM)
 
 **Estratégia de GTM:** Bottom-up / Community-led growth
 
@@ -41,12 +41,12 @@ Esta seção define **como o Alexandria atrai, engaja e converte usuários**. Co
 
 **Plano de Lançamento:**
 
-| Fase | Período | Ações | Meta |
-| --- | --- | --- | --- |
-| Pré-lançamento | Semanas 1-2 | README polido, screenshots reais, Docker Compose funcional, demo GIF. Submeter ao awesome-selfhosted. | README com "Quick Start" em <5 minutos |
-| Show HN | Semana 3 | Post "Show HN: Alexandria — distributed family storage with 12-word recovery". Estar disponível 24h para responder comments. | Front page; 100+ upvotes; 50+ stars |
-| Primeiros 30 dias | Semanas 4-8 | Post em r/selfhosted e r/datahoarder. Responder toda issue em <24h. Blog post técnico sobre a arquitetura. | 200 stars; 50 Docker pulls/semana; 10 clusters ativos |
-| Primeiros 90 dias | Semanas 9-16 | Disaster drill público (vídeo). CONTRIBUTING.md + "good first issue". Segundo blog post. Cross-post em Dev.to/Medium. | 1.000 stars; 50 clusters ativos; 5 contribuidores |
+| Phase | Period | Actions | Goal |
+| ----- | ------ | ------- | ---- |
+| **Pre-launch** | Weeks 1–2 | Polish README, real screenshots, functional Docker Compose, demo GIF. Submit to awesome-selfhosted. Public RFC for architecture feedback. | README "Quick Start" in <5 minutes |
+| **Show HN** | Week 3 | Post "Show HN: Alexandria — distributed family storage with 12-word recovery". Be available 24h to answer comments. | Front page; 100+ upvotes; 50+ stars |
+| **First 30 days** | Weeks 4–8 | Post on r/selfhosted and r/datahoarder. Answer every issue in <24h. Technical blog post on architecture. | 200 stars; 50 Docker pulls/week; 10 active clusters |
+| **First 90 days** | Weeks 9–16 | Public disaster drill (video). CONTRIBUTING.md + "good first issue" labels. Second blog post. Cross-post Dev.to/Medium. YouTube tutorial. | 1,000 stars; 50 active clusters; 5 contributors |
 
 **Primeiros usuários (como conquistar os 10-50 iniciais):**
 
@@ -58,7 +58,7 @@ Esta seção define **como o Alexandria atrai, engaja e converte usuários**. Co
 
 ---
 
-## Validação de ICP
+## ICP Validation
 
 **ICP atual:** Desenvolvedor/SRE com família, 30-45 anos, >500GB de fotos/vídeos, já usa Docker/VPS, insatisfeito com soluções atuais de backup
 
@@ -72,7 +72,7 @@ Esta seção define **como o Alexandria atrai, engaja e converte usuários**. Co
 
 ---
 
-## Comunicação de Pricing
+## Pricing Communication (Open-Core)
 
 **Princípios (para o serviço gerenciado futuro):**
 
@@ -82,11 +82,11 @@ Esta seção define **como o Alexandria atrai, engaja e converte usuários**. Co
 - Mostrar economia anualizada: "Economize R$120/ano vs Google One com storage 5x maior"
 - Sem trial com cartão — open-source é o "trial infinito"
 
-**Mensagem central:** "Use grátis para sempre (self-hosted) ou pague pela conveniência (gerenciado). Seus dados, suas regras, em qualquer caso."
+**Core message:** "Use it free forever (self-hosted) or pay for convenience (managed). Your data, your rules, either way."
 
 ---
 
-## Canais de Marketing
+## Content Channels
 
 | Canal | Objetivo | Investimento (Tempo/mês) | ROI Esperado |
 | --- | --- | --- | --- |
@@ -98,9 +98,9 @@ Esta seção define **como o Alexandria atrai, engaja e converte usuários**. Co
 
 ---
 
-## Growth Loops
+## OSS Growth Loops
 
-### Loop Primário (Viral Familiar)
+### Primary Loop (Family Viral)
 
 Admin instala o Alexandria → Adiciona família ao cluster → Membros da família usam diariamente → Membros comentam com amigos/família estendida ("como vocês guardam fotos?") → Amigo técnico instala para sua família → Ciclo repete.
 
@@ -110,7 +110,7 @@ Admin instala → Família usa → Família comenta → Amigo técnico descobre 
 
 > **Motor do loop:** A família é o canal de distribuição. Cada admin "converte" 3-6 membros da família que se tornam evangelistas involuntários.
 
-### Loop Secundário (Conteúdo + Comunidade)
+### Secondary Loop (Content + Community)
 
 Mantenedor publica post técnico (arquitetura, disaster drill, benchmark) → Post rankeia no Google/HN/Reddit → Dev técnico descobre → Instala e contribui código/issues → Melhorias geram novo conteúdo → Ciclo repete.
 
@@ -122,7 +122,7 @@ Post técnico → Tráfego orgânico → Instalação → Contribuição → Mel
 
 ---
 
-## Estratégia de Conteúdo
+## Content Strategy
 
 **Formato principal:** Blog post técnico (long-form, 1.500-3.000 palavras)
 
@@ -145,11 +145,11 @@ Post técnico → Tráfego orgânico → Instalação → Contribuição → Mel
 
 ---
 
-## Orçamento de Marketing
+## Community Investment (Marketing Budget)
 
-**Orçamento total mensal de marketing:** R$ 0 (investimento = tempo do mantenedor)
+**Total monthly marketing budget:** $0 (investment = maintainer time)
 
-**Tempo alocado para marketing:** ~16h/mês (4h/semana)
+**Time allocated for community:** ~16h/month (4h/week)
 
 | Atividade / Canal | Tempo Mensal | % do Total | Resultado Esperado |
 | --- | --- | --- | --- |

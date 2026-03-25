@@ -169,3 +169,33 @@ graph TD
 ```
 
 > Mantenha o diagrama atualizado conforme a arquitetura evolui. (ver [00-frontend-vision.md](00-frontend-vision.md) para contexto geral)
+
+---
+
+<!-- added: opensource -->
+## Contributor Setup Guide
+
+- **Prerequisites**: Node.js 22+, pnpm 9+, Docker (for local orchestrator + PostgreSQL + Redis)
+- **Clone + Install**:
+  ```bash
+  git clone https://github.com/douglas-prado/alexandria.git
+  cd alexandria
+  pnpm install
+  ```
+- **Dev server** (web only):
+  ```bash
+  cp apps/web/.env.example apps/web/.env.local
+  # Edit NEXT_PUBLIC_API_URL to point to local orchestrator
+  pnpm --filter @alexandria/web dev
+  ```
+- **Full local stack** (recommended):
+  ```bash
+  docker compose up -d           # starts PostgreSQL, Redis, MinIO
+  pnpm --filter @alexandria/orchestrator dev  # API on :8080
+  pnpm --filter @alexandria/web dev           # Web on :3000
+  ```
+- **Environment variables**: copy `apps/web/.env.example` to `apps/web/.env.local`; required vars are documented in `.env.example`
+- **Troubleshooting**:
+  - `pnpm install` fails → check Node.js version (`node -v` must be 22+)
+  - API connection errors → ensure orchestrator is running on `:8080` and `.env.local` is correctly configured
+  - Docker issues → `docker compose down && docker compose up -d --build`

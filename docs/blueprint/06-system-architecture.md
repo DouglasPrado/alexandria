@@ -86,6 +86,17 @@ Esta seção descreve a arquitetura de alto nível do sistema **Alexandria**, in
 | **Tecnologia**   | aws-sdk-s3 (TypeScript) — funciona com qualquer provedor S3-compatible |
 | **Interface**    | HTTPS (S3-compatible API) |
 
+<!-- added: opensource -->
+### Contribution Architecture
+
+| Aspect | Details |
+| ------ | ------- |
+| **Plugin points** | `StorageProvider` interface — community can add new cloud/local storage adapters (e.g., Google Drive, pCloud, MinIO). `MediaProcessor` interface — community can add new codec pipelines. |
+| **Extension API** | Public NestJS module interfaces clearly separated from internal implementation. Types exported from `core-sdk` package. |
+| **Module boundaries** | `core-sdk` (cryptography, hashing, BIP-39, chunking) is a separate package — community can use it independently. Orchestrator depends on core-sdk but not vice versa. |
+| **Public API surface** | `/api/v1/*` — stabilized, semver-guaranteed. Internal module APIs — marked `@internal`, may change between minor versions. |
+| **Extension guide** | See `docs/contributing/add-storage-provider.md` and `docs/contributing/add-media-codec.md` |
+
 <!-- APPEND:components -->
 
 ---

@@ -1,23 +1,27 @@
-# Canais e Distribuição
+# Community Channels & Distribution
 
-Esta seção define **como o Alexandria chega até o usuário** e como ele descobre, avalia, adota e expande o uso do sistema. Como projeto open-source, os canais são predominantemente orgânicos e comunitários.
+<!-- updated: opensource — open-core -->This section defines **how Alexandria reaches users and contributors** and how they discover, evaluate, adopt, and expand their use of the system. As an open-core project, channels are predominantly organic and community-driven.
 
-> **Nota:** O Alexandria não tem orçamento de marketing pago. A estratégia é 100% orgânica e comunitária no ano 1. "CAC" aqui refere-se a **custo em tempo do mantenedor**, não investimento financeiro.
+> **Note:** Alexandria has zero paid marketing budget. The strategy is 100% organic and community-driven in Year 1. "Acquisition Cost" refers to **maintainer time cost**, not financial investment.
 
 ---
 
-## Canais
+## Channels
 
-| Canal | Tipo | Custo (Tempo) | Escalabilidade | Fase | Prioridade |
-| --- | --- | --- | --- | --- | --- |
-| GitHub (README, stars, Explore) | Orgânico | Baixo — manter README e docs atualizados | Alta — descoberta passiva via busca e trending | Lançamento | Alta |
-| r/selfhosted, r/datahoarder, r/degoogle | Orgânico / Comunidade | Médio — posts, respostas, engajamento contínuo | Média — alcance limitado ao Reddit mas altamente qualificado | Lançamento | Alta |
-| Hacker News (Show HN) | Orgânico | Baixo — 1 post bem escrito | Alta — viral potencial; atinge público técnico global | Lançamento | Alta |
-| Blog técnico / Dev.to / Medium | Orgânico / Conteúdo | Alto — escrever artigos técnicos leva tempo | Alta — conteúdo evergreen com SEO | Crescimento | Média |
-| YouTube (demos, tutorials) | Orgânico / Conteúdo | Alto — produção de vídeo | Alta — vídeos técnicos têm longa cauda | Crescimento | Média |
-| Docker Hub / awesome-selfhosted | Orgânico / Diretório | Baixo — submeter e manter listagem | Alta — descoberta passiva por público-alvo exato | Lançamento | Alta |
-| Boca-a-boca entre self-hosters | Orgânico / Viral | Zero — acontece naturalmente se o produto for bom | Média — cresce com a base de usuários | Crescimento | Alta |
-| Conferências / meetups (FOSDEM, self-hosted meetups) | Orgânico / Presencial | Alto — viagem + preparação | Baixa — alcance limitado mas alta conversão | Escala | Baixa |
+| Channel | Type | Acquisition Cost | Scalability | Phase | Priority |
+| ------- | ---- | ---------------- | ----------- | ----- | -------- |
+| **GitHub** (README, stars, Explore, Discussions) | Organic | Low — maintain README and docs | High — passive discovery via search and trending | Launch | High |
+| **Package registries** (Docker Hub, GHCR) | Organic / Directory | Low — publish and maintain image | High — passive discovery by exact target audience | Launch | High |
+| **r/selfhosted, r/datahoarder, r/degoogle** | Organic / Community | Medium — posts, replies, continuous engagement | Medium — limited to Reddit but highly qualified audience | Launch | High |
+| **Hacker News** (Show HN) | Organic | Low — 1 well-crafted post | High — viral potential; reaches global technical audience | Launch | High |
+| **awesome-selfhosted** listing | Organic / Directory | Low — submit and maintain listing | High — passive discovery by exact target (180K+ stars) | Launch | High |
+| **Documentation site** (SEO, Getting Started) | Organic / Content | Medium — write and maintain docs | High — evergreen SEO long-tail | Launch | High |
+| **GitHub Discussions** | Community | Low — moderation only | High — self-sustaining with community growth | Launch | High |
+| **Discord** | Community | Medium — active moderation + engagement | High — real-time support, contributor coordination | Launch | High |
+| **Technical blog** / Dev.to / site | Organic / Content | High — writing technical articles takes time | High — evergreen SEO content | Growth | Medium |
+| **Twitter/X, Reddit, Hacker News, Dev.to** | Social | Medium — posts + engagement | Medium | Growth | Medium |
+| **YouTube** (demos, tutorials) | Organic / Content | High — video production | High — technical videos have long tail | Growth | Medium |
+| **Conferences / meetups** (FOSDEM, self-hosted meetups) | Organic / In-person | High — travel + preparation | Low — limited reach but high conversion | Scale | Low |
 
 > **Canal principal no lançamento:** GitHub + Reddit (r/selfhosted) + Show HN. Esses três canais juntos atingem ~90% dos early adopters.
 
@@ -25,7 +29,7 @@ Esta seção define **como o Alexandria chega até o usuário** e como ele desco
 
 ---
 
-## Product-Led Growth
+## Product-Led & Community-Led Growth
 
 | Aspecto | Descrição |
 | --- | --- |
@@ -34,15 +38,19 @@ Esta seção define **como o Alexandria chega até o usuário** e como ele desco
 | **Self-service onboarding** | Sim, para o admin técnico: `docker compose up` + wizard de configuração. Para membros da família: convite via link + app web. |
 | **Contribuição como growth** | Usuários técnicos que contribuem código/docs/traduções ampliam alcance e qualidade, atraindo mais usuários. |
 
-**Funil PLG:**
+**Contribution Funnel:**
 
-`Descobre (GitHub/Reddit)` → `Instala (Docker)` → `Configura cluster` → `Adiciona família` → `Família usa diariamente` → `Contribui/Indica`
+`Discovery (GitHub/Reddit)` → `First Use (Docker install)` → `First Issue (files a bug or question)` → `First PR (fixes something)` → `Regular Contributor` → `Committer / Maintainer`
+
+**Adoption Funnel:**
+
+`Discovery` → `Install` → `Use` → `File Issue` → `Submit PR` → `Review` → `Merge` → `Become Maintainer`
 
 > O momento em que o admin vê "3 réplicas saudáveis" pela primeira vez e o membro da família vê as fotos aparecendo automaticamente no navegador são os dois "aha moments" — um técnico, outro emocional.
 
 ---
 
-## Funil de Adoção
+## Adoption Funnel
 
 | Etapa | Ação do Usuário | Canal / Ferramenta | Taxa de Conversão Esperada |
 | --- | --- | --- | --- |
@@ -57,7 +65,7 @@ Esta seção define **como o Alexandria chega até o usuário** e como ele desco
 
 ---
 
-## Jornada do Usuário
+## Contributor Journey
 
 | Etapa | Ação do Usuário | Principal Dor | Solução |
 | --- | --- | --- | --- |
@@ -73,7 +81,7 @@ Esta seção define **como o Alexandria chega até o usuário** e como ele desco
 
 ---
 
-## Parcerias Estratégicas
+## Ecosystem Integrations & Partnerships
 
 | Parceiro | Tipo de Parceria | Valor para Alexandria | Valor para o Parceiro | Status |
 | --- | --- | --- | --- | --- |

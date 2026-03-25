@@ -36,6 +36,15 @@ Define as camadas arquiteturais, regras de dependencia, fronteiras de dominio e 
 | Domain | Entities (Cluster, Member, Node, File, Chunk...), value objects, domain events, domain errors, interfaces de repository | Nao depende de nenhuma outra camada |
 | Infrastructure | Prisma repositories, Redis cache/pub-sub, BullMQ producers/consumers, StorageProvider (S3/R2/B2/local), Resend email client | Implementa interfaces do Domain |
 
+<!-- added: opensource -->
+### Contributor Architecture Guide
+
+- **Layer boundaries**: Controllers call Services; Services call Repositories and external Clients; Repositories only touch Prisma. Never call a Repository from a Controller directly.
+- **Dependency injection**: register new services as `@Injectable()` in the NestJS module `providers` array; use constructor injection — never instantiate directly.
+- **Adding a new domain module**: create `src/modules/your-module/` with `.module.ts`, `.service.ts`, `.controller.ts` (optional), `.repository.ts`. Follow the pattern in `src/modules/cluster/`.
+- **Architecture Decision Records**: read `docs/blueprint/10-architecture_decisions.md` before proposing architectural changes — understand what was already considered.
+- **Core SDK boundary**: `packages/core-sdk` is a separate package. Changes affect all consumers (orchestrator, node agent). Treat its public API as stable; use RFCs for breaking changes.
+
 <!-- APPEND:camadas -->
 
 ---

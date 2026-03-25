@@ -1,14 +1,14 @@
-# Métricas e KPIs
+# OSS Metrics & KPIs
 
-Esta seção define **como medir o sucesso do Alexandria**. Estabelece a North Star Metric, o funil AARRR adaptado para open-source, metas por milestone e o dashboard operacional.
+<!-- updated: opensource — open-core -->This section defines **how to measure the success of Alexandria** as an open-core project. Establishes the North Star Metric, an OSS-adapted AARRR funnel, milestones, and the operational dashboard.
 
-> **Nota:** O Alexandria é open-source sem receita na v1. Métricas tradicionais SaaS (MRR, churn rate) são projetadas para o serviço gerenciado futuro (ano 2+). Na v1, o foco é em **adoção**, **durabilidade** e **contribuição da comunidade**.
+> **Note:** Alexandria has no revenue in v1. Traditional SaaS metrics (MRR, churn rate) are projected for the future managed service (Year 2+). In v1, focus is on **adoption**, **durability**, and **community contribution**.
 
 ---
 
 ## North Star Metric
 
-**North Star Metric:** Fotos preservadas com integridade verificada
+**North Star Metric:** Photos preserved with verified integrity
 
 **Definição:** Total de arquivos (fotos + vídeos) armazenados em clusters Alexandria com 3+ réplicas saudáveis e último scrubbing sem erros.
 
@@ -28,20 +28,29 @@ Esta seção define **como medir o sucesso do Alexandria**. Estabelece a North S
 
 ---
 
-## Métricas AARRR / Pirate Metrics (Adaptado para Open-Source)
+## OSS AARRR Metrics
 
-### Acquisition (Aquisição)
+### Awareness (Discovery)
 
-> Como os usuários descobrem o Alexandria?
+> How do users discover Alexandria?
 
 | Métrica | Valor Atual | Meta (Ano 1) | Benchmark |
 | --- | --- | --- | --- |
 | GitHub stars | 0 | 1.000-5.000 | Immich: 50K em 2 anos; PhotoPrism: 35K em 4 anos <!-- inferido do PRD --> |
 | Docker pulls/mês | 0 | 500-2.000 | Projetos self-hosted populares: 1K-10K pulls/mês <!-- inferido do PRD --> |
 
-### Activation (Ativação)
+### Adoption (Installs)
 
-> Em que momento o usuário percebe valor?
+> Metrics: GitHub stars (trend), Docker pulls, website visits, npm downloads.
+
+| Metric | Current | Year 1 Target | Benchmark |
+| ------ | ------- | ------------- | --------- |
+| GitHub stars | 0 | 1,000–5,000 | Immich: 50K in 2 years; PhotoPrism: 35K in 4 years |
+| Docker pulls/month | 0 | 500–2,000 | Popular self-hosted projects: 1K–10K pulls/month |
+
+### Activation (First Successful Use / First Contribution)
+
+> When does the user realize value? When does a contributor make their first impact?
 
 **Aha moment (admin):** Vê "3/3 réplicas saudáveis" no dashboard pela primeira vez.
 
@@ -52,27 +61,27 @@ Esta seção define **como medir o sucesso do Alexandria**. Estabelece a North S
 | % que completa setup (pull → cluster rodando) | N/A | 70% | >60% para self-hosted com Docker Compose <!-- inferido do PRD --> |
 | Tempo até primeiro upload replicado | N/A | <2 horas | <1 dia ideal <!-- inferido do PRD --> |
 
-### Retention (Retenção)
+### Retention (Weekly Active Users / Returning Contributors)
 
-> Os clusters continuam rodando? As famílias continuam usando?
+> Are clusters still running? Are families still using? Are contributors coming back?
 
 | Métrica | Valor Atual | Meta | Benchmark |
 | --- | --- | --- | --- |
 | Clusters ativos após 30 dias (M1) | N/A | 80% | >60% para projetos self-hosted <!-- inferido do PRD --> |
 | Clusters ativos após 90 dias (M3) | N/A | 60% | >40% para projetos self-hosted <!-- inferido do PRD --> |
 
-### Revenue (Receita) — Ano 2+
+### Revenue / Funding — Year 2+
 
-> Projeção para o serviço gerenciado futuro.
+> Projection for the future managed service.
 
 | Métrica | Valor Atual | Meta (Ano 2) | Benchmark |
 | --- | --- | --- | --- |
 | MRR (serviço gerenciado) | R$ 0 | R$ 10.000+ | — |
 | SaaS Quick Ratio | N/A | >4 | >4 = crescimento saudável |
 
-### Referral (Indicação)
+### Referral (Forks, Mentions, "Used by" Count)
 
-> Os usuários indicam o Alexandria para outros?
+> Are users recommending Alexandria to others? Are developers forking and building on top of it?
 
 | Métrica | Valor Atual | Meta | Benchmark |
 | --- | --- | --- | --- |
@@ -81,7 +90,7 @@ Esta seção define **como medir o sucesso do Alexandria**. Estabelece a North S
 
 ---
 
-## Retenção por Coorte (Projeção)
+## Cohort Retention (Projection)
 
 > Acompanhar a retenção de cada coorte mensal de instalações ao longo do tempo.
 
@@ -97,9 +106,9 @@ Esta seção define **como medir o sucesso do Alexandria**. Estabelece a North S
 
 ---
 
-## Metas e Milestones
+## Goals & Milestones
 
-### Milestones (Early-Stage)
+### Release Milestones
 
 | Fase | Período | Meta Principal | Critério de Saída |
 | --- | --- | --- | --- |
@@ -108,7 +117,7 @@ Esta seção define **como medir o sucesso do Alexandria**. Estabelece a North S
 | **v1.0** | Mês 7-9 | Release estável com todos os Must-have implementados | 200+ clusters; 0 bugs críticos abertos; docs completa para setup |
 | **Crescimento** | Mês 10-12 | Escalar adoção e preparar serviço gerenciado | 500-1.000 clusters; lista de espera para cloud; 10+ contribuidores |
 
-### OKRs — Q1 Pós-Lançamento
+### OKRs — Q1 Post-Launch
 
 **Objetivo 1:** Provar que o Alexandria preserva dados de forma confiável
 
@@ -128,16 +137,16 @@ Esta seção define **como medir o sucesso do Alexandria**. Estabelece a North S
 
 ---
 
-## Dashboard Operacional
+## Operational Dashboard
 
-**Métricas Diárias (2):**
+**Daily metrics (2):**
 
 | Métrica | Fonte | Alerta se... |
 | --- | --- | --- |
 | Novos Docker pulls | Docker Hub / GHCR API | < 5 por dia (após lançamento) |
 | Issues/PRs abertos sem triagem | GitHub API | > 10 sem label por >24h |
 
-**Métricas Semanais (3):**
+**Weekly metrics (3):**
 
 | Métrica | Fonte | Alerta se... |
 | --- | --- | --- |
@@ -149,9 +158,9 @@ Esta seção define **como medir o sucesso do Alexandria**. Estabelece a North S
 
 ---
 
-## Glossário de Métricas SaaS
+## OSS Metrics Glossary
 
-> Definições canônicas das principais métricas. Referenciadas ao longo de todo o blueprint. Aplicáveis principalmente ao serviço gerenciado (ano 2+).
+> Canonical definitions. Applicable primarily to the managed service (Year 2+). For v1 OSS phase, see substitutions at the bottom.
 
 | Métrica | Definição | Fórmula |
 | --- | --- | --- |
@@ -167,4 +176,16 @@ Esta seção define **como medir o sucesso do Alexandria**. Estabelece a North S
 | **Quick Ratio** | Eficiência do crescimento de MRR | (New MRR + Expansion MRR) / (Churn MRR + Contraction MRR) |
 | **Magic Number** | Eficiência de vendas e marketing | Net New ARR no trimestre / Gasto S&M no trimestre anterior |
 
-> **Para open-source na v1**, substitua mentalmente: MRR → doações/mês; CAC → tempo investido em conteúdo por instalação; LTV → meses de uso ativo × valor gerado (custo evitado); Churn → % de clusters que param de rodar.
+**OSS-specific metrics** (not in standard SaaS glossary):
+
+| Metric | Definition |
+| ------ | ---------- |
+| **Bus Factor** | Minimum number of contributors that must be lost for the project to stall. Target: >1. |
+| **Time to First Response** | Average time from issue/PR opened to first maintainer response. Target: <48h. |
+| **PR Merge Time** | Average time from PR opened to merged. Target: <7 days for bug fixes. |
+| **Issue Close Rate** | % of opened issues resolved in the last 30 days. Target: >70%. |
+| **Contributor Retention Rate** | % of contributors who return to contribute a second time. |
+| **MTTR (Releases)** | Mean time from bug report to released fix. |
+| **Adoption Rate** | New active installs per week/month. |
+
+> **For open-source v1**, substitute: MRR → donations/month; CAC → maintainer time per installation; LTV → months of active use × value generated (avoided cost); Churn → % of clusters that stop running.

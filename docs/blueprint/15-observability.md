@@ -209,3 +209,14 @@ Verifica se o orquestrador está pronto para receber tráfego (dependências con
   }
 }
 ```
+
+---
+
+<!-- added: opensource -->
+## Operational Transparency
+
+- **Status page**: `{{status_url}}` — public uptime monitoring for demo/hosted instance
+- **Incident communication**: public post-mortem published within 72h for any incident causing data access issues or >4h downtime; posted to GitHub Discussions and blog
+- **Open metrics dashboard**: public Grafana Cloud dashboard showing aggregate opt-in telemetry — active clusters trend, replication health, upload volume (no PII)
+- **Release notes**: every release includes full CHANGELOG with: what changed, breaking changes, migration guide, contributor credits
+- **Security advisories**: published via GitHub Security Advisories with CVE when applicable; linked from SECURITY.md

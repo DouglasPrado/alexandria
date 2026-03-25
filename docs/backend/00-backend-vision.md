@@ -69,6 +69,15 @@ Monolito modular com monorepo pnpm workspaces (`core-sdk`, `orchestrator`, `node
 | Idempotencia | Operacoes seguras para retry | Content-addressable chunks (SHA-256); dedup por hash; heartbeat idempotente |
 | Observabilidade | Todo comportamento rastreavel | pino JSON estruturado, trace_id em cada request, metricas Prometheus |
 
+<!-- added: opensource -->
+### Opensource Backend Principles
+
+- **Extensibility**: `StorageProvider` and `MediaProcessor` interfaces allow community to add new adapters (storage backends, codecs) without modifying core code. See `docs/contributing/add-storage-provider.md`.
+- **Configuration over code**: all environment-specific values (cloud credentials, VPS hostname, ports) come from environment variables; no hardcoded values. Enables easy deployment across dev/staging/prod and community environments.
+- **Database agnosticism**: Prisma ORM provides an abstraction layer; community can contribute adapters for MySQL, SQLite (for small clusters), or other PostgreSQL-compatible databases.
+- **API stability**: `/api/v1/*` endpoints follow semver. Breaking changes require an RFC + major version bump. Internal module APIs are marked `@internal` in JSDoc and may change freely.
+- **Zero secrets in code**: never commit credentials, tokens, or keys. All secrets must be environment variables. CI enforces this via `secretlint`.
+
 <!-- APPEND:principios -->
 
 ---

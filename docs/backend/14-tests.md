@@ -153,3 +153,21 @@ test/
 | Semanal | Cron | k6 load tests | 30 min | Nao (alerta) |
 
 **Tempo maximo de CI (PR → merge):** < 10 minutos.
+
+---
+
+<!-- added: opensource -->
+## Testing Guide for Contributors
+
+- **Running tests locally**:
+  ```bash
+  npm run test              # unit tests only (~30s, no Docker needed)
+  npm run test:int          # integration tests (requires Docker for testcontainers)
+  npm run test:e2e          # full E2E with Docker Compose (~10 min)
+  npm run test:coverage     # coverage report
+  ```
+- **Writing tests**: name test files `*.spec.ts` (unit) or `*.e2e-spec.ts` (e2e); place alongside source files for unit, in `test/integration/` for integration
+- **Test fixtures**: use factory functions from `test/factories/` to create test data; never hardcode UUIDs or timestamps in tests
+- **Database tests**: use `testcontainers` (`PostgreSqlContainer`, `RedisContainer`) — never hit real external services in CI; each test suite spins up isolated containers
+- **CI pipeline**: every PR runs `lint → typecheck → unit → integration`; E2E runs on merge to `main`
+- **Coverage requirement**: PRs must not decrease existing coverage; current coverage visible in `npm run test:coverage`

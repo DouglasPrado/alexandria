@@ -630,3 +630,14 @@ Fonte **complementar** para icones estaticos de UI estrutural.
 - [ ] Navegacao funciona 100% via teclado
 - [ ] Screen reader anuncia mudancas de estado (aria-live)
 - [ ] Nenhuma informacao transmitida apenas por cor (usar icone + texto)
+
+---
+
+<!-- added: opensource -->
+## Design System for Contributors
+
+- **Adding components**: create in `packages/ui/src/components/YourComponent/` with `YourComponent.tsx`, `YourComponent.test.tsx`, and `YourComponent.stories.tsx` (Phase 2+)
+- **Storybook**: `pnpm --filter @alexandria/ui storybook` to view isolated components (available from Phase 2)
+- **Design tokens**: use existing CSS variables (`--color-primary`, `--font-heading`, etc.) — create new tokens only when existing ones don't semantically fit; new tokens go in `packages/config/src/themes.css` with a comment explaining the use case
+- **Visual regression**: screenshot comparison on PRs via Chromatic (Phase 2+); new component stories are required for visual regression coverage
+- **Accessibility**: all new interactive components must pass WCAG AA contrast (4.5:1) and be keyboard-navigable; run `pnpm a11y` to check before submitting PR

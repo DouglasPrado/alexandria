@@ -1,12 +1,25 @@
-# Relacionamento com Usuário
+# Community Engagement
 
-Esta seção define **como o Alexandria constrói e mantém relações duradouras com seus usuários**. Abrange ativação, ciclo de vida, retenção, expansão e recuperação. Como projeto open-source sem receita, o foco é em **engajamento**, **confiança** e **contribuição da comunidade**.
+<!-- updated: opensource — open-core -->This section defines **how Alexandria builds and maintains lasting relationships with its community**. Covers activation, contributor lifecycle, retention, expansion, and recovery. As an open-core project, the focus is on **engagement**, **trust**, and **community contribution**.
 
-> **Nota:** O Alexandria não tem clientes pagantes. "Retenção" significa manter o sistema rodando e a família usando. "Expansão" significa adicionar nós, membros e contribuir com a comunidade. "Churn" significa abandonar o sistema.
+> **Note:** Alexandria has no paying customers in v1. "Retention" means keeping the system running and the family using it. "Expansion" means adding nodes, members, and contributing to the community. "Churn" means abandoning the system.
 
 ---
 
-## Definição de Ativação
+## Contributor Lifecycle
+
+`Newcomer` → `Contributor` → `Committer` → `Maintainer` → `TSC Member (future)`
+
+| Stage | Criteria | Responsibilities | Recognition |
+| ----- | -------- | ---------------- | ----------- |
+| **Newcomer** | Filed an issue or asked a question | Explore the codebase; read CONTRIBUTING.md | Welcome message; good-first-issue label |
+| **Contributor** | 1+ merged PR | Submit PRs; review others' PRs | Listed in CONTRIBUTORS file; release notes credit |
+| **Committer** | 5+ quality PRs; consistent engagement | Review PRs; triage issues; mentor newcomers | GitHub org member; write access to non-critical branches |
+| **Maintainer** | Sustained contribution over 3+ months; trusted judgment | Release management; architecture decisions; security response | Co-maintainer status; direct push access; README credit |
+
+---
+
+## Activation Definition
 
 | Aspecto | Descrição |
 | --- | --- |
@@ -21,7 +34,7 @@ Esta seção define **como o Alexandria constrói e mantém relações duradoura
 
 ---
 
-## Ciclo de Vida e Estratégia
+## Community Lifecycle Strategy
 
 | Fase | Objetivo | Modelo | Ação Principal | Métrica |
 | --- | --- | --- | --- | --- |
@@ -35,9 +48,11 @@ Esta seção define **como o Alexandria constrói e mantém relações duradoura
 
 ---
 
-## Retenção
+## Retention
 
-**Sinais de risco de abandono:**
+**Churn signals (contributor):** inactivity for 60+ days, ignored PRs, frustrating code review, burnout.
+
+**Churn signals (user cluster):**
 
 | Sinal | Ação Preventiva | Automação |
 | --- | --- | --- |
@@ -47,7 +62,7 @@ Esta seção define **como o Alexandria constrói e mantém relações duradoura
 | Issue/discussão aberta sem resposta em >7 dias | Mantenedor responde; se for bug, prioriza fix | Não — requer atenção manual |
 | Token OAuth expirado sem renovação automática | Alerta: "Conta X precisa re-autorizar" + botão de re-auth | Sim — RF-020 |
 
-**Estratégias de retenção:**
+**Retention strategies:**
 
 - **Confiança pelo dashboard:** Dashboard de saúde sempre visível mostrando "seus dados estão seguros: X réplicas, Y nós online, Z% integridade"
 - **Disaster drills automáticos:** Mensalmente, o sistema reconstrói um arquivo aleatório de réplicas para provar que o recovery funciona — admin recebe relatório
@@ -65,7 +80,7 @@ Esta seção define **como o Alexandria constrói e mantém relações duradoura
 
 ---
 
-## Expansão de Uso
+## Expansion
 
 > Como expandir o uso de clusters existentes?
 
@@ -79,7 +94,7 @@ Esta seção define **como o Alexandria constrói e mantém relações duradoura
 
 ---
 
-## Health Score do Cluster
+## Cluster Health Score
 
 > Como medir a saúde de cada instalação de forma simples e acionável?
 
@@ -98,7 +113,7 @@ Esta seção define **como o Alexandria constrói e mantém relações duradoura
 
 ---
 
-## Suporte
+## Support
 
 | Canal | Disponibilidade | Tempo de Primeira Resposta | Público |
 | --- | --- | --- | --- |
@@ -117,7 +132,7 @@ Esta seção define **como o Alexandria constrói e mantém relações duradoura
 
 ---
 
-## Programa de Indicação
+## Referral & Recognition Program
 
 | Aspecto | Descrição |
 | --- | --- |
@@ -129,7 +144,7 @@ Esta seção define **como o Alexandria constrói e mantém relações duradoura
 
 ---
 
-## Win-back (Recuperação)
+## Win-back (Re-engagement)
 
 | Aspecto | Descrição |
 | --- | --- |

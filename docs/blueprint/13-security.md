@@ -167,7 +167,28 @@ Checklist baseado no **OWASP Top 10** adaptado para o Alexandria.
 
 ---
 
-## Referências
+<!-- added: opensource -->
+## Vulnerability Disclosure Policy
+
+- **Channel**: security@alexandria.app OR [GitHub Security Advisories](https://github.com/douglas-prado/alexandria/security/advisories/new)
+- **PGP**: public key available in `SECURITY.md` at the repository root
+- **Timeline**:
+  - Acknowledgment: within 48 hours
+  - Assessment: within 7 days
+  - Fix for critical: within 14 days
+  - Fix for high: within 30 days
+  - Coordinated public disclosure: 90 days after report
+- **CVE**: request CVE for confirmed vulnerabilities via MITRE or GitHub Advisory Database
+- **Supply Chain Security**:
+  - Dependabot enabled for automatic dependency updates
+  - `npm audit` runs on every CI build
+  - SBOM (Software Bill of Materials) generated per release
+  - Release artifacts signed with GitHub Actions OIDC (SLSA Level 2 target)
+  - All release tags GPG-signed by BDFL maintainer
+
+---
+
+## References
 
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [STRIDE Threat Model](https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats)

@@ -1,55 +1,59 @@
-# Contexto de Negócio
+# Opensource Ecosystem Context
 
-Esta seção estabelece **o cenário de negócios** onde o produto será inserido. Define o mercado, a concorrência, as tendências e as premissas que fundamentam as decisões estratégicas.
-
----
-
-## Estágio do Produto
-
-> Em que fase o produto se encontra hoje?
-
-- [x] Pré-lançamento (ideia / pesquisa)
-- [ ] MVP (produto mínimo viável em teste)
-- [ ] Em mercado (primeiros usuários)
-- [ ] Growth (product-market fit validado, escalando)
-
-**Estágio atual:** Fase de design e documentação. PRD v1.0.0 completo com 79 requisitos funcionais. Blueprint técnico finalizado. Nenhum código escrito ainda. Próximo passo é a Fase 0 (Fundação — Core SDK em TypeScript). Validações pendentes incluem: qualidade perceptual de Full HD para fotos familiares (H-01), taxa de deduplicação em acervo real (H-02) e recovery via seed phrase (H-04).
+<!-- updated: opensource — open-core -->This section establishes the **ecosystem context** where the project operates. Defines the developer community landscape, ecosystem alternatives, trends, and assumptions that shape strategic decisions for the Alexandria open-core project.
 
 ---
 
-## Mercado
+## Project Stage
 
-> O Alexandria atua no mercado de **armazenamento pessoal/familiar de dados** — especificamente na interseção entre backup pessoal, armazenamento cloud e preservação digital de longo prazo.
+> What stage is the project in today?
 
-| Dimensão                  | Valor                                                                                        |
-| ------------------------- | -------------------------------------------------------------------------------------------- |
-| Tamanho do mercado (TAM)  | ~$90B/ano (mercado global de cloud storage pessoal — Statista 2025) <!-- inferido do PRD --> |
-| Taxa de crescimento anual | ~20% ao ano (storage pessoal cresce com produção de mídia mobile) <!-- inferido do PRD -->   |
-| Estágio de maturidade     | Crescimento — dominado por big techs mas insatisfação crescente com custo e privacidade      |
-| Região geográfica foco    | Global (self-hosted, sem restrição geográfica); comunidade inicial: Brasil (família do dev)  |
+- [x] Pre-release (idea / research / design)
+- [ ] Alpha (early adopters, core pipeline functional)
+- [ ] Beta (public Docker Compose release, Show HN)
+- [ ] Stable v1.0 (all must-have requirements implemented)
+- [ ] LTS (long-term support, mature community)
 
-**Fontes de evidência (do PRD):**
-
-- Google Photos eliminou armazenamento ilimitado gratuito em 2021; free tier reduzido a 15GB
-- HDDs duram 5-10 anos, SSDs ~10 anos sem migração — dados de consenso da indústria
-- ~102GB de armazenamento gratuito disponível por pessoa combinando provedores cloud
-- 20-60% de duplicação em fotos familiares (WhatsApp, compartilhamento entre dispositivos)
-- Custos de planos pagos (Google One, Dropbox Plus, iCloud+) crescem ano a ano
-
-> O mercado é enorme mas dominado por incumbentes. A oportunidade não é competir em tamanho, mas atender um nicho mal servido: famílias técnicas que querem controle total, privacidade e custo zero.
+**Current stage:** Design and documentation phase. PRD v1.0.0 complete with 79 functional requirements. Technical blueprint finalized. No code written yet. Next step is Phase 0 (Foundation — Core SDK in TypeScript). Pending validations include: Full HD perceptual quality for family photos (H-01), deduplication rate on real archive (H-02), and seed phrase recovery (H-04).
 
 ---
 
-## Concorrência
+## Ecosystem
 
-| Concorrente           | Posicionamento                          | Pontos Fortes                                               | Pontos Fracos                                                                               | Pricing                               | Market Share |
-| --------------------- | --------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------- | ------------ |
-| Google Photos / Drive | Storage cloud consumer mainstream       | 15GB grátis; UX excelente; busca por IA; integração Android | Vendor lock-in; privacidade questionável; preços crescentes acima de 15GB                   | Freemium (R$7-35/mês para 100GB-2TB)  | ~35%         |
-| iCloud                | Ecossistema Apple                       | Integração nativa iOS/macOS; seamless para usuários Apple   | Só Apple; 5GB grátis (insuficiente); caro para famílias                                     | Freemium (R$4-35/mês para 50GB-2TB)   | ~25%         |
-| Dropbox               | Storage cloud profissional/pessoal      | Sync confiável; cross-platform; integrações                 | 2GB grátis (menor do mercado); foco B2B; preço alto                                         | Freemium (R$50/mês para 2TB)          | ~10%         |
-| Syncthing             | Sync P2P open-source entre dispositivos | Grátis; privado; sem cloud; open-source                     | Sem criptografia at-rest; sem otimização de mídia; sem redundância cloud; sem recovery      | Gratuito                              | ~1% (nicho)  |
-| Nextcloud             | Cloud pessoal self-hosted               | Self-hosted; open-source; ecossistema de apps               | Complexo de operar; sem otimização de mídia; sem distribuição entre provedores; performance | Gratuito (self-hosted) + hosting pago | ~2% (nicho)  |
-| BorgBackup / Restic   | Backup incremental criptografado        | Deduplicação excelente; criptografia forte; open-source     | Apenas backup (sem galeria, sem sync); CLI-only; não é storage distribuído                  | Gratuito                              | ~1% (nicho)  |
+> Alexandria operates in the **personal/family data storage** ecosystem — specifically at the intersection of self-hosted software, privacy-first cloud storage, and long-term digital preservation.
+
+| Dimension | Value |
+| --------- | ----- |
+| **Total Addressable Developers** | ~5–10M globally (self-hosters, data hoarders, privacy-conscious developers — r/selfhosted 1.5M, r/datahoarder 700K, r/degoogle 300K + multiplier 2–3× for non-Reddit communities) |
+| **Active Ecosystem Users (SAM)** | ~500K–2M globally (families with ≥1 technical member, ≥200GB of media, willing to self-host) |
+| **Target Contributors (Year 1)** | 500–1,000 active installations; 10–50 code contributors |
+| Annual growth rate | ~20% per year (personal storage grows with mobile media production) |
+| Ecosystem maturity | Growth — dominated by big tech incumbents, but growing dissatisfaction with cost and privacy |
+| Geographic focus | Global (self-hosted, no geographic restriction); initial community: Brazil (dev's family) + r/selfhosted international |
+
+**Evidence (from PRD):**
+
+- Google Photos eliminated unlimited free storage in 2021; free tier reduced to 15GB
+- HDDs last 5–10 years, SSDs ~10 years without migration — industry consensus
+- ~102GB free storage available per person combining cloud providers
+- 20–60% duplication in family photos (WhatsApp, cross-device sharing)
+- Paid plan costs (Google One, Dropbox Plus, iCloud+) increase year over year
+
+> The market is huge but dominated by incumbents. The opportunity is not to compete at scale, but to serve an underserved niche: technical families who want full control, privacy, and zero cost. OSS open-core model allows the core to be freely adopted while a managed service captures conversion from non-technical families.
+
+---
+
+## Ecosystem Alternatives
+
+| Project | Positioning | Strengths | Weaknesses | License | GitHub Stars / Downloads |
+| ------- | ----------- | --------- | ---------- | ------- | ------------------------ |
+| Google Photos / Drive | Mainstream consumer cloud storage | 15GB free; excellent UX; AI search; Android integration | Vendor lock-in; privacy concerns; rising prices above 15GB | Proprietary | N/A (closed) |
+| iCloud | Apple ecosystem | Native iOS/macOS integration; seamless for Apple users | Apple-only; 5GB free (insufficient); expensive for families | Proprietary | N/A (closed) |
+| Dropbox | Professional/personal cloud storage | Reliable sync; cross-platform; integrations | 2GB free (smallest on market); B2B focus; high price | Proprietary | N/A (closed) |
+| Syncthing | P2P open-source sync between devices | Free; private; no cloud dependency; open-source | No at-rest encryption; no media optimization; no cloud redundancy; no recovery | MPL-2.0 | ~65K ⭐ |
+| Nextcloud | Self-hosted personal cloud | Self-hosted; open-source; app ecosystem | Complex to operate; no media optimization; no multi-provider distribution; performance | AGPL-3.0 | ~28K ⭐ |
+| Immich | Self-hosted photo/video backup | Excellent mobile apps; active community; Google Photos-like UX | No distributed storage; single-node; no multi-provider redundancy; no seed recovery | AGPL-3.0 | ~55K ⭐ |
+| BorgBackup / Restic | Incremental encrypted backup | Excellent deduplication; strong encryption; open-source | Backup only (no gallery, no sync); CLI-only; not distributed storage | BSD / Apache-2.0 | ~12K ⭐ |
 
 **Concorrentes indiretos (substitutos):**
 
@@ -60,22 +64,24 @@ Esta seção estabelece **o cenário de negócios** onde o produto será inserid
 
 ---
 
-## Tendências
+## Ecosystem Trends
 
-| Tendência                                                | Tipo          | Impacto no Negócio                                                                 | Horizonte                    |
-| -------------------------------------------------------- | ------------- | ---------------------------------------------------------------------------------- | ---------------------------- |
-| Eliminação de armazenamento gratuito ilimitado           | Mercado       | Diretamente positivo — famílias buscam alternativas ao Google/Apple pagos          | Curto prazo (já acontecendo) |
-| Crescimento exponencial de produção de mídia mobile      | Comportamento | Aumenta urgência — celulares produzem ~1GB/mês de fotos/vídeos por pessoa          | Contínuo                     |
-| Preocupação crescente com privacidade digital            | Comportamento | Fortalece proposta de zero-knowledge encryption; diferencial vs big techs          | Médio prazo                  |
-| Codecs modernos (WebP, AVIF, AV1) amadurecendo           | Tecnologia    | Viabiliza redução de 10-20x em fotos e 3-5x em vídeos sem perda perceptível        | Curto prazo (já disponível)  |
-| Descentralização e self-hosting ganhando tração          | Tecnologia    | Comunidade crescente de self-hosters (Nextcloud, Syncthing, Immich) valida demanda | Médio prazo                  |
-| Regulamentações de proteção de dados (LGPD, GDPR)        | Regulatório   | Reforça valor de criptografia e controle do usuário sobre seus dados               | Longo prazo                  |
-| Custo de storage cloud caindo (R2 sem egress, B2 barato) | Mercado       | Viabiliza modelo de custo zero combinando free tiers de múltiplos provedores       | Curto prazo                  |
-| IA generativa para organização de fotos                  | Tecnologia    | Oportunidade futura (indexação inteligente Fase 3); big techs têm vantagem aqui    | Longo prazo                  |
+| Trend | Type | Impact on Project | Horizon |
+| ----- | ---- | ----------------- | ------- |
+| Elimination of unlimited free cloud storage | Market | Directly positive — families seek alternatives to paid Google/Apple | Short-term (already happening) |
+| Exponential growth of mobile media production | Behavior | Increases urgency — phones produce ~1GB/month of photos/videos per person | Ongoing |
+| Growing concern about digital privacy | Behavior | Strengthens zero-knowledge encryption value proposition | Medium-term |
+| AI-assisted contributions (GitHub Copilot, Claude Code) | OSS trend | Lowers barrier to contribution; accelerates community PRs | Short-term (already available) |
+| Modern codecs (WebP, AVIF, AV1) maturing | Technology | Enables 10–20× reduction in photos and 3–5× in videos without perceptible loss | Short-term (already available) |
+| Decentralization and self-hosting gaining traction | Technology | Growing self-hosting community (Nextcloud, Syncthing, Immich) validates demand | Medium-term |
+| Supply chain security (SBOM, signing, SLSA) | OSS trend | Requires signed releases, SBOM, verified dependencies — community expectation | Short-term |
+| Data protection regulations (LGPD, GDPR) | Regulatory | Reinforces value of encryption and user data control | Long-term |
+| Corporate OSS adoption and sponsorship | OSS trend | Companies adopting self-hosted solutions increasingly sponsor projects they depend on | Medium-term |
+| Falling cloud storage costs (R2 zero egress, B2 cheap) | Market | Enables zero-cost model combining multiple providers' free tiers | Short-term |
 
 ---
 
-## Oportunidade
+## Opportunity
 
 **Lacuna identificada:**
 
@@ -94,24 +100,25 @@ Não existe solução que combine: (1) distribuição de dados entre múltiplos 
 
 ---
 
-## Análise SWOT
+## SWOT Analysis
 
-|             | **Positivo**                                                                                         | **Negativo**                                                                                    |
+|             | **Positive**                                                                                         | **Negative**                                                                                    |
 | ----------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| **Interno** | **Forças**                                                                                           | **Fraquezas**                                                                                   |
-|             | Tech lead com experiência full-stack em sistemas distribuídos, criptografia e processamento de mídia | Time de 1 pessoa — capacidade de desenvolvimento limitada                                       |
-|             | TypeScript/NestJS como stack: produtividade alta, type-safety, ecossistema npm maduro                                    | Sem base de usuários; sem marca; sem marketing                                                  |
-|             | Arquitetura "orquestrador descartável" — resilience by design                                        | Curva de aprendizado para família não-técnica usar o sistema                                    |
-|             | Custo operacional ~€5-10/mês (VPS + free tiers)                                                      | Sem funding; sem runway comercial; projeto pessoal                                              |
-| **Externo** | **Oportunidades**                                                                                    | **Ameaças**                                                                                     |
-|             | Insatisfação crescente com preços de Google/Apple/Dropbox                                            | Big techs podem oferecer features similares (criptografia, multi-device)                        |
-|             | Comunidade self-hosting em crescimento (Immich tem 50k+ stars)                                       | Provedores cloud eliminam free tiers ou mudam APIs S3                                           |
-|             | Codecs modernos viabilizam redução 10-20x sem perda perceptível                                      | Formatos de mídia tornam-se obsoletos em 50 anos (risco de preservação)                         |
-|             | Open-source pode atrair contribuidores e acelerar desenvolvimento                                    | Projetos concorrentes open-source (Immich, Photoprism) podem adicionar features de distribuição |
+| **Internal** | **Strengths**                                                                                       | **Weaknesses**                                                                                  |
+|             | Tech lead with full-stack experience in distributed systems, cryptography, and media processing | Single-person team — limited development capacity; bus factor = 1 |
+|             | TypeScript/NestJS stack: high productivity, type-safety, mature npm ecosystem | No user base yet; no brand recognition; no marketing budget |
+|             | "Disposable orchestrator" architecture — resilience by design | Learning curve for non-technical family members |
+|             | Permissive MIT license maximizes adoption; active community, full transparency | No funding; no commercial runway in v1; personal project |
+| **External** | **Opportunities**                                                                                  | **Threats**                                                                                     |
+|             | Growing dissatisfaction with Google/Apple/Dropbox prices | Maintainer burnout (high impact; prevention: funding + team growth) |
+|             | Self-hosting community growing (Immich 55K+ stars validates demand) | Hostile fork if project grows (prevention: strong governance + MIT license) |
+|             | Modern codecs enable 10–20× reduction without perceptible loss | Cloud providers eliminate free tiers or change S3 APIs |
+|             | Open-core model: free OSS drives adoption; managed service captures non-technical segment | Competing OSS projects (Immich, PhotoPrism) could add distribution features |
+|             | Corporate OSS sponsorship as project gains production deployments | License compliance issues (prevention: CLA/DCO + SBOM) |
 
 ---
 
-## Premissas de Negócio
+## Project Assumptions
 
 | Premissa                                                              | Risco se falsa                                                           | Impacto | Como validar                                                                     | Status    |
 | --------------------------------------------------------------------- | ------------------------------------------------------------------------ | ------- | -------------------------------------------------------------------------------- | --------- |

@@ -1,12 +1,40 @@
-# Proposta de Valor
+# Value Proposition — Why Use / Why Contribute
 
-Esta seção define **por que o usuário escolheria este produto** em vez das alternativas disponíveis. Mapeia as necessidades do usuário, articula a proposta de valor e identifica os diferenciais que tornam a solução defensável.
+<!-- updated: opensource — open-core -->This section defines **why someone would choose Alexandria** over available alternatives, and **why a developer would contribute** to the project. Maps user needs, articulates value propositions for both users and contributors, and identifies differentials that make the solution defensible.
 
-> **Nota:** O Alexandria é um projeto open-source familiar sem monetização direta. "Cliente" aqui refere-se ao **usuário-alvo** (famílias que adotam o sistema). O valor é medido em **custo evitado**, **dados preservados** e **autonomia conquistada**.
+> **Note:** Alexandria is an open-core project. "Value" is measured in **cost avoided**, **memories preserved**, **autonomy gained** (for users), and in **learning**, **portfolio**, **impact** (for contributors).
 
 ---
 
-## Necessidades do Cliente
+## For Users
+
+**Freedom** — your data lives on your own devices and cloud accounts. No vendor lock-in. No account termination risk. No one can access your encrypted family memories.
+
+**No vendor lock-in** — full data portability. Recover everything with 12 words. Switch cloud providers without re-uploading.
+
+**Full customization** — self-hosted, open-source. Audit every line of code. Add custom storage providers. Run on any VPS.
+
+**Community support** — GitHub Discussions, Discord, and a growing community of self-hosters who've solved the same problems you'll face.
+
+**Code auditability** — MIT-licensed code. No black boxes. You can verify that encryption is real, data never leaves your control.
+
+---
+
+## For Contributors
+
+**Learning** — systems distributed systems, cryptography (AES-256-GCM, BIP-39, envelope encryption), media processing (FFmpeg, libvips), TypeScript/NestJS at scale.
+
+**Portfolio** — real production system solving a hard problem. Architecture decisions are documented in ADRs. Your contributions are tracked in the changelog and README.
+
+**Networking** — join a community of self-hosters, privacy advocates, and distributed systems engineers.
+
+**Impact** — your code runs in real family clusters preserving decades of memories. Every bug fix and improvement matters.
+
+**Recognition** — contributors credited in README, release notes, and GitHub profile. No corporate anonymization of contributions.
+
+---
+
+## User Jobs-to-be-Done
 
 > Quais trabalhos o usuário precisa realizar, quais dores enfrenta e quais ganhos espera?
 
@@ -25,9 +53,7 @@ Esta seção define **por que o usuário escolheria este produto** em vez das al
 
 ---
 
-## Proposta de Valor
-
-**Declaração de valor:**
+## Value Statement
 
 O Alexandria permite que famílias preservem suas memórias digitais por décadas com custo zero, privacidade total e resiliência a qualquer desastre — distribuindo dados criptografados entre dispositivos da família e provedores cloud, com auto-reparação e recovery completo via frase de 12 palavras.
 
@@ -46,7 +72,7 @@ O Alexandria permite que famílias preservem suas memórias digitais por década
 
 ---
 
-## Unidade de Valor
+## Value Unit
 
 | Aspecto | Descrição |
 | --- | --- |
@@ -63,7 +89,7 @@ O Alexandria permite que famílias preservem suas memórias digitais por década
 
 ---
 
-## Diferencial e Defensabilidade
+## Differentials & Defensibility
 
 | Diferencial | Tipo | Copiável? | Como fortalecer |
 | --- | --- | --- | --- |

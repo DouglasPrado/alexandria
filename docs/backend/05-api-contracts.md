@@ -88,6 +88,16 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 | GET | `/health/live` | `HealthController.live` | — | Publica | Liveness probe (processo ativo) |
 | GET | `/health/ready` | `HealthController.ready` | `HealthService.check` | Publica | Readiness probe (PostgreSQL + Redis + BullMQ) |
 
+<!-- added: opensource -->
+### API Contribution Guidelines
+
+- **Endpoint naming**: `kebab-case` paths (`/cluster-nodes`), plural resource names (`/files` not `/file`), versioned under `/api/v1/`
+- **HTTP methods**: GET for reads, POST for creates, PATCH for partial updates, DELETE for removes — no custom verbs
+- **Breaking changes**: any change that removes/renames a field or changes response shape requires an RFC and a major version bump (`/api/v2/`). Never silently break existing clients.
+- **OpenAPI spec**: `src/openapi.yaml` must be updated with every endpoint change; CI validates the spec compiles; Swagger UI served at `GET /api/docs`
+- **Backwards compatibility policy**: deprecated fields marked with `@deprecated` in OpenAPI spec and kept for minimum 2 minor versions before removal
+- **Rate limiting defaults**: 100 req/min per IP for public endpoints; 1000 req/min for authenticated. Self-hosted operators can override via `RATE_LIMIT_*` env vars.
+
 <!-- APPEND:endpoints -->
 
 ---

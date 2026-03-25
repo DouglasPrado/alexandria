@@ -1,32 +1,45 @@
-# Plano Operacional
+# Community Operations
 
-Esta seção detalha **como o Alexandria funciona no dia a dia**. Define processos, equipe, infraestrutura, timeline de lançamento, riscos e aspectos legais necessários para a operação.
+<!-- updated: opensource — open-core -->This section details **how Alexandria operates day-to-day** as an open-core project. Defines core processes, contributor ladder, governance (BDFL), infrastructure, release timeline, risk register, and legal/compliance aspects.
 
-> **Nota:** O Alexandria é operado por um mantenedor solo (Douglas) na v1. A operação é minimalista: desenvolver, documentar, responder comunidade. Escala de equipe só acontece com receita (serviço gerenciado) ou massa crítica de contribuidores.
+> **Note:** Alexandria is operated by a solo maintainer (Douglas) in v1. Operations are minimalist: develop, document, respond to community. Team scaling only happens with revenue (managed service) or critical mass of contributors.
 
 ---
 
-## Processos Core
+## Core Processes
 
-| Processo | Responsável | Frequência | Ferramenta/Método |
-| --- | --- | --- | --- |
-| Desenvolvimento e releases | Douglas + contribuidores | Contínua; release a cada 2-4 semanas | GitHub (PRs, CI/CD via Actions, tags semânticas) |
-| Triagem de issues e revisão de PRs | Douglas | Semanal (2-3h) | GitHub Issues + PR review; labels de prioridade |
-| Monitoramento de segurança | Douglas | Contínua (alertas) + revisão mensal | Dependabot, security advisories, responsible disclosure |
+| Process | Owner | Frequency | Tool/Method |
+| ------- | ----- | --------- | ----------- |
+| Development & releases (semver) | Douglas + contributors | Continuous; release every 2–4 weeks | GitHub (PRs, CI/CD via Actions, semver tags, changelog) |
+| Issue triage & PR review | Douglas | Weekly (2–3h) | GitHub Issues + PR review; priority labels; stale bot |
+| RFC / proposal process | Douglas + community | Per feature | GitHub Discussions → issue → implementation |
+| Code review SLA | Douglas | Target: first review within 48h | GitHub notifications |
+| Security response | Douglas | Continuous (alerts) + monthly review | Dependabot, GitHub Security Advisories, SECURITY.md |
+| Release process | Douglas | Every 2–4 weeks | semver; CHANGELOG.md; migration guides; release candidates for breaking changes |
 
 > Se qualquer um desses processos parar por >2 semanas, o projeto perde momentum e confiança da comunidade. O processo de segurança é especialmente crítico — uma vulnerabilidade não corrigida em sistema de storage criptografado destrói a reputação do projeto.
 
 ---
 
-## Roadmap de Equipe
+## Contributor Ladder (Team Roadmap)
 
-| Cargo | Pessoa | Quando | Custo Mensal (R$) | Trigger de Contratação/Adição |
-| --- | --- | --- | --- | --- |
-| Mantenedor principal / Arquiteto | Douglas | Atual | R$ 0 (projeto pessoal) | — |
-| Co-maintainer | Aberto (contribuidor promovido) | Mês 6-9 | R$ 0 (voluntário) | >5 PRs mergeados + disponibilidade consistente; necessário para bus factor >1 |
-| Community manager (part-time) | Aberto | Mês 12+ | R$ 2.000-3.000 (se receita permitir) | >200 clusters ativos; >50 mensagens/semana no Discord; mantenedor não consegue responder tudo |
-| DevOps / SRE (serviço gerenciado) | Aberto | Ano 2+ | R$ 8.000-12.000 | Lançamento do serviço gerenciado; >50 famílias cloud |
-| Suporte técnico (serviço gerenciado) | Aberto | Ano 2+ | R$ 4.000-6.000 | >100 famílias cloud; >20 tickets/semana |
+| Role | Person | When | Cost | Promotion Trigger |
+| ---- | ------ | ---- | ---- | ----------------- |
+| **Lead Maintainer / Architect** (BDFL) | Douglas | Now | $0 (personal project) | — |
+| **Co-maintainer** | Open (promoted contributor) | Month 6–9 | $0 (volunteer) | 5+ merged PRs + consistent availability; required to raise bus factor above 1 |
+| **Community Manager** (part-time) | Open | Month 12+ | {{placeholder}} (if revenue allows) | >200 active clusters; >50 messages/week on Discord |
+| **DevOps / SRE** (managed service) | Open | Year 2+ | {{placeholder}} | Managed service launch; >50 cloud families |
+| **Technical Support** (managed service) | Open | Year 2+ | {{placeholder}} | >100 cloud families; >20 tickets/week |
+
+### BDFL Governance
+
+Alexandria uses the **BDFL (Benevolent Dictator for Life)** governance model:
+
+- **Douglas** has final decision authority on all architectural and product decisions
+- **RFC process** is used for consultation on decisions affecting public API or major features: GitHub Discussion → open for 14 days → BDFL decision
+- **Community input** is actively solicited but non-binding
+- **Delegation**: Douglas can delegate authority to committers/maintainers for specific domains (e.g., security, docs)
+- **Succession**: If Douglas becomes unavailable, the co-maintainer with the most contributions inherits BDFL status
 
 > **Prioridade #1 de equipe:** encontrar um co-maintainer. Bus factor = 1 é o maior risco operacional do projeto. Investir em documentação interna e mentoria de contribuidores para viabilizar isso.
 
@@ -34,17 +47,17 @@ Esta seção detalha **como o Alexandria funciona no dia a dia**. Define process
 
 ---
 
-## Infraestrutura Digital
+## Digital Infrastructure
 
-| Componente | Ferramenta / Serviço | Custo Mensal (R$) | Finalidade |
-| --- | --- | --- | --- |
-| Hospedagem (orquestrador demo) | Contabo VPS (4GB RAM) | R$ 30 | Demo pública + CI runners |
-| Repositório + CI/CD | GitHub (free for open-source) | R$ 0 | Código, issues, PRs, Actions, Discussions, Packages |
-| DNS + CDN + Storage | Cloudflare (free tier + R2) | R$ 0 | DNS, cache, proteção DDoS, storage para assets |
-| Monitoramento | Grafana Cloud (free tier) | R$ 0 | Dashboard público de saúde; métricas de telemetria opt-in |
-| Documentação | Vercel ou Netlify (free tier) | R$ 0 | Site de docs (Docusaurus ou similar) |
-| Comunicação da comunidade | Discord (free) + GitHub Discussions | R$ 0 | Suporte, feedback, coordenação de contribuidores |
-| E-mail transacional | Resend (free tier: 3K/mês) | R$ 0 | Alertas de segurança, notificações de release |
+| Component | Tool / Service | Monthly Cost | Purpose |
+| --------- | -------------- | ------------ | ------- |
+| Demo orchestrator hosting | Contabo VPS (4GB RAM) | ~$6 | Public demo + CI runners |
+| Repository + CI/CD | GitHub (free for open-source) | $0 | Code, issues, PRs, Actions, Discussions, Packages |
+| DNS + CDN + Storage | Cloudflare (free tier + R2) | $0 | DNS, cache, DDoS protection, asset storage |
+| Monitoring | Grafana Cloud (free tier) | $0 | Public health dashboard; opt-in telemetry metrics |
+| Documentation | Vercel or Netlify (free tier) | $0 | Docs site (Docusaurus or similar) |
+| Community communication | **Discord** (free) + **GitHub Discussions** | $0 | Support, feedback, contributor coordination |
+| Transactional email | Resend (free tier: 3K/month) | $0 | Security alerts, release notifications |
 
 **Infraestrutura Física:**
 
@@ -52,7 +65,7 @@ Operação 100% remota e cloud-native. Sem infraestrutura física necessária. O
 
 ---
 
-## Disaster Recovery
+## Project Disaster Recovery
 
 > Disaster recovery do **projeto** (infra de desenvolvimento e comunidade), não do **produto** (que tem seu próprio DR via seed phrase — ver PRD seção de Recuperação).
 
@@ -73,7 +86,7 @@ Operação 100% remota e cloud-native. Sem infraestrutura física necessária. O
 
 ---
 
-## Plano de Escala
+## Scale Plan
 
 | Área | 100 Clusters (Ano 1) | 1.000 Clusters (Ano 1-2) | 10.000 Clusters (Ano 2-3) |
 | --- | --- | --- | --- |
@@ -84,7 +97,7 @@ Operação 100% remota e cloud-native. Sem infraestrutura física necessária. O
 
 ---
 
-## Timeline de Lançamento
+## Release Milestones (Alpha → Beta → v1.0 → LTS)
 
 | Marco | Data Prevista | Responsável | Critério de Sucesso | Critério Go/No-Go |
 | --- | --- | --- | --- | --- |
@@ -95,7 +108,7 @@ Operação 100% remota e cloud-native. Sem infraestrutura física necessária. O
 
 ---
 
-## Riscos e Mitigações
+## OSS Risk Register
 
 | Risco | Categoria | Probabilidade | Impacto | Mitigação |
 | --- | --- | --- | --- | --- |
@@ -109,16 +122,17 @@ Operação 100% remota e cloud-native. Sem infraestrutura física necessária. O
 
 ---
 
-## Aspectos Legais e Regulatórios
+## Legal & Compliance
 
-- [x] Licença open-source definida (AGPL-3.0 ou similar — protege contra uso comercial sem contribuição)
-- [ ] Termos de Uso (para site e serviço gerenciado futuro)
-- [ ] Política de Privacidade (para telemetria opt-in e serviço gerenciado)
-- [ ] LGPD/GDPR compliance (telemetria opt-in; dados do usuário ficam nos dispositivos/nós dele, não nos nossos)
-- [ ] Responsible Disclosure Policy (segurança)
-- [ ] CONTRIBUTING.md + CLA ou DCO (contribuições de código)
-- [ ] Regime tributário (quando houver receita — MEI se <R$81K/ano, ME/Simples se acima)
-- [ ] Contratos com fornecedores (quando serviço gerenciado)
+- [x] Open-source license defined: **MIT** — permissive, maximizes adoption
+- [ ] CLA vs DCO: **DCO (Developer Certificate of Origin)** recommended — lighter than CLA, no legal friction for contributors
+- [ ] Trademark policy — define what can/cannot use the "Alexandria" name
+- [ ] Terms of Use (for website and future managed service)
+- [ ] Privacy Policy (for opt-in telemetry and managed service)
+- [ ] LGPD/GDPR compliance (opt-in telemetry; user data stays on their own nodes/devices)
+- [ ] Responsible Disclosure Policy → SECURITY.md ✅ (generated by /opensource)
+- [ ] CONTRIBUTING.md ✅ (generated by /opensource)
+- [ ] Tax structure (when revenue starts — sole proprietor → company as revenue scales)
 
 **Estrutura jurídica:**
 

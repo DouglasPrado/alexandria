@@ -166,7 +166,22 @@
 
 ---
 
-## Riscos Técnicos
+<!-- added: opensource -->
+## Public Roadmap
+
+- **GitHub Projects**: public board at `https://github.com/douglas-prado/alexandria/projects` with milestones visible to the community
+- **RFC Process**: significant features require an RFC before implementation:
+  1. Open GitHub Discussion with `[RFC]` prefix
+  2. Community discussion for 14 days minimum
+  3. BDFL decision to accept/reject/modify
+  4. Accepted RFCs tracked in `docs/rfcs/`
+- **Community input**: feature voting via GitHub Discussions (👍 reactions); top-voted issues inform roadmap prioritization
+- **Release cadence**: patch releases as needed; minor releases every 4–6 weeks; major releases biannually (or when breaking API changes accumulate)
+- **Public milestones**: Alpha → Beta → v1.0 → v1.x (LTS) — see `09-plano-operacional.md` for criteria
+
+---
+
+## Technical Risks
 
 | Risco | Impacto | Probabilidade | Mitigação |
 |-------|---------|---------------|-----------|

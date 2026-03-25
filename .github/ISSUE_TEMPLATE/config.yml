@@ -1,0 +1,12 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: GitHub Discussions (questions & ideas)
+    url: https://github.com/douglas-prado/alexandria/discussions
+    about: Ask questions, propose ideas, or start an RFC here.
+  - name: Discord (real-time chat)
+    url: https://discord.gg/{{invite}}
+    about: Join the community on Discord.
+  - name: Documentation
+    url: https://docs.alexandria.app
+    about: Check the docs before opening an issue.

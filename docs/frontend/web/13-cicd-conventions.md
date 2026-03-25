@@ -213,3 +213,15 @@ jobs:
 | 2026-03-24 | ESLint flat config | Formato novo e recomendado; mais simples que .eslintrc; suporte nativo a TypeScript |
 | 2026-03-24 | Conventional Commits + commitlint | Changelog automático; commits legíveis; força disciplina de mensagens |
 | 2026-03-24 | Storybook adiado para Fase 2 | Design system ainda em definição; componentes mudam rápido na Fase 1; overhead de manutenção |
+
+---
+
+<!-- added: opensource -->
+## CI for Contributors
+
+- **Automated PR checks**: every PR triggers lint → typecheck → unit tests → build. All must pass before merge — no exceptions.
+- **Preview deploys**: each PR generates an automatic preview deploy (Vercel or Netlify); link posted as PR comment for visual review
+- **Auto labels**: PRs are auto-labeled by size (S: <50 lines, M: 50–200, L: 200–500, XL: >500) and affected area (frontend, backend, docs)
+- **Stale bot**: issues and PRs without activity for 30 days are automatically marked stale with a comment; closed after 14 more days if no response
+- **Auto-merge**: Dependabot PRs with passing tests and no breaking changes are auto-merged (minor/patch updates)
+- **Commit format**: [Conventional Commits](https://www.conventionalcommits.org/) required — enforced by `commitlint` on every commit. Format: `type(scope): description` (e.g., `feat(gallery): add timeline view`, `fix(upload): handle large files`)

@@ -142,3 +142,13 @@ AppError (base)
 | Interno (500) | GlobalExceptionFilter — catch-all | Error + stack trace | Sempre — Sentry/alertas | Depende — cliente pode retry |
 
 > (ver [10-validation.md](10-validation.md) para regras de validacao por campo)
+
+---
+
+<!-- added: opensource -->
+## Error Handling for Contributors
+
+- **Adding new error codes**: follow `SCREAMING_SNAKE_CASE` convention (e.g., `VAULT_LOCKED`); register in the error catalog table above; implement as a class extending `AlexandriaError`
+- **User-facing messages**: error messages must use i18n keys (e.g., `errors.vault.locked`) — never hardcoded English strings; translations live in `src/i18n/`
+- **Error documentation**: new errors must be added to the error catalog in this file and to `docs/errors.md` (public docs)
+- **HTTP status mapping**: domain errors map to HTTP status via `GlobalExceptionFilter`; the mapping table is in `src/common/filters/global-exception.filter.ts`; new errors must have an explicit mapping entry

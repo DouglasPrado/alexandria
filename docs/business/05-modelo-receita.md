@@ -1,25 +1,43 @@
-# Modelo de Receita
+# Open-Core Sustainability Model
 
-Esta seção define **como o Alexandria se sustenta financeiramente**. Como projeto open-source sem monetização direta na v1, o foco é em custo evitado para o usuário, sustentabilidade do projeto e potenciais modelos futuros de monetização.
+<!-- updated: opensource — open-core -->This section defines **how Alexandria sustains itself financially** using an open-core model: a free, fully-functional open-source core + a paid managed service for non-technical families. The OSS core drives adoption and trust; the managed service generates revenue.
 
-> **Nota:** O Alexandria é 100% open-source e gratuito na v1. "Receita" nesta fase refere-se a **fontes de financiamento do projeto**, não a venda de produto. O valor principal é **custo evitado** pelo usuário (vs cloud pago).
-
----
-
-## Fontes de Receita (Atual e Planejado)
-
-| Fonte | Tipo | Fase | % Estimado | Descrição |
-| --- | --- | --- | --- | --- |
-| Doações (GitHub Sponsors, Open Collective) | Recorrente / Voluntário | Ano 1+ | 40% <!-- inferido do PRD --> | Usuários satisfeitos financiam o desenvolvimento. Modelo comprovado (Immich, Syncthing, Nextcloud). |
-| Contribuições de código da comunidade | Não-monetário | Ano 1+ | — | Reduz custo de desenvolvimento. Cada PR aceito é "receita" em forma de trabalho economizado. |
-| Serviço gerenciado (futuro) | Recorrente / SaaS | Ano 2+ | 50% <!-- inferido do PRD --> | "Alexandria Cloud" — setup e manutenção gerenciados para famílias não-técnicas. Paga-se pela conveniência, não pelo software. |
-| Suporte premium (futuro) | Recorrente / Serviço | Ano 2+ | 10% <!-- inferido do PRD --> | SLA de resposta, disaster recovery assistido, migração guiada para empresas/famílias grandes. |
-
-> **Estratégia:** Software livre + serviço pago. O modelo do GitLab, Grafana e Immich: código aberto gera adoção e confiança; serviço gerenciado gera receita.
+> **Model: Open-Core** — free self-hosted core (MIT license) + paid "Alexandria Cloud" managed service. Software is and always will be free. Revenue comes from families who want convenience without self-hosting.
 
 ---
 
-## Composição do MRR (Projeção Ano 2 — Serviço Gerenciado)
+## Open-Core Feature Split
+
+| Feature | Self-Hosted (Free — MIT) | Cloud Starter ({{placeholder}}/mo) | Cloud Family ({{placeholder}}/mo) |
+| ------- | ------------------------ | ---------------------------------- | ---------------------------------- |
+| Full open-source software | ✅ | ✅ | ✅ |
+| Distributed storage + auto-healing | ✅ | ✅ | ✅ |
+| End-to-end encryption + seed phrase recovery | ✅ | ✅ | ✅ |
+| Media optimization pipeline (WebP, H.265/AV1) | ✅ | ✅ | ✅ |
+| Setup & maintenance | Manual (you) | Managed | Managed |
+| VPS + infrastructure | Your own | Included (shared VPS) | Included (dedicated VPS) |
+| Cloud nodes included | Your own accounts | 2 providers (50GB each) | 5 providers (100GB each) |
+| Family members | Unlimited | Up to 5 | Up to 15 |
+| Automated disaster recovery | Manual (seed phrase) | Automated | Automated + monthly drill |
+| Support | Community | Email (<48h) | Priority chat (<4h) |
+| Automatic updates | Manual | Automatic | Automatic |
+
+---
+
+## Revenue Sources (Current & Planned)
+
+| Source | Type | Phase | Est. % | Description |
+| ------ | ---- | ----- | ------ | ----------- |
+| GitHub Sponsors / OpenCollective | Recurring / Voluntary | Year 1+ | 40% <!-- inferido do PRD --> | Satisfied users fund development. Proven model (Immich, Syncthing, Nextcloud). |
+| Community code contributions | Non-monetary | Year 1+ | — | Reduces development cost. Each accepted PR is "revenue" in the form of saved work. |
+| Managed service (future) | Recurring / SaaS | Year 2+ | 50% <!-- inferido do PRD --> | "Alexandria Cloud" — managed setup for non-technical families. Paying for convenience, not software. |
+| Premium support (future) | Recurring / Service | Year 2+ | 10% <!-- inferido do PRD --> | Response SLA, assisted disaster recovery, guided migration for large families or small businesses. |
+
+> **Strategy:** Free software + paid service. The GitLab, Grafana, and Immich model: open source generates adoption and trust; managed service generates revenue.
+
+---
+
+## Monthly Funding / MRR (Year 2 Projection — Managed Service)
 
 > Aplicável somente após lançamento do serviço gerenciado (Alexandria Cloud). Na v1, MRR = R$0.
 
@@ -37,7 +55,7 @@ Esta seção define **como o Alexandria se sustenta financeiramente**. Como proj
 
 ---
 
-## Net Revenue Retention (NRR)
+## Net Revenue Retention (NRR) — Managed Service
 
 **NRR projetado (serviço gerenciado):** ~95% <!-- inferido do PRD -->
 
@@ -47,7 +65,7 @@ Esta seção define **como o Alexandria se sustenta financeiramente**. Como proj
 
 ---
 
-## Estratégia de Pricing
+## Pricing Strategy
 
 **Modelo de precificação:** Open-core (software gratuito + serviço pago futuro)
 
@@ -68,7 +86,7 @@ O software é e sempre será gratuito. O valor monetizável é a **conveniência
 
 ---
 
-## Tabela de Preços (Projeção — Serviço Gerenciado Futuro)
+## Pricing Table (Projection — Future Managed Service)
 
 | Recurso | Self-Hosted (Grátis) | Cloud Starter (R$49/mês) | Cloud Family (R$89/mês) |
 | --- | --- | --- | --- |
@@ -85,9 +103,9 @@ O software é e sempre será gratuito. O valor monetizável é a **conveniência
 
 ---
 
-## Unit Economics
+## Sustainability Unit Economics
 
-### Ano 1 — Open-Source (sem receita direta)
+### Year 1 — Open-Source Phase (no direct revenue)
 
 | Métrica | Valor | Observações |
 | --- | --- | --- |
@@ -97,7 +115,7 @@ O software é e sempre será gratuito. O valor monetizável é a **conveniência
 | Custo de infra (projeto) | ~R$50/mês | VPS para demo + CI/CD + docs site |
 | Valor gerado por instalação | ~R$420/ano de cloud evitado | vs Google One 2TB (R$35/mês) |
 
-### Ano 2+ — Serviço Gerenciado (projeção)
+### Year 2+ — Managed Service (projection)
 
 | Métrica | Valor | Benchmark | Observações |
 | --- | --- | --- | --- |
@@ -113,9 +131,9 @@ O software é e sempre será gratuito. O valor monetizável é a **conveniência
 
 ---
 
-## Projeções de Receita
+## Funding Targets (12-Month Projection)
 
-### Ano 1 — Fase Open-Source
+### Year 1 — Open-Source Phase
 
 | Checkpoint | Instalações Ativas | Doações (R$/mês) | Valor Gerado (custo evitado) |
 | --- | --- | --- | --- |
@@ -125,7 +143,7 @@ O software é e sempre será gratuito. O valor monetizável é a **conveniência
 | Mês 9 | 350 | R$ 1.000 | R$ 12.250/mês |
 | Mês 12 | 500-1.000 | R$ 1.500-2.000 | R$ 17.500-35.000/mês |
 
-### Ano 2 — Fase Serviço Gerenciado (projeção)
+### Year 2 — Managed Service Phase (projection)
 
 | Checkpoint | Self-Hosted | Cloud (pagantes) | MRR (R$) | ARR Projetado (R$) |
 | --- | --- | --- | --- | --- |
@@ -137,7 +155,7 @@ O software é e sempre será gratuito. O valor monetizável é a **conveniência
 
 ---
 
-## Premissas Financeiras
+## Financial Assumptions
 
 | Premissa | Valor Assumido | Risco se Errada |
 | --- | --- | --- |

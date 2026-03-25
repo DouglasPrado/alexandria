@@ -113,6 +113,14 @@ alexandria/                          # Raiz do monorepo
 └── CLAUDE.md                        # Context router para Claude Code
 ```
 
+<!-- added: opensource -->
+### Contributor Directory Guide
+
+- **Where to add new features**: domain modules go in `src/modules/your-feature/`; shared utilities in `src/shared/`; new storage adapters in `src/infrastructure/storage/adapters/`
+- **File naming conventions**: `kebab-case` for files; `PascalCase` for classes; `camelCase` for functions and variables; `SCREAMING_SNAKE_CASE` for constants
+- **Generated files**: `prisma/client/` is auto-generated — **never edit manually**; `dist/` is the build output — **never commit**
+- **Monorepo navigation**: `packages/core-sdk` is the shared cryptography/chunking library; `apps/orchestrator` is the NestJS backend; `apps/node-agent` is the node daemon; `apps/web` is the Next.js frontend
+
 <!-- APPEND:estrutura -->
 
 ---

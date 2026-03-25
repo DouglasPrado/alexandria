@@ -290,4 +290,69 @@ Canal unico — sem fallback necessario. <!-- inferido do PRD -->
 | 2026-03-18 | Alertas por email apenas para severidade critical | Evitar excesso de notificacoes; warnings e info ficam apenas na UI |
 | 2026-03-18 | Sem email de reset de senha | Sistema usa autenticacao via tokens de convite + JWT, sem senhas tradicionais |
 
+<!-- added: opensource -->
+## Community Communication Templates
+
+### Release Announcement
+
+```
+Subject: Alexandria v{{version}} released 🎉
+
+Highlights:
+- {{highlight_1}}
+- {{highlight_2}}
+- {{highlight_3}}
+
+Breaking changes: {{none | see migration guide at docs/migration/vX-to-vY.md}}
+
+Migration guide: {{url}}
+
+Thanks to all {{N}} contributors who made this release possible: {{list}}
+
+Full changelog: https://github.com/douglas-prado/alexandria/releases/tag/v{{version}}
+```
+
+### Breaking Change Notice
+
+```
+Subject: [Action Required] Breaking change in Alexandria v{{version}}
+
+What changed: {{description}}
+Why: {{reason}}
+How to migrate: {{steps}}
+Deprecation timeline: removed in v{{future_version}} ({{date}})
+Migration guide: {{url}}
+```
+
+### Deprecation Notice
+
+```
+Subject: Deprecation notice: {{feature}} will be removed in v{{version}}
+
+What: {{feature_name}} is deprecated
+When: Will be removed in v{{version}} (expected {{date}})
+Alternative: Use {{alternative}} instead
+Migration guide: {{url}}
+```
+
+### Security Advisory
+
+```
+Subject: [Security] Alexandria v{{versions}} — {{cve_id}} — {{severity}}
+
+Severity: {{critical | high | medium | low}}
+Affected versions: {{range}}
+Fixed in: v{{fixed_version}}
+CVE: {{cve_id}}
+
+Summary: {{brief_description}}
+
+Mitigation: Update to v{{fixed_version}} immediately.
+Patch available: https://github.com/douglas-prado/alexandria/releases/tag/v{{fixed_version}}
+
+If you cannot update immediately: {{workaround}}
+
+Report security issues to: security@alexandria.app or GitHub Security Advisories
+```
+
 <!-- APPEND:decisoes-comunicacao -->

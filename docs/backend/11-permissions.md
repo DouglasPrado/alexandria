@@ -128,3 +128,13 @@ Define roles, permissoes, matriz de acesso por recurso e regras de ownership.
 **Nota:** Na v1 nao ha refresh token. Quando o JWT esta proximo da expiracao e ainda valido, o servidor emite um novo JWT automaticamente (sliding session).
 
 > (ver [12-events.md](12-events.md) para eventos e mensageria)
+
+---
+
+<!-- added: opensource -->
+## Authentication & Authorization for Self-Hosted
+
+- **Auth providers**: the system uses invite-token + JWT by default; community can contribute OAuth adapters (Google, GitHub) by implementing the `AuthProvider` interface in `src/infrastructure/auth/`
+- **API keys**: self-hosted operators can generate long-lived API keys for programmatic access (e.g., CLI automation, scripts); managed via `POST /api/v1/auth/api-keys`
+- **Role customization**: self-hosted operators can extend the role system via `CUSTOM_ROLES` env var; custom roles inherit from `member` and can be granted specific permissions
+- **Security defaults**: principle of least privilege — new members get `reader` role by default; admin must explicitly promote to `member` or `admin`; no "sudo" escalation without re-authentication
