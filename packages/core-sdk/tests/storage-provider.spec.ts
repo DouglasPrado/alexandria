@@ -137,11 +137,10 @@ describe('LocalStorageProvider', () => {
       expect(cap.total).toBeGreaterThan(0n);
     });
 
-    it('should increase used after storing data', async () => {
-      const before = await provider.capacity();
+    it('should report used capacity as bigint', async () => {
       await provider.put('cap-test', Buffer.alloc(1024, 0xff));
-      const after = await provider.capacity();
-      expect(after.used).toBeGreaterThanOrEqual(before.used);
+      const cap = await provider.capacity();
+      expect(cap.used).toBeGreaterThan(0n);
     });
   });
 

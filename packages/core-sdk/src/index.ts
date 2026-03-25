@@ -38,5 +38,12 @@ export {
   type CreateManifestParams,
 } from './manifest';
 
-// Modulos a implementar nas proximas features:
-// export * from './vault';
+// Vault — cofre criptografado por membro (RN-V1..V5)
+export {
+  createVault,
+  unlockVault,
+  unlockVaultWithMasterKey,
+  updateVault,
+  type VaultBundle,
+  type VaultContents,
+} from './vault';
