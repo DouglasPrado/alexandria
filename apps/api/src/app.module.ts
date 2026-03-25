@@ -5,11 +5,12 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ClusterModule } from './modules/cluster/cluster.module';
 import { MemberModule } from './modules/member/member.module';
 import { NodeModule } from './modules/node/node.module';
+import { FileModule } from './modules/file/file.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 
 @Module({
-  imports: [PrismaModule, AuthModule, ClusterModule, MemberModule, NodeModule],
+  imports: [PrismaModule, AuthModule, ClusterModule, MemberModule, NodeModule, FileModule],
   providers: [
     // Global guards: JWT auth + RBAC roles
     { provide: APP_GUARD, useClass: JwtAuthGuard },

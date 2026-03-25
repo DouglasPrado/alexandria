@@ -115,9 +115,9 @@ describe('NodeService', () => {
       });
 
       expect(capturedConfigEncrypted).toBeDefined();
-      expect(Buffer.isBuffer(capturedConfigEncrypted)).toBe(true);
+      expect(capturedConfigEncrypted instanceof Uint8Array).toBe(true);
       // Config should NOT contain plaintext credentials
-      const configStr = capturedConfigEncrypted!.toString('utf-8');
+      const configStr = Buffer.from(capturedConfigEncrypted!).toString('utf-8');
       expect(configStr).not.toContain('AKIA_SECRET');
       expect(configStr).not.toContain('super_secret');
     });
