@@ -25,6 +25,18 @@ export { ConsistentHashRing } from './consistent-hash';
 export { type StorageProvider, LocalStorageProvider } from './storage-provider';
 export { S3StorageProvider, type S3StorageConfig } from './storage-provider/s3';
 
+// Manifest — criacao, serializacao, assinatura Ed25519, verificacao (RN-MA1..MA5)
+export {
+  createManifest,
+  serializeManifest,
+  deserializeManifest,
+  serializeForSigning,
+  signManifest,
+  verifyManifest,
+  type ManifestData,
+  type ManifestChunkEntry,
+  type CreateManifestParams,
+} from './manifest';
+
 // Modulos a implementar nas proximas features:
-// export * from './manifest';
 // export * from './vault';
