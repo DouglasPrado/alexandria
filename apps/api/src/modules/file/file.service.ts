@@ -218,17 +218,20 @@ export class FileService {
       throw new NotFoundException('Preview nao encontrado — arquivo ainda em processamento');
     }
 
-    // storagePath = "nodeId:preview:fileId.format"
+    // storagePath format: "nodeId:preview:fileId.format" (new) or "/path/to/file" (legacy)
     const colonIndex = preview.storagePath.indexOf(':');
-    const nodeId = preview.storagePath.substring(0, colonIndex);
-    const key = preview.storagePath.substring(colonIndex + 1);
 
-    const data = await this.storageService.getFromNode(nodeId, key);
+    if (colonIndex > 0 && !preview.storagePath.startsWith('/')) {
+      // New format: fetch from storage node
+      const nodeId = preview.storagePath.substring(0, colonIndex);
+      const key = preview.storagePath.substring(colonIndex + 1);
+      const data = await this.storageService.getFromNode(nodeId, key);
+      return { data, format: preview.format, size: Number(preview.size) };
+    }
 
-    return {
-      data,
-      format: preview.format,
-      size: Number(preview.size),
-    };
+    // Legacy format: read from local filesystem (for previews created before node storage)
+    const { readFile } = await import('node:fs/promises');
+    const data = await readFile(preview.storagePath);
+    return { data, format: preview.format, size: Number(preview.size) };
   }
 }

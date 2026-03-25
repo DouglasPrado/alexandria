@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   split,
@@ -6,6 +6,8 @@ import {
   encrypt,
   generateFileKey,
   ConsistentHashRing,
+  S3StorageProvider,
+  LocalStorageProvider,
   type StorageProvider,
 } from '@alexandria/core-sdk';
 
@@ -14,13 +16,56 @@ import {
  * Fonte: docs/backend/06-services.md (StorageService.distributeChunks — 13 passos)
  *
  * Fluxo: split → dedup → generateFileKey → encrypt → distribute (3x) → chunks + replicas → manifest
+ * OnModuleInit: recarrega nos do banco no boot para reconstruir o hash ring.
  */
 @Injectable()
-export class StorageService {
+export class StorageService implements OnModuleInit {
   private ring = new ConsistentHashRing();
   private providers = new Map<string, StorageProvider>();
 
   constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Ao iniciar o modulo, carrega todos os nos online do banco
+   * e registra no ConsistentHashRing com os providers apropriados.
+   */
+  async onModuleInit() {
+    try {
+      const nodes = await this.prisma.node.findMany({
+        where: { status: 'online' },
+      });
+
+      for (const node of nodes) {
+        try {
+          let provider: StorageProvider;
+
+          if (node.type === 'local') {
+            provider = new LocalStorageProvider(node.endpoint || '/tmp/alexandria/chunks');
+          } else {
+            // Para S3/R2/B2: credenciais estao encriptadas no configEncrypted
+            // No MVP, usamos endpoint do banco + credenciais placeholder
+            // Em producao, descriptografar config do vault do owner
+            provider = new S3StorageProvider({
+              endpoint: node.endpoint || '',
+              region: 'us-east-1',
+              bucket: 'alexandria',
+              accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+              secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+            });
+          }
+
+          this.ring.addNode(node.id, 100);
+          this.providers.set(node.id, provider);
+        } catch {
+          // Skip node if registration fails
+        }
+      }
+
+      console.log(`[StorageService] Loaded ${this.providers.size} nodes into hash ring`);
+    } catch {
+      // Database may not be ready yet — nodes will be registered via NodeService
+    }
+  }
 
   /**
    * Registra no no hash ring e associa um StorageProvider.
