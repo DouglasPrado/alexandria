@@ -10,6 +10,8 @@ export interface MemberDTO {
   role: 'admin' | 'member' | 'reader';
   clusterId: string;
   joinedAt: string;
+  storageQuotaBytes: number | null;
+  usedStorageBytes: number;
 }
 
 export interface InviteResultDTO {

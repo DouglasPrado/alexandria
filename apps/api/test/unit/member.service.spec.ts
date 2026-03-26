@@ -250,6 +250,45 @@ describe('MemberService', () => {
   });
 
   /**
+   * setQuota() — define quota de armazenamento por membro (admin-only).
+   * Fonte: docs/blueprint/14-scalability.md (Quotas por usuário)
+   */
+  describe('setQuota()', () => {
+    it('define quota em bytes para o membro', async () => {
+      const MB = 1024 * 1024;
+      mockPrisma.member.findFirst.mockResolvedValue({ id: 'm1', clusterId: 'c1' });
+      mockPrisma.member.update.mockResolvedValue({ id: 'm1', storageQuotaBytes: BigInt(500 * MB) });
+
+      const result = await memberService.setQuota('m1', 'c1', 500 * MB);
+
+      expect(mockPrisma.member.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'm1' },
+          data: { storageQuotaBytes: BigInt(500 * MB) },
+        }),
+      );
+      expect(result.storageQuotaBytes).toBeDefined();
+    });
+
+    it('remove quota (null = ilimitado) quando bytes é undefined', async () => {
+      mockPrisma.member.findFirst.mockResolvedValue({ id: 'm1', clusterId: 'c1' });
+      mockPrisma.member.update.mockResolvedValue({ id: 'm1', storageQuotaBytes: null });
+
+      await memberService.setQuota('m1', 'c1', undefined);
+
+      expect(mockPrisma.member.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { storageQuotaBytes: null } }),
+      );
+    });
+
+    it('lança NotFoundException quando membro não existe no cluster', async () => {
+      mockPrisma.member.findFirst.mockResolvedValue(null);
+
+      await expect(memberService.setQuota('nao-existe', 'c1', 100)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  /**
    * updateProfile() — atualiza nome e/ou senha do membro autenticado.
    * Fonte: docs/backend/06-services.md (MemberService.updateProfile)
    */

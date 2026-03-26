@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAuthStore } from '@/store/auth-store';
-import { useMembers, useInvite, useRemoveMember } from '@/features/members';
+import { useMembers, useInvite, useRemoveMember, useSetQuota } from '@/features/members';
 import { Users, UserPlus, Trash2, Copy, Check, Crown, Eye } from 'lucide-react';
 
 /**
@@ -10,6 +10,14 @@ import { Users, UserPlus, Trash2, Copy, Check, Crown, Eye } from 'lucide-react';
  * Fonte: docs/frontend/web/08-flows.md (Invite Member)
  * Admin-only: sidebar filtra por role.
  */
+
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
 
 const roleLabels: Record<string, string> = {
   admin: 'Admin',
@@ -29,6 +37,7 @@ export default function MembersPage() {
   const { data: members, isLoading } = useMembers(clusterId);
   const invite = useInvite(clusterId);
   const removeMember = useRemoveMember(clusterId);
+  const setQuota = useSetQuota(clusterId);
 
   const [showInvite, setShowInvite] = useState(false);
   const [email, setEmail] = useState('');
@@ -176,6 +185,13 @@ export default function MembersPage() {
                     )}
                   </div>
                   <p className="text-xs text-[var(--muted-foreground)] truncate">{m.email}</p>
+                  <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+                    {formatBytes(m.usedStorageBytes ?? 0)} usado
+                    {' · '}
+                    {m.storageQuotaBytes != null
+                      ? `Quota: ${formatBytes(m.storageQuotaBytes)}`
+                      : 'Ilimitado'}
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--muted)] text-xs text-[var(--muted-foreground)]">

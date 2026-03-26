@@ -125,6 +125,25 @@ export class FileService {
       );
     }
 
+    // Quota check: soma storage atual do membro e compara com quota (NULL = ilimitado)
+    const member = await this.prisma.member.findUnique({
+      where: { id: memberId },
+      select: { storageQuotaBytes: true },
+    });
+    if (member?.storageQuotaBytes != null) {
+      const agg = await this.prisma.file.aggregate({
+        where: { uploadedBy: memberId },
+        _sum: { originalSize: true },
+      });
+      const used = Number(agg._sum.originalSize ?? 0);
+      const quota = Number(member.storageQuotaBytes);
+      if (used + file.size > quota) {
+        throw new PayloadTooLargeException(
+          `Quota de armazenamento excedida. Limite: ${Math.round(quota / (1024 * 1024))}MB`,
+        );
+      }
+    }
+
     // Create file record with status processing
     const record = await this.prisma.file.create({
       data: {

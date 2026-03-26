@@ -188,6 +188,20 @@ export class MemberService {
   }
 
   /**
+   * Define ou remove quota de armazenamento de um membro (admin-only, enforced no controller).
+   * bytes = undefined → remove quota (NULL = ilimitado).
+   */
+  async setQuota(memberId: string, clusterId: string, bytes: number | undefined) {
+    const member = await this.prisma.member.findFirst({ where: { id: memberId, clusterId } });
+    if (!member) throw new NotFoundException('Membro nao encontrado');
+
+    return this.prisma.member.update({
+      where: { id: memberId },
+      data: { storageQuotaBytes: bytes != null ? BigInt(bytes) : null },
+    });
+  }
+
+  /**
    * Atualiza nome e/ou senha do membro autenticado.
    */
   async updateProfile(memberId: string, dto: { name?: string; currentPassword?: string; newPassword?: string }) {

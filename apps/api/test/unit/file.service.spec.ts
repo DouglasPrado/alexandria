@@ -22,6 +22,10 @@ const mockPrisma = {
     findMany: jest.fn(),
     count: jest.fn(),
     delete: jest.fn(),
+    aggregate: jest.fn(),
+  },
+  member: {
+    findUnique: jest.fn(),
   },
   node: {
     count: jest.fn(),
@@ -304,6 +308,65 @@ describe('FileService', () => {
           buffer: Buffer.alloc(10),
         }),
       ).rejects.toThrow();
+    });
+
+    // --- Testes de quota de armazenamento ---
+
+    it('lança PayloadTooLargeException quando upload excede quota do membro', async () => {
+      const MB = 1024 * 1024;
+      mockPrisma.node.count.mockResolvedValue(3);
+      // Membro tem quota de 100MB e já usou 90MB
+      mockPrisma.member.findUnique.mockResolvedValue({ storageQuotaBytes: BigInt(100 * MB) });
+      mockPrisma.file.aggregate.mockResolvedValue({ _sum: { originalSize: BigInt(90 * MB) } });
+
+      await expect(
+        fileService.upload('c1', 'm1', {
+          originalname: 'grande.jpg',
+          mimetype: 'image/jpeg',
+          size: 20 * MB, // 20MB: 90 + 20 = 110MB > 100MB
+          buffer: Buffer.alloc(10),
+        }),
+      ).rejects.toThrow(PayloadTooLargeException);
+    });
+
+    it('permite upload quando membro não tem quota definida (NULL = ilimitado)', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.member.findUnique.mockResolvedValue({ storageQuotaBytes: null });
+      mockPrisma.file.create.mockResolvedValue({
+        id: 'f1', originalName: 'foto.jpg', mimeType: 'image/jpeg',
+        mediaType: 'photo', originalSize: BigInt(5000000),
+        status: 'processing', createdAt: new Date(),
+      });
+
+      await expect(
+        fileService.upload('c1', 'm1', {
+          originalname: 'foto.jpg',
+          mimetype: 'image/jpeg',
+          size: 5 * 1024 * 1024,
+          buffer: Buffer.alloc(10),
+        }),
+      ).resolves.toBeDefined();
+    });
+
+    it('permite upload quando uso atual + novo arquivo cabe dentro da quota', async () => {
+      const MB = 1024 * 1024;
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.member.findUnique.mockResolvedValue({ storageQuotaBytes: BigInt(100 * MB) });
+      mockPrisma.file.aggregate.mockResolvedValue({ _sum: { originalSize: BigInt(50 * MB) } });
+      mockPrisma.file.create.mockResolvedValue({
+        id: 'f1', originalName: 'foto.jpg', mimeType: 'image/jpeg',
+        mediaType: 'photo', originalSize: BigInt(10 * MB),
+        status: 'processing', createdAt: new Date(),
+      });
+
+      await expect(
+        fileService.upload('c1', 'm1', {
+          originalname: 'foto.jpg',
+          mimetype: 'image/jpeg',
+          size: 10 * MB, // 50 + 10 = 60MB < 100MB ✓
+          buffer: Buffer.alloc(10),
+        }),
+      ).resolves.toBeDefined();
     });
   });
 

@@ -13,6 +13,7 @@ import { MemberService } from './member.service';
 import { CreateInviteDto } from './dto/create-invite.dto';
 import { AcceptInviteDto } from './dto/accept-invite.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { SetQuotaDto } from './dto/set-quota.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentMember, type CurrentMemberPayload } from '../../common/decorators/current-member.decorator';
@@ -57,6 +58,17 @@ export class MemberController {
   @Get('clusters/:id/members')
   async list(@Param('id') clusterId: string) {
     return this.memberService.listByCluster(clusterId);
+  }
+
+  /** PATCH /api/clusters/:id/members/:memberId/quota — Definir quota (JWT+admin) */
+  @Patch('clusters/:id/members/:memberId/quota')
+  @Roles('admin')
+  async setQuota(
+    @Param('id') clusterId: string,
+    @Param('memberId') memberId: string,
+    @Body() dto: SetQuotaDto,
+  ) {
+    return this.memberService.setQuota(memberId, clusterId, dto.bytes);
   }
 
   /** DELETE /api/clusters/:id/members/:memberId — Remover membro (JWT+admin) */

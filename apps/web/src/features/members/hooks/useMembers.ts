@@ -33,6 +33,19 @@ export function useAcceptInvite() {
   });
 }
 
+/** Define quota de armazenamento — invalida cache */
+export function useSetQuota(clusterId: string | undefined) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ memberId, bytes }: { memberId: string; bytes: number | undefined }) =>
+      membersApi.setQuota(clusterId!, memberId, bytes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['members', clusterId] });
+    },
+  });
+}
+
 /** Remove membro — invalida cache */
 export function useRemoveMember(clusterId: string | undefined) {
   const queryClient = useQueryClient();

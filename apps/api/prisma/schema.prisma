@@ -40,9 +40,10 @@ model Member {
   name         String   @db.VarChar(100)
   email        String   @db.VarChar(255)
   passwordHash String   @map("password_hash") @db.VarChar(255)
-  role         String   @default("member") @db.VarChar(20)
-  invitedBy    String?  @map("invited_by") @db.Uuid
-  joinedAt     DateTime @default(now()) @map("joined_at") @db.Timestamptz
+  role                String   @default("member") @db.VarChar(20)
+  storageQuotaBytes   BigInt?  @map("storage_quota_bytes")
+  invitedBy           String?  @map("invited_by") @db.Uuid
+  joinedAt            DateTime @default(now()) @map("joined_at") @db.Timestamptz
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 

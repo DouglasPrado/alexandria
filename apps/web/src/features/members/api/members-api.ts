@@ -27,4 +27,8 @@ export const membersApi = {
   /** DELETE /api/clusters/:id/members/:memberId — remover membro (admin) */
   remove: (clusterId: string, memberId: string): Promise<void> =>
     apiClient.delete<void>(`/clusters/${clusterId}/members/${memberId}`),
+
+  /** PATCH /api/clusters/:id/members/:memberId/quota — definir quota (admin) */
+  setQuota: (clusterId: string, memberId: string, bytes: number | undefined): Promise<void> =>
+    apiClient.patch<void>(`/clusters/${clusterId}/members/${memberId}/quota`, { bytes }),
 };
