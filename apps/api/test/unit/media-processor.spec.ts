@@ -45,6 +45,19 @@ const mockStorageService = {
   unregisterNode: jest.fn(),
 };
 
+// Mock the ffmpeg helper module used by MediaProcessor
+jest.mock('../../src/workers/ffmpeg', () => ({
+  ffmpegTranscode: jest.fn().mockResolvedValue(Buffer.alloc(200_000, 0xbb)),
+  ffmpegPreview: jest.fn().mockResolvedValue(Buffer.alloc(50_000, 0xcc)),
+  ffprobe: jest.fn().mockResolvedValue({
+    duration: 42.5,
+    width: 1920,
+    height: 1080,
+    codec: 'h264',
+    format: 'mov,mp4',
+  }),
+}));
+
 // Mock sharp for photo processing
 jest.mock('sharp', () => {
   const mockSharp = jest.fn().mockReturnValue({
@@ -192,16 +205,63 @@ describe('MediaProcessor', () => {
       );
     });
 
-    it('should handle video and call distributeChunks with original buffer', async () => {
-      const videoBuffer = Buffer.alloc(500_000);
+    it('should transcode video to H.265 1080p and generate preview (RN-F2)', async () => {
       setupFileMock({ id: 'file-5', mediaType: 'video', mimeType: 'video/mp4', originalName: 'clip.mp4', originalSize: BigInt(500_000) });
 
-      await processor.processFile('file-5', videoBuffer);
+      await processor.processFile('file-5', Buffer.alloc(500_000));
 
+      // Should call distributeChunks (transcoded content)
       expect(mockStorageService.distributeChunks).toHaveBeenCalledWith(
         'file-5',
-        videoBuffer, // video stub: original buffer, no transcoding
         expect.any(Buffer),
+        expect.any(Buffer),
+      );
+
+      // Should create video preview
+      expect(mockPrisma.preview.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            fileId: 'file-5',
+            type: 'video_preview',
+            format: 'mp4',
+          }),
+        }),
+      );
+    });
+
+    it('should extract video metadata (duration, resolution, codec)', async () => {
+      setupFileMock({ id: 'file-6', mediaType: 'video', mimeType: 'video/mp4', originalName: 'family.mp4', originalSize: BigInt(1_000_000) });
+
+      await processor.processFile('file-6', Buffer.alloc(1_000_000));
+
+      expect(mockPrisma.file.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            metadata: expect.objectContaining({
+              duration: expect.any(Number),
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('should set status to error when FFmpeg fails on video', async () => {
+      setupFileMock({ id: 'file-7', mediaType: 'video', mimeType: 'video/mp4', originalName: 'corrupt.mp4', originalSize: BigInt(100) });
+
+      // Make ffprobe succeed but ffmpegTranscode fail
+      const ffmpegMod = require('../../src/workers/ffmpeg');
+      ffmpegMod.ffmpegTranscode.mockRejectedValueOnce(new Error('FFmpeg: Invalid data found'));
+
+      await processor.processFile('file-7', Buffer.from('not-a-video'));
+
+      expect(mockPrisma.file.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'file-7' },
+          data: expect.objectContaining({
+            status: 'error',
+            errorMessage: expect.stringContaining('FFmpeg'),
+          }),
+        }),
       );
     });
   });

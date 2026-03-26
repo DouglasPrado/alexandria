@@ -2,11 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { hash } from '@alexandria/core-sdk';
 import { StorageService } from '../modules/storage/storage.service';
+import { ffmpegTranscode, ffmpegPreview, ffprobe } from './ffmpeg';
 import sharp from 'sharp';
 
 const MAX_PHOTO_WIDTH = 1920;
 const THUMBNAIL_WIDTH = 300;
 const THUMBNAIL_QUALITY = 60;
+const VIDEO_MAX_HEIGHT = 1080;
+const VIDEO_PREVIEW_HEIGHT = 480;
 
 /**
  * MediaProcessor — pipeline de processamento de midia.
@@ -14,7 +17,7 @@ const THUMBNAIL_QUALITY = 60;
  *
  * Pipeline: classify → optimize → preview → metadata → distribute (StorageService) → status ready
  * - Photos: sharp resize WebP 1920px + thumbnail ~50KB (RN-F2)
- * - Videos: stub (FFmpeg requer binario externo — MVP placeholder)
+ * - Videos: FFmpeg H.265 1080p + preview 480p (RN-F2)
  * - Documents: bypass otimizacao (RN-F3)
  */
 @Injectable()
@@ -56,15 +59,20 @@ export class MediaProcessor {
         await this.createPreview(fileId, thumbnail);
         this.logger.log(`[${fileId}] Preview stored (${(thumbnail.length / 1024).toFixed(1)}KB)`);
       } else if (file.mediaType === 'video') {
-        this.logger.log(`[${fileId}] Video — bypass optimization (FFmpeg not yet integrated)`);
-        optimizedContent = fileBuffer;
-        metadata = { note: 'video transcoding pending — FFmpeg integration' };
-        await this.createPreview(fileId, Buffer.alloc(1024, 0), 'video_preview', 'mp4');
+        this.logger.log(`[${fileId}] Transcoding video → H.265 ${VIDEO_MAX_HEIGHT}p`);
+        metadata = await ffprobe(fileBuffer);
+        optimizedContent = await ffmpegTranscode(fileBuffer, VIDEO_MAX_HEIGHT);
+        this.logger.log(`[${fileId}] Transcoded: ${(fileBuffer.length / 1024 / 1024).toFixed(1)}MB → ${(optimizedContent.length / 1024 / 1024).toFixed(1)}MB`);
+
+        this.logger.log(`[${fileId}] Generating video preview ${VIDEO_PREVIEW_HEIGHT}p`);
+        const preview = await ffmpegPreview(fileBuffer, VIDEO_PREVIEW_HEIGHT);
+        await this.createPreview(fileId, preview, 'video_preview', 'mp4');
+        this.logger.log(`[${fileId}] Video preview stored (${(preview.length / 1024).toFixed(1)}KB)`);
       } else {
-        this.logger.log(`[${fileId}] Document — bypass optimization (RN-F3)`);
+        // document and archive — bypass optimization and preview (RN-F3)
+        this.logger.log(`[${fileId}] ${file.mediaType === 'archive' ? 'Archive' : 'Document'} — bypass optimization and preview (RN-F3)`);
         optimizedContent = fileBuffer;
-        metadata = { pages: 1 };
-        await this.createPreview(fileId, Buffer.alloc(512, 0), 'generic_icon', 'png');
+        metadata = {};
       }
 
       await this.prisma.file.update({
@@ -120,7 +128,6 @@ export class MediaProcessor {
     type: string = 'thumbnail',
     format: string = 'webp',
   ): Promise<void> {
-    // Store preview in storage node (S3/local) via StorageService
     const key = `preview:${fileId}.${format}`;
     const stored = await this.storageService.storeInNode(key, data);
 
@@ -131,7 +138,7 @@ export class MediaProcessor {
         size: BigInt(data.length),
         format,
         contentHash: hash(data),
-        storagePath: `${stored.nodeId}:${stored.key}`, // nodeId:key format for retrieval
+        storagePath: `${stored.nodeId}:${stored.key}`,
       },
     });
   }
