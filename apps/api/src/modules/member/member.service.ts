@@ -5,6 +5,7 @@ import {
   ForbiddenException,
   GoneException,
   UnprocessableEntityException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -119,7 +120,7 @@ export class MemberService {
     const passwordHash = await argon2.hash(dto.password);
 
     // 9-13. Transaction: create member + vault + mark invite accepted
-    const member = await this.prisma.$transaction(async (tx: PrismaService) => {
+    const member = await this.prisma.$transaction(async (tx) => {
       const newMember = await tx.member.create({
         data: {
           clusterId: invite.clusterId,
@@ -134,7 +135,7 @@ export class MemberService {
       await tx.vault.create({
         data: {
           memberId: newMember.id,
-          vaultData: Buffer.from('{}'),
+          vaultData: new Uint8Array(Buffer.from('{}')) as Uint8Array<ArrayBuffer>,
           encryptionAlgorithm: 'AES-256-GCM',
           replicatedTo: [],
           isAdminVault: false,
@@ -184,6 +185,40 @@ export class MemberService {
       clusterId: m.clusterId,
       joinedAt: m.joinedAt.toISOString(),
     }));
+  }
+
+  /**
+   * Atualiza nome e/ou senha do membro autenticado.
+   */
+  async updateProfile(memberId: string, dto: { name?: string; currentPassword?: string; newPassword?: string }) {
+    const member = await this.prisma.member.findUnique({ where: { id: memberId } });
+    if (!member) {
+      throw new NotFoundException('Membro nao encontrado');
+    }
+
+    const data: Record<string, unknown> = {};
+
+    if (dto.name) {
+      data.name = dto.name;
+    }
+
+    if (dto.newPassword) {
+      const valid = await argon2.verify(member.passwordHash, dto.currentPassword ?? '');
+      if (!valid) {
+        throw new UnauthorizedException('Senha atual incorreta');
+      }
+      data.passwordHash = await argon2.hash(dto.newPassword);
+    }
+
+    const updated = await this.prisma.member.update({ where: { id: memberId }, data });
+
+    return {
+      id: updated.id,
+      name: updated.name,
+      email: updated.email,
+      role: updated.role,
+      clusterId: updated.clusterId,
+    };
   }
 
   /**

@@ -5,6 +5,7 @@ import {
   ForbiddenException,
   GoneException,
   UnprocessableEntityException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { MemberService } from '../../src/modules/member/member.service';
@@ -25,8 +26,10 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 const mockPrisma = {
   member: {
     findFirst: jest.fn(),
+    findUnique: jest.fn(),
     findMany: jest.fn(),
     create: jest.fn(),
+    update: jest.fn(),
     delete: jest.fn(),
     count: jest.fn(),
   },
@@ -243,6 +246,88 @@ describe('MemberService', () => {
       expect(result).toHaveLength(2);
       expect(result[0].name).toBe('Douglas');
       expect(result[1].name).toBe('Maria');
+    });
+  });
+
+  /**
+   * updateProfile() — atualiza nome e/ou senha do membro autenticado.
+   * Fonte: docs/backend/06-services.md (MemberService.updateProfile)
+   */
+  describe('updateProfile()', () => {
+    const existingMember = {
+      id: 'member-1',
+      name: 'Douglas',
+      email: 'douglas@familia.com',
+      passwordHash: '$argon2id$placeholder',
+      role: 'admin',
+      clusterId: 'cluster-1',
+    };
+
+    it('atualiza o nome com sucesso', async () => {
+      mockPrisma.member.findUnique.mockResolvedValue(existingMember);
+      mockPrisma.member.update.mockResolvedValue({ ...existingMember, name: 'Douglas Prado' });
+
+      const result = await memberService.updateProfile('member-1', { name: 'Douglas Prado' });
+
+      expect(mockPrisma.member.update).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: 'member-1' }, data: expect.objectContaining({ name: 'Douglas Prado' }) }),
+      );
+      expect(result.name).toBe('Douglas Prado');
+    });
+
+    it('altera a senha com a senha atual correta', async () => {
+      const argon2 = await import('argon2');
+      const realHash = await argon2.hash('SenhaAtual123');
+      mockPrisma.member.findUnique.mockResolvedValue({ ...existingMember, passwordHash: realHash });
+      mockPrisma.member.update.mockResolvedValue(existingMember);
+
+      await expect(
+        memberService.updateProfile('member-1', {
+          currentPassword: 'SenhaAtual123',
+          newPassword: 'NovaSenha456',
+        }),
+      ).resolves.toBeDefined();
+
+      expect(mockPrisma.member.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ passwordHash: expect.stringMatching(/^\$argon2id\$/) }),
+        }),
+      );
+    });
+
+    it('lanca UnauthorizedException quando senha atual esta errada', async () => {
+      const argon2 = await import('argon2');
+      const realHash = await argon2.hash('SenhaAtual123');
+      mockPrisma.member.findUnique.mockResolvedValue({ ...existingMember, passwordHash: realHash });
+
+      await expect(
+        memberService.updateProfile('member-1', {
+          currentPassword: 'SenhaErrada',
+          newPassword: 'NovaSenha456',
+        }),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('permite atualizar nome sem alterar senha', async () => {
+      mockPrisma.member.findUnique.mockResolvedValue(existingMember);
+      mockPrisma.member.update.mockResolvedValue({ ...existingMember, name: 'Novo Nome' });
+
+      const result = await memberService.updateProfile('member-1', { name: 'Novo Nome' });
+
+      expect(mockPrisma.member.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.not.objectContaining({ passwordHash: expect.anything() }),
+        }),
+      );
+      expect(result.name).toBe('Novo Nome');
+    });
+
+    it('lanca NotFoundException quando membro nao existe', async () => {
+      mockPrisma.member.findUnique.mockResolvedValue(null);
+
+      await expect(
+        memberService.updateProfile('non-existent', { name: 'X' }),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 

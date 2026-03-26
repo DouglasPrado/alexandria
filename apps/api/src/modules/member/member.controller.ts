@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Delete,
   Body,
   Param,
@@ -11,6 +12,7 @@ import {
 import { MemberService } from './member.service';
 import { CreateInviteDto } from './dto/create-invite.dto';
 import { AcceptInviteDto } from './dto/accept-invite.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentMember, type CurrentMemberPayload } from '../../common/decorators/current-member.decorator';
@@ -40,6 +42,15 @@ export class MemberController {
     @Body() dto: AcceptInviteDto,
   ) {
     return this.memberService.acceptInvite(token, dto);
+  }
+
+  /** PATCH /api/members/me — Atualizar perfil do membro autenticado (JWT) */
+  @Patch('members/me')
+  async updateProfile(
+    @Body() dto: UpdateProfileDto,
+    @CurrentMember() member: CurrentMemberPayload,
+  ) {
+    return this.memberService.updateProfile(member.memberId, dto);
   }
 
   /** GET /api/clusters/:id/members — Listar membros (JWT) */
