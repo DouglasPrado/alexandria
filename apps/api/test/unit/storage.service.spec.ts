@@ -732,4 +732,87 @@ describe('StorageService', () => {
       expect(warm.put).toHaveBeenCalled();
     });
   });
+
+  describe('distributeWithErasure()', () => {
+    /**
+     * Erasure coding — Fase 3.
+     * RS(10,4): 10 data shards + 4 parity shards = 14 total.
+     * Cada shard é armazenado em um nó diferente (round-robin se < 14 nós).
+     * Arquivo é marcado com codingScheme='erasure' no manifest.
+     * Fonte: docs/blueprint/11-build_plan.md (Fase 3 — Erasure coding 10+4)
+     */
+
+    function setupErasureMocks() {
+      mockPrisma.chunk.findUnique.mockResolvedValue(null);
+      mockPrisma.chunk.create.mockResolvedValue({ id: 'ck', size: 100, referenceCount: 1 });
+      mockPrisma.chunkReplica.create.mockResolvedValue({});
+      mockPrisma.manifest.create.mockResolvedValue({ id: 'mf-erasure', codingScheme: 'erasure' });
+      mockPrisma.manifestChunk.create.mockResolvedValue({});
+      mockPrisma.file.update.mockResolvedValue({});
+    }
+
+    it('should distribute 14 shards across 14 nodes (EC-4/EC-6)', async () => {
+      const providers = Array.from({ length: 14 }, () => ({
+        put: jest.fn().mockResolvedValue(undefined),
+        get: jest.fn(), exists: jest.fn(), delete: jest.fn(), list: jest.fn(), capacity: jest.fn(),
+      }));
+
+      const module = await Test.createTestingModule({
+        providers: [StorageService, { provide: PrismaService, useValue: mockPrisma }],
+      }).compile();
+      const svc = module.get<StorageService>(StorageService);
+
+      for (let i = 0; i < 14; i++) {
+        svc.registerNode(`node-${i}`, 100, providers[i]!);
+      }
+      setupErasureMocks();
+
+      await svc.distributeWithErasure('file-1', Buffer.alloc(1000, 0xab), Buffer.alloc(32, 0xcd));
+
+      // All 14 nodes should have received exactly one shard
+      for (const p of providers) {
+        expect(p.put).toHaveBeenCalledTimes(1);
+      }
+    });
+
+    it('should distribute with fewer nodes (round-robin fallback) (EC-5)', async () => {
+      const providers = Array.from({ length: 5 }, () => ({
+        put: jest.fn().mockResolvedValue(undefined),
+        get: jest.fn(), exists: jest.fn(), delete: jest.fn(), list: jest.fn(), capacity: jest.fn(),
+      }));
+
+      const module = await Test.createTestingModule({
+        providers: [StorageService, { provide: PrismaService, useValue: mockPrisma }],
+      }).compile();
+      const svc = module.get<StorageService>(StorageService);
+
+      for (let i = 0; i < 5; i++) {
+        svc.registerNode(`node-${i}`, 100, providers[i]!);
+      }
+      setupErasureMocks();
+
+      await svc.distributeWithErasure('file-2', Buffer.alloc(1000, 0xab), Buffer.alloc(32, 0xcd));
+
+      // Total puts across all nodes = 14 shards (distributed round-robin)
+      const totalPuts = providers.reduce((sum, p) => sum + p.put.mock.calls.length, 0);
+      expect(totalPuts).toBe(14);
+    });
+
+    it('should record codingScheme=erasure in manifest (EC-7)', async () => {
+      const module = await Test.createTestingModule({
+        providers: [StorageService, { provide: PrismaService, useValue: mockPrisma }],
+      }).compile();
+      const svc = module.get<StorageService>(StorageService);
+      svc.registerNode('node-1', 100, { ...mockProvider });
+      setupErasureMocks();
+
+      await svc.distributeWithErasure('file-3', Buffer.alloc(500, 0xab), Buffer.alloc(32, 0xcd));
+
+      expect(mockPrisma.manifest.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ codingScheme: 'erasure' }),
+        }),
+      );
+    });
+  });
 });

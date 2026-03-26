@@ -149,6 +149,9 @@ model Manifest {
   signature        Bytes
   replicatedTo     Json     @default("[]") @map("replicated_to")
   version          Int      @default(1)
+  codingScheme     String   @default("replication") @map("coding_scheme") @db.VarChar(20)
+  dataShards       Int      @default(10) @map("data_shards")
+  parityShards     Int      @default(4) @map("parity_shards")
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 

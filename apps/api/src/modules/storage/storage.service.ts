@@ -7,6 +7,7 @@ import {
   hash,
   encrypt,
   generateFileKey,
+  encodeErasure,
   ConsistentHashRing,
   S3StorageProvider,
   LocalStorageProvider,
@@ -432,6 +433,104 @@ export class StorageService implements OnModuleInit {
       chunksCount: processedChunks.length,
       replicasCount,
     };
+  }
+
+  /**
+   * Distribui chunks usando erasure coding RS(10,4).
+   * Gera 14 shards (10 data + 4 parity) e distribui round-robin entre nos.
+   * Qualquer 10 dos 14 shards reconstituem o arquivo original.
+   * Fonte: docs/blueprint/11-build_plan.md (Fase 3 — Erasure coding 10+4)
+   *
+   * @param fileId   - ID do arquivo no banco
+   * @param content  - Buffer otimizado (saida do media pipeline)
+   * @param masterKey - Master key para envelope encryption
+   */
+  async distributeWithErasure(
+    fileId: string,
+    content: Buffer,
+    masterKey: Buffer,
+  ): Promise<{ shardsCount: number }> {
+    const DATA_SHARDS = 10;
+    const PARITY_SHARDS = 4;
+    const TOTAL_SHARDS = DATA_SHARDS + PARITY_SHARDS; // 14
+
+    const contentHash = hash(content);
+    const fileKey = generateFileKey(masterKey);
+
+    // RS(10,4): encode content into 14 equal-size shards
+    const shards = encodeErasure(content, DATA_SHARDS, PARITY_SHARDS);
+
+    // Encrypt file key with master key for manifest
+    const fileKeyEncResult = encrypt(fileKey, masterKey);
+    const fileKeyEncrypted = Buffer.concat([
+      fileKeyEncResult.iv,
+      fileKeyEncResult.authTag,
+      fileKeyEncResult.ciphertext,
+    ]);
+
+    // Distribute shards round-robin across available nodes
+    const nodeIds = [...this.providers.keys()];
+    if (nodeIds.length === 0) {
+      throw new Error('No nodes available for erasure distribution');
+    }
+
+    const shardRecords: Array<{ shardId: string; shardIndex: number; size: number; nodeId: string }> = [];
+
+    for (let i = 0; i < TOTAL_SHARDS; i++) {
+      const shard = shards[i]!;
+      const shardHash = hash(shard);
+      const nodeId = nodeIds[i % nodeIds.length]!;
+
+      const encResult = encrypt(shard, fileKey);
+      const encryptedBuffer = Buffer.concat([encResult.iv, encResult.authTag, encResult.ciphertext]);
+
+      const provider = this.providers.get(nodeId)!;
+      await provider.put(shardHash, encryptedBuffer);
+
+      shardRecords.push({ shardId: shardHash, shardIndex: i, size: shard.length, nodeId });
+    }
+
+    // Transaction: chunk records + replicas + manifest
+    await this.prisma.$transaction(async (tx) => {
+      for (const rec of shardRecords) {
+        const existing = await tx.chunk.findUnique({ where: { id: rec.shardId } });
+        if (existing) {
+          await tx.chunk.update({ where: { id: rec.shardId }, data: { referenceCount: { increment: 1 } } });
+        } else {
+          await tx.chunk.create({ data: { id: rec.shardId, size: rec.size, referenceCount: 1 } });
+        }
+        await tx.chunkReplica.create({ data: { chunkId: rec.shardId, nodeId: rec.nodeId, status: 'healthy' } });
+      }
+
+      const chunksJson = shardRecords.map((r) => ({ chunkId: r.shardId, chunkIndex: r.shardIndex, size: r.size }));
+
+      const manifest = await tx.manifest.create({
+        data: {
+          fileId,
+          chunksJson,
+          fileKeyEncrypted,
+          signature: Buffer.alloc(64),
+          replicatedTo: [],
+          version: 1,
+          codingScheme: 'erasure',
+          dataShards: DATA_SHARDS,
+          parityShards: PARITY_SHARDS,
+        },
+      });
+
+      for (const rec of shardRecords) {
+        await tx.manifestChunk.create({
+          data: { manifestId: manifest.id, chunkId: rec.shardId, chunkIndex: rec.shardIndex },
+        });
+      }
+
+      await tx.file.update({
+        where: { id: fileId },
+        data: { status: 'ready', contentHash, optimizedSize: BigInt(content.length) },
+      });
+    });
+
+    return { shardsCount: TOTAL_SHARDS };
   }
 
   /**

@@ -14,6 +14,7 @@ import { useFileDetail } from '../hooks/useFileDetail';
 import { useDeleteFile } from '../hooks/useDeleteFile';
 import { filesApi } from '../api/files-api';
 import type { FileDTO } from '../types/file.types';
+import { CodingSchemeBadge } from './CodingSchemeBadge';
 import { formatBytes } from '@/lib/format';
 
 const PDFViewer = dynamic(
@@ -223,6 +224,12 @@ export function FileLightbox({ file, files, canDelete, onClose, onNavigate }: Fi
               <div>
                 <dt className="text-[var(--muted-foreground)]">Replicação</dt>
                 <dd className="text-[var(--foreground)]">{detail.replicationFactor}x</dd>
+              </div>
+              <div>
+                <dt className="text-[var(--muted-foreground)]">Codificação</dt>
+                <dd className="mt-0.5">
+                  <CodingSchemeBadge scheme={detail.codingScheme ?? 'replication'} />
+                </dd>
               </div>
             </>
           )}

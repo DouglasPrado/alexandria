@@ -24,6 +24,7 @@ export interface FileDetailDTO extends FileDTO {
   hash: string;
   chunksCount: number;
   replicationFactor: number;
+  codingScheme?: string;
   uploadedBy: {
     id: string;
     name: string;

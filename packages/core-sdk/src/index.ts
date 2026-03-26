@@ -38,6 +38,9 @@ export {
   type CreateManifestParams,
 } from './manifest';
 
+// Erasure Coding — Reed-Solomon RS(n,k) em GF(2^8) (Fase 3)
+export { encodeErasure, decodeErasure } from './erasure';
+
 // Vault — cofre criptografado por membro (RN-V1..V5)
 export {
   createVault,
