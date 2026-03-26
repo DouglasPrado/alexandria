@@ -13,17 +13,17 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 > Quais padroes se aplicam a todos os endpoints?
 
-| Aspecto | Convencao |
-| --- | --- |
-| Base URL | `/api` (sem versionamento) |
-| Formato | JSON (`application/json`), exceto upload (`multipart/form-data`) |
-| Autenticacao | Bearer Token (JWT) no header `Authorization` |
-| Paginacao | Cursor-based: `?cursor=<id>&limit=20` → `{ data: [], meta: { cursor, hasMore } }` |
-| Ordenacao | Implicita por `id` descendente (cursor semantico) |
-| Filtros | Query params por recurso (ex: `?mediaType=photo&status=ready`) |
-| Versionamento | Nenhum — endpoint unico sem prefixo de versao |
-| Rate Limit Headers | `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` |
-| Cookie de Auth | `access_token` — httpOnly, Secure, SameSite=Strict, 24h expiracao |
+| Aspecto            | Convencao                                                                         |
+| ------------------ | --------------------------------------------------------------------------------- |
+| Base URL           | `/api` (sem versionamento)                                                        |
+| Formato            | JSON (`application/json`), exceto upload (`multipart/form-data`)                  |
+| Autenticacao       | Bearer Token (JWT) no header `Authorization`                                      |
+| Paginacao          | Cursor-based: `?cursor=<id>&limit=20` → `{ data: [], meta: { cursor, hasMore } }` |
+| Ordenacao          | Implicita por `id` descendente (cursor semantico)                                 |
+| Filtros            | Query params por recurso (ex: `?mediaType=photo&status=ready`)                    |
+| Versionamento      | Nenhum — endpoint unico sem prefixo de versao                                     |
+| Rate Limit Headers | `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`                 |
+| Cookie de Auth     | `access_token` — httpOnly, Secure, SameSite=Strict, 24h expiracao                 |
 
 ---
 
@@ -33,62 +33,65 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 ### Auth (`/api/auth`)
 
-| Metodo | Rota | Controller.metodo | Service.metodo | Auth | Descricao |
-| --- | --- | --- | --- | --- | --- |
-| POST | `/api/auth/login` | `AuthController.login` | `AuthService.login` | Publica | Autenticar membro com email + senha |
-| POST | `/api/auth/refresh` | `AuthController.refresh` | `AuthService.refresh` | Cookie (refresh_token) | Renovar JWT expirado |
+| Metodo | Rota                | Controller.metodo        | Service.metodo        | Auth                   | Descricao                           |
+| ------ | ------------------- | ------------------------ | --------------------- | ---------------------- | ----------------------------------- |
+| POST   | `/api/auth/login`   | `AuthController.login`   | `AuthService.login`   | Publica                | Autenticar membro com email + senha |
+| POST   | `/api/auth/refresh` | `AuthController.refresh` | `AuthService.refresh` | Cookie (refresh_token) | Renovar JWT expirado                |
 
 ### Clusters (`/api/clusters`)
 
-| Metodo | Rota | Controller.metodo | Service.metodo | Auth | Descricao |
-| --- | --- | --- | --- | --- | --- |
-| POST | `/api/clusters` | `ClusterController.create` | `ClusterService.create` | Publica | Criar cluster familiar (UC-001) |
-| GET | `/api/clusters/:id` | `ClusterController.findById` | `ClusterService.findById` | JWT | Obter detalhes do cluster |
-| POST | `/api/clusters/:id/recovery` | `ClusterController.recover` | `ClusterService.recover` | Publica | Recovery via seed phrase (UC-007) |
+| Metodo | Rota                         | Controller.metodo            | Service.metodo            | Auth    | Descricao                         |
+| ------ | ---------------------------- | ---------------------------- | ------------------------- | ------- | --------------------------------- |
+| POST   | `/api/clusters`              | `ClusterController.create`   | `ClusterService.create`   | Publica | Criar cluster familiar (UC-001)   |
+| GET    | `/api/clusters/:id`          | `ClusterController.findById` | `ClusterService.findById` | JWT     | Obter detalhes do cluster         |
+| POST   | `/api/clusters/:id/recovery` | `ClusterController.recover`  | `ClusterService.recover`  | Publica | Recovery via seed phrase (UC-007) |
 
 ### Invites & Members (`/api/clusters/:id/invites`, `/api/clusters/:id/members`)
 
-| Metodo | Rota | Controller.metodo | Service.metodo | Auth | Descricao |
-| --- | --- | --- | --- | --- | --- |
-| POST | `/api/clusters/:id/invites` | `MemberController.createInvite` | `MemberService.createInvite` | JWT+admin | Gerar convite com token assinado (UC-002) |
-| POST | `/api/invites/:token/accept` | `MemberController.acceptInvite` | `MemberService.acceptInvite` | Publica | Aceitar convite e criar membro (UC-002) |
-| GET | `/api/clusters/:id/members` | `MemberController.list` | `MemberService.list` | JWT | Listar membros do cluster |
-| DELETE | `/api/clusters/:id/members/:memberId` | `MemberController.remove` | `MemberService.remove` | JWT+admin | Remover membro do cluster |
+| Metodo | Rota                                  | Controller.metodo               | Service.metodo               | Auth      | Descricao                                 |
+| ------ | ------------------------------------- | ------------------------------- | ---------------------------- | --------- | ----------------------------------------- |
+| POST   | `/api/clusters/:id/invites`           | `MemberController.createInvite` | `MemberService.createInvite` | JWT+admin | Gerar convite com token assinado (UC-002) |
+| POST   | `/api/invites/:token/accept`          | `MemberController.acceptInvite` | `MemberService.acceptInvite` | Publica   | Aceitar convite e criar membro (UC-002)   |
+| GET    | `/api/clusters/:id/members`           | `MemberController.list`         | `MemberService.list`         | JWT       | Listar membros do cluster                 |
+| DELETE | `/api/clusters/:id/members/:memberId` | `MemberController.remove`       | `MemberService.remove`       | JWT+admin | Remover membro do cluster                 |
 
 ### Nodes (`/api/nodes`)
 
-| Metodo | Rota | Controller.metodo | Service.metodo | Auth | Descricao |
-| --- | --- | --- | --- | --- | --- |
-| POST | `/api/nodes` | `NodeController.register` | `NodeService.register` | JWT+admin | Registrar no de armazenamento (UC-003) |
-| GET | `/api/nodes` | `NodeController.list` | `NodeService.list` | JWT | Listar nos do cluster |
-| POST | `/api/nodes/:id/drain` | `NodeController.drain` | `NodeService.drain` | JWT+admin | Iniciar drain de no (UC-006) |
-| DELETE | `/api/nodes/:id` | `NodeController.remove` | `NodeService.remove` | JWT+admin | Remover no apos drain completo |
+| Metodo | Rota                   | Controller.metodo         | Service.metodo         | Auth      | Descricao                              |
+| ------ | ---------------------- | ------------------------- | ---------------------- | --------- | -------------------------------------- |
+| POST   | `/api/nodes`              | `NodeController.register` | `NodeService.register` | JWT+admin | Registrar no de armazenamento (UC-003) |
+| GET    | `/api/nodes`              | `NodeController.list`     | `NodeService.list`     | JWT       | Listar nos do cluster                  |
+| GET    | `/api/nodes/:id`          | `NodeController.findById` | `NodeService.findById` | JWT       | Obter detalhe de um no especifico      |
+| POST   | `/api/nodes/:id/heartbeat`| `NodeController.heartbeat`| `NodeService.heartbeat`| Publica   | Heartbeat do agente (sem auth)         |
+| POST   | `/api/nodes/:id/drain`    | `NodeController.drain`    | `NodeService.drain`    | JWT+admin | Iniciar drain de no (UC-006)           |
+| DELETE | `/api/nodes/:id`          | `NodeController.remove`   | `NodeService.remove`   | JWT+admin | Remover no apos drain completo         |
 
 ### Files (`/api/files`)
 
-| Metodo | Rota | Controller.metodo | Service.metodo | Auth | Descricao |
-| --- | --- | --- | --- | --- | --- |
-| POST | `/api/files/upload` | `FileController.upload` | `FileService.upload` | JWT (admin/member) | Upload de arquivo multipart (UC-004) |
-| GET | `/api/files` | `FileController.list` | `FileService.list` | JWT | Listar arquivos com cursor pagination (UC-010) |
-| GET | `/api/files/:id` | `FileController.findById` | `FileService.findById` | JWT | Obter detalhes do arquivo (UC-005) |
-| GET | `/api/files/:id/download` | `FileController.download` | `FileService.download` | JWT | Baixar arquivo original otimizado (UC-005) |
-| GET | `/api/files/:id/preview` | `FileController.preview` | `FileService.getPreview` | JWT | Obter preview/thumbnail do arquivo |
+| Metodo | Rota                      | Controller.metodo         | Service.metodo           | Auth               | Descricao                                      |
+| ------ | ------------------------- | ------------------------- | ------------------------ | ------------------ | ---------------------------------------------- |
+| POST   | `/api/files/upload`       | `FileController.upload`   | `FileService.upload`     | JWT (admin/member) | Upload de arquivo multipart (UC-004)           |
+| GET    | `/api/files`              | `FileController.list`     | `FileService.list`       | JWT                | Listar arquivos com cursor pagination (UC-010) |
+| GET    | `/api/files/:id`          | `FileController.findById` | `FileService.findById`   | JWT                | Obter detalhes do arquivo (UC-005)             |
+| GET    | `/api/files/:id/download` | `FileController.download` | `FileService.download`   | JWT                | Baixar arquivo original otimizado (UC-005)     |
+| GET    | `/api/files/:id/preview`  | `FileController.preview`  | `FileService.getPreview` | JWT                | Obter preview/thumbnail do arquivo             |
 
 ### Alerts (`/api/alerts`)
 
-| Metodo | Rota | Controller.metodo | Service.metodo | Auth | Descricao |
-| --- | --- | --- | --- | --- | --- |
-| GET | `/api/alerts` | `AlertController.list` | `AlertService.list` | JWT+admin | Listar alertas do cluster (UC-008) |
-| PATCH | `/api/alerts/:id/resolve` | `AlertController.resolve` | `AlertService.resolve` | JWT+admin | Marcar alerta como resolvido |
+| Metodo | Rota                      | Controller.metodo         | Service.metodo         | Auth      | Descricao                          |
+| ------ | ------------------------- | ------------------------- | ---------------------- | --------- | ---------------------------------- |
+| GET    | `/api/alerts`             | `AlertController.list`    | `AlertService.list`    | JWT+admin | Listar alertas do cluster (UC-008) |
+| PATCH  | `/api/alerts/:id/resolve` | `AlertController.resolve` | `AlertService.resolve` | JWT+admin | Marcar alerta como resolvido       |
 
 ### Health (`/health`)
 
-| Metodo | Rota | Controller.metodo | Service.metodo | Auth | Descricao |
-| --- | --- | --- | --- | --- | --- |
-| GET | `/health/live` | `HealthController.live` | — | Publica | Liveness probe (processo ativo) |
-| GET | `/health/ready` | `HealthController.ready` | `HealthService.check` | Publica | Readiness probe (PostgreSQL + Redis + BullMQ) |
+| Metodo | Rota            | Controller.metodo        | Service.metodo        | Auth    | Descricao                                     |
+| ------ | --------------- | ------------------------ | --------------------- | ------- | --------------------------------------------- |
+| GET    | `/health/live`  | `HealthController.live`  | —                     | Publica | Liveness probe (processo ativo)               |
+| GET    | `/health/ready` | `HealthController.ready` | `HealthService.check` | Publica | Readiness probe (PostgreSQL + Redis + BullMQ) |
 
 <!-- added: opensource -->
+
 ### API Contribution Guidelines
 
 - **Endpoint naming**: `kebab-case` paths (`/cluster-nodes`), plural resource names (`/files` not `/file`), versioned under `/api/v1/`
@@ -110,10 +113,10 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Request:**
 
-| Campo | Tipo | Obrigatorio | Validacao | Exemplo |
-| --- | --- | --- | --- | --- |
-| email | string | sim | email valido, max 255 | `"maria@familia.com"` |
-| password | string | sim | min 8 | `"SenhaSegura123"` |
+| Campo    | Tipo   | Obrigatorio | Validacao             | Exemplo               |
+| -------- | ------ | ----------- | --------------------- | --------------------- |
+| email    | string | sim         | email valido, max 255 | `"maria@familia.com"` |
+| password | string | sim         | min 8                 | `"SenhaSegura123"`    |
 
 **Response 200:**
 
@@ -134,10 +137,10 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 400 | VALIDATION_ERROR | "Campos invalidos" | Email mal formatado ou senha ausente |
-| 401 | INVALID_CREDENTIALS | "Email ou senha incorretos" | Credenciais nao batem |
+| Status | Codigo              | Mensagem                    | Quando                               |
+| ------ | ------------------- | --------------------------- | ------------------------------------ |
+| 400    | VALIDATION_ERROR    | "Campos invalidos"          | Email mal formatado ou senha ausente |
+| 401    | INVALID_CREDENTIALS | "Email ou senha incorretos" | Credenciais nao batem                |
 
 ---
 
@@ -155,10 +158,10 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 401 | TOKEN_EXPIRED | "Refresh token expirado" | Token vencido |
-| 401 | INVALID_TOKEN | "Token invalido" | Assinatura invalida |
+| Status | Codigo        | Mensagem                 | Quando              |
+| ------ | ------------- | ------------------------ | ------------------- |
+| 401    | TOKEN_EXPIRED | "Refresh token expirado" | Token vencido       |
+| 401    | INVALID_TOKEN | "Token invalido"         | Assinatura invalida |
 
 ---
 
@@ -166,12 +169,12 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Request:**
 
-| Campo | Tipo | Obrigatorio | Validacao | Exemplo |
-| --- | --- | --- | --- | --- |
-| name | string | sim | min 2, max 100 | `"Familia Prado"` |
-| admin.name | string | sim | min 2, max 100 | `"Douglas Prado"` |
-| admin.email | string | sim | email valido | `"douglas@familia.com"` |
-| admin.password | string | sim | min 8, 1 maiuscula, 1 numero | `"Senha123"` |
+| Campo          | Tipo   | Obrigatorio | Validacao                    | Exemplo                 |
+| -------------- | ------ | ----------- | ---------------------------- | ----------------------- |
+| name           | string | sim         | min 2, max 100               | `"Familia Prado"`       |
+| admin.name     | string | sim         | min 2, max 100               | `"Douglas Prado"`       |
+| admin.email    | string | sim         | email valido                 | `"douglas@familia.com"` |
+| admin.password | string | sim         | min 8, 1 maiuscula, 1 numero | `"Senha123"`            |
 
 **Response 201:**
 
@@ -197,11 +200,11 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 400 | VALIDATION_ERROR | "Campos invalidos" | Campos ausentes ou mal formatados |
-| 409 | CLUSTER_ALREADY_EXISTS | "Admin ja possui cluster" | Email ja associado a cluster |
-| 500 | ENTROPY_FAILURE | "Falha na geracao de entropia" | CSPRNG indisponivel |
+| Status | Codigo                 | Mensagem                       | Quando                            |
+| ------ | ---------------------- | ------------------------------ | --------------------------------- |
+| 400    | VALIDATION_ERROR       | "Campos invalidos"             | Campos ausentes ou mal formatados |
+| 409    | CLUSTER_ALREADY_EXISTS | "Admin ja possui cluster"      | Email ja associado a cluster      |
+| 500    | ENTROPY_FAILURE        | "Falha na geracao de entropia" | CSPRNG indisponivel               |
 
 ---
 
@@ -227,11 +230,11 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 401 | UNAUTHORIZED | "Nao autenticado" | Token ausente ou invalido |
-| 403 | FORBIDDEN | "Sem permissao para este cluster" | Membro nao pertence ao cluster |
-| 404 | CLUSTER_NOT_FOUND | "Cluster nao encontrado" | ID inexistente |
+| Status | Codigo            | Mensagem                          | Quando                         |
+| ------ | ----------------- | --------------------------------- | ------------------------------ |
+| 401    | UNAUTHORIZED      | "Nao autenticado"                 | Token ausente ou invalido      |
+| 403    | FORBIDDEN         | "Sem permissao para este cluster" | Membro nao pertence ao cluster |
+| 404    | CLUSTER_NOT_FOUND | "Cluster nao encontrado"          | ID inexistente                 |
 
 ---
 
@@ -239,9 +242,9 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Request:**
 
-| Campo | Tipo | Obrigatorio | Validacao | Exemplo |
-| --- | --- | --- | --- | --- |
-| seedPhrase | string | sim | 12 palavras BIP-39 separadas por espaco | `"abandon ability able ..."` |
+| Campo      | Tipo   | Obrigatorio | Validacao                               | Exemplo                      |
+| ---------- | ------ | ----------- | --------------------------------------- | ---------------------------- |
+| seedPhrase | string | sim         | 12 palavras BIP-39 separadas por espaco | `"abandon ability able ..."` |
 
 **Response 200:**
 
@@ -262,11 +265,11 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 400 | INVALID_SEED | "Seed phrase invalida" | Palavras fora da wordlist BIP-39 |
-| 422 | SEED_MISMATCH | "Seed nao corresponde a nenhum cluster" | Vaults nao descriptografam |
-| 503 | NODES_UNREACHABLE | "Nenhum no acessivel" | Nenhum manifest encontrado |
+| Status | Codigo            | Mensagem                                | Quando                           |
+| ------ | ----------------- | --------------------------------------- | -------------------------------- |
+| 400    | INVALID_SEED      | "Seed phrase invalida"                  | Palavras fora da wordlist BIP-39 |
+| 422    | SEED_MISMATCH     | "Seed nao corresponde a nenhum cluster" | Vaults nao descriptografam       |
+| 503    | NODES_UNREACHABLE | "Nenhum no acessivel"                   | Nenhum manifest encontrado       |
 
 ---
 
@@ -274,10 +277,10 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Request:**
 
-| Campo | Tipo | Obrigatorio | Validacao | Exemplo |
-| --- | --- | --- | --- | --- |
-| email | string | sim | email valido, max 255 | `"joao@email.com"` |
-| role | string | sim | `"member"` ou `"reader"` | `"member"` |
+| Campo | Tipo   | Obrigatorio | Validacao                | Exemplo            |
+| ----- | ------ | ----------- | ------------------------ | ------------------ |
+| email | string | sim         | email valido, max 255    | `"joao@email.com"` |
+| role  | string | sim         | `"member"` ou `"reader"` | `"member"`         |
 
 **Response 201:**
 
@@ -293,12 +296,12 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 400 | VALIDATION_ERROR | "Campos invalidos" | Email ou role invalido |
-| 401 | UNAUTHORIZED | "Nao autenticado" | Token ausente |
-| 403 | FORBIDDEN | "Apenas admins podem convidar" | Role insuficiente |
-| 409 | MEMBER_ALREADY_EXISTS | "Membro ja existe neste cluster" | Email ja registrado no cluster |
+| Status | Codigo                | Mensagem                         | Quando                         |
+| ------ | --------------------- | -------------------------------- | ------------------------------ |
+| 400    | VALIDATION_ERROR      | "Campos invalidos"               | Email ou role invalido         |
+| 401    | UNAUTHORIZED          | "Nao autenticado"                | Token ausente                  |
+| 403    | FORBIDDEN             | "Apenas admins podem convidar"   | Role insuficiente              |
+| 409    | MEMBER_ALREADY_EXISTS | "Membro ja existe neste cluster" | Email ja registrado no cluster |
 
 ---
 
@@ -306,10 +309,10 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Request:**
 
-| Campo | Tipo | Obrigatorio | Validacao | Exemplo |
-| --- | --- | --- | --- | --- |
-| name | string | sim | min 2, max 100 | `"Joao Silva"` |
-| password | string | sim | min 8, 1 maiuscula, 1 numero | `"Senha456"` |
+| Campo    | Tipo   | Obrigatorio | Validacao                    | Exemplo        |
+| -------- | ------ | ----------- | ---------------------------- | -------------- |
+| name     | string | sim         | min 2, max 100               | `"Joao Silva"` |
+| password | string | sim         | min 8, 1 maiuscula, 1 numero | `"Senha456"`   |
 
 **Response 201:**
 
@@ -328,12 +331,12 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 400 | VALIDATION_ERROR | "Campos invalidos" | Nome ou senha invalidos |
-| 403 | INVALID_INVITE | "Convite invalido" | Token com assinatura invalida |
-| 410 | INVITE_EXPIRED | "Convite expirado" | Token vencido (> 7 dias) |
-| 409 | MEMBER_ALREADY_EXISTS | "Membro ja existe" | Email ja no cluster |
+| Status | Codigo                | Mensagem           | Quando                        |
+| ------ | --------------------- | ------------------ | ----------------------------- |
+| 400    | VALIDATION_ERROR      | "Campos invalidos" | Nome ou senha invalidos       |
+| 403    | INVALID_INVITE        | "Convite invalido" | Token com assinatura invalida |
+| 410    | INVITE_EXPIRED        | "Convite expirado" | Token vencido (> 7 dias)      |
+| 409    | MEMBER_ALREADY_EXISTS | "Membro ja existe" | Email ja no cluster           |
 
 ---
 
@@ -363,10 +366,10 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 401 | UNAUTHORIZED | "Nao autenticado" | Token ausente |
-| 403 | FORBIDDEN | "Sem permissao" | Membro nao pertence ao cluster |
+| Status | Codigo       | Mensagem          | Quando                         |
+| ------ | ------------ | ----------------- | ------------------------------ |
+| 401    | UNAUTHORIZED | "Nao autenticado" | Token ausente                  |
+| 403    | FORBIDDEN    | "Sem permissao"   | Membro nao pertence ao cluster |
 
 ---
 
@@ -378,12 +381,12 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 401 | UNAUTHORIZED | "Nao autenticado" | Token ausente |
-| 403 | FORBIDDEN | "Apenas admins podem remover membros" | Role insuficiente |
-| 404 | MEMBER_NOT_FOUND | "Membro nao encontrado" | ID inexistente |
-| 422 | CANNOT_REMOVE_ADMIN | "Nao e possivel remover o unico admin" | Ultimo admin do cluster |
+| Status | Codigo              | Mensagem                               | Quando                  |
+| ------ | ------------------- | -------------------------------------- | ----------------------- |
+| 401    | UNAUTHORIZED        | "Nao autenticado"                      | Token ausente           |
+| 403    | FORBIDDEN           | "Apenas admins podem remover membros"  | Role insuficiente       |
+| 404    | MEMBER_NOT_FOUND    | "Membro nao encontrado"                | ID inexistente          |
+| 422    | CANNOT_REMOVE_ADMIN | "Nao e possivel remover o unico admin" | Ultimo admin do cluster |
 
 ---
 
@@ -391,15 +394,15 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Request:**
 
-| Campo | Tipo | Obrigatorio | Validacao | Exemplo |
-| --- | --- | --- | --- | --- |
-| name | string | sim | min 2, max 100 | `"NAS Escritorio"` |
-| type | string | sim | `"s3"`, `"r2"`, `"local"`, `"vps"` | `"s3"` |
-| endpoint | string | sim (cloud) | URL valida | `"https://s3.amazonaws.com"` |
-| bucket | string | sim (cloud) | min 3, max 63 | `"alexandria-familia-prado"` |
-| accessKey | string | sim (cloud) | non-empty | `"AKIAIOSFODNN7EXAMPLE"` |
-| secretKey | string | sim (cloud) | non-empty | `"wJalrXUtnFEMI/K7MDENG/bPxRfi..."` |
-| region | string | nao | AWS region | `"us-east-1"` |
+| Campo     | Tipo   | Obrigatorio | Validacao                          | Exemplo                             |
+| --------- | ------ | ----------- | ---------------------------------- | ----------------------------------- |
+| name      | string | sim         | min 2, max 100                     | `"NAS Escritorio"`                  |
+| type      | string | sim         | `"s3"`, `"r2"`, `"local"`, `"vps"` | `"s3"`                              |
+| endpoint  | string | sim (cloud) | URL valida                         | `"https://s3.amazonaws.com"`        |
+| bucket    | string | sim (cloud) | min 3, max 63                      | `"alexandria-familia-prado"`        |
+| accessKey | string | sim (cloud) | non-empty                          | `"AKIAIOSFODNN7EXAMPLE"`            |
+| secretKey | string | sim (cloud) | non-empty                          | `"wJalrXUtnFEMI/K7MDENG/bPxRfi..."` |
+| region    | string | nao         | AWS region                         | `"us-east-1"`                       |
 
 **Response 201:**
 
@@ -417,13 +420,13 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 400 | VALIDATION_ERROR | "Campos invalidos" | Tipo ou credenciais ausentes |
-| 401 | UNAUTHORIZED | "Nao autenticado" | Token ausente |
-| 403 | FORBIDDEN | "Apenas admins podem registrar nos" | Role insuficiente |
-| 422 | CONNECTIVITY_FAILED | "Falha na conectividade com o no" | Teste PUT/GET falhou |
-| 422 | INVALID_CREDENTIALS | "Credenciais S3 invalidas" | Auth AWS falhou |
+| Status | Codigo              | Mensagem                            | Quando                       |
+| ------ | ------------------- | ----------------------------------- | ---------------------------- |
+| 400    | VALIDATION_ERROR    | "Campos invalidos"                  | Tipo ou credenciais ausentes |
+| 401    | UNAUTHORIZED        | "Nao autenticado"                   | Token ausente                |
+| 403    | FORBIDDEN           | "Apenas admins podem registrar nos" | Role insuficiente            |
+| 422    | CONNECTIVITY_FAILED | "Falha na conectividade com o no"   | Teste PUT/GET falhou         |
+| 422    | INVALID_CREDENTIALS | "Credenciais S3 invalidas"          | Auth AWS falhou              |
 
 ---
 
@@ -456,9 +459,57 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 401 | UNAUTHORIZED | "Nao autenticado" | Token ausente |
+| Status | Codigo       | Mensagem          | Quando        |
+| ------ | ------------ | ----------------- | ------------- |
+| 401    | UNAUTHORIZED | "Nao autenticado" | Token ausente |
+
+---
+
+### `GET /api/nodes/:id` — Detalhe do No
+
+**Request:** Parametro `id` na URL.
+
+**Response 200:**
+
+```json
+{
+  "id": "node-1234-5678",
+  "name": "NAS Escritorio",
+  "type": "s3",
+  "status": "online",
+  "totalCapacity": 107374182400,
+  "usedCapacity": 31457280000,
+  "chunksStored": 4200,
+  "lastHeartbeat": "2026-03-23T12:00:00Z",
+  "createdAt": "2026-01-10T10:00:00Z"
+}
+```
+
+**Erros:**
+
+| Status | Codigo         | Mensagem               | Quando         |
+| ------ | -------------- | ---------------------- | -------------- |
+| 401    | UNAUTHORIZED   | "Nao autenticado"      | Token ausente  |
+| 403    | FORBIDDEN      | "No nao pertence ao cluster" | No de outro cluster |
+| 404    | NODE_NOT_FOUND | "No nao encontrado"    | ID inexistente |
+
+---
+
+### `POST /api/nodes/:id/heartbeat` — Heartbeat do Agente
+
+**Autenticacao:** Publica — node-agent nao possui JWT; usa apenas o `nodeId` como identificador.
+
+**Request:** Nenhum body. Parametro `id` na URL.
+
+**Response 204:** Sem body.
+
+**Comportamento:** Atualiza `lastHeartbeat = now()` e muda `status` de `suspect` para `online` se o no estava suspeito.
+
+**Erros:**
+
+| Status | Codigo         | Mensagem            | Quando         |
+| ------ | -------------- | ------------------- | -------------- |
+| 404    | NODE_NOT_FOUND | "No nao encontrado" | ID inexistente |
 
 ---
 
@@ -479,13 +530,13 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 401 | UNAUTHORIZED | "Nao autenticado" | Token ausente |
-| 403 | FORBIDDEN | "Apenas admins podem drenar nos" | Role insuficiente |
-| 404 | NODE_NOT_FOUND | "No nao encontrado" | ID inexistente |
-| 422 | MIN_NODES_VIOLATION | "Nao e possivel remover — minimo de 3 nos necessario" | Cluster ficaria com < 3 nos |
-| 422 | INSUFFICIENT_SPACE | "Espaco insuficiente nos nos restantes" | Nao cabe nos demais nos |
+| Status | Codigo              | Mensagem                                              | Quando                      |
+| ------ | ------------------- | ----------------------------------------------------- | --------------------------- |
+| 401    | UNAUTHORIZED        | "Nao autenticado"                                     | Token ausente               |
+| 403    | FORBIDDEN           | "Apenas admins podem drenar nos"                      | Role insuficiente           |
+| 404    | NODE_NOT_FOUND      | "No nao encontrado"                                   | ID inexistente              |
+| 422    | MIN_NODES_VIOLATION | "Nao e possivel remover — minimo de 1 no necessario" | Cluster ficaria com < 1 no |
+| 422    | INSUFFICIENT_SPACE  | "Espaco insuficiente nos nos restantes"               | Nao cabe nos demais nos     |
 
 ---
 
@@ -497,12 +548,12 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 401 | UNAUTHORIZED | "Nao autenticado" | Token ausente |
-| 403 | FORBIDDEN | "Apenas admins" | Role insuficiente |
-| 404 | NODE_NOT_FOUND | "No nao encontrado" | ID inexistente |
-| 422 | DRAIN_NOT_COMPLETE | "Drain ainda em andamento" | No nao terminou de drenar |
+| Status | Codigo             | Mensagem                   | Quando                    |
+| ------ | ------------------ | -------------------------- | ------------------------- |
+| 401    | UNAUTHORIZED       | "Nao autenticado"          | Token ausente             |
+| 403    | FORBIDDEN          | "Apenas admins"            | Role insuficiente         |
+| 404    | NODE_NOT_FOUND     | "No nao encontrado"        | ID inexistente            |
+| 422    | DRAIN_NOT_COMPLETE | "Drain ainda em andamento" | No nao terminou de drenar |
 
 ---
 
@@ -510,10 +561,10 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Request:** `Content-Type: multipart/form-data`
 
-| Campo | Tipo | Obrigatorio | Validacao | Exemplo |
-| --- | --- | --- | --- | --- |
-| file | binary | sim | max 10GB; MIME whitelist | Arquivo binario |
-| metadata | JSON string | nao | JSON valido | `'{"description":"Natal 2025"}'` |
+| Campo    | Tipo        | Obrigatorio | Validacao                | Exemplo                          |
+| -------- | ----------- | ----------- | ------------------------ | -------------------------------- |
+| file     | binary      | sim         | max 10GB; MIME whitelist | Arquivo binario                  |
+| metadata | JSON string | nao         | JSON valido              | `'{"description":"Natal 2025"}'` |
 
 **Response 202:**
 
@@ -532,13 +583,13 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 400 | VALIDATION_ERROR | "Arquivo ausente ou tipo invalido" | MIME nao permitido |
-| 401 | UNAUTHORIZED | "Nao autenticado" | Token ausente |
-| 403 | FORBIDDEN | "Readers nao podem fazer upload" | Role = reader |
-| 413 | FILE_TOO_LARGE | "Arquivo excede limite de 10GB" | Tamanho acima do permitido |
-| 503 | INSUFFICIENT_NODES | "Nos insuficientes para replicacao minima" | Menos de 3 nos ativos |
+| Status | Codigo             | Mensagem                                   | Quando                     |
+| ------ | ------------------ | ------------------------------------------ | -------------------------- |
+| 400    | VALIDATION_ERROR   | "Arquivo ausente ou tipo invalido"         | MIME nao permitido         |
+| 401    | UNAUTHORIZED       | "Nao autenticado"                          | Token ausente              |
+| 403    | FORBIDDEN          | "Readers nao podem fazer upload"           | Role = reader              |
+| 413    | FILE_TOO_LARGE     | "Arquivo excede limite de 10GB"            | Tamanho acima do permitido |
+| 503    | INSUFFICIENT_NODES | "Nos insuficientes para replicacao minima" | Menos de 1 no ativo        |
 
 ---
 
@@ -546,13 +597,13 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Request:** Query params:
 
-| Param | Tipo | Obrigatorio | Exemplo |
-| --- | --- | --- | --- |
-| cursor | string (UUID) | nao | `"file-abcd-1234"` |
-| limit | number | nao (default 20, max 100) | `20` |
-| mediaType | string | nao | `"photo"`, `"video"`, `"document"` |
-| status | string | nao | `"ready"`, `"processing"`, `"error"` |
-| search | string | nao | `"natal 2025"` |
+| Param     | Tipo          | Obrigatorio               | Exemplo                              |
+| --------- | ------------- | ------------------------- | ------------------------------------ |
+| cursor    | string (UUID) | nao                       | `"file-abcd-1234"`                   |
+| limit     | number        | nao (default 20, max 100) | `20`                                 |
+| mediaType | string        | nao                       | `"photo"`, `"video"`, `"document"`   |
+| status    | string        | nao                       | `"ready"`, `"processing"`, `"error"` |
+| search    | string        | nao                       | `"natal 2025"`                       |
 
 **Response 200:**
 
@@ -585,9 +636,9 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 401 | UNAUTHORIZED | "Nao autenticado" | Token ausente |
+| Status | Codigo       | Mensagem          | Quando        |
+| ------ | ------------ | ----------------- | ------------- |
+| 401    | UNAUTHORIZED | "Nao autenticado" | Token ausente |
 
 ---
 
@@ -627,10 +678,10 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 401 | UNAUTHORIZED | "Nao autenticado" | Token ausente |
-| 404 | FILE_NOT_FOUND | "Arquivo nao encontrado" | ID inexistente |
+| Status | Codigo         | Mensagem                 | Quando         |
+| ------ | -------------- | ------------------------ | -------------- |
+| 401    | UNAUTHORIZED   | "Nao autenticado"        | Token ausente  |
+| 404    | FILE_NOT_FOUND | "Arquivo nao encontrado" | ID inexistente |
 
 ---
 
@@ -650,11 +701,11 @@ Content-Length: 1048576
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 401 | UNAUTHORIZED | "Nao autenticado" | Token ausente |
-| 404 | FILE_NOT_FOUND | "Arquivo nao encontrado" | ID inexistente |
-| 503 | FILE_UNAVAILABLE | "Arquivo temporariamente indisponivel" | Todos os nos com replicas offline |
+| Status | Codigo           | Mensagem                               | Quando                            |
+| ------ | ---------------- | -------------------------------------- | --------------------------------- |
+| 401    | UNAUTHORIZED     | "Nao autenticado"                      | Token ausente                     |
+| 404    | FILE_NOT_FOUND   | "Arquivo nao encontrado"               | ID inexistente                    |
+| 503    | FILE_UNAVAILABLE | "Arquivo temporariamente indisponivel" | Todos os nos com replicas offline |
 
 ---
 
@@ -662,7 +713,7 @@ Content-Length: 1048576
 
 **Request:** Nenhum body. Parametro `id` na URL.
 
-**Response 200:** Stream binario (thumbnail ~50KB para fotos, 480p para video, imagem da primeira pagina para PDF).
+**Response 200:** Stream binario (thumbnail ~50KB para fotos, 480p para video). Documentos nao possuem preview (retorna 404).
 
 ```
 Content-Type: image/webp
@@ -672,11 +723,11 @@ Cache-Control: public, max-age=86400
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 401 | UNAUTHORIZED | "Nao autenticado" | Token ausente |
-| 404 | FILE_NOT_FOUND | "Arquivo nao encontrado" | ID inexistente |
-| 404 | PREVIEW_NOT_READY | "Preview ainda em processamento" | File status = processing |
+| Status | Codigo            | Mensagem                         | Quando                   |
+| ------ | ----------------- | -------------------------------- | ------------------------ |
+| 401    | UNAUTHORIZED      | "Nao autenticado"                | Token ausente            |
+| 404    | FILE_NOT_FOUND    | "Arquivo nao encontrado"         | ID inexistente           |
+| 404    | PREVIEW_NOT_READY | "Preview ainda em processamento" | File status = processing |
 
 ---
 
@@ -709,10 +760,10 @@ Cache-Control: public, max-age=86400
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 401 | UNAUTHORIZED | "Nao autenticado" | Token ausente |
-| 403 | FORBIDDEN | "Apenas admins podem ver alertas" | Role insuficiente |
+| Status | Codigo       | Mensagem                          | Quando            |
+| ------ | ------------ | --------------------------------- | ----------------- |
+| 401    | UNAUTHORIZED | "Nao autenticado"                 | Token ausente     |
+| 403    | FORBIDDEN    | "Apenas admins podem ver alertas" | Role insuficiente |
 
 ---
 
@@ -732,12 +783,12 @@ Cache-Control: public, max-age=86400
 
 **Erros:**
 
-| Status | Codigo | Mensagem | Quando |
-| --- | --- | --- | --- |
-| 401 | UNAUTHORIZED | "Nao autenticado" | Token ausente |
-| 403 | FORBIDDEN | "Apenas admins" | Role insuficiente |
-| 404 | ALERT_NOT_FOUND | "Alerta nao encontrado" | ID inexistente |
-| 422 | ALREADY_RESOLVED | "Alerta ja resolvido" | Status ja e resolved |
+| Status | Codigo           | Mensagem                | Quando               |
+| ------ | ---------------- | ----------------------- | -------------------- |
+| 401    | UNAUTHORIZED     | "Nao autenticado"       | Token ausente        |
+| 403    | FORBIDDEN        | "Apenas admins"         | Role insuficiente    |
+| 404    | ALERT_NOT_FOUND  | "Alerta nao encontrado" | ID inexistente       |
+| 422    | ALREADY_RESOLVED | "Alerta ja resolvido"   | Status ja e resolved |
 
 ---
 
@@ -793,29 +844,29 @@ Cache-Control: public, max-age=86400
 
 ### Request DTOs
 
-| DTO | Campos | Usado em |
-| --- | --- | --- |
-| `LoginDTO` | `email, password` | `POST /api/auth/login` |
-| `CreateClusterDTO` | `name, admin: { name, email, password }` | `POST /api/clusters` |
-| `RecoverClusterDTO` | `seedPhrase` | `POST /api/clusters/:id/recovery` |
-| `CreateInviteDTO` | `email, role` | `POST /api/clusters/:id/invites` |
-| `AcceptInviteDTO` | `name, password` | `POST /api/invites/:token/accept` |
-| `RegisterNodeDTO` | `name, type, endpoint?, bucket?, accessKey?, secretKey?, region?` | `POST /api/nodes` |
-| `UploadFileDTO` | `file (binary), metadata? (JSON)` | `POST /api/files/upload` |
-| `ListFilesQueryDTO` | `cursor?, limit?, mediaType?, status?, search?` | `GET /api/files` |
-| `CursorPaginationDTO` | `cursor?, limit?` | Todas as listagens |
+| DTO                   | Campos                                                            | Usado em                          |
+| --------------------- | ----------------------------------------------------------------- | --------------------------------- |
+| `LoginDTO`            | `email, password`                                                 | `POST /api/auth/login`            |
+| `CreateClusterDTO`    | `name, admin: { name, email, password }`                          | `POST /api/clusters`              |
+| `RecoverClusterDTO`   | `seedPhrase`                                                      | `POST /api/clusters/:id/recovery` |
+| `CreateInviteDTO`     | `email, role`                                                     | `POST /api/clusters/:id/invites`  |
+| `AcceptInviteDTO`     | `name, password`                                                  | `POST /api/invites/:token/accept` |
+| `RegisterNodeDTO`     | `name, type, endpoint?, bucket?, accessKey?, secretKey?, region?` | `POST /api/nodes`                 |
+| `UploadFileDTO`       | `file (binary), metadata? (JSON)`                                 | `POST /api/files/upload`          |
+| `ListFilesQueryDTO`   | `cursor?, limit?, mediaType?, status?, search?`                   | `GET /api/files`                  |
+| `CursorPaginationDTO` | `cursor?, limit?`                                                 | Todas as listagens                |
 
 ### Response DTOs
 
-| DTO | Campos | Exclui | Usado em |
-| --- | --- | --- | --- |
-| `ClusterResponseDTO` | `id, name, status, totalNodes, totalFiles, totalStorage, usedStorage, replicationFactor, createdAt` | `seedPhrase (apos criacao)` | Endpoints de Cluster |
-| `MemberResponseDTO` | `id, name, email, role, clusterId, joinedAt` | `passwordHash, vaultKey` | Endpoints de Member |
-| `NodeResponseDTO` | `id, name, type, status, totalCapacity, usedCapacity, chunksStored, lastHeartbeat` | `accessKey, secretKey` | Endpoints de Node |
-| `FileResponseDTO` | `id, name, mimeType, mediaType, originalSize, optimizedSize, status, previewUrl, metadata, createdAt` | `fileKey, chunkHashes` | Endpoints de File |
-| `FileDetailResponseDTO` | `FileResponseDTO + hash, chunksCount, replicationFactor, uploadedBy` | `fileKey` | `GET /api/files/:id` |
-| `AlertResponseDTO` | `id, type, severity, message, nodeId?, status, createdAt, resolvedAt?` | — | Endpoints de Alert |
-| `CursorPaginatedResponseDTO<T>` | `data: T[], meta: { cursor, hasMore }` | — | Todas as listagens |
+| DTO                             | Campos                                                                                                | Exclui                      | Usado em             |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------- | --------------------------- | -------------------- |
+| `ClusterResponseDTO`            | `id, name, status, totalNodes, totalFiles, totalStorage, usedStorage, replicationFactor, createdAt`   | `seedPhrase (apos criacao)` | Endpoints de Cluster |
+| `MemberResponseDTO`             | `id, name, email, role, clusterId, joinedAt`                                                          | `passwordHash, vaultKey`    | Endpoints de Member  |
+| `NodeResponseDTO`               | `id, name, type, status, totalCapacity, usedCapacity, chunksStored, lastHeartbeat`                    | `accessKey, secretKey`      | Endpoints de Node    |
+| `FileResponseDTO`               | `id, name, mimeType, mediaType, originalSize, optimizedSize, status, previewUrl, metadata, createdAt` | `fileKey, chunkHashes`      | Endpoints de File    |
+| `FileDetailResponseDTO`         | `FileResponseDTO + hash, chunksCount, replicationFactor, uploadedBy`                                  | `fileKey`                   | `GET /api/files/:id` |
+| `AlertResponseDTO`              | `id, type, severity, message, nodeId?, status, createdAt, resolvedAt?`                                | —                           | Endpoints de Alert   |
+| `CursorPaginatedResponseDTO<T>` | `data: T[], meta: { cursor, hasMore }`                                                                | —                           | Todas as listagens   |
 
 <!-- APPEND:dtos -->
 
