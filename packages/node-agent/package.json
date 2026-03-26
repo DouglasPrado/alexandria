@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nest start --watch",
     "build": "nest build",
-    "test": "echo 'No tests yet'",
+    "test": "jest",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
