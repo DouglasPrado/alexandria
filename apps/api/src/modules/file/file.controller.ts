@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Delete,
   Param,
   Query,
   Res,
@@ -35,7 +36,7 @@ export class FileController {
     return this.fileService.upload(member.clusterId, member.memberId, file);
   }
 
-  /** GET /api/files — Listar arquivos com cursor pagination (JWT, UC-010) */
+  /** GET /api/files — Listar arquivos com cursor pagination e busca (JWT, UC-010) */
   @Get()
   async list(
     @CurrentMember() member: CurrentMemberPayload,
@@ -43,12 +44,18 @@ export class FileController {
     @Query('limit') limit?: string,
     @Query('mediaType') mediaType?: string,
     @Query('status') status?: string,
+    @Query('search') search?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
   ) {
     return this.fileService.list(member.clusterId, {
       cursor,
       limit: limit ? parseInt(limit, 10) : undefined,
       mediaType,
       status,
+      search,
+      from,
+      to,
     });
   }
 
@@ -75,10 +82,25 @@ export class FileController {
     res.end(preview.data);
   }
 
-  /** GET /api/files/:id/download — Download arquivo (JWT, UC-005) */
+  /** DELETE /api/files/:id — Deletar arquivo (JWT, admin/member) */
+  @Delete(':id')
+  @Roles('admin', 'member')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(
+    @Param('id') id: string,
+    @CurrentMember() member: CurrentMemberPayload,
+  ) {
+    return this.fileService.remove(id, member.clusterId);
+  }
+
+  /** GET /api/files/:id/download — Download arquivo reassemblado (JWT, UC-005) */
   @Get(':id/download')
-  async download(@Param('id') id: string) {
-    await this.fileService.findById(id);
-    return { message: 'Download endpoint — full reassembly not yet implemented' };
+  async download(@Param('id') id: string, @Res() res: Response) {
+    const file = await this.fileService.download(id);
+
+    res.setHeader('Content-Type', file.mimeType);
+    res.setHeader('Content-Length', file.data.length);
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(file.filename)}"`);
+    res.end(file.data);
   }
 }

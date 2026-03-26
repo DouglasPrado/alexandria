@@ -402,6 +402,95 @@ describe('FileService', () => {
         }),
       );
     });
+
+    /**
+     * Testes de busca — UC-010 (RF-063, RF-064)
+     * Fonte: docs/backend/05-api-contracts.md (GET /api/files ?search=)
+     * Fonte: docs/blueprint/08-use_cases.md (UC-010)
+     */
+    it('should filter by search term using case-insensitive name match (UC-010)', async () => {
+      mockPrisma.file.findMany.mockResolvedValue([]);
+
+      await fileService.list('cluster-1', { search: 'natal' });
+
+      expect(mockPrisma.file.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            originalName: { contains: 'natal', mode: 'insensitive' },
+          }),
+        }),
+      );
+    });
+
+    it('should not add originalName filter when search is empty string', async () => {
+      mockPrisma.file.findMany.mockResolvedValue([]);
+
+      await fileService.list('cluster-1', { search: '' });
+
+      const call = mockPrisma.file.findMany.mock.calls[0][0];
+      expect(call.where).not.toHaveProperty('originalName');
+    });
+
+    it('should combine search with mediaType filter (UC-010 — 1a)', async () => {
+      mockPrisma.file.findMany.mockResolvedValue([]);
+
+      await fileService.list('cluster-1', { search: 'ferias', mediaType: 'photo' });
+
+      expect(mockPrisma.file.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            mediaType: 'photo',
+            originalName: { contains: 'ferias', mode: 'insensitive' },
+          }),
+        }),
+      );
+    });
+
+    it('should filter by date range (from) — UC-010', async () => {
+      mockPrisma.file.findMany.mockResolvedValue([]);
+      const from = '2025-01-01T00:00:00.000Z';
+
+      await fileService.list('cluster-1', { from });
+
+      expect(mockPrisma.file.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            createdAt: expect.objectContaining({ gte: new Date(from) }),
+          }),
+        }),
+      );
+    });
+
+    it('should filter by date range (to) — UC-010', async () => {
+      mockPrisma.file.findMany.mockResolvedValue([]);
+      const to = '2025-12-31T23:59:59.000Z';
+
+      await fileService.list('cluster-1', { to });
+
+      expect(mockPrisma.file.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            createdAt: expect.objectContaining({ lte: new Date(to) }),
+          }),
+        }),
+      );
+    });
+
+    it('should apply both from and to as createdAt range (UC-010)', async () => {
+      mockPrisma.file.findMany.mockResolvedValue([]);
+      const from = '2025-01-01T00:00:00.000Z';
+      const to = '2025-12-31T23:59:59.000Z';
+
+      await fileService.list('cluster-1', { from, to });
+
+      expect(mockPrisma.file.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            createdAt: { gte: new Date(from), lte: new Date(to) },
+          }),
+        }),
+      );
+    });
   });
 
   describe('remove()', () => {
@@ -424,10 +513,14 @@ describe('FileService', () => {
       { chunkId: 'chunk-b', nodeId: 'node-1', chunk: { size: 3000000 } },
     ];
 
-    it('should delete chunks from storage nodes', async () => {
+    it('should delete orphan chunks from storage nodes', async () => {
       mockPrisma.file.findUnique.mockResolvedValue(mockFile);
       mockPrisma.preview.findUnique.mockResolvedValue(mockPreview);
       mockPrisma.chunkReplica.findMany.mockResolvedValue(mockReplicas);
+      mockPrisma.chunk.findMany.mockResolvedValue([
+        { id: 'chunk-a', referenceCount: 1 },
+        { id: 'chunk-b', referenceCount: 1 },
+      ]);
       mockPrisma.chunk.update.mockResolvedValue({});
       mockPrisma.chunk.delete.mockResolvedValue({});
       mockPrisma.chunkReplica.deleteMany.mockResolvedValue({});
@@ -446,6 +539,7 @@ describe('FileService', () => {
       mockPrisma.file.findUnique.mockResolvedValue(mockFile);
       mockPrisma.preview.findUnique.mockResolvedValue(mockPreview);
       mockPrisma.chunkReplica.findMany.mockResolvedValue([]);
+      mockPrisma.chunk.findMany.mockResolvedValue([]);
       mockPrisma.file.delete.mockResolvedValue({});
 
       await fileService.remove('file-1', 'cluster-1');
@@ -457,6 +551,10 @@ describe('FileService', () => {
       mockPrisma.file.findUnique.mockResolvedValue(mockFile);
       mockPrisma.preview.findUnique.mockResolvedValue(null);
       mockPrisma.chunkReplica.findMany.mockResolvedValue(mockReplicas);
+      mockPrisma.chunk.findMany.mockResolvedValue([
+        { id: 'chunk-a', referenceCount: 1 },
+        { id: 'chunk-b', referenceCount: 1 },
+      ]);
       mockPrisma.chunk.update.mockResolvedValue({});
       mockPrisma.chunk.delete.mockResolvedValue({});
       mockPrisma.chunkReplica.deleteMany.mockResolvedValue({});
@@ -489,6 +587,73 @@ describe('FileService', () => {
     it('should throw NotFoundException if file belongs to another cluster', async () => {
       mockPrisma.file.findUnique.mockResolvedValue({ ...mockFile, clusterId: 'other-cluster' });
       await expect(fileService.remove('file-1', 'cluster-1')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should delete ChunkReplica records so node chunksStored count updates', async () => {
+      mockPrisma.file.findUnique.mockResolvedValue(mockFile);
+      mockPrisma.preview.findUnique.mockResolvedValue(null);
+      mockPrisma.chunkReplica.findMany.mockResolvedValue(mockReplicas);
+      mockPrisma.chunk.findMany.mockResolvedValue([
+        { id: 'chunk-a', referenceCount: 1 },
+        { id: 'chunk-b', referenceCount: 1 },
+      ]);
+      mockPrisma.chunk.update.mockResolvedValue({});
+      mockPrisma.chunk.delete.mockResolvedValue({});
+      mockPrisma.chunkReplica.deleteMany.mockResolvedValue({});
+      mockPrisma.node.update.mockResolvedValue({});
+      mockPrisma.file.delete.mockResolvedValue({});
+
+      await fileService.remove('file-1', 'cluster-1');
+
+      // ChunkReplica records must be explicitly deleted so _count.chunkReplicas updates
+      expect(mockPrisma.chunkReplica.deleteMany).toHaveBeenCalled();
+    });
+
+    it('should decrement referenceCount on chunks and delete orphans (referenceCount=1)', async () => {
+      mockPrisma.file.findUnique.mockResolvedValue(mockFile);
+      mockPrisma.preview.findUnique.mockResolvedValue(null);
+      mockPrisma.chunkReplica.findMany.mockResolvedValue(mockReplicas);
+      mockPrisma.chunk.findMany.mockResolvedValue([
+        { id: 'chunk-a', referenceCount: 1 },
+        { id: 'chunk-b', referenceCount: 1 },
+      ]);
+      mockPrisma.chunk.update.mockResolvedValue({});
+      mockPrisma.chunk.delete.mockResolvedValue({});
+      mockPrisma.chunkReplica.deleteMany.mockResolvedValue({});
+      mockPrisma.node.update.mockResolvedValue({});
+      mockPrisma.file.delete.mockResolvedValue({});
+
+      await fileService.remove('file-1', 'cluster-1');
+
+      // Orphan chunks (refCount=1) should be fully deleted
+      expect(mockPrisma.chunk.delete).toHaveBeenCalledWith({ where: { id: 'chunk-a' } });
+      expect(mockPrisma.chunk.delete).toHaveBeenCalledWith({ where: { id: 'chunk-b' } });
+    });
+
+    it('should only decrement referenceCount on shared chunks (referenceCount > 1)', async () => {
+      mockPrisma.file.findUnique.mockResolvedValue(mockFile);
+      mockPrisma.preview.findUnique.mockResolvedValue(null);
+      mockPrisma.chunkReplica.findMany.mockResolvedValue([
+        { chunkId: 'shared-chunk', nodeId: 'node-1', chunk: { size: 4000000 } },
+      ]);
+      mockPrisma.chunk.findMany.mockResolvedValue([
+        { id: 'shared-chunk', referenceCount: 3 },
+      ]);
+      mockPrisma.chunk.update.mockResolvedValue({});
+      mockPrisma.chunkReplica.deleteMany.mockResolvedValue({});
+      mockPrisma.node.update.mockResolvedValue({});
+      mockPrisma.file.delete.mockResolvedValue({});
+
+      await fileService.remove('file-1', 'cluster-1');
+
+      // Should decrement but NOT delete the shared chunk
+      expect(mockPrisma.chunk.update).toHaveBeenCalledWith({
+        where: { id: 'shared-chunk' },
+        data: { referenceCount: { decrement: 1 } },
+      });
+      expect(mockPrisma.chunk.delete).not.toHaveBeenCalled();
+      // Should NOT delete replicas of shared chunks (other files still need them)
+      expect(mockPrisma.chunkReplica.deleteMany).not.toHaveBeenCalled();
     });
   });
 

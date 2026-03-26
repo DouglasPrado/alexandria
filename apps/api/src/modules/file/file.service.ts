@@ -203,18 +203,36 @@ export class FileService {
   }
 
   /**
-   * Lista arquivos com cursor pagination.
+   * Lista arquivos com cursor pagination e filtros de busca.
    * Conforme backend/05-api-contracts.md — GET /api/files
+   * UC-010: search por nome, filtro por tipo, range de datas (RF-063, RF-064)
    */
   async list(
     clusterId: string,
-    query: { cursor?: string; limit?: number; mediaType?: string; status?: string },
+    query: {
+      cursor?: string;
+      limit?: number;
+      mediaType?: string;
+      status?: string;
+      search?: string;
+      from?: string;
+      to?: string;
+    },
   ) {
     const limit = query.limit ?? DEFAULT_PAGE_SIZE;
 
     const where: Record<string, unknown> = { clusterId };
     if (query.mediaType) where.mediaType = query.mediaType;
     if (query.status) where.status = query.status;
+    // UC-010: busca por nome (case-insensitive ILIKE)
+    if (query.search) where.originalName = { contains: query.search, mode: 'insensitive' };
+    // UC-010: filtro por range de datas
+    if (query.from || query.to) {
+      const createdAt: Record<string, Date> = {};
+      if (query.from) createdAt.gte = new Date(query.from);
+      if (query.to) createdAt.lte = new Date(query.to);
+      where.createdAt = createdAt;
+    }
 
     const findArgs: Record<string, unknown> = {
       where,
@@ -284,17 +302,26 @@ export class FileService {
       select: { chunkId: true, nodeId: true, chunk: { select: { size: true } } },
     });
 
-    // 3. Delete chunks from storage nodes
-    for (const replica of replicas) {
-      await this.storageService.deleteFromNode(replica.nodeId, replica.chunkId);
-    }
+    // 3. Identify unique chunks and load referenceCount
+    const uniqueChunkIds = [...new Set(replicas.map((r) => r.chunkId))];
+    const chunks = await this.prisma.chunk.findMany({
+      where: { id: { in: uniqueChunkIds } },
+      select: { id: true, referenceCount: true },
+    });
+    const chunkMap = new Map(chunks.map((c) => [c.id, c.referenceCount]));
 
-    // 4. Update usedCapacity on affected nodes
+    // 4. Delete chunks from storage nodes + update capacity (only for orphan chunks)
     const capacityByNode = new Map<string, bigint>();
     for (const replica of replicas) {
-      const current = capacityByNode.get(replica.nodeId) ?? 0n;
-      capacityByNode.set(replica.nodeId, current + BigInt(replica.chunk.size));
+      const refCount = chunkMap.get(replica.chunkId) ?? 1;
+      if (refCount <= 1) {
+        // Orphan chunk — remove physically and free capacity
+        await this.storageService.deleteFromNode(replica.nodeId, replica.chunkId);
+        const current = capacityByNode.get(replica.nodeId) ?? 0n;
+        capacityByNode.set(replica.nodeId, current + BigInt(replica.chunk.size));
+      }
     }
+
     for (const [nodeId, freed] of capacityByNode) {
       await this.prisma.node.update({
         where: { id: nodeId },
@@ -302,7 +329,23 @@ export class FileService {
       });
     }
 
-    // 5. Delete file (cascades to preview, manifest, manifest_chunks)
+    // 5. Clean up chunk records: delete orphans, decrement shared
+    for (const chunkId of uniqueChunkIds) {
+      const refCount = chunkMap.get(chunkId) ?? 1;
+      if (refCount <= 1) {
+        // Delete replicas first (FK constraint), then the chunk itself
+        await this.prisma.chunkReplica.deleteMany({ where: { chunkId } });
+        await this.prisma.chunk.delete({ where: { id: chunkId } });
+      } else {
+        // Shared chunk — only decrement reference count, keep replicas
+        await this.prisma.chunk.update({
+          where: { id: chunkId },
+          data: { referenceCount: { decrement: 1 } },
+        });
+      }
+    }
+
+    // 6. Delete file (cascades to preview, manifest, manifest_chunks)
     await this.prisma.file.delete({ where: { id: fileId } });
   }
 
