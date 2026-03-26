@@ -41,17 +41,20 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 ## Contexto por Plataforma
 
 ### Se web:
+
 - SSR hydration: sincronizacao de estado entre servidor e cliente
 - URL state via searchParams, shallow routing
 - Cache layers: React Query, SWR, RSC cache
 
 ### Se mobile:
+
 - Persistencia entre background/foreground (AppState listener)
 - Ciclo de vida do app: cold start, warm start, resume
 - Armazenamento local: AsyncStorage, MMKV, SecureStore
 - Sincronizacao offline-first com queue de operacoes
 
 ### Se desktop:
+
 - Sincronizacao main↔renderer via IPC (invoke/handle)
 - Estado persistido em disco (electron-store, tauri fs)
 - Estado de janela (posicao, tamanho, maximizado)
@@ -60,11 +63,13 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 ## Geracao
 
 > **Modo de escrita:**
+>
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
 Preencha `docs/frontend/{client}/05-state.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+
 - Informacoes explicitas do blueprint tecnico
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- do blueprint: XX-arquivo.md -->`)

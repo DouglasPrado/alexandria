@@ -13,6 +13,7 @@ Liste 3 a 7 princípios que guiam todas as decisões técnicas do sistema. Esses
 **Justificativa:** O propósito central do Alexandria é preservar memórias familiares por décadas. HDDs degradam em 5-10 anos, contas cloud podem ser encerradas, dispositivos podem ser roubados ou destruídos. Sem replicação diversificada, o sistema não cumpre sua razão de existir.
 
 **Implicações:**
+
 - Nenhum chunk é considerado "salvo" até ter 3 réplicas confirmadas em nós diferentes
 - Auto-healing é obrigatório: quando um nó é perdido, re-replicação inicia automaticamente em até 1 hora
 - Diversidade de nós é incentivada: réplicas preferencialmente em mix de local + cloud + outro dispositivo
@@ -27,6 +28,7 @@ Liste 3 a 7 princípios que guiam todas as decisões técnicas do sistema. Esses
 **Justificativa:** Se o sistema inteiro depender de um único servidor, ele é tão frágil quanto um HD externo — exatamente o problema que estamos resolvendo. A seed phrase de 12 palavras é o ponto de recovery do universo inteiro.
 
 **Implicações:**
+
 - O orquestrador nunca é a única cópia de nenhum dado ou metadado
 - Manifests, vaults dos membros e configuração do cluster são replicados nos nós de storage
 - Recovery via seed phrase deve ser testável e funcional: seed → master key → vaults dos membros → reconectar nós → rebuild índice
@@ -41,6 +43,7 @@ Liste 3 a 7 princípios que guiam todas as decisões técnicas do sistema. Esses
 **Justificativa:** Fotos e vídeos familiares são dados pessoais sensíveis (incluem menores, localizações GPS, momentos íntimos). Privacidade não é feature opcional — é requisito fundamental. Confiar em provedores cloud para proteger dados é aceitar uma dependência desnecessária.
 
 **Implicações:**
+
 - Criptografia AES-256-GCM acontece no cliente, antes de qualquer upload
 - Envelope encryption (seed → master key → file keys → chunk keys) isola comprometimento
 - Tokens OAuth, credenciais de provedores e senhas vivem exclusivamente no vault criptografado de cada membro, nunca em texto puro
@@ -56,6 +59,7 @@ Liste 3 a 7 princípios que guiam todas as decisões técnicas do sistema. Esses
 **Justificativa:** Em um cluster com dezenas de dispositivos heterogêneos (celulares, PCs velhos, NAS, buckets cloud), falhas são certeza estatística, não exceção. Um sistema familiar precisa funcionar por décadas sem intervenção constante de um admin técnico.
 
 **Implicações:**
+
 - Heartbeat monitoring detecta nós offline em minutos; auto-healing re-replica chunks em até 1 hora
 - Scrubbing periódico recalcula hashes de todos os chunks para detectar corrupção silenciosa (bit rot)
 - Retry com backoff exponencial em toda comunicação com nós e provedores cloud
@@ -71,6 +75,7 @@ Liste 3 a 7 princípios que guiam todas as decisões técnicas do sistema. Esses
 **Justificativa:** A maioria das telas tem ~2 megapixels. Uma foto de 8MB em JPEG não é visivelmente melhor que uma de 400KB em WebP Full HD na tela de um celular ou notebook. Otimizar mídia permite armazenar 10-20x mais fotos e 3-5x mais vídeos no mesmo espaço, viabilizando o modelo de custo zero com free tiers.
 
 **Implicações:**
+
 - Fotos são convertidas para WebP max 1920px (~300-600KB vs ~5-8MB original)
 - Vídeos são transcodificados para 1080p H.265/AV1 (~400-600MB vs ~2GB original 4K)
 - Originais não são preservados — decisão explícita e comunicada ao usuário
@@ -86,6 +91,7 @@ Liste 3 a 7 princípios que guiam todas as decisões técnicas do sistema. Esses
 **Justificativa:** O Alexandria é mantido por uma pessoa (Douglas Prado) e operado por famílias sem conhecimento técnico. Cada componente extra, cada dependência adicional, cada serviço que precisa de monitoramento aumenta o custo de manutenção. O sistema precisa rodar por décadas, não meses.
 
 **Implicações:**
+
 - Monólito (orquestrador único) em vez de microserviços — um binário, um deploy, um docker-compose
 - Dependências externas minimizadas: PostgreSQL + Redis + FFmpeg, sem message brokers complexos ou service meshes
 - Deploy via Docker em VPS barata — sem Kubernetes, sem cloud proprietário
@@ -101,6 +107,7 @@ Liste 3 a 7 princípios que guiam todas as decisões técnicas do sistema. Esses
 **Justificativa:** O Alexandria precisa sobreviver a décadas de mudanças: provedores cloud vão surgir e desaparecer, codecs vão evoluir, dispositivos vão mudar. Se o sistema estiver acoplado a implementações específicas, cada mudança exige reescrita.
 
 **Implicações:**
+
 - StorageProvider interface unificada (put/get/exists/delete/list/capacity) para todos os provedores cloud e storage local
 - Trocar de S3 para R2 ou adicionar Backblaze B2 não afeta lógica de replicação ou distribuição
 - Pipeline de mídia isolado: trocar FFmpeg por outro transcodificador ou mudar de WebP para AVIF requer mudança em um único ponto

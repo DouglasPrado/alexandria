@@ -4,12 +4,14 @@ import { hash } from '@alexandria/core-sdk';
 import { StorageService } from '../modules/storage/storage.service';
 import { ffmpegTranscode, ffmpegPreview, ffprobe } from './ffmpeg';
 import sharp from 'sharp';
+import { renderPdfPage, getPdfPageCount } from './pdf-renderer';
 
 const MAX_PHOTO_WIDTH = 1920;
 const THUMBNAIL_WIDTH = 300;
 const THUMBNAIL_QUALITY = 60;
 const VIDEO_MAX_HEIGHT = 1080;
 const VIDEO_PREVIEW_HEIGHT = 480;
+const PDF_PREVIEW_WIDTH = 300;
 
 /**
  * MediaProcessor — pipeline de processamento de midia.
@@ -68,8 +70,19 @@ export class MediaProcessor {
         const preview = await ffmpegPreview(fileBuffer, VIDEO_PREVIEW_HEIGHT);
         await this.createPreview(fileId, preview, 'video_preview', 'mp4');
         this.logger.log(`[${fileId}] Video preview stored (${(preview.length / 1024).toFixed(1)}KB)`);
+      } else if (file.mediaType === 'document' && file.mimeType === 'application/pdf') {
+        // PDF — bypass optimization but render first page as preview (RN-P5)
+        this.logger.log(`[${fileId}] PDF — rendering first page preview`);
+        optimizedContent = fileBuffer;
+
+        const pageCount = await getPdfPageCount(fileBuffer);
+        metadata = { pages: pageCount };
+
+        const thumbnail = await renderPdfPage(fileBuffer, PDF_PREVIEW_WIDTH);
+        await this.createPreview(fileId, thumbnail, 'pdf_page', 'png');
+        this.logger.log(`[${fileId}] PDF preview stored (${(thumbnail.length / 1024).toFixed(1)}KB, ${pageCount} pages)`);
       } else {
-        // document and archive — bypass optimization and preview (RN-F3)
+        // document (non-PDF) and archive — bypass optimization and preview (RN-F3)
         this.logger.log(`[${fileId}] ${file.mediaType === 'archive' ? 'Archive' : 'Document'} — bypass optimization and preview (RN-F3)`);
         optimizedContent = fileBuffer;
         metadata = {};

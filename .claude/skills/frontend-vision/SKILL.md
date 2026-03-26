@@ -42,16 +42,19 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 ## Contexto por Plataforma
 
 ### Se web:
+
 - Frameworks tipicos: Next.js, Remix, SPA (Vite + React)
 - Considere SSR/SSG, hidratacao, SEO, responsividade
 - Ferramentas de build: Vite, Turbopack, Webpack
 
 ### Se mobile:
+
 - Frameworks tipicos: React Native, Expo
 - Considere navegacao nativa, gestos, notificacoes push, offline-first
 - Ferramentas de build: Expo CLI, React Native CLI, EAS Build
 
 ### Se desktop:
+
 - Frameworks tipicos: Electron, Tauri
 - Considere integracao com sistema operacional, menu bar, system tray, auto-update
 - Ferramentas de build: electron-builder, tauri-cli
@@ -59,11 +62,13 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 ## Geracao
 
 > **Modo de escrita:**
+>
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
 Preencha `docs/frontend/{client}/00-frontend-vision.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+
 - Informacoes do blueprint tecnico
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- do blueprint: XX-arquivo.md -->`)

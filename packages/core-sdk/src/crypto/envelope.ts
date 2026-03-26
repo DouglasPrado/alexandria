@@ -128,16 +128,12 @@ export function validateMnemonic(mnemonic: string): boolean {
  */
 export function deriveMasterKey(mnemonic: string): Buffer {
   if (!validateMnemonic(mnemonic)) {
-    throw new Error('Invalid BIP-39 mnemonic. Must be 12 valid words from the BIP-39 English wordlist.');
+    throw new Error(
+      'Invalid BIP-39 mnemonic. Must be 12 valid words from the BIP-39 English wordlist.',
+    );
   }
 
-  return pbkdf2Sync(
-    mnemonic,
-    PBKDF2_SALT,
-    PBKDF2_ITERATIONS,
-    KEY_LENGTH,
-    'sha256',
-  );
+  return pbkdf2Sync(mnemonic, PBKDF2_SALT, PBKDF2_ITERATIONS, KEY_LENGTH, 'sha256');
 }
 
 /**
@@ -150,7 +146,9 @@ export function deriveMasterKey(mnemonic: string): Buffer {
  */
 export function generateFileKey(masterKey: Buffer): Buffer {
   if (masterKey.length !== KEY_LENGTH) {
-    throw new Error(`Invalid master key length: ${masterKey.length} bytes. Expected ${KEY_LENGTH}.`);
+    throw new Error(
+      `Invalid master key length: ${masterKey.length} bytes. Expected ${KEY_LENGTH}.`,
+    );
   }
 
   const salt = randomBytes(16);
@@ -168,7 +166,9 @@ export function generateFileKey(masterKey: Buffer): Buffer {
  */
 export function generateKeypair(masterKey: Buffer): { publicKey: Buffer; privateKey: Buffer } {
   if (masterKey.length !== KEY_LENGTH) {
-    throw new Error(`Invalid master key length: ${masterKey.length} bytes. Expected ${KEY_LENGTH}.`);
+    throw new Error(
+      `Invalid master key length: ${masterKey.length} bytes. Expected ${KEY_LENGTH}.`,
+    );
   }
 
   // Derive a deterministic 32-byte seed for Ed25519 from master key via HKDF

@@ -36,6 +36,7 @@
 ## Fluxos Alternativos
 
 **2a.** {{Condição alternativa}}
+
 1. {{Passo alternativo}}
 2. {{Retorna ao passo X do fluxo principal}}
 
@@ -44,6 +45,7 @@
 ## Fluxos de Exceção
 
 **2b.** {{Condição de erro}}
+
 1. {{Sistema exibe erro}}
 2. {{Fluxo encerra ou retorna ao passo X}}
 

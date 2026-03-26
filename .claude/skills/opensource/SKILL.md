@@ -14,6 +14,7 @@ Read ALL documents from the 3 blueprints to understand the project:
 ### Technical Blueprint (`docs/blueprint/`)
 
 Read all available files, focusing on:
+
 - `00-context.md` — actors, external systems, constraints
 - `01-vision.md` — vision, problem statement, success metrics
 - `06-system-architecture.md` — stack, components, deployment
@@ -27,6 +28,7 @@ Read all available files, focusing on:
 ### Backend Blueprint (`docs/backend/`)
 
 Read all available files, focusing on:
+
 - `00-backend-vision.md` — stack, patterns, principles, metrics
 - `01-architecture.md` — layers, boundaries, deployment
 - `02-project-structure.md` — directory tree, naming conventions
@@ -46,6 +48,7 @@ Read all available files, focusing on:
 ### Frontend Blueprint (`docs/frontend/`)
 
 Read all available files, focusing on:
+
 - `01-architecture.md` — frontend architecture
 - `03-design-system.md` — design system, tokens, components
 - `13-cicd-conventions.md` — CI/CD, conventions
@@ -53,6 +56,7 @@ Read all available files, focusing on:
 ### Business Blueprint (`docs/business/`)
 
 Read ALL 10 files:
+
 - `00-business-context.md` — market, competition, SWOT
 - `01-value-proposition.md` — value proposition
 - `02-segments-personas.md` — segments, personas
@@ -67,6 +71,7 @@ Read ALL 10 files:
 If any blueprint is missing, warn the user:
 
 > "To transform the project into opensource, I need the filled blueprints. Missing:
+>
 > - `docs/blueprint/` — run `/blueprint` to generate
 > - `docs/backend/` — run `/backend` to generate
 > - `docs/frontend/` — run `/frontend` to generate
@@ -76,12 +81,12 @@ If any blueprint is missing, warn the user:
 
 Present status table:
 
-| Blueprint | Docs found | Status |
-|-----------|-----------|--------|
-| Technical | {{N}}/18 | Complete/Partial/Missing |
-| Backend | {{N}}/15 | Complete/Partial/Missing |
-| Frontend | {{N}}/15 | Complete/Partial/Missing |
-| Business | {{N}}/10 | Complete/Partial/Missing |
+| Blueprint | Docs found | Status                   |
+| --------- | ---------- | ------------------------ |
+| Technical | {{N}}/18   | Complete/Partial/Missing |
+| Backend   | {{N}}/15   | Complete/Partial/Missing |
+| Frontend  | {{N}}/15   | Complete/Partial/Missing |
+| Business  | {{N}}/10   | Complete/Partial/Missing |
 
 ## Step 2: User Questions
 
@@ -131,9 +136,10 @@ Ask these 5 questions. If the blueprint already provides context for an answer, 
 > 2. Discord
 > 3. Slack
 > 4. Own forum
-> 5. Other: ___"
+> 5. Other: \_\_\_"
 
 Wait for ALL answers before proceeding. Store as variables:
+
 - `{{OSS_MODEL}}` — open-core | community-driven | dev-tool | foundation-backed
 - `{{LICENSE}}` — MIT | Apache-2.0 | GPL-3.0 | AGPL-3.0 | Dual
 - `{{GOVERNANCE}}` — BDFL | Committee | Foundation | Meritocracy
@@ -149,6 +155,7 @@ Adapt EACH of the 10 business documents in-place using **Edit tool** (NEVER Writ
 ### 3.1 `docs/business/00-business-context.md` — Business Context → Ecosystem Context
 
 Transformations:
+
 - **Title**: "Contexto de Negocio" → "Opensource Ecosystem Context"
 - **Stage**: adapt to OSS stages (pre-release, alpha, beta, stable, mature, LTS)
 - **Market**: "Mercado" → "Ecosystem". Replace TAM/SAM/SOM with: Total Addressable Developers, Active Ecosystem Users, Target Contributors
@@ -164,6 +171,7 @@ Transformations:
 ### 3.2 `docs/business/01-value-proposition.md` — Value Proposition → Why Use / Why Contribute
 
 Transformations:
+
 - Split value proposition into 2 perspectives: **Users** and **Contributors**
 - **For Users**: freedom, no vendor lock-in, full customization, community support, code auditability
 - **For Contributors**: learning, portfolio, networking, impact, recognition
@@ -173,6 +181,7 @@ Transformations:
 ### 3.3 `docs/business/02-segments-personas.md` — Segments → OSS Personas
 
 Transformations:
+
 - Replace customer segments with:
   - **Individual Developers** — users who use the project
   - **Companies (users)** — companies that adopt in production
@@ -191,6 +200,7 @@ Transformations:
 ### 3.4 `docs/business/03-channels-distribution.md` — Channels → Community Channels
 
 Transformations:
+
 - Replace acquisition channels with:
   - GitHub (primary — stars, forks, issues)
   - Package registries (npm, pip, crates.io, Maven)
@@ -209,6 +219,7 @@ Transformations:
 ### 3.5 `docs/business/04-relationships.md` — Relationships → Community Engagement
 
 Transformations:
+
 - **Activation**: adapt to "first accepted contribution" or "first production deploy"
 - **Lifecycle**: Newcomer → Contributor → Committer → Maintainer → TSC Member
 - **Retention**: good-first-issues, mentoring programs, recognition (README credits, swag), Hacktoberfest
@@ -222,6 +233,7 @@ Transformations:
 **This section is the most dependent on `{{OSS_MODEL}}`:**
 
 #### If Open-core:
+
 - Free opensource core + paid enterprise features
 - Free self-hosted + paid hosted/managed
 - Free community support + paid SLA
@@ -229,6 +241,7 @@ Transformations:
 - Unit economics: enterprise CAC, sponsor LTV, free→paid conversion rate
 
 #### If Community-driven:
+
 - GitHub Sponsors (individual + corporate)
 - OpenCollective
 - Grants (foundations, Google Summer of Code, NLnet, Sovereign Tech Fund)
@@ -237,6 +250,7 @@ Transformations:
 - Merchandising (optional)
 
 #### If Dev tool / Framework:
+
 - Plugin/extension marketplace (commission)
 - Premium extensions / templates
 - Enterprise license (production use with SLA)
@@ -244,12 +258,14 @@ Transformations:
 - Hosted playground / sandbox
 
 #### If Foundation-backed:
+
 - Membership fees (corporate tiers: Silver, Gold, Platinum)
 - Corporate sponsors (logo on README, website, events)
 - Government and academic grants
 - Events / Conferences (sponsorship + tickets)
 
 Common transformations for all models:
+
 - MRR → "Monthly Funding" or "Monthly Revenue" (if open-core)
 - Unit economics → Sustainability metrics: cost per maintainer, funding runway, sponsor retention
 - Pricing table → Sponsorship tiers OR Feature comparison (open-core)
@@ -259,6 +275,7 @@ Common transformations for all models:
 ### 3.7 `docs/business/06-cost-structure.md` — Costs → Project Costs
 
 Transformations:
+
 - **Fixed costs**:
   - CI/CD (GitHub Actions minutes, runners)
   - Hosting (docs site, registry, demo/playground)
@@ -277,6 +294,7 @@ Transformations:
 ### 3.8 `docs/business/07-metrics-kpis.md` — Metrics → OSS Metrics
 
 Transformations:
+
 - **North Star**: adapt per model:
   - Open-core: "Monthly Active Enterprise Users"
   - Community-driven: "Active Contributors per Month"
@@ -302,6 +320,7 @@ Transformations:
 ### 3.9 `docs/business/08-marketing-strategy.md` — Marketing → Positioning & Awareness
 
 Transformations:
+
 - **Positioning**: "The open-source alternative to {{proprietary}}" or "The first {{category}} built for {{audience}}"
 - **GTM**: OSS launch strategy:
   - Pre-launch: private beta with early adopters, public RFC
@@ -322,6 +341,7 @@ Transformations:
 ### 3.10 `docs/business/09-operational-plan.md` — Operations → Community Operations
 
 Transformations:
+
 - **Core processes**:
   - Release process (semver, changelog, migration guides, release candidates)
   - RFC / Proposal process (for features affecting the API)
@@ -359,6 +379,7 @@ Add section:
 
 ```markdown
 <!-- added: opensource -->
+
 ### Vulnerability Disclosure Policy
 
 - **Channel**: security@{{domain}} (or GitHub Security Advisories)
@@ -375,6 +396,7 @@ Add section:
 
 ```markdown
 <!-- added: opensource -->
+
 ### Contribution Architecture
 
 - **Plugin points**: where third parties can extend the system
@@ -389,6 +411,7 @@ Add section:
 
 ```markdown
 <!-- added: opensource -->
+
 ### Public Roadmap
 
 - **GitHub Projects**: public board with milestones
@@ -403,6 +426,7 @@ Add section:
 
 ```markdown
 <!-- added: opensource -->
+
 ### Contributor Testing Guide
 
 - **Running tests locally**: `{{test_command}}`
@@ -417,6 +441,7 @@ Add section:
 
 ```markdown
 <!-- added: opensource -->
+
 ### Operational Transparency
 
 - **Status page**: {{status_url}} (if hosted service)
@@ -430,6 +455,7 @@ Add section:
 
 ```markdown
 <!-- added: opensource -->
+
 ### Community Communication Templates
 
 - **Release announcement**: title, highlights, breaking changes, migration guide, acknowledgments
@@ -450,6 +476,7 @@ Add section:
 
 ```markdown
 <!-- added: opensource -->
+
 ### Opensource Backend Principles
 
 - **Extensibility**: plugin architecture, hooks, and extension points for community contributions
@@ -464,6 +491,7 @@ Add section:
 
 ```markdown
 <!-- added: opensource -->
+
 ### Contributor Architecture Guide
 
 - **Layer boundaries**: what belongs in each layer, how to add new modules
@@ -478,6 +506,7 @@ Add section:
 
 ```markdown
 <!-- added: opensource -->
+
 ### Contributor Directory Guide
 
 - **Where to add new features**: directory conventions for new modules
@@ -492,6 +521,7 @@ Add section:
 
 ```markdown
 <!-- added: opensource -->
+
 ### API Contribution Guidelines
 
 - **Endpoint conventions**: naming, versioning (`/api/v1/`), HTTP methods
@@ -507,6 +537,7 @@ Add section:
 
 ```markdown
 <!-- added: opensource -->
+
 ### Error Handling for Contributors
 
 - **Adding new error codes**: naming convention, error catalog registration
@@ -521,6 +552,7 @@ Add section:
 
 ```markdown
 <!-- added: opensource -->
+
 ### Testing Guide for Contributors
 
 - **Running tests locally**: `{{test_cmd}}` — full suite, `{{test_unit_cmd}}` — unit only
@@ -537,6 +569,7 @@ Add section:
 
 ```markdown
 <!-- added: opensource -->
+
 ### Authentication & Authorization for Self-Hosted
 
 - **Auth providers**: how to configure different auth providers (OAuth, SAML, LDAP)
@@ -551,6 +584,7 @@ Add section:
 
 ```markdown
 <!-- added: opensource -->
+
 ### Event System for Contributors
 
 - **Adding new events**: naming convention, schema definition, registration
@@ -565,6 +599,7 @@ Add section:
 
 ```markdown
 <!-- added: opensource -->
+
 ### Integration Development Guide
 
 - **Adding new integrations**: adapter pattern, interface contracts, configuration
@@ -585,6 +620,7 @@ Add section:
 
 ```markdown
 <!-- added: opensource -->
+
 ### Contributor Setup Guide
 
 - **Prerequisites**: Node.js {{version}}, {{package_manager}}
@@ -600,6 +636,7 @@ Add section:
 
 ```markdown
 <!-- added: opensource -->
+
 ### CI for Contributors
 
 - **Automated PR checks**: lint, typecheck, unit tests, build
@@ -615,6 +652,7 @@ Add section:
 
 ```markdown
 <!-- added: opensource -->
+
 ### Design System for Contributors
 
 - **Adding components**: create in `{{components_path}}`, add story, add tests
@@ -632,6 +670,7 @@ Create the following files at the project root using **Write tool**. These are N
 If a README.md already exists, ask the user:
 
 > "A README.md already exists. Would you like to:
+>
 > 1. **Replace** with the opensource README
 > 2. **Merge** — add OSS sections to the existing README
 > 3. **Skip** — keep the current README"
@@ -642,6 +681,7 @@ Opensource README structure:
 # {{PROJECT_NAME}}
 
 <!-- Badges -->
+
 [![License](https://img.shields.io/badge/license-{{LICENSE}}-blue.svg)](LICENSE)
 [![CI](https://github.com/{{org}}/{{repo}}/actions/workflows/ci.yml/badge.svg)](https://github.com/{{org}}/{{repo}}/actions)
 [![npm version](https://img.shields.io/npm/v/{{package}}.svg)](https://www.npmjs.com/package/{{package}})
@@ -693,9 +733,11 @@ Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
 ## Getting Started
 
 ### Prerequisites
+
 {{prerequisites — from blueprint 06-system-architecture.md}}
 
 ### Development Setup
+
 \`\`\`bash
 git clone https://github.com/{{org}}/{{repo}}.git
 cd {{repo}}
@@ -706,14 +748,17 @@ cd {{repo}}
 ## How to Contribute
 
 ### Reporting Bugs
+
 - Use the [bug report template](.github/ISSUE_TEMPLATE/bug_report.md)
 - Include reproduction steps, expected vs actual behavior
 
 ### Suggesting Features
+
 - Use the [feature request template](.github/ISSUE_TEMPLATE/feature_request.md)
 - Explain the problem you're trying to solve
 
 ### Submitting Pull Requests
+
 1. Fork the repository
 2. Create a branch: `git checkout -b feature/my-feature`
 3. Make your changes with tests
@@ -723,23 +768,29 @@ cd {{repo}}
 7. Push and open a PR against `main`
 
 ## Code Style
+
 {{conventions — from technical and frontend blueprints}}
 
 ## Testing
+
 - Write tests for new features
 - Run `{{test_cmd}}` before submitting
 - PRs must not decrease test coverage
 
 ## Review Process
+
 - PRs require {{N}} approving review(s)
 - CI checks must pass
 - Target: first review within 48 hours
 
 ## {{GOVERNANCE}} — Decision Making
+
 {{adapt per chosen governance model}}
 
 ## Recognition
+
 Contributors are recognized in:
+
 - README.md (Contributors section)
 - Release notes (changelog)
 - {{additional recognition per model}}
@@ -748,6 +799,7 @@ Contributors are recognized in:
 ### 7.3 `CODE_OF_CONDUCT.md`
 
 Generate the full [Contributor Covenant v2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct/) in English, filling in:
+
 - `[INSERT CONTACT METHOD]` with the project's email/channel
 
 ### 7.4 `LICENSE`
@@ -755,10 +807,12 @@ Generate the full [Contributor Covenant v2.1](https://www.contributor-covenant.o
 If a LICENSE file already exists, ask the user:
 
 > "A LICENSE file already exists. Would you like to:
+>
 > 1. **Replace** with {{LICENSE}}
 > 2. **Skip** — keep the current license"
 
 Generate the full license text for `{{LICENSE}}` with:
+
 - Current year
 - `{{PROJECT_NAME}}` or `{{org}}` as copyright holder
 - If Dual: generate 2 files (LICENSE-OSS and LICENSE-COMMERCIAL) with explanatory note
@@ -770,26 +824,29 @@ Generate the full license text for `{{LICENSE}}` with:
 
 ## Supported Versions
 
-| Version | Supported |
-|---------|-----------|
-| {{current_version}} | Yes |
-| < {{previous_version}} | No |
+| Version                | Supported |
+| ---------------------- | --------- |
+| {{current_version}}    | Yes       |
+| < {{previous_version}} | No        |
 
 ## Reporting a Vulnerability
 
 **Please do NOT open public issues for security vulnerabilities.**
 
 Instead, report via:
+
 - Email: security@{{domain}}
 - GitHub Security Advisories: https://github.com/{{org}}/{{repo}}/security/advisories/new
 
 ### What to Include
+
 - Description of the vulnerability
 - Steps to reproduce
 - Impact assessment
 - Suggested fix (if any)
 
 ### Response Timeline
+
 - **Acknowledgment**: within 48 hours
 - **Assessment**: within 7 days
 - **Fix for critical**: within 14 days
@@ -807,35 +864,42 @@ We follow [coordinated vulnerability disclosure](https://en.wikipedia.org/wiki/C
 ---
 name: Bug Report
 about: Report a bug to help us improve
-title: "[Bug]: "
+title: '[Bug]: '
 labels: bug, triage
-assignees: ""
+assignees: ''
 ---
 
 ## Description
+
 A clear description of what the bug is.
 
 ## Steps to Reproduce
+
 1. Go to '...'
 2. Click on '...'
 3. See error
 
 ## Expected Behavior
+
 What you expected to happen.
 
 ## Actual Behavior
+
 What actually happened.
 
 ## Environment
+
 - OS: [e.g., macOS 15, Ubuntu 24.04]
 - {{PROJECT_NAME}} version: [e.g., 1.2.3]
 - Node.js version: [e.g., 22.x]
 - Browser (if applicable): [e.g., Chrome 120]
 
 ## Screenshots
+
 If applicable, add screenshots.
 
 ## Additional Context
+
 Add any other context about the problem here.
 ```
 
@@ -845,21 +909,25 @@ Add any other context about the problem here.
 ---
 name: Feature Request
 about: Suggest a new feature or improvement
-title: "[Feature]: "
+title: '[Feature]: '
 labels: enhancement
-assignees: ""
+assignees: ''
 ---
 
 ## Problem
+
 A clear description of the problem you're trying to solve.
 
 ## Proposed Solution
+
 A clear description of what you'd like to happen.
 
 ## Alternatives Considered
+
 Any alternative solutions or features you've considered.
 
 ## Additional Context
+
 Add any other context, mockups, or examples.
 ```
 
@@ -872,7 +940,7 @@ contact_links:
     url: https://github.com/{{org}}/{{repo}}/discussions
     about: Ask questions and discuss ideas
   - name: Documentation
-    url: {{docs_url}}
+    url: { { docs_url } }
     about: Check the documentation before opening an issue
 ```
 
@@ -880,9 +948,11 @@ contact_links:
 
 ```markdown
 ## Description
+
 Brief description of changes.
 
 ## Type of Change
+
 - [ ] Bug fix (non-breaking change that fixes an issue)
 - [ ] New feature (non-breaking change that adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to change)
@@ -890,6 +960,7 @@ Brief description of changes.
 - [ ] Refactoring (no functional changes)
 
 ## Checklist
+
 - [ ] I have read the [Contributing Guide](CONTRIBUTING.md)
 - [ ] My code follows the project's code style
 - [ ] I have added tests that prove my fix/feature works
@@ -898,6 +969,7 @@ Brief description of changes.
 - [ ] My changes generate no new warnings
 
 ## Related Issues
+
 Closes #
 
 ## Screenshots (if applicable)
@@ -909,45 +981,45 @@ Present a complete summary of all changes:
 
 > "**Opensource transformation complete!** Summary:
 >
-> | Type | File | Action | Description |
-> |------|------|--------|-------------|
-> | Edit | docs/business/00-business-context.md | Adapted | Context → Ecosystem |
-> | Edit | docs/business/01-value-proposition.md | Adapted | Value → Use/Contribute |
-> | Edit | docs/business/02-segments-personas.md | Adapted | Segments → OSS Personas |
-> | Edit | docs/business/03-channels-distribution.md | Adapted | Channels → Community |
-> | Edit | docs/business/04-relationships.md | Adapted | Relationships → Engagement |
-> | Edit | docs/business/05-revenue-model.md | Adapted | Revenue → Sustainability |
-> | Edit | docs/business/06-cost-structure.md | Adapted | Costs → Project Costs |
-> | Edit | docs/business/07-metrics-kpis.md | Adapted | Metrics → OSS Metrics |
-> | Edit | docs/business/08-marketing-strategy.md | Adapted | Marketing → Awareness |
-> | Edit | docs/business/09-operational-plan.md | Adapted | Operations → Community Ops |
-> | Edit | docs/backend/00-backend-vision.md | Section added | OSS Backend Principles |
-> | Edit | docs/backend/01-architecture.md | Section added | Contributor Architecture Guide |
-> | Edit | docs/backend/02-project-structure.md | Section added | Contributor Directory Guide |
-> | Edit | docs/backend/05-api-contracts.md | Section added | API Contribution Guidelines |
-> | Edit | docs/backend/09-errors.md | Section added | Error Handling for Contributors |
-> | Edit | docs/backend/11-permissions.md | Section added | Auth for Self-Hosted |
-> | Edit | docs/backend/12-events.md | Section added | Event System for Contributors |
-> | Edit | docs/backend/13-integrations.md | Section added | Integration Development Guide |
-> | Edit | docs/backend/14-tests.md | Section added | Testing Guide for Contributors |
-> | Edit | docs/blueprint/06-system-architecture.md | Section added | Contribution Architecture |
-> | Edit | docs/blueprint/11-build_plan.md | Section added | Public Roadmap |
-> | Edit | docs/blueprint/12-testing_strategy.md | Section added | Contributor Testing |
-> | Edit | docs/blueprint/13-security.md | Section added | Vulnerability Disclosure |
-> | Edit | docs/blueprint/15-observability.md | Section added | Transparency |
-> | Edit | docs/blueprint/17-communication.md | Section added | Community Templates |
-> | Edit | docs/frontend/01-architecture.md | Section added | Contributor Setup |
-> | Edit | docs/frontend/03-design-system.md | Section added | Design System Contrib |
-> | Edit | docs/frontend/13-cicd-conventions.md | Section added | CI for Contributors |
-> | Write | README.md | Created/Updated | Opensource README |
-> | Write | CONTRIBUTING.md | Created | Contributing guide |
-> | Write | CODE_OF_CONDUCT.md | Created | Code of conduct |
-> | Write | LICENSE | Created | {{LICENSE}} |
-> | Write | SECURITY.md | Created | Security policy |
-> | Write | .github/ISSUE_TEMPLATE/bug_report.md | Created | Bug template |
-> | Write | .github/ISSUE_TEMPLATE/feature_request.md | Created | Feature template |
-> | Write | .github/ISSUE_TEMPLATE/config.yml | Created | Issue config |
-> | Write | .github/PULL_REQUEST_TEMPLATE.md | Created | PR template |
+> | Type  | File                                      | Action          | Description                     |
+> | ----- | ----------------------------------------- | --------------- | ------------------------------- |
+> | Edit  | docs/business/00-business-context.md      | Adapted         | Context → Ecosystem             |
+> | Edit  | docs/business/01-value-proposition.md     | Adapted         | Value → Use/Contribute          |
+> | Edit  | docs/business/02-segments-personas.md     | Adapted         | Segments → OSS Personas         |
+> | Edit  | docs/business/03-channels-distribution.md | Adapted         | Channels → Community            |
+> | Edit  | docs/business/04-relationships.md         | Adapted         | Relationships → Engagement      |
+> | Edit  | docs/business/05-revenue-model.md         | Adapted         | Revenue → Sustainability        |
+> | Edit  | docs/business/06-cost-structure.md        | Adapted         | Costs → Project Costs           |
+> | Edit  | docs/business/07-metrics-kpis.md          | Adapted         | Metrics → OSS Metrics           |
+> | Edit  | docs/business/08-marketing-strategy.md    | Adapted         | Marketing → Awareness           |
+> | Edit  | docs/business/09-operational-plan.md      | Adapted         | Operations → Community Ops      |
+> | Edit  | docs/backend/00-backend-vision.md         | Section added   | OSS Backend Principles          |
+> | Edit  | docs/backend/01-architecture.md           | Section added   | Contributor Architecture Guide  |
+> | Edit  | docs/backend/02-project-structure.md      | Section added   | Contributor Directory Guide     |
+> | Edit  | docs/backend/05-api-contracts.md          | Section added   | API Contribution Guidelines     |
+> | Edit  | docs/backend/09-errors.md                 | Section added   | Error Handling for Contributors |
+> | Edit  | docs/backend/11-permissions.md            | Section added   | Auth for Self-Hosted            |
+> | Edit  | docs/backend/12-events.md                 | Section added   | Event System for Contributors   |
+> | Edit  | docs/backend/13-integrations.md           | Section added   | Integration Development Guide   |
+> | Edit  | docs/backend/14-tests.md                  | Section added   | Testing Guide for Contributors  |
+> | Edit  | docs/blueprint/06-system-architecture.md  | Section added   | Contribution Architecture       |
+> | Edit  | docs/blueprint/11-build_plan.md           | Section added   | Public Roadmap                  |
+> | Edit  | docs/blueprint/12-testing_strategy.md     | Section added   | Contributor Testing             |
+> | Edit  | docs/blueprint/13-security.md             | Section added   | Vulnerability Disclosure        |
+> | Edit  | docs/blueprint/15-observability.md        | Section added   | Transparency                    |
+> | Edit  | docs/blueprint/17-communication.md        | Section added   | Community Templates             |
+> | Edit  | docs/frontend/01-architecture.md          | Section added   | Contributor Setup               |
+> | Edit  | docs/frontend/03-design-system.md         | Section added   | Design System Contrib           |
+> | Edit  | docs/frontend/13-cicd-conventions.md      | Section added   | CI for Contributors             |
+> | Write | README.md                                 | Created/Updated | Opensource README               |
+> | Write | CONTRIBUTING.md                           | Created         | Contributing guide              |
+> | Write | CODE_OF_CONDUCT.md                        | Created         | Code of conduct                 |
+> | Write | LICENSE                                   | Created         | {{LICENSE}}                     |
+> | Write | SECURITY.md                               | Created         | Security policy                 |
+> | Write | .github/ISSUE_TEMPLATE/bug_report.md      | Created         | Bug template                    |
+> | Write | .github/ISSUE_TEMPLATE/feature_request.md | Created         | Feature template                |
+> | Write | .github/ISSUE_TEMPLATE/config.yml         | Created         | Issue config                    |
+> | Write | .github/PULL_REQUEST_TEMPLATE.md          | Created         | PR template                     |
 >
 > **Model:** {{OSS_MODEL}}
 > **License:** {{LICENSE}}
@@ -985,11 +1057,11 @@ Wait for feedback and apply adjustments with Edit.
 
 ## OSS Model Adaptation Reference
 
-| Aspect | Open-core | Community-driven | Dev tool | Foundation-backed |
-|---------|-----------|-----------------|----------|-------------------|
-| Revenue | Enterprise features + hosted | Sponsors + grants + donations | Marketplace + premium + training | Membership + sponsors + events |
-| Personas | Users + Enterprise buyers | Contributors + power users | Plugin devs + end users | Corporate adopters + members |
-| Metrics | Conversion free→paid | Active contributors | Downloads + installs | Production deployments |
-| Governance | Company-led + community input | Community-led | Company-led + ecosystem | Foundation charter |
-| Marketing | Comparison pages + enterprise sales | Community evangelism | DX + docs + tutorials | Case studies + conferences |
-| Risks | Community trust erosion | Maintainer burnout | Ecosystem fragmentation | Bureaucracy overhead |
+| Aspect     | Open-core                           | Community-driven              | Dev tool                         | Foundation-backed              |
+| ---------- | ----------------------------------- | ----------------------------- | -------------------------------- | ------------------------------ |
+| Revenue    | Enterprise features + hosted        | Sponsors + grants + donations | Marketplace + premium + training | Membership + sponsors + events |
+| Personas   | Users + Enterprise buyers           | Contributors + power users    | Plugin devs + end users          | Corporate adopters + members   |
+| Metrics    | Conversion free→paid                | Active contributors           | Downloads + installs             | Production deployments         |
+| Governance | Company-led + community input       | Community-led                 | Company-led + ecosystem          | Foundation charter             |
+| Marketing  | Comparison pages + enterprise sales | Community evangelism          | DX + docs + tutorials            | Case studies + conferences     |
+| Risks      | Community trust erosion             | Maintainer burnout            | Ecosystem fragmentation          | Bureaucracy overhead           |

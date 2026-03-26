@@ -8,7 +8,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
-import { startOfDay, endOfDay, parseISO } from 'date-fns';
+import { startOfDay, endOfDay } from 'date-fns';
 import { DatePicker } from '@/components/ui/date-picker';
 import type { MediaType } from '../types/file.types';
 
@@ -30,17 +30,13 @@ const FILTER_CHIPS: { label: string; value: MediaType }[] = [
   { label: 'Arquivos', value: 'archive' },
 ];
 
-function dateToISOStart(dateStr: string): string {
-  return new Date(`${dateStr}T00:00:00.000Z`).toISOString();
-}
-
-function dateToISOEnd(dateStr: string): string {
-  return new Date(`${dateStr}T23:59:59.999Z`).toISOString();
-}
-
-function isoToDateInput(iso: string | undefined): string {
-  if (!iso) return '';
-  return iso.slice(0, 10);
+/** Converte ISO string para Date local (sem shift de timezone) */
+function isoToDate(iso: string | undefined): Date | undefined {
+  if (!iso) return undefined;
+  // Extrai yyyy-MM-dd e cria Date local para evitar shift de timezone
+  const dateStr = iso.slice(0, 10);
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d);
 }
 
 export function SearchBar({
@@ -69,6 +65,20 @@ export function SearchBar({
       onMediaTypeChange(mediaType === type ? undefined : type);
     },
     [mediaType, onMediaTypeChange],
+  );
+
+  const handleFromChange = useCallback(
+    (date: Date | undefined) => {
+      onFromChange(date ? startOfDay(date).toISOString() : undefined);
+    },
+    [onFromChange],
+  );
+
+  const handleToChange = useCallback(
+    (date: Date | undefined) => {
+      onToChange(date ? endOfDay(date).toISOString() : undefined);
+    },
+    [onToChange],
   );
 
   const hasAnyFilter = !!(mediaType || query || from || to);
@@ -118,25 +128,22 @@ export function SearchBar({
         )}
       </div>
 
-      <div className="flex gap-4 items-center">
+      {/* Filtro de período — UC-010 RF-064 */}
+      <div className="flex flex-wrap gap-4 items-center">
         <div className="flex items-center gap-2">
-          <label htmlFor="search-from" className="text-xs text-[var(--muted-foreground)] whitespace-nowrap">De</label>
-          <input
-            id="search-from"
-            type="date"
-            value={isoToDateInput(from)}
-            onChange={(e) => onFromChange(e.target.value ? dateToISOStart(e.target.value) : undefined)}
-            className="px-2 py-1.5 bg-[var(--background)] border border-[var(--input)] rounded-[var(--radius)] text-sm text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+          <span className="text-xs text-[var(--muted-foreground)]">De</span>
+          <DatePicker
+            value={isoToDate(from)}
+            onChange={handleFromChange}
+            placeholder="Data início"
           />
         </div>
         <div className="flex items-center gap-2">
-          <label htmlFor="search-to" className="text-xs text-[var(--muted-foreground)] whitespace-nowrap">Até</label>
-          <input
-            id="search-to"
-            type="date"
-            value={isoToDateInput(to)}
-            onChange={(e) => onToChange(e.target.value ? dateToISOEnd(e.target.value) : undefined)}
-            className="px-2 py-1.5 bg-[var(--background)] border border-[var(--input)] rounded-[var(--radius)] text-sm text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+          <span className="text-xs text-[var(--muted-foreground)]">Até</span>
+          <DatePicker
+            value={isoToDate(to)}
+            onChange={handleToChange}
+            placeholder="Data fim"
           />
         </div>
       </div>

@@ -91,15 +91,15 @@ src/
 
 <!-- do blueprint: 00-context.md (atores), 01-vision.md (personas), mobile/01-architecture.md (dominios) -->
 
-| Feature    | Descricao                                                                                     | Componentes Principais                                                                     |
-| ---------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `auth`     | Login com JWT, desbloqueio do vault com senha, recovery via seed phrase de 12 palavras        | LoginScreen, VaultUnlockScreen, SeedRecoveryScreen, AuthGuard                             |
-| `gallery`  | Galeria compartilhada do cluster, timeline cronologica, busca por data/evento, fullscreen     | GalleryScreen, TimelineScreen, PhotoDetailScreen, VideoDetailScreen, PhotoThumbnail, AlbumGrid |
-| `upload`   | Sync Engine automatico (camera roll), upload manual, fila offline persistida, liberacao de espaco | UploadQueueScreen, SyncSettingsScreen, UploadProgressBar, SpaceReleaseModal            |
-| `cluster`  | Saude geral do cluster, lista de membros, convite por link/token, gestao de roles (admin)     | ClusterDashboardScreen, MembersScreen, InviteMemberSheet, MemberCard                      |
-| `nodes`    | Lista de nos de armazenamento, saude individual, registro de novo no, drain (admin only)      | NodesScreen, NodeDetailScreen, RegisterNodeSheet, NodeHealthBadge                         |
-| `alerts`   | Alertas de saude: no offline, replicacao baixa, integridade comprometida, token expirado      | AlertsScreen, AlertBadge, AlertDetailSheet                                                |
-| `settings` | Notificacoes, configuracoes de sync, limiar de liberacao de espaco, perfil, logout            | SettingsScreen, ProfileScreen, SyncSettingsScreen, NotificationSettingsScreen             |
+| Feature    | Descricao                                                                                         | Componentes Principais                                                                         |
+| ---------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `auth`     | Login com JWT, desbloqueio do vault com senha, recovery via seed phrase de 12 palavras            | LoginScreen, VaultUnlockScreen, SeedRecoveryScreen, AuthGuard                                  |
+| `gallery`  | Galeria compartilhada do cluster, timeline cronologica, busca por data/evento, fullscreen         | GalleryScreen, TimelineScreen, PhotoDetailScreen, VideoDetailScreen, PhotoThumbnail, AlbumGrid |
+| `upload`   | Sync Engine automatico (camera roll), upload manual, fila offline persistida, liberacao de espaco | UploadQueueScreen, SyncSettingsScreen, UploadProgressBar, SpaceReleaseModal                    |
+| `cluster`  | Saude geral do cluster, lista de membros, convite por link/token, gestao de roles (admin)         | ClusterDashboardScreen, MembersScreen, InviteMemberSheet, MemberCard                           |
+| `nodes`    | Lista de nos de armazenamento, saude individual, registro de novo no, drain (admin only)          | NodesScreen, NodeDetailScreen, RegisterNodeSheet, NodeHealthBadge                              |
+| `alerts`   | Alertas de saude: no offline, replicacao baixa, integridade comprometida, token expirado          | AlertsScreen, AlertBadge, AlertDetailSheet                                                     |
+| `settings` | Notificacoes, configuracoes de sync, limiar de liberacao de espaco, perfil, logout                | SettingsScreen, ProfileScreen, SyncSettingsScreen, NotificationSettingsScreen                  |
 
 <!-- APPEND:features -->
 
@@ -159,10 +159,10 @@ pnpm-workspace.yaml
 turbo.json                # Build pipeline (se Turborepo for adotado)
 ```
 
-| Package        | Responsabilidade                                                                    | Consumido por                       |
-| -------------- | ----------------------------------------------------------------------------------- | ----------------------------------- |
-| `core-sdk`     | AES-256-GCM, BIP-39 seed phrase, chunking ~4MB, SHA-256, consistent hashing        | mobile, web, node-agent, orchestrator |
-| `config`       | Configs compartilhadas de ESLint, TypeScript (tsconfig base), Prettier              | Todos os packages e apps            |
+| Package    | Responsabilidade                                                            | Consumido por                         |
+| ---------- | --------------------------------------------------------------------------- | ------------------------------------- |
+| `core-sdk` | AES-256-GCM, BIP-39 seed phrase, chunking ~4MB, SHA-256, consistent hashing | mobile, web, node-agent, orchestrator |
+| `config`   | Configs compartilhadas de ESLint, TypeScript (tsconfig base), Prettier      | Todos os packages e apps              |
 
 > O `core-sdk` e o ativo mais critico do monorepo. Qualquer bug aqui afeta todos os clientes. Mudancas no core-sdk exigem testes em todos os consumers antes de merge.
 
@@ -174,18 +174,18 @@ turbo.json                # Build pipeline (se Turborepo for adotado)
 
 <!-- do blueprint: mobile/01-architecture.md (regras de dependencia entre camadas) -->
 
-| De | Para | Permitido? | Observacao |
-| --- | --- | --- | --- |
-| `features/gallery` | `features/upload` | Nao | Features nao importam de outras features diretamente |
-| `features/alerts` | `features/cluster` | Nao | Comunicacao via store compartilhado (alertsStore, clusterStore) |
-| `features/upload` | `packages/core-sdk` | Sim | Core SDK e dependencia externa do monorepo, nao uma feature |
-| `features/*` | `components/ui` | Sim | Primitivos UI compartilhados sao acessiveis por todas as features |
-| `features/*` | `hooks/` | Sim | Hooks globais (useTheme, useNetwork, usePermissions) sao compartilhados |
-| `features/*` | `services/api-client` | Sim | API client centralizado e compartilhado |
-| `features/*` | `store/` | Sim | Stores globais (authStore, settingsStore) sao acessiveis |
-| `components/ui` | `features/*` | Nao | Componentes UI nao conhecem dominios de negocio |
-| `app/` | `features/*` | Sim | Screens Expo Router importam features para montar telas |
-| `app/` | `components/` | Sim | Screens podem usar componentes compartilhados diretamente |
+| De                 | Para                  | Permitido? | Observacao                                                              |
+| ------------------ | --------------------- | ---------- | ----------------------------------------------------------------------- |
+| `features/gallery` | `features/upload`     | Nao        | Features nao importam de outras features diretamente                    |
+| `features/alerts`  | `features/cluster`    | Nao        | Comunicacao via store compartilhado (alertsStore, clusterStore)         |
+| `features/upload`  | `packages/core-sdk`   | Sim        | Core SDK e dependencia externa do monorepo, nao uma feature             |
+| `features/*`       | `components/ui`       | Sim        | Primitivos UI compartilhados sao acessiveis por todas as features       |
+| `features/*`       | `hooks/`              | Sim        | Hooks globais (useTheme, useNetwork, usePermissions) sao compartilhados |
+| `features/*`       | `services/api-client` | Sim        | API client centralizado e compartilhado                                 |
+| `features/*`       | `store/`              | Sim        | Stores globais (authStore, settingsStore) sao acessiveis                |
+| `components/ui`    | `features/*`          | Nao        | Componentes UI nao conhecem dominios de negocio                         |
+| `app/`             | `features/*`          | Sim        | Screens Expo Router importam features para montar telas                 |
+| `app/`             | `components/`         | Sim        | Screens podem usar componentes compartilhados diretamente               |
 
 <!-- APPEND:regras-importacao -->
 

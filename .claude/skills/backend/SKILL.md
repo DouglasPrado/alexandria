@@ -56,49 +56,49 @@ docs/backend/             →  ESCRITA (saida)
 
 Leia TODOS os 18 arquivos de `docs/blueprint/`. Para cada um, extraia:
 
-| Blueprint | Extrair para Backend |
-|-----------|---------------------|
-| 00-context | Atores → usuarios da API. Sistemas externos → integracoes (13). |
-| 01-vision | Metricas → metricas do backend (00). Nao-objetivos → limites (00). |
-| 02-principles | Principios → principios do backend (00). Restricoes → stack (00). |
-| 03-requirements | RF → endpoints (05). RNF → metricas de performance (00, 08). |
-| 04-domain-model | Entidades → domain (03). Regras → validacao (10). Relacionamentos → data layer (04). |
-| 05-data-model | Banco/tabelas → data layer (04). Queries → repositories (04). |
-| 06-architecture | Componentes → camadas (01). Comunicacao → middlewares (08). Deploy → deploy (01). |
-| 07-critical_flows | Fluxos → services com fluxos detalhados (06). Erros → catalogo de erros (09). |
-| 08-use_cases | UCs → mapa de endpoints (05). Atores → permissoes (11). |
-| 09-state-models | Estados → maquinas de estado em domain (03). Transicoes → metodos (03). |
-| 10-decisions | ADRs → justificativas de stack e padrao (00, 01). |
-| 11-build_plan | Fases → ordem de implementacao. |
-| 12-testing | Piramide/cobertura → testes backend (14). |
-| 13-security | Auth → middlewares (08) + permissoes (11). Dados sensiveis → validacao (10). |
-| 14-scalability | Cache/rate limit → middlewares (08). |
-| 15-observability | Logs/metricas → pipeline de request (08). |
-| 16-evolution | Versionamento API → contratos (05). |
-| 17-communication | Canais → eventos e workers (12). Templates → integracoes (13). |
+| Blueprint         | Extrair para Backend                                                                 |
+| ----------------- | ------------------------------------------------------------------------------------ |
+| 00-context        | Atores → usuarios da API. Sistemas externos → integracoes (13).                      |
+| 01-vision         | Metricas → metricas do backend (00). Nao-objetivos → limites (00).                   |
+| 02-principles     | Principios → principios do backend (00). Restricoes → stack (00).                    |
+| 03-requirements   | RF → endpoints (05). RNF → metricas de performance (00, 08).                         |
+| 04-domain-model   | Entidades → domain (03). Regras → validacao (10). Relacionamentos → data layer (04). |
+| 05-data-model     | Banco/tabelas → data layer (04). Queries → repositories (04).                        |
+| 06-architecture   | Componentes → camadas (01). Comunicacao → middlewares (08). Deploy → deploy (01).    |
+| 07-critical_flows | Fluxos → services com fluxos detalhados (06). Erros → catalogo de erros (09).        |
+| 08-use_cases      | UCs → mapa de endpoints (05). Atores → permissoes (11).                              |
+| 09-state-models   | Estados → maquinas de estado em domain (03). Transicoes → metodos (03).              |
+| 10-decisions      | ADRs → justificativas de stack e padrao (00, 01).                                    |
+| 11-build_plan     | Fases → ordem de implementacao.                                                      |
+| 12-testing        | Piramide/cobertura → testes backend (14).                                            |
+| 13-security       | Auth → middlewares (08) + permissoes (11). Dados sensiveis → validacao (10).         |
+| 14-scalability    | Cache/rate limit → middlewares (08).                                                 |
+| 15-observability  | Logs/metricas → pipeline de request (08).                                            |
+| 16-evolution      | Versionamento API → contratos (05).                                                  |
+| 17-communication  | Canais → eventos e workers (12). Templates → integracoes (13).                       |
 
 ## Passo 2: Analise de Lacunas
 
 Identifique o que o blueprint JA cobre e o que FALTA (detalhes de implementacao):
 
-| Categoria | O que o Blueprint JA tem | O que FALTA para o Backend |
-|-----------|--------------------------|---------------------------|
+| Categoria | O que o Blueprint JA tem | O que FALTA para o Backend                            |
+| --------- | ------------------------ | ----------------------------------------------------- |
 | Entidades | Nomes, atributos, regras | **Metodos da classe, construtores, eventos emitidos** |
-| Dados | Tabelas, indices | **Interface do repository, queries SQL, ORM schema** |
-| Fluxos | Happy path e erros | **Qual service executa cada passo, transacoes** |
-| API | Requisitos funcionais | **Endpoints, DTOs, status codes, erros por rota** |
-| Seguranca | STRIDE, auth method | **Roles, matriz RBAC, JWT claims, middleware config** |
-| Teste | Piramide, cobertura | **Ferramentas especificas, cenarios obrigatorios** |
+| Dados     | Tabelas, indices         | **Interface do repository, queries SQL, ORM schema**  |
+| Fluxos    | Happy path e erros       | **Qual service executa cada passo, transacoes**       |
+| API       | Requisitos funcionais    | **Endpoints, DTOs, status codes, erros por rota**     |
+| Seguranca | STRIDE, auth method      | **Roles, matriz RBAC, JWT claims, middleware config** |
+| Teste     | Piramide, cobertura      | **Ferramentas especificas, cenarios obrigatorios**    |
 
 Apresente a tabela de cobertura:
 
-| # | Template Backend | Cobertura do Blueprint | Lacuna |
-|---|-----------------|----------------------|--------|
-| 00 | Visao | Parcial (principios, metricas) | Stack, framework, ORM |
-| 01 | Arquitetura | Coberto (componentes, deploy) | Camadas internas do codigo |
-| 03 | Dominio | Coberto (entidades, regras) | Metodos, eventos, construtores |
-| 05 | API Contracts | Parcial (requisitos) | Endpoints, DTOs, status codes |
-| ... | ... | ... | ... |
+| #   | Template Backend | Cobertura do Blueprint         | Lacuna                         |
+| --- | ---------------- | ------------------------------ | ------------------------------ |
+| 00  | Visao            | Parcial (principios, metricas) | Stack, framework, ORM          |
+| 01  | Arquitetura      | Coberto (componentes, deploy)  | Camadas internas do codigo     |
+| 03  | Dominio          | Coberto (entidades, regras)    | Metodos, eventos, construtores |
+| 05  | API Contracts    | Parcial (requisitos)           | Endpoints, DTOs, status codes  |
+| ... | ...              | ...                            | ...                            |
 
 ## Passo 3: Questionario de Implementacao
 
@@ -107,51 +107,55 @@ Pergunte APENAS o que o blueprint NAO responde. Agrupe por tema. Pre-preencha co
 ---
 
 ### Grupo 1: Stack Tecnica
+
 > O blueprint define principios e restricoes, mas raramente especifica framework e ORM.
 
-| # | Pergunta | Pre-preenchido do Blueprint |
-|---|----------|-----------------------------|
-| 1 | **Qual linguagem e framework?** Node.js+Fastify, Python+FastAPI, Go+Gin, Java+Spring? | (do blueprint 10-decisions: ...) ou PENDENTE |
-| 2 | **Qual ORM ou query builder?** Prisma, Drizzle, TypeORM, SQLAlchemy, raw? | (do blueprint 05-data: ...) ou PENDENTE |
-| 3 | **Qual estrategia de deploy e CI/CD?** Docker+K8s, ECS, serverless, PaaS? Pipeline? | (do blueprint 06-architecture: ...) ou PENDENTE |
+| #   | Pergunta                                                                              | Pre-preenchido do Blueprint                     |
+| --- | ------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| 1   | **Qual linguagem e framework?** Node.js+Fastify, Python+FastAPI, Go+Gin, Java+Spring? | (do blueprint 10-decisions: ...) ou PENDENTE    |
+| 2   | **Qual ORM ou query builder?** Prisma, Drizzle, TypeORM, SQLAlchemy, raw?             | (do blueprint 05-data: ...) ou PENDENTE         |
+| 3   | **Qual estrategia de deploy e CI/CD?** Docker+K8s, ECS, serverless, PaaS? Pipeline?   | (do blueprint 06-architecture: ...) ou PENDENTE |
 
 > Aguarde resposta.
 
 ---
 
 ### Grupo 2: Detalhes de API
+
 > O blueprint tem requisitos e use cases, mas nao endpoints especificos.
 
-| # | Pergunta | Pre-preenchido do Blueprint |
-|---|----------|-----------------------------|
-| 4 | **Confirme os endpoints derivados dos use cases.** Vou apresentar o mapa de endpoints que inferi — confirme ou ajuste. | (derivado de 08-use_cases) |
-| 5 | **Quais campos cada request/response tem?** Posso derivar dos atributos das entidades — confirme ou ajuste. | (derivado de 04-domain-model) |
-| 6 | **Versionamento de API?** URL path (/v1/), header, ou sem? | PENDENTE |
+| #   | Pergunta                                                                                                               | Pre-preenchido do Blueprint   |
+| --- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| 4   | **Confirme os endpoints derivados dos use cases.** Vou apresentar o mapa de endpoints que inferi — confirme ou ajuste. | (derivado de 08-use_cases)    |
+| 5   | **Quais campos cada request/response tem?** Posso derivar dos atributos das entidades — confirme ou ajuste.            | (derivado de 04-domain-model) |
+| 6   | **Versionamento de API?** URL path (/v1/), header, ou sem?                                                             | PENDENTE                      |
 
 > Aguarde resposta.
 
 ---
 
 ### Grupo 3: Detalhes de Autenticacao e Permissoes
+
 > O blueprint 13-security define STRIDE e metodo de auth, mas falta RBAC detalhado.
 
-| # | Pergunta | Pre-preenchido do Blueprint |
-|---|----------|-----------------------------|
-| 7 | **Qual provedor de autenticacao?** Auth0, Cognito, Keycloak, Supabase, proprio? | (do blueprint 13-security: ...) ou PENDENTE |
-| 8 | **Confirme a matriz de permissoes por role.** Vou derivar dos use cases — confirme ou ajuste. | (derivado de 08-use_cases + 13-security) |
+| #   | Pergunta                                                                                      | Pre-preenchido do Blueprint                 |
+| --- | --------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| 7   | **Qual provedor de autenticacao?** Auth0, Cognito, Keycloak, Supabase, proprio?               | (do blueprint 13-security: ...) ou PENDENTE |
+| 8   | **Confirme a matriz de permissoes por role.** Vou derivar dos use cases — confirme ou ajuste. | (derivado de 08-use_cases + 13-security)    |
 
 > Aguarde resposta.
 
 ---
 
 ### Grupo 4: Detalhes de Workers e Integracoes
+
 > O blueprint 07-flows e 17-communication indicam fluxos async e canais, mas falta config de filas.
 
-| # | Pergunta | Pre-preenchido do Blueprint |
-|---|----------|-----------------------------|
-| 9 | **Qual message broker?** BullMQ, RabbitMQ, Kafka, SQS? | (do blueprint 06-architecture: ...) ou PENDENTE |
-| 10 | **Confirme os workers derivados dos fluxos async.** | (derivado de 07-flows + 17-communication) |
-| 11 | **Quais provedores de servicos externos?** Email, SMS, WhatsApp, pagamento — qual provedor? | (do blueprint 17-communication: ...) ou PENDENTE |
+| #   | Pergunta                                                                                    | Pre-preenchido do Blueprint                      |
+| --- | ------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| 9   | **Qual message broker?** BullMQ, RabbitMQ, Kafka, SQS?                                      | (do blueprint 06-architecture: ...) ou PENDENTE  |
+| 10  | **Confirme os workers derivados dos fluxos async.**                                         | (derivado de 07-flows + 17-communication)        |
+| 11  | **Quais provedores de servicos externos?** Email, SMS, WhatsApp, pagamento — qual provedor? | (do blueprint 17-communication: ...) ou PENDENTE |
 
 > Aguarde resposta.
 
@@ -159,11 +163,11 @@ Pergunte APENAS o que o blueprint NAO responde. Agrupe por tema. Pre-preencha co
 
 ### Grupo 5: Ferramentas de Teste e Observabilidade
 
-| # | Pergunta | Pre-preenchido do Blueprint |
-|---|----------|-----------------------------|
-| 12 | **Quais ferramentas de teste?** Jest, Vitest, Testcontainers, k6? | (do blueprint 12-testing: ...) ou PENDENTE |
-| 13 | **Qual stack de observabilidade?** Datadog, Grafana, ELK, OpenTelemetry? | (do blueprint 15-observability: ...) ou PENDENTE |
-| 14 | **Qual estrategia de cache?** Redis, in-memory, CDN? O que cachear? | (do blueprint 14-scalability: ...) ou PENDENTE |
+| #   | Pergunta                                                                 | Pre-preenchido do Blueprint                      |
+| --- | ------------------------------------------------------------------------ | ------------------------------------------------ |
+| 12  | **Quais ferramentas de teste?** Jest, Vitest, Testcontainers, k6?        | (do blueprint 12-testing: ...) ou PENDENTE       |
+| 13  | **Qual stack de observabilidade?** Datadog, Grafana, ELK, OpenTelemetry? | (do blueprint 15-observability: ...) ou PENDENTE |
+| 14  | **Qual estrategia de cache?** Redis, in-memory, CDN? O que cachear?      | (do blueprint 14-scalability: ...) ou PENDENTE   |
 
 > Aguarde resposta.
 
@@ -198,6 +202,7 @@ Fase F (Qualidade — usa blueprint 12-testing + 15-observability):
 ```
 
 > **Modo de escrita:**
+>
 > - Se o documento contem apenas `{{placeholders}}`: use **Write**.
 > - Se ja tem conteudo real: use **Edit** para atualizar APENAS o que mudou.
 > - Insira novo conteudo antes dos `<!-- APPEND:... -->`.
@@ -222,6 +227,7 @@ Apos cada template, atualize o progresso:
 4. Proximos passos:
 
 > "Backend blueprint completo! Proximos passos:
+>
 > - `/codegen-claudemd` — Gerar CLAUDE.md router
 > - `/codegen-contracts` — Gerar shared kernel (tipos, schema, scaffold)
 > - `/codegen` — Iniciar geracao de codigo

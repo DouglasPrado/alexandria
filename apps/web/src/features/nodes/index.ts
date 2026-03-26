@@ -1,1 +1,10 @@
-// nodes — gerenciamento de nos de armazenamento (dispositivos conectados ao cluster)
+export { NodeList } from './components/NodeList';
+export { NodeStatusBadge } from './components/NodeStatusBadge';
+export { AddNodeDialog } from './components/AddNodeDialog';
+export { DisconnectConfirmDialog } from './components/DisconnectConfirmDialog';
+export { ClusterHealthSummary } from './components/ClusterHealthSummary';
+export { useNodes } from './hooks/useNodes';
+export { useNodeDetail } from './hooks/useNodeDetail';
+export { useRegisterNode, useDrainNode, useRemoveNode } from './hooks/useNodeMutations';
+export { nodesApi } from './api/nodes-api';
+export type * from './types/node.types';

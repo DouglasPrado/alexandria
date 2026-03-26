@@ -28,11 +28,11 @@ Renderer Process (Chromium / WebView)
   └── Infrastructure Layer (API Client, IPC Client)
 ```
 
-| Processo | Responsabilidade | Acesso | Tecnologia |
-| --- | --- | --- | --- |
-| Main Process | Gerenciamento de janelas, menus, tray, auto-update, acesso ao file system | Node.js APIs completas / Rust APIs | Electron main / Tauri Rust backend |
-| Renderer Process | Interface do usuario, interacao, renderizacao | APIs do browser (sandboxed) | React / Vue / Svelte no Chromium / WebView |
-| Preload Script (Electron) | Ponte segura entre main e renderer | contextBridge APIs expostas | Script isolado com acesso limitado |
+| Processo                  | Responsabilidade                                                          | Acesso                             | Tecnologia                                 |
+| ------------------------- | ------------------------------------------------------------------------- | ---------------------------------- | ------------------------------------------ |
+| Main Process              | Gerenciamento de janelas, menus, tray, auto-update, acesso ao file system | Node.js APIs completas / Rust APIs | Electron main / Tauri Rust backend         |
+| Renderer Process          | Interface do usuario, interacao, renderizacao                             | APIs do browser (sandboxed)        | React / Vue / Svelte no Chromium / WebView |
+| Preload Script (Electron) | Ponte segura entre main e renderer                                        | contextBridge APIs expostas        | Script isolado com acesso limitado         |
 
 ---
 
@@ -50,12 +50,12 @@ Domain Layer (Models, Business Rules, Interfaces)
 Infrastructure Layer (API Client, IPC Client, Storage)
 ```
 
-| Camada | Responsabilidade | Pode acessar | NAO pode acessar |
-| --- | --- | --- | --- |
-| UI Layer | Renderizacao, interacao visual, layout | Application, Domain | Infrastructure diretamente |
-| Application Layer | Orquestracao, hooks de negocio, estado | Domain, Infrastructure | — |
-| Domain Layer | Modelos, regras de negocio, interfaces | Nenhuma outra camada | UI, Application, Infrastructure |
-| Infrastructure Layer | API client, IPC client, storage, analytics | Domain (implementa interfaces) | UI, Application |
+| Camada               | Responsabilidade                           | Pode acessar                   | NAO pode acessar                |
+| -------------------- | ------------------------------------------ | ------------------------------ | ------------------------------- |
+| UI Layer             | Renderizacao, interacao visual, layout     | Application, Domain            | Infrastructure diretamente      |
+| Application Layer    | Orquestracao, hooks de negocio, estado     | Domain, Infrastructure         | —                               |
+| Domain Layer         | Modelos, regras de negocio, interfaces     | Nenhuma outra camada           | UI, Application, Infrastructure |
+| Infrastructure Layer | API client, IPC client, storage, analytics | Domain (implementa interfaces) | UI, Application                 |
 
 <details>
 <summary>Exemplo — Responsabilidade de cada camada</summary>
@@ -73,11 +73,11 @@ Infrastructure Layer (API Client, IPC Client, Storage)
 
 > Como main process e renderer process se comunicam?
 
-| Direcao | Metodo | Uso Tipico |
-| --- | --- | --- |
+| Direcao         | Metodo                                    | Uso Tipico                            |
+| --------------- | ----------------------------------------- | ------------------------------------- |
 | Renderer → Main | `ipcRenderer.invoke()` / Tauri `invoke()` | Solicitar dados, executar acoes no OS |
-| Main → Renderer | `webContents.send()` / Tauri events | Notificar mudancas, push de dados |
-| Bidirecional | Event emitters tipados | Sincronizacao de estado em tempo real |
+| Main → Renderer | `webContents.send()` / Tauri events       | Notificar mudancas, push de dados     |
+| Bidirecional    | Event emitters tipados                    | Sincronizacao de estado em tempo real |
 
 > Todas as mensagens IPC devem ser tipadas e validadas em ambos os lados.
 
@@ -88,25 +88,25 @@ Infrastructure Layer (API Client, IPC Client, Storage)
 // shared/ipc-channels.ts — canais Alexandria
 export const IPC_CHANNELS = {
   // Auth / Vault
-  VAULT_UNLOCK:       'vault:unlock',       // renderer → main: desbloqueia vault com senha
-  VAULT_LOCK:         'vault:lock',          // renderer → main: trava vault
+  VAULT_UNLOCK: 'vault:unlock', // renderer → main: desbloqueia vault com senha
+  VAULT_LOCK: 'vault:lock', // renderer → main: trava vault
 
   // Sync Engine
-  SYNC_START:         'sync:start',          // renderer → main: inicia sync de pasta
-  SYNC_STOP:          'sync:stop',           // renderer → main: para sync
-  SYNC_PROGRESS:      'sync:progress',       // main → renderer: push progresso de upload
-  SYNC_QUEUE_UPDATE:  'sync:queue-update',   // main → renderer: push fila atualizada
+  SYNC_START: 'sync:start', // renderer → main: inicia sync de pasta
+  SYNC_STOP: 'sync:stop', // renderer → main: para sync
+  SYNC_PROGRESS: 'sync:progress', // main → renderer: push progresso de upload
+  SYNC_QUEUE_UPDATE: 'sync:queue-update', // main → renderer: push fila atualizada
 
   // Node Agent
-  NODE_STATUS:        'node:status',         // main → renderer: push status heartbeat
-  NODE_CHUNK_PUT:     'node:chunk-put',      // main: armazena chunk localmente
+  NODE_STATUS: 'node:status', // main → renderer: push status heartbeat
+  NODE_CHUNK_PUT: 'node:chunk-put', // main: armazena chunk localmente
 
   // Gallery
-  FILE_LIST:          'file:list',           // renderer → main: lista arquivos do cluster
-  FILE_DOWNLOAD:      'file:download',       // renderer → main: baixa arquivo do cluster
+  FILE_LIST: 'file:list', // renderer → main: lista arquivos do cluster
+  FILE_DOWNLOAD: 'file:download', // renderer → main: baixa arquivo do cluster
 
   // Cluster (admin)
-  CLUSTER_HEALTH:     'cluster:health',      // renderer → main: saude do cluster
+  CLUSTER_HEALTH: 'cluster:health', // renderer → main: saude do cluster
 
   // App
   APP_UPDATE_AVAILABLE: 'app:update-available', // main → renderer: nova versao disponivel
@@ -124,8 +124,7 @@ syncEngine.on('progress', (item: SyncProgressItem) => {
 
 // renderer/services/ipc-client.ts
 export const ipcClient = {
-  startSync: (folderPath: string) =>
-    window.electronAPI.invoke(IPC_CHANNELS.SYNC_START, folderPath),
+  startSync: (folderPath: string) => window.electronAPI.invoke(IPC_CHANNELS.SYNC_START, folderPath),
   onSyncProgress: (cb: (item: SyncProgressItem) => void) =>
     window.electronAPI.on(IPC_CHANNELS.SYNC_PROGRESS, cb),
 };
@@ -153,14 +152,14 @@ export const ipcClient = {
 
 > O frontend desktop esta organizado por dominio de negocio (features)?
 
-| Dominio | Responsabilidade | Componentes Proprios | Estado Proprio |
-| --- | --- | --- | --- |
-| `auth` | Desbloqueio do vault local, login no orquestrador, recovery via seed phrase de 12 palavras | `UnlockScreen`, `SeedPhraseInput`, `AuthGuard` | `authStore` |
-| `gallery` | Galeria de fotos/videos, timeline cronologica, navegacao por album/evento, download sob demanda | `GalleryGrid`, `MediaViewer`, `TimelineBar`, `AlbumList` | `galleryStore` |
-| `sync` | Progresso do Sync Engine, fila de uploads, configuracao de pastas monitoradas, status de cada arquivo | `SyncQueue`, `FolderPicker`, `UploadProgressItem`, `SyncStatusBadge` | `syncStore` |
-| `cluster` | Saude do cluster, nos online/offline, convite de membros, configuracao de provedores cloud (admin) | `ClusterHealthPanel`, `NodeCard`, `InviteForm`, `ProviderSetup` | `clusterStore` |
-| `vault` | Credenciais de provedores cloud, tokens OAuth, senhas — desencriptados localmente com senha do membro | `VaultItem`, `ProviderCredentialForm`, `VaultUnlockModal` | `vaultStore` |
-| `settings` | Preferencias do app: pasta de sync, comportamento do tray, notificacoes, tema, auto-start | `SettingsPage`, `SyncFolderList`, `NotificationToggle` | `settingsStore` |
+| Dominio    | Responsabilidade                                                                                      | Componentes Proprios                                                 | Estado Proprio  |
+| ---------- | ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | --------------- |
+| `auth`     | Desbloqueio do vault local, login no orquestrador, recovery via seed phrase de 12 palavras            | `UnlockScreen`, `SeedPhraseInput`, `AuthGuard`                       | `authStore`     |
+| `gallery`  | Galeria de fotos/videos, timeline cronologica, navegacao por album/evento, download sob demanda       | `GalleryGrid`, `MediaViewer`, `TimelineBar`, `AlbumList`             | `galleryStore`  |
+| `sync`     | Progresso do Sync Engine, fila de uploads, configuracao de pastas monitoradas, status de cada arquivo | `SyncQueue`, `FolderPicker`, `UploadProgressItem`, `SyncStatusBadge` | `syncStore`     |
+| `cluster`  | Saude do cluster, nos online/offline, convite de membros, configuracao de provedores cloud (admin)    | `ClusterHealthPanel`, `NodeCard`, `InviteForm`, `ProviderSetup`      | `clusterStore`  |
+| `vault`    | Credenciais de provedores cloud, tokens OAuth, senhas — desencriptados localmente com senha do membro | `VaultItem`, `ProviderCredentialForm`, `VaultUnlockModal`            | `vaultStore`    |
+| `settings` | Preferencias do app: pasta de sync, comportamento do tray, notificacoes, tema, auto-start             | `SettingsPage`, `SyncFolderList`, `NotificationToggle`               | `settingsStore` |
 
 <!-- APPEND:dominios -->
 

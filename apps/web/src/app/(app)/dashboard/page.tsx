@@ -1,130 +1,160 @@
+/**
+ * Dashboard / Galeria — página principal do app.
+ * Fonte: docs/frontend/web/07-routes.md (GalleryPage)
+ * Fonte: docs/frontend/web/08-flows.md (Fluxo 2: Upload, Fluxo 3: Visualizar)
+ *
+ * Rota: /dashboard
+ * Layout: AppLayout
+ * Auth: JWT (qualquer role)
+ */
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { useCallback, useRef } from 'react';
-import { apiClient } from '@/lib/api-client';
-import { useUploadStore } from '@/store/upload-store';
-import { Upload, ImageIcon, Film, FileText } from 'lucide-react';
-
-interface FileItem {
-  id: string;
-  name: string;
-  mediaType: string;
-  status: string;
-  previewUrl: string;
-  createdAt: string;
-}
+import { useCallback, useMemo, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Upload } from 'lucide-react';
+import { useAuthStore } from '@/store/auth-store';
+import {
+  GalleryGrid,
+  FileLightbox,
+  UploadDropzone,
+  UploadQueue,
+  SearchBar,
+  useFiles,
+  useUploadFiles,
+  type FileDTO,
+  type MediaType,
+} from '@/features/gallery';
 
 export default function DashboardPage() {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: ['files'],
-    queryFn: () => apiClient.get<{ data: FileItem[]; meta: { hasMore: boolean } }>('/files'),
-  });
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const role = useAuthStore((s) => s.member?.role);
+  const canUpload = role === 'admin' || role === 'member';
 
-  const addFiles = useUploadStore((s) => s.addFiles);
+  // URL state for filters
+  const query = searchParams.get('q') ?? '';
+  const mediaType = (searchParams.get('type') as MediaType) || undefined;
+  const from = searchParams.get('from') || undefined;
+  const to = searchParams.get('to') || undefined;
 
-  const handleUpload = useCallback(
-    async (files: File[]) => {
-      addFiles(files);
-      for (const file of files) {
-        try {
-          await apiClient.upload('/files/upload', file);
-        } catch { /* handled by store */ }
+  // Files query with infinite scroll
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useFiles({ q: query || undefined, mediaType, from, to });
+
+  const files = useMemo(
+    () => data?.pages.flatMap((page) => page.data) ?? [],
+    [data],
+  );
+
+  // Upload
+  const { upload } = useUploadFiles();
+
+  // Lightbox state
+  const [lightboxFile, setLightboxFile] = useState<FileDTO | null>(null);
+
+  // URL state handlers
+  const updateSearchParams = useCallback(
+    (updates: Record<string, string | undefined>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      for (const [key, value] of Object.entries(updates)) {
+        if (value) params.set(key, value);
+        else params.delete(key);
       }
-      refetch();
+      // Remove cursor when filters change
+      params.delete('cursor');
+      router.replace(`/dashboard?${params.toString()}`, { scroll: false });
     },
-    [addFiles, refetch],
+    [searchParams, router],
   );
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      handleUpload(Array.from(e.dataTransfer.files));
-    },
-    [handleUpload],
+  const handleQueryChange = useCallback(
+    (q: string) => updateSearchParams({ q: q || undefined }),
+    [updateSearchParams],
   );
 
-  const handleFileInput = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      handleUpload(Array.from(e.target.files || []));
-    },
-    [handleUpload],
+  const handleMediaTypeChange = useCallback(
+    (type: MediaType | undefined) => updateSearchParams({ type }),
+    [updateSearchParams],
   );
 
-  const mediaIcon = (type: string) => {
-    if (type === 'photo') return <ImageIcon size={24} className="text-[var(--info)]" />;
-    if (type === 'video') return <Film size={24} className="text-[var(--accent)]" />;
-    return <FileText size={24} className="text-[var(--muted-foreground)]" />;
-  };
+  const handleFromChange = useCallback(
+    (iso: string | undefined) => updateSearchParams({ from: iso }),
+    [updateSearchParams],
+  );
+
+  const handleToChange = useCallback(
+    (iso: string | undefined) => updateSearchParams({ to: iso }),
+    [updateSearchParams],
+  );
 
   return (
     <div className="p-6 space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-[var(--foreground)]">Galeria</h1>
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-[var(--radius)] font-medium hover:opacity-90 transition-opacity text-sm"
-        >
-          <Upload size={16} />
-          Upload
-        </button>
-        <input ref={fileInputRef} type="file" multiple accept="image/*,video/*,application/pdf" onChange={handleFileInput} className="hidden" />
+        {canUpload && (
+          <label className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-[var(--radius)] font-medium hover:opacity-90 transition-opacity text-sm cursor-pointer">
+            <Upload size={16} />
+            Upload
+            <input
+              type="file"
+              multiple
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const f = Array.from(e.target.files ?? []) as File[];
+                if (f.length > 0) upload(f);
+                (e.target as HTMLInputElement).value = '';
+              }}
+              className="hidden"
+            />
+          </label>
+        )}
       </div>
 
-      <div
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={handleDrop}
-        className="border-2 border-dashed border-[var(--border)] rounded-[var(--radius)] p-10 text-center hover:border-[var(--primary)] hover:bg-[var(--secondary)] transition-colors cursor-pointer"
-        onClick={() => fileInputRef.current?.click()}
-      >
-        <Upload size={32} className="mx-auto text-[var(--muted-foreground)] mb-3" />
-        <p className="text-[var(--foreground)] font-medium">Arraste arquivos aqui ou clique para selecionar</p>
-        <p className="text-sm text-[var(--muted-foreground)] mt-1">Fotos, videos e documentos — ate 10 GB por arquivo</p>
-      </div>
+      {/* Search + Filters */}
+      <SearchBar
+        query={query}
+        mediaType={mediaType}
+        from={from}
+        to={to}
+        onQueryChange={handleQueryChange}
+        onMediaTypeChange={handleMediaTypeChange}
+        onFromChange={handleFromChange}
+        onToChange={handleToChange}
+      />
 
-      {isLoading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="aspect-square bg-[var(--muted)] rounded-[var(--radius)] animate-pulse" />
-          ))}
-        </div>
-      ) : !data?.data?.length ? (
-        <div className="text-center py-20">
-          <ImageIcon size={48} className="mx-auto text-[var(--muted-foreground)] mb-4" />
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">Nenhum arquivo ainda</h2>
-          <p className="text-[var(--muted-foreground)] mt-1 mb-4">
-            Faca seu primeiro upload para comecar a construir o acervo familiar.
-          </p>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-[var(--radius)] font-medium hover:opacity-90 transition-opacity text-sm"
-          >
-            Fazer primeiro upload
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3" aria-label="Galeria de arquivos em grade">
-          {data.data.map((file) => (
-            <div
-              key={file.id}
-              className="aspect-square bg-[var(--card)] border border-[var(--border)] rounded-[var(--radius)] overflow-hidden relative group cursor-pointer hover:border-[var(--primary)] transition-colors"
-              aria-label={`${file.name} — ${file.mediaType}`}
-            >
-              <div className="absolute inset-0 flex items-center justify-center">
-                {file.status === 'processing' ? (
-                  <span className="text-xs text-[var(--muted-foreground)] animate-pulse">Processando...</span>
-                ) : (
-                  mediaIcon(file.mediaType)
-                )}
-              </div>
-              <div className="absolute bottom-0 left-0 right-0 bg-[var(--foreground)]/80 px-2 py-1.5 text-xs text-[var(--background)] opacity-0 group-hover:opacity-100 transition-opacity truncate">
-                {file.name}
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* Dropzone — only when gallery is empty and user can upload */}
+      {canUpload && !isLoading && files.length === 0 && !query && !mediaType && (
+        <UploadDropzone onFiles={upload} />
       )}
+
+      {/* Gallery Grid */}
+      <GalleryGrid
+        files={files}
+        hasMore={!!hasNextPage}
+        isLoading={isLoading}
+        isFetchingNext={isFetchingNextPage}
+        onLoadMore={() => fetchNextPage()}
+        onFileClick={setLightboxFile}
+      />
+
+      {/* Lightbox */}
+      {lightboxFile && (
+        <FileLightbox
+          file={lightboxFile}
+          files={files}
+          canDelete={canUpload}
+          onClose={() => setLightboxFile(null)}
+          onNavigate={setLightboxFile}
+        />
+      )}
+
+      {/* Upload Queue (floating) */}
+      <UploadQueue />
     </div>
   );
 }

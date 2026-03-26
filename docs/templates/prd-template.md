@@ -33,11 +33,11 @@
 
 > Dados, métricas, pesquisas ou feedback que comprovam a existência e relevância do problema.
 
-| Fonte | Evidência | Data |
-|-------|-----------|------|
-| {{Ex.: Pesquisa NPS}} | {{Ex.: 40% dos usuários reportam dificuldade em X}} | {{AAAA-MM-DD}} |
-| {{Ex.: Dados de suporte}} | {{Ex.: 120 tickets/mês sobre Y}} | {{AAAA-MM-DD}} |
-| {{Ex.: Analytics}} | {{Ex.: 65% de abandono no fluxo Z}} | {{AAAA-MM-DD}} |
+| Fonte                     | Evidência                                           | Data           |
+| ------------------------- | --------------------------------------------------- | -------------- |
+| {{Ex.: Pesquisa NPS}}     | {{Ex.: 40% dos usuários reportam dificuldade em X}} | {{AAAA-MM-DD}} |
+| {{Ex.: Dados de suporte}} | {{Ex.: 120 tickets/mês sobre Y}}                    | {{AAAA-MM-DD}} |
+| {{Ex.: Analytics}}        | {{Ex.: 65% de abandono no fluxo Z}}                 | {{AAAA-MM-DD}} |
 
 ### 2.3 Impacto de não resolver
 
@@ -75,8 +75,8 @@ Para {{público-alvo}} que {{necessidade ou problema enfrentado}}, o {{nome do p
 
 ### 4.1 Personas
 
-| Persona | Perfil | Necessidade principal | Frequência de uso | Nível técnico |
-|---------|--------|----------------------|-------------------|---------------|
+| Persona       | Perfil                  | Necessidade principal      | Frequência de uso             | Nível técnico            |
+| ------------- | ----------------------- | -------------------------- | ----------------------------- | ------------------------ |
 | {{Persona 1}} | {{Descrição do perfil}} | {{O que precisa resolver}} | {{Diário / Semanal / Mensal}} | {{Baixo / Médio / Alto}} |
 | {{Persona 2}} | {{Descrição do perfil}} | {{O que precisa resolver}} | {{Diário / Semanal / Mensal}} | {{Baixo / Médio / Alto}} |
 
@@ -84,8 +84,8 @@ Para {{público-alvo}} que {{necessidade ou problema enfrentado}}, o {{nome do p
 
 > Quais "trabalhos" o usuário está tentando realizar?
 
-| Persona | Job | Resultado esperado |
-|---------|-----|--------------------|
+| Persona       | Job                                                            | Resultado esperado                       |
+| ------------- | -------------------------------------------------------------- | ---------------------------------------- |
 | {{Persona 1}} | Quando {{situação}}, eu quero {{ação}}, para que {{resultado}} | {{Como o usuário sabe que teve sucesso}} |
 | {{Persona 2}} | Quando {{situação}}, eu quero {{ação}}, para que {{resultado}} | {{Como o usuário sabe que teve sucesso}} |
 
@@ -109,19 +109,19 @@ Para {{público-alvo}} que {{necessidade ou problema enfrentado}}, o {{nome do p
 
 ### 5.1 Objetivos
 
-| ID | Objetivo | Prioridade | Alinhamento estratégico |
-|----|----------|------------|------------------------|
-| OBJ-01 | {{Objetivo específico e mensurável}} | Alta | {{OKR, meta do time, estratégia da empresa}} |
-| OBJ-02 | {{Objetivo específico e mensurável}} | Média | {{OKR, meta do time, estratégia da empresa}} |
+| ID     | Objetivo                             | Prioridade | Alinhamento estratégico                      |
+| ------ | ------------------------------------ | ---------- | -------------------------------------------- |
+| OBJ-01 | {{Objetivo específico e mensurável}} | Alta       | {{OKR, meta do time, estratégia da empresa}} |
+| OBJ-02 | {{Objetivo específico e mensurável}} | Média      | {{OKR, meta do time, estratégia da empresa}} |
 
 ### 5.2 Métricas de sucesso (KPIs)
 
-| Métrica | Linha de base | Meta | Prazo | Como medir |
-|---------|---------------|------|-------|------------|
-| {{Ex.: Tempo médio de conclusão do fluxo}} | {{Ex.: 15 min}} | {{Ex.: 2 min}} | {{Ex.: 3 meses após lançamento}} | {{Ex.: Analytics de produto}} |
-| {{Ex.: Taxa de adoção}} | {{Ex.: 0%}} | {{Ex.: 80% dos usuários-alvo}} | {{Ex.: 6 meses}} | {{Ex.: Telemetria}} |
-| {{Ex.: NPS do fluxo}} | {{Ex.: 25}} | {{Ex.: 50+}} | {{Ex.: 6 meses}} | {{Ex.: Pesquisa in-app}} |
-| {{Ex.: Tickets de suporte}} | {{Ex.: 120/mês}} | {{Ex.: < 20/mês}} | {{Ex.: 3 meses}} | {{Ex.: Zendesk}} |
+| Métrica                                    | Linha de base    | Meta                           | Prazo                            | Como medir                    |
+| ------------------------------------------ | ---------------- | ------------------------------ | -------------------------------- | ----------------------------- |
+| {{Ex.: Tempo médio de conclusão do fluxo}} | {{Ex.: 15 min}}  | {{Ex.: 2 min}}                 | {{Ex.: 3 meses após lançamento}} | {{Ex.: Analytics de produto}} |
+| {{Ex.: Taxa de adoção}}                    | {{Ex.: 0%}}      | {{Ex.: 80% dos usuários-alvo}} | {{Ex.: 6 meses}}                 | {{Ex.: Telemetria}}           |
+| {{Ex.: NPS do fluxo}}                      | {{Ex.: 25}}      | {{Ex.: 50+}}                   | {{Ex.: 6 meses}}                 | {{Ex.: Pesquisa in-app}}      |
+| {{Ex.: Tickets de suporte}}                | {{Ex.: 120/mês}} | {{Ex.: < 20/mês}}              | {{Ex.: 3 meses}}                 | {{Ex.: Zendesk}}              |
 
 ### 5.3 Critérios de sucesso mínimo (guardrails)
 
@@ -151,39 +151,39 @@ Para {{público-alvo}} que {{necessidade ou problema enfrentado}}, o {{nome do p
 
 #### {{Área funcional 1 — ex.: Gestão de Conteúdo}}
 
-| ID | Requisito | Prioridade | Critério de aceitação |
-|----|-----------|------------|----------------------|
-| RF-001 | {{Descrição do requisito}} | Must | {{Critério objetivo e verificável}} |
-| RF-002 | {{Descrição do requisito}} | Must | {{Critério objetivo e verificável}} |
+| ID     | Requisito                  | Prioridade | Critério de aceitação               |
+| ------ | -------------------------- | ---------- | ----------------------------------- |
+| RF-001 | {{Descrição do requisito}} | Must       | {{Critério objetivo e verificável}} |
+| RF-002 | {{Descrição do requisito}} | Must       | {{Critério objetivo e verificável}} |
 
 #### {{Área funcional 2 — ex.: Notificações}}
 
-| ID | Requisito | Prioridade | Critério de aceitação |
-|----|-----------|------------|----------------------|
-| RF-003 | {{Descrição do requisito}} | Should | {{Critério objetivo e verificável}} |
-| RF-004 | {{Descrição do requisito}} | Could | {{Critério objetivo e verificável}} |
+| ID     | Requisito                  | Prioridade | Critério de aceitação               |
+| ------ | -------------------------- | ---------- | ----------------------------------- |
+| RF-003 | {{Descrição do requisito}} | Should     | {{Critério objetivo e verificável}} |
+| RF-004 | {{Descrição do requisito}} | Could      | {{Critério objetivo e verificável}} |
 
 ### 7.2 Priorização (MoSCoW)
 
-| Prioridade | Requisitos |
-|------------|-----------|
-| **Must have** | {{RF-001, RF-002 — essenciais para o MVP}} |
-| **Should have** | {{RF-003 — importante mas não bloqueia lançamento}} |
-| **Could have** | {{RF-004 — desejável se houver tempo}} |
-| **Won't have (this time)** | {{Funcionalidades explicitamente adiadas}} |
+| Prioridade                 | Requisitos                                          |
+| -------------------------- | --------------------------------------------------- |
+| **Must have**              | {{RF-001, RF-002 — essenciais para o MVP}}          |
+| **Should have**            | {{RF-003 — importante mas não bloqueia lançamento}} |
+| **Could have**             | {{RF-004 — desejável se houver tempo}}              |
+| **Won't have (this time)** | {{Funcionalidades explicitamente adiadas}}          |
 
 ---
 
 ## 8. Requisitos Não Funcionais
 
-| ID | Categoria | Requisito | Meta | Como medir |
-|----|-----------|-----------|------|------------|
-| RNF-001 | Performance | {{Ex.: Tempo de resposta da API}} | {{Ex.: p95 < 300ms}} | {{Ex.: APM / New Relic}} |
-| RNF-002 | Disponibilidade | {{Ex.: Uptime do serviço}} | {{Ex.: 99.9%}} | {{Ex.: Monitoramento}} |
-| RNF-003 | Escalabilidade | {{Ex.: Usuários simultâneos}} | {{Ex.: 10.000}} | {{Ex.: Load test}} |
-| RNF-004 | Segurança | {{Ex.: Dados sensíveis criptografados}} | {{Ex.: AES-256 at rest}} | {{Ex.: Auditoria}} |
-| RNF-005 | Acessibilidade | {{Ex.: Conformidade WCAG}} | {{Ex.: Nível AA}} | {{Ex.: Lighthouse}} |
-| RNF-006 | Compatibilidade | {{Ex.: Browsers suportados}} | {{Ex.: Chrome, Firefox, Safari últimas 2 versões}} | {{Ex.: Testes cross-browser}} |
+| ID      | Categoria       | Requisito                               | Meta                                               | Como medir                    |
+| ------- | --------------- | --------------------------------------- | -------------------------------------------------- | ----------------------------- |
+| RNF-001 | Performance     | {{Ex.: Tempo de resposta da API}}       | {{Ex.: p95 < 300ms}}                               | {{Ex.: APM / New Relic}}      |
+| RNF-002 | Disponibilidade | {{Ex.: Uptime do serviço}}              | {{Ex.: 99.9%}}                                     | {{Ex.: Monitoramento}}        |
+| RNF-003 | Escalabilidade  | {{Ex.: Usuários simultâneos}}           | {{Ex.: 10.000}}                                    | {{Ex.: Load test}}            |
+| RNF-004 | Segurança       | {{Ex.: Dados sensíveis criptografados}} | {{Ex.: AES-256 at rest}}                           | {{Ex.: Auditoria}}            |
+| RNF-005 | Acessibilidade  | {{Ex.: Conformidade WCAG}}              | {{Ex.: Nível AA}}                                  | {{Ex.: Lighthouse}}           |
+| RNF-006 | Compatibilidade | {{Ex.: Browsers suportados}}            | {{Ex.: Chrome, Firefox, Safari últimas 2 versões}} | {{Ex.: Testes cross-browser}} |
 
 ---
 
@@ -191,8 +191,8 @@ Para {{público-alvo}} que {{necessidade ou problema enfrentado}}, o {{nome do p
 
 ### 9.1 User Stories
 
-| ID | Persona | Story | Critério de aceitação |
-|----|---------|-------|-----------------------|
+| ID     | Persona     | Story                                                       | Critério de aceitação    |
+| ------ | ----------- | ----------------------------------------------------------- | ------------------------ |
 | US-001 | {{Persona}} | Como {{persona}}, eu quero {{ação}}, para que {{benefício}} | {{Critério verificável}} |
 | US-002 | {{Persona}} | Como {{persona}}, eu quero {{ação}}, para que {{benefício}} | {{Critério verificável}} |
 
@@ -239,12 +239,12 @@ Para {{público-alvo}} que {{necessidade ou problema enfrentado}}, o {{nome do p
 
 ### 10.2 Entregas priorizadas
 
-| ID | Nome | Prioridade | Objetivo | Entregáveis | Dependências |
-|----|------|-----------|----------|-------------|--------------|
-| ENT-001 | Fundação | Must | {{Infraestrutura e contratos}} | {{Lista de entregáveis}} | {{Nenhuma}} |
-| ENT-002 | MVP | Must | {{Fluxo principal funcionando}} | {{Lista de entregáveis}} | {{ENT-001}} |
-| ENT-003 | Evolução | Should | {{Features complementares}} | {{Lista de entregáveis}} | {{ENT-002}} |
-| ENT-004 | Escala | Could | {{Otimização e expansão}} | {{Lista de entregáveis}} | {{ENT-002}} |
+| ID      | Nome     | Prioridade | Objetivo                        | Entregáveis              | Dependências |
+| ------- | -------- | ---------- | ------------------------------- | ------------------------ | ------------ |
+| ENT-001 | Fundação | Must       | {{Infraestrutura e contratos}}  | {{Lista de entregáveis}} | {{Nenhuma}}  |
+| ENT-002 | MVP      | Must       | {{Fluxo principal funcionando}} | {{Lista de entregáveis}} | {{ENT-001}}  |
+| ENT-003 | Evolução | Should     | {{Features complementares}}     | {{Lista de entregáveis}} | {{ENT-002}}  |
+| ENT-004 | Escala   | Could      | {{Otimização e expansão}}       | {{Lista de entregáveis}} | {{ENT-002}}  |
 
 ### 10.3 MVP — Definição mínima
 
@@ -293,14 +293,14 @@ Para {{público-alvo}} que {{necessidade ou problema enfrentado}}, o {{nome do p
 
 ### 12.1 Dependências internas
 
-| Dependência | Time responsável | O que precisa | Status | Impacto se atrasar |
-|-------------|-----------------|---------------|--------|---------------------|
-| {{Dependência 1}} | {{Time}} | {{API, serviço, componente}} | {{Resolvida / Pendente / Em risco}} | {{Bloqueia ENT-XXX}} |
+| Dependência       | Time responsável | O que precisa                | Status                              | Impacto se atrasar   |
+| ----------------- | ---------------- | ---------------------------- | ----------------------------------- | -------------------- |
+| {{Dependência 1}} | {{Time}}         | {{API, serviço, componente}} | {{Resolvida / Pendente / Em risco}} | {{Bloqueia ENT-XXX}} |
 
 ### 12.2 Dependências externas
 
-| Dependência | Fornecedor | O que precisa | SLA | Alternativa |
-|-------------|-----------|---------------|-----|-------------|
+| Dependência       | Fornecedor      | O que precisa        | SLA       | Alternativa |
+| ----------------- | --------------- | -------------------- | --------- | ----------- |
 | {{Dependência 1}} | {{Ex.: Stripe}} | {{API de pagamento}} | {{99.9%}} | {{Plano B}} |
 
 ### 12.3 Dependências técnicas
@@ -313,8 +313,8 @@ Para {{público-alvo}} que {{necessidade ou problema enfrentado}}, o {{nome do p
 
 ## 13. Riscos e Mitigações
 
-| ID | Risco | Probabilidade | Impacto | Mitigação | Owner | Status |
-|----|-------|---------------|---------|-----------|-------|--------|
+| ID   | Risco                  | Probabilidade            | Impacto                  | Mitigação                   | Owner           | Status                         |
+| ---- | ---------------------- | ------------------------ | ------------------------ | --------------------------- | --------------- | ------------------------------ |
 | R-01 | {{Descrição do risco}} | {{Alta / Média / Baixa}} | {{Alto / Médio / Baixo}} | {{Estratégia de mitigação}} | {{Responsável}} | {{Aberto / Mitigado / Aceito}} |
 | R-02 | {{Descrição do risco}} | {{Alta / Média / Baixa}} | {{Alto / Médio / Baixo}} | {{Estratégia de mitigação}} | {{Responsável}} | {{Aberto / Mitigado / Aceito}} |
 
@@ -324,10 +324,10 @@ Para {{público-alvo}} que {{necessidade ou problema enfrentado}}, o {{nome do p
 
 > Quais hipóteses precisam ser verdadeiras para esta solução fazer sentido? Como validá-las?
 
-| ID | Hipótese | Como validar | Resultado esperado | Status |
-|----|----------|--------------|-------------------|--------|
-| H-01 | {{Ex.: Usuários preferem self-service a suporte humano}} | {{Ex.: Teste A/B, pesquisa}} | {{Ex.: > 60% preferem self-service}} | {{Validada / Pendente / Invalidada}} |
-| H-02 | {{Ex.: Volume de dados não excederá X GB/mês no primeiro ano}} | {{Ex.: Projeção baseada em dados atuais}} | {{Ex.: Projeção < X GB/mês}} | {{Validada / Pendente / Invalidada}} |
+| ID   | Hipótese                                                       | Como validar                              | Resultado esperado                   | Status                               |
+| ---- | -------------------------------------------------------------- | ----------------------------------------- | ------------------------------------ | ------------------------------------ |
+| H-01 | {{Ex.: Usuários preferem self-service a suporte humano}}       | {{Ex.: Teste A/B, pesquisa}}              | {{Ex.: > 60% preferem self-service}} | {{Validada / Pendente / Invalidada}} |
+| H-02 | {{Ex.: Volume de dados não excederá X GB/mês no primeiro ano}} | {{Ex.: Projeção baseada em dados atuais}} | {{Ex.: Projeção < X GB/mês}}         | {{Validada / Pendente / Invalidada}} |
 
 ---
 
@@ -335,12 +335,12 @@ Para {{público-alvo}} que {{necessidade ou problema enfrentado}}, o {{nome do p
 
 ### 15.1 Restrições
 
-| Tipo | Descrição | Origem |
-|------|-----------|--------|
-| Técnica | {{Ex.: deve usar a stack existente (Go + PostgreSQL)}} | {{Decisão arquitetural}} |
-| Negócio | {{Ex.: orçamento limitado a R$ X}} | {{Finance}} |
-| Regulatória | {{Ex.: conformidade LGPD obrigatória}} | {{Legal}} |
-| Temporal | {{Ex.: lançamento obrigatório até AAAA-MM-DD}} | {{Compromisso comercial}} |
+| Tipo        | Descrição                                              | Origem                    |
+| ----------- | ------------------------------------------------------ | ------------------------- |
+| Técnica     | {{Ex.: deve usar a stack existente (Go + PostgreSQL)}} | {{Decisão arquitetural}}  |
+| Negócio     | {{Ex.: orçamento limitado a R$ X}}                     | {{Finance}}               |
+| Regulatória | {{Ex.: conformidade LGPD obrigatória}}                 | {{Legal}}                 |
+| Temporal    | {{Ex.: lançamento obrigatório até AAAA-MM-DD}}         | {{Compromisso comercial}} |
 
 ### 15.2 Premissas
 
@@ -356,11 +356,11 @@ Para {{público-alvo}} que {{necessidade ou problema enfrentado}}, o {{nome do p
 
 ### 16.1 Dados manipulados
 
-| Tipo de dado | Classificação | Controles necessários |
-|-------------|---------------|----------------------|
-| {{Ex.: e-mail do usuário}} | PII | {{Criptografia, acesso restrito, retenção limitada}} |
-| {{Ex.: token de pagamento}} | Sensível | {{Tokenização, não armazenar, PCI-DSS}} |
-| {{Ex.: logs de acesso}} | Interno | {{Retenção de 90 dias, sem PII}} |
+| Tipo de dado                | Classificação | Controles necessários                                |
+| --------------------------- | ------------- | ---------------------------------------------------- |
+| {{Ex.: e-mail do usuário}}  | PII           | {{Criptografia, acesso restrito, retenção limitada}} |
+| {{Ex.: token de pagamento}} | Sensível      | {{Tokenização, não armazenar, PCI-DSS}}              |
+| {{Ex.: logs de acesso}}     | Interno       | {{Retenção de 90 dias, sem PII}}                     |
 
 ### 16.2 Requisitos de compliance
 
@@ -380,19 +380,19 @@ Para {{público-alvo}} que {{necessidade ou problema enfrentado}}, o {{nome do p
 
 ### 17.1 Estratégia de rollout
 
-| Etapa | Público | Critério de avanço | Rollback |
-|-------|---------|--------------------|---------:|
-| Alpha | {{Ex.: time interno}} | {{Ex.: zero bugs críticos por 1 semana}} | {{Estratégia}} |
-| Beta | {{Ex.: 10% dos usuários}} | {{Ex.: métricas dentro do esperado}} | {{Estratégia}} |
-| GA | {{Ex.: 100% dos usuários}} | {{Ex.: KPIs atingidos}} | {{Estratégia}} |
+| Etapa | Público                    | Critério de avanço                       |       Rollback |
+| ----- | -------------------------- | ---------------------------------------- | -------------: |
+| Alpha | {{Ex.: time interno}}      | {{Ex.: zero bugs críticos por 1 semana}} | {{Estratégia}} |
+| Beta  | {{Ex.: 10% dos usuários}}  | {{Ex.: métricas dentro do esperado}}     | {{Estratégia}} |
+| GA    | {{Ex.: 100% dos usuários}} | {{Ex.: KPIs atingidos}}                  | {{Estratégia}} |
 
 ### 17.2 Comunicação
 
-| Público | Canal | Mensagem | Responsável | Quando |
-|---------|-------|----------|-------------|--------|
-| {{Usuários}} | {{Ex.: e-mail, in-app}} | {{Resumo da mudança}} | {{Marketing / Produto}} | {{Data}} |
-| {{Suporte}} | {{Ex.: Slack, treinamento}} | {{FAQ, runbook}} | {{Produto}} | {{Antes do lançamento}} |
-| {{Stakeholders}} | {{Ex.: apresentação}} | {{Resultados e métricas}} | {{PM}} | {{Pós-lançamento}} |
+| Público          | Canal                       | Mensagem                  | Responsável             | Quando                  |
+| ---------------- | --------------------------- | ------------------------- | ----------------------- | ----------------------- |
+| {{Usuários}}     | {{Ex.: e-mail, in-app}}     | {{Resumo da mudança}}     | {{Marketing / Produto}} | {{Data}}                |
+| {{Suporte}}      | {{Ex.: Slack, treinamento}} | {{FAQ, runbook}}          | {{Produto}}             | {{Antes do lançamento}} |
+| {{Stakeholders}} | {{Ex.: apresentação}}       | {{Resultados e métricas}} | {{PM}}                  | {{Pós-lançamento}}      |
 
 ### 17.3 Critérios de go / no-go
 
@@ -422,17 +422,17 @@ Para {{público-alvo}} que {{necessidade ou problema enfrentado}}, o {{nome do p
 
 ### 18.2 Monitoramento pós-lançamento
 
-| O que monitorar | Ferramenta | Threshold de alerta | Ação |
-|-----------------|-----------|---------------------|------|
-| {{Ex.: Taxa de erro}} | {{Ex.: Datadog}} | {{Ex.: > 1%}} | {{Acionar on-call}} |
-| {{Ex.: Adoção}} | {{Ex.: Amplitude}} | {{Ex.: < 20% em 2 semanas}} | {{Investigar bloqueios}} |
+| O que monitorar       | Ferramenta         | Threshold de alerta         | Ação                     |
+| --------------------- | ------------------ | --------------------------- | ------------------------ |
+| {{Ex.: Taxa de erro}} | {{Ex.: Datadog}}   | {{Ex.: > 1%}}               | {{Acionar on-call}}      |
+| {{Ex.: Adoção}}       | {{Ex.: Amplitude}} | {{Ex.: < 20% em 2 semanas}} | {{Investigar bloqueios}} |
 
 ---
 
 ## 19. Questões em Aberto
 
-| ID | Questão | Impacto | Owner | Prazo | Status |
-|----|---------|---------|-------|-------|--------|
+| ID   | Questão                         | Impacto                  | Owner           | Prazo          | Status                 |
+| ---- | ------------------------------- | ------------------------ | --------------- | -------------- | ---------------------- |
 | Q-01 | {{Questão pendente de decisão}} | {{Alto / Médio / Baixo}} | {{Responsável}} | {{AAAA-MM-DD}} | {{Aberta / Resolvida}} |
 | Q-02 | {{Questão pendente de decisão}} | {{Alto / Médio / Baixo}} | {{Responsável}} | {{AAAA-MM-DD}} | {{Aberta / Resolvida}} |
 
@@ -451,18 +451,18 @@ Para {{público-alvo}} que {{necessidade ou problema enfrentado}}, o {{nome do p
 
 ## Histórico de Revisões
 
-| Versão | Data | Autor | Mudança |
-|--------|------|-------|---------|
+| Versão     | Data           | Autor     | Mudança |
+| ---------- | -------------- | --------- | ------- |
 | {{v0.1.0}} | {{AAAA-MM-DD}} | {{autor}} | Criação |
 
 ---
 
 ## Aprovações
 
-| Papel | Responsável | Status | Data |
-|-------|-------------|--------|------|
-| Produto | {{nome}} | {{Pendente / Aprovado}} | |
-| Engenharia | {{nome}} | {{Pendente / Aprovado}} | |
-| Design | {{nome}} | {{Pendente / Aprovado}} | |
-| Segurança | {{nome}} | {{Pendente / Aprovado}} | |
-| Stakeholder | {{nome}} | {{Pendente / Aprovado}} | |
+| Papel       | Responsável | Status                  | Data |
+| ----------- | ----------- | ----------------------- | ---- |
+| Produto     | {{nome}}    | {{Pendente / Aprovado}} |      |
+| Engenharia  | {{nome}}    | {{Pendente / Aprovado}} |      |
+| Design      | {{nome}}    | {{Pendente / Aprovado}} |      |
+| Segurança   | {{nome}}    | {{Pendente / Aprovado}} |      |
+| Stakeholder | {{nome}}    | {{Pendente / Aprovado}} |      |

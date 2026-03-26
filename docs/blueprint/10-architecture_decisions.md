@@ -2,15 +2,15 @@
 
 ## Índice de ADRs
 
-| ID | Título | Status | Data |
-|----|--------|--------|------|
+| ID      | Título                                                            | Status | Data       |
+| ------- | ----------------------------------------------------------------- | ------ | ---------- |
 | ADR-001 | NestJS (TypeScript) como linguagem/framework principal do backend | Aceita | 2026-03-16 |
-| ADR-002 | NestJS como web framework (consolidado em ADR-001) | Aceita | 2026-03-16 |
-| ADR-003 | Orquestrador centralizado vs P2P | Aceita | 2026-03-16 |
-| ADR-004 | PostgreSQL 18 para metadados | Aceita | 2026-03-16 |
-| ADR-005 | Envelope encryption com seed phrase BIP-39 | Aceita | 2026-03-16 |
-| ADR-006 | Consistent hashing para distribuição de chunks | Aceita | 2026-03-16 |
-| ADR-007 | Otimização destrutiva de mídia (sem preservar originais) | Aceita | 2026-03-16 |
+| ADR-002 | NestJS como web framework (consolidado em ADR-001)                | Aceita | 2026-03-16 |
+| ADR-003 | Orquestrador centralizado vs P2P                                  | Aceita | 2026-03-16 |
+| ADR-004 | PostgreSQL 18 para metadados                                      | Aceita | 2026-03-16 |
+| ADR-005 | Envelope encryption com seed phrase BIP-39                        | Aceita | 2026-03-16 |
+| ADR-006 | Consistent hashing para distribuição de chunks                    | Aceita | 2026-03-16 |
+| ADR-007 | Otimização destrutiva de mídia (sem preservar originais)          | Aceita | 2026-03-16 |
 
 > 📄 Template completo: [adr-template.md](../adr/adr-template.md)
 >

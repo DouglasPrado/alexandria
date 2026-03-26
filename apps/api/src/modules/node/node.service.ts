@@ -7,7 +7,10 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
 import { S3StorageProvider, LocalStorageProvider } from '@alexandria/core-sdk';
 import { randomBytes, createCipheriv } from 'node:crypto';
+import { resolve } from 'node:path';
 
+const LOCAL_CHUNKS_DIR = process.env.LOCAL_STORAGE_PATH
+  || resolve(process.cwd(), '../..', 'apps', 'data', 'chunks');
 const MAX_NODES_PER_CLUSTER = parseInt(process.env.MAX_NODES_PER_CLUSTER || '50', 10);
 const MIN_NODES_FOR_REPLICATION = parseInt(process.env.MIN_NODES_FOR_REPLICATION || '1', 10);
 
@@ -61,7 +64,7 @@ export class NodeService {
         ownerId,
         name: dto.name,
         type: dto.type,
-        endpoint: dto.endpoint || '',
+        endpoint: dto.endpoint || (dto.type === 'local' ? LOCAL_CHUNKS_DIR : ''),
         configEncrypted,
         status: 'online',
         totalCapacity: BigInt(0),
@@ -72,16 +75,44 @@ export class NodeService {
     });
 
     // Register node in StorageService hash ring with appropriate provider
-    const provider =
-      dto.type === 'local'
-        ? new LocalStorageProvider(dto.endpoint || '/tmp/alexandria/chunks')
-        : new S3StorageProvider({
-            endpoint: dto.endpoint || '',
-            region: dto.region || 'us-east-1',
-            bucket: dto.bucket || '',
-            accessKeyId: dto.accessKey || '',
-            secretAccessKey: dto.secretKey || '',
-          });
+    let provider: LocalStorageProvider | S3StorageProvider;
+
+    if (dto.type === 'local') {
+      const ep = dto.endpoint || LOCAL_CHUNKS_DIR;
+      const localPath = ep.startsWith('/') ? ep : resolve(process.cwd(), '../..', ep);
+      provider = new LocalStorageProvider(localPath);
+    } else {
+      const accessKeyId = dto.accessKey || '';
+      const secretAccessKey = dto.secretKey || '';
+      const endpoint = dto.endpoint || '';
+
+      // R2/B2/VPS always need a custom endpoint; AWS S3 derives from region
+      const needsEndpoint = dto.type !== 's3';
+      if (needsEndpoint && !endpoint) {
+        throw new UnprocessableEntityException(
+          `${dto.type.toUpperCase()} nodes require an explicit endpoint`,
+        );
+      }
+
+      if (!accessKeyId || !secretAccessKey) {
+        throw new UnprocessableEntityException(
+          'S3-compatible nodes require accessKey and secretKey',
+        );
+      }
+
+      const s3Config: ConstructorParameters<typeof S3StorageProvider>[0] = {
+        region: dto.region || 'us-east-1',
+        bucket: dto.bucket || '',
+        accessKeyId,
+        secretAccessKey,
+      };
+      if (endpoint) {
+        s3Config.endpoint = endpoint;
+      }
+
+      provider = new S3StorageProvider(s3Config);
+    }
+
     this.storageService.registerNode(node.id, 100, provider);
 
     return {
@@ -162,8 +193,17 @@ export class NodeService {
   }
 
   /**
-   * Inicia drain de no — migra chunks antes de remover (RN-N3).
-   * RN-N6: Nao pode drenar se restam < 3 nos ativos.
+   * Drena no — migra chunks para outros nos e desconecta (RN-N3).
+   * Fonte: docs/backend/06-services.md (NodeService.drain — Fluxo Detalhado)
+   *
+   * Fluxo:
+   * 1. Valida no existe e cluster tem nos suficientes (RN-N6)
+   * 2. Status → draining
+   * 3. Lista replicas do no
+   * 4. Re-replica chunks sub-replicados via StorageService
+   * 5. Remove replicas do no drenado
+   * 6. Remove no do hash ring
+   * 7. Status → disconnected
    */
   async drain(nodeId: string) {
     const node = await this.prisma.node.findUnique({ where: { id: nodeId } });
@@ -171,7 +211,7 @@ export class NodeService {
       throw new NotFoundException('No nao encontrado');
     }
 
-    // Check: after drain, must still have MIN_NODES_FOR_REPLICATION active nodes
+    // RN-N6: after drain, must still have MIN_NODES_FOR_REPLICATION active nodes
     const activeNodeCount = await this.prisma.node.count({
       where: { clusterId: node.clusterId, status: 'online' },
     });
@@ -181,20 +221,66 @@ export class NodeService {
       );
     }
 
-    const chunksToMigrate = await this.prisma.chunkReplica.count({
-      where: { nodeId },
-    });
-
+    // 5. Status → draining (previne drain concorrente)
     await this.prisma.node.update({
       where: { id: nodeId },
       data: { status: 'draining' },
     });
 
+    // 6. Lista replicas do no
+    const replicas = await this.prisma.chunkReplica.findMany({
+      where: { nodeId },
+    });
+
+    // 7. Re-replica chunks sub-replicados
+    let chunksRelocated = 0;
+    let chunksSkipped = 0;
+    let chunksFailed = 0;
+
+    for (const replica of replicas) {
+      const activeCount = await this.prisma.chunkReplica.count({
+        where: {
+          chunkId: replica.chunkId,
+          status: 'healthy',
+          nodeId: { not: nodeId },
+        },
+      });
+
+      if (activeCount >= 3) {
+        chunksSkipped++;
+        continue;
+      }
+
+      try {
+        await this.storageService.reReplicateChunk(replica.chunkId, [nodeId]);
+        chunksRelocated++;
+      } catch (err) {
+        console.error(
+          `[Drain] Failed to re-replicate chunk ${replica.chunkId}:`,
+          err instanceof Error ? err.message : err,
+        );
+        chunksFailed++;
+      }
+    }
+
+    // Remove replicas do no drenado
+    await this.prisma.chunkReplica.deleteMany({ where: { nodeId } });
+
+    // 8. Remove no do ConsistentHashRing
+    this.storageService.unregisterNode(nodeId);
+
+    // 9. Status → disconnected
+    await this.prisma.node.update({
+      where: { id: nodeId },
+      data: { status: 'disconnected' },
+    });
+
     return {
       id: nodeId,
-      status: 'draining' as const,
-      chunksToMigrate,
-      estimatedTime: `${Math.ceil(chunksToMigrate / 10)}min`,
+      status: 'disconnected' as const,
+      chunksRelocated,
+      chunksSkipped,
+      chunksFailed,
     };
   }
 

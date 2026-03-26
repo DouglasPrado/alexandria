@@ -21,6 +21,7 @@ Verifique se o usuario passou um argumento (nome da feature). Se sim, use-o. Se 
 > "Qual feature vamos implementar?
 >
 > Exemplos:
+>
 > - `autenticacao` (login, registro, recuperacao de senha)
 > - `crud-produtos` (CRUD completo de uma entidade)
 > - `checkout` (fluxo de compra com pagamento)
@@ -52,15 +53,16 @@ Para cada doc relevante:
 
 **Mapa de docs por tipo de feature:**
 
-| Tipo | Blueprint | Backend | Frontend |
-|------|-----------|---------|----------|
-| CRUD de entidade | 04-domain-model, 05-data-model, 08-use_cases | 03-domain, 04-data-layer, 05-api-contracts, 06-services, 07-controllers | {{client}}/04-components, shared/06-data-layer |
-| Fluxo de negocio | 07-critical_flows, 08-use_cases, 09-state-models | 06-services, 09-errors, 12-events | {{client}}/08-flows, {{client}}/05-state |
-| Autenticacao | 07-critical_flows, 13-security | 08-middlewares, 11-permissions | {{client}}/11-security, {{client}}/07-routes |
-| Dashboard/Relatorio | 07-critical_flows | 05-api-contracts, 06-services | {{client}}/04-components, shared/06-data-layer |
-| Integracao externa | 06-system-architecture | 13-integrations, 12-events | {{client}}/08-flows |
+| Tipo                | Blueprint                                        | Backend                                                                 | Frontend                                       |
+| ------------------- | ------------------------------------------------ | ----------------------------------------------------------------------- | ---------------------------------------------- |
+| CRUD de entidade    | 04-domain-model, 05-data-model, 08-use_cases     | 03-domain, 04-data-layer, 05-api-contracts, 06-services, 07-controllers | {{client}}/04-components, shared/06-data-layer |
+| Fluxo de negocio    | 07-critical_flows, 08-use_cases, 09-state-models | 06-services, 09-errors, 12-events                                       | {{client}}/08-flows, {{client}}/05-state       |
+| Autenticacao        | 07-critical_flows, 13-security                   | 08-middlewares, 11-permissions                                          | {{client}}/11-security, {{client}}/07-routes   |
+| Dashboard/Relatorio | 07-critical_flows                                | 05-api-contracts, 06-services                                           | {{client}}/04-components, shared/06-data-layer |
+| Integracao externa  | 06-system-architecture                           | 13-integrations, 12-events                                              | {{client}}/08-flows                            |
 
 **Docs compartilhados (sempre consultar quando relevante):**
+
 - `docs/shared/glossary.md` — linguagem ubiqua
 - `docs/shared/event-mapping.md` — quando a feature envolve eventos backend → frontend
 - `docs/shared/error-ux-mapping.md` — quando a feature tem tratamento de erros
@@ -77,6 +79,7 @@ Ou, se apenas um cliente existir, use-o automaticamente.
 ### 2.5: Ler Contratos Existentes
 
 Leia `src/contracts/` para entender os tipos ja gerados:
+
 - Entidades relevantes para esta feature
 - Enums usados
 - Tipos de API existentes
@@ -87,14 +90,14 @@ Se a feature depende de codigo ja implementado (ex: middleware de auth, servicos
 
 ### Budget de Contexto
 
-| Item | Tokens estimados |
-|------|-----------------|
-| Secoes dos blueprints (excerpted) | ~15-25k |
-| Secoes do backend docs (excerpted) | ~10-20k |
-| Secoes do frontend docs (excerpted) | ~10-15k |
-| Contratos existentes | ~10-20k |
-| Codigo relacionado | ~10-20k |
-| **Total** | **~55-100k** |
+| Item                                | Tokens estimados |
+| ----------------------------------- | ---------------- |
+| Secoes dos blueprints (excerpted)   | ~15-25k          |
+| Secoes do backend docs (excerpted)  | ~10-20k          |
+| Secoes do frontend docs (excerpted) | ~10-15k          |
+| Contratos existentes                | ~10-20k          |
+| Codigo relacionado                  | ~10-20k          |
+| **Total**                           | **~55-100k**     |
 
 Se estiver acima de 100k, reduza: carregue menos secoes ou resuma o codigo existente.
 
@@ -124,18 +127,21 @@ Aguarde confirmacao do dev.
 **ANTES de qualquer implementacao**, escreva os testes:
 
 ### 4.1: Testes de Backend
+
 - Testes unitarios para regras de negocio (baseados em `backend/03-domain.md` e `backend/06-services.md`)
 - Testes de integracao para endpoints (baseados em `backend/05-api-contracts.md`)
 - Testes de estado (baseados em `blueprint/09-state-models.md`, se houver)
 - Estrategia conforme `backend/14-tests.md`
 
 ### 4.2: Testes de Frontend
+
 - Testes de componente (renderizacao, interacao)
 - Testes de hook/estado
 - Testes de integracao (fluxo completo)
 - Estrategia conforme `frontend/{{client}}/09-tests.md`
 
 **Cada teste deve:**
+
 - Ter um nome descritivo baseado no use case ou regra de negocio
 - Referenciar o doc do blueprint de onde veio (comentario)
 - Usar os tipos de `src/contracts/`
@@ -150,10 +156,12 @@ Execute os testes — todos devem **FALHAR** (RED).
 Implemente o codigo minimo para os testes passarem:
 
 ### 5.1: Schema/Migrations (se necessario)
+
 - Adicione novas tabelas ou campos ao schema
 - Gere e aplique migrations
 
 ### 5.2: Backend (conforme docs/backend/)
+
 - Repository/data access (conforme `backend/04-data-layer.md`)
 - Service/use case (conforme `backend/06-services.md`)
 - Controller/route (conforme `backend/07-controllers.md`)
@@ -163,6 +171,7 @@ Implemente o codigo minimo para os testes passarem:
 - Permissoes se necessario (conforme `backend/11-permissions.md`)
 
 ### 5.3: Frontend (conforme docs/frontend/)
+
 - Componentes (conforme `frontend/{{client}}/04-components.md`)
 - Hooks de estado (conforme `frontend/{{client}}/05-state.md`)
 - Data layer/API client (conforme `frontend/shared/06-data-layer.md`)
@@ -170,6 +179,7 @@ Implemente o codigo minimo para os testes passarem:
 - Copies/textos (conforme `frontend/{{client}}/14-copies.md`)
 
 **Regras:**
+
 - Use os tipos de `src/contracts/` — NAO crie tipos locais duplicados
 - Siga a linguagem ubiqua do glossario (`docs/shared/glossary.md`)
 - Implemente apenas o que os testes exigem
@@ -206,12 +216,12 @@ Se a feature introduziu novos tipos:
 
 > "Feature **{{nome}}** implementada:
 >
-> | Camada | Arquivos | Testes |
-> |--------|---------|--------|
-> | Schema | {{lista}} | — |
-> | Backend | {{lista}} | {{N}} testes |
-> | Frontend ({{client}}) | {{lista}} | {{N}} testes |
-> | Contracts | {{lista de novos tipos}} | — |
+> | Camada                | Arquivos                 | Testes       |
+> | --------------------- | ------------------------ | ------------ |
+> | Schema                | {{lista}}                | —            |
+> | Backend               | {{lista}}                | {{N}} testes |
+> | Frontend ({{client}}) | {{lista}}                | {{N}} testes |
+> | Contracts             | {{lista de novos tipos}} | —            |
 >
 > **Total: {{N}} testes, todos passando.**
 >

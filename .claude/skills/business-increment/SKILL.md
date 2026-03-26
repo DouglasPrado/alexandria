@@ -7,6 +7,7 @@ description: Incrementa o business blueprint com nova informacao ou correcao sem
 
 Atualiza os documentos existentes do business blueprint de forma incremental,
 preservando todo o conteudo ja preenchido. Use este skill para:
+
 - **Adicionar** novo mercado, novo segmento, nova fonte de receita, etc.
 - **Corrigir** informacoes existentes (metricas erradas, precos desatualizados, personas incorretas, etc.)
 - **Atualizar** dados de mercado, concorrencia, custos, projecoes, etc.
@@ -19,6 +20,7 @@ Pergunte ao usuario:
 > "O que precisa ser atualizado no business blueprint?
 >
 > Exemplos:
+>
 > - **Nova informacao:** 'Novo segmento B2B Enterprise identificado'
 > - **Correcao:** 'O custo de CAC estava R$150, correto e R$210'
 > - **Atualizacao:** 'Novo concorrente entrou no mercado: CompetidorX'
@@ -60,33 +62,33 @@ Identifique o tipo de alteracao:
 
 Identifique quais documentos sao impactados. Use a tabela de referencia abaixo para orientar a analise:
 
-| Doc | Quando impactado |
-|-----|-----------------|
-| 00-contexto | Novo mercado, novo concorrente |
-| 01-value-proposition | Nova necessidade do cliente, novo diferencial |
-| 02-segmentos | Novo segmento, nova persona |
-| 03-canais | Novo canal, nova parceria |
-| 04-relationships | Nova estrategia de retencao, novo churn signal |
-| 05-receita | Nova fonte de receita, novo plano de preco |
-| 06-custos | Novo custo, novo fornecedor |
-| 07-metrics | Nova metrica, novo milestone |
-| 08-marketing | Novo canal de marketing, novo growth loop |
-| 09-operacional | Novo processo, nova contratacao, novo milestone |
+| Doc                  | Quando impactado                                |
+| -------------------- | ----------------------------------------------- |
+| 00-contexto          | Novo mercado, novo concorrente                  |
+| 01-value-proposition | Nova necessidade do cliente, novo diferencial   |
+| 02-segmentos         | Novo segmento, nova persona                     |
+| 03-canais            | Novo canal, nova parceria                       |
+| 04-relationships     | Nova estrategia de retencao, novo churn signal  |
+| 05-receita           | Nova fonte de receita, novo plano de preco      |
+| 06-custos            | Novo custo, novo fornecedor                     |
+| 07-metrics           | Nova metrica, novo milestone                    |
+| 08-marketing         | Novo canal de marketing, novo growth loop       |
+| 09-operacional       | Novo processo, nova contratacao, novo milestone |
 
 Apresente ao usuario:
 
-| Doc | Impactado? | Tipo | O que fazer |
-|-----|-----------|------|-------------|
-| 00-contexto | {{Sim/Nao}} | {{Adicao/Correcao/Atualizacao/Remocao}} | {{Descricao}} |
-| 01-value-proposition | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 02-segmentos | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 03-canais | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 04-relationships | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 05-receita | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 06-custos | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 07-metrics | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 08-marketing | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 09-operacional | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| Doc                  | Impactado?  | Tipo                                    | O que fazer   |
+| -------------------- | ----------- | --------------------------------------- | ------------- |
+| 00-contexto          | {{Sim/Nao}} | {{Adicao/Correcao/Atualizacao/Remocao}} | {{Descricao}} |
+| 01-value-proposition | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 02-segmentos         | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 03-canais            | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 04-relationships     | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 05-receita           | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 06-custos            | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 07-metrics           | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 08-marketing         | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 09-operacional       | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
 
 > Confirme com o usuario antes de prosseguir: "Estes sao os documentos que serao atualizados. Deseja ajustar algo?"
 
@@ -105,6 +107,7 @@ Para CADA documento marcado como impactado, aplique conforme o tipo:
 5. **Marque** com: `<!-- adicionado: descricao-breve -->`
 
 Marcadores disponiveis:
+
 - `<!-- APPEND:mercado -->` — dados de mercado
 - `<!-- APPEND:concorrencia -->` — concorrentes
 - `<!-- APPEND:premissas -->` — premissas do negocio
@@ -168,18 +171,21 @@ Marcadores disponiveis:
 ### Exemplo de insercao em tabela:
 
 **Antes:**
+
 ```
 | Startup SaaS | Ferramenta de gestao | R$49/mes | UX simples |
 <!-- APPEND:concorrencia -->
 ```
 
 **Edit:** old_string = `<!-- APPEND:concorrencia -->`, new_string =
+
 ```
 | CompetidorX | Plataforma all-in-one | R$99/mes | Integracao nativa com ERPs |
 <!-- APPEND:concorrencia -->
 ```
 
 **Resultado:**
+
 ```
 | Startup SaaS | Ferramenta de gestao | R$49/mes | UX simples |
 | CompetidorX | Plataforma all-in-one | R$99/mes | Integracao nativa com ERPs |
@@ -189,6 +195,7 @@ Marcadores disponiveis:
 ### Exemplo de insercao de persona:
 
 **Antes:**
+
 ```
 ### Persona 1: Maria — Gerente de Operacoes
 (conteudo existente)
@@ -197,6 +204,7 @@ Marcadores disponiveis:
 ```
 
 **Edit:** old_string = `<!-- APPEND:personas -->`, new_string =
+
 ```
 ---
 
@@ -225,11 +233,11 @@ Apresente ao usuario um resumo do que foi alterado:
 
 > "Informacao **{{nome}}** documentada. Alteracoes em **{{N}}** documentos:
 >
-> | Doc | Alteracao |
-> |-----|----------|
-> | 00-contexto | +{{X}} concorrentes |
-> | 02-segmentos | +{{Y}} personas |
-> | ... | ... |
+> | Doc          | Alteracao           |
+> | ------------ | ------------------- |
+> | 00-contexto  | +{{X}} concorrentes |
+> | 02-segmentos | +{{Y}} personas     |
+> | ...          | ...                 |
 >
 > Revise os documentos atualizados e solicite ajustes se necessario."
 

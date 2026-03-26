@@ -25,13 +25,13 @@ Domain Layer (Models, Business Rules, Interfaces)
 Infrastructure Layer (API Client, Storage, Analytics)
 ```
 
-| Camada | Responsabilidade | Pode acessar | NÃO pode acessar |
-| --- | --- | --- | --- |
-| Server Layer | Server Components (RSC), Server Actions, middleware de auth, redirecionamento, streaming SSR | Application, Domain, Infrastructure | Estado client-side (Zustand, event bus) |
-| UI Layer | Renderização de Client Components, interação visual, layouts, formulários | Application, Domain | Infrastructure diretamente |
-| Application Layer | Orquestração, hooks de negócio, estado global (Zustand), data fetching (TanStack Query) | Domain, Infrastructure | — |
-| Domain Layer | Modelos TypeScript, regras de negócio, interfaces/contratos | Nenhuma outra camada | UI, Application, Infrastructure |
-| Infrastructure Layer | API client (fetch), localStorage, analytics, SDKs externos | Domain (implementa interfaces) | UI, Application |
+| Camada               | Responsabilidade                                                                             | Pode acessar                        | NÃO pode acessar                        |
+| -------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------- | --------------------------------------- |
+| Server Layer         | Server Components (RSC), Server Actions, middleware de auth, redirecionamento, streaming SSR | Application, Domain, Infrastructure | Estado client-side (Zustand, event bus) |
+| UI Layer             | Renderização de Client Components, interação visual, layouts, formulários                    | Application, Domain                 | Infrastructure diretamente              |
+| Application Layer    | Orquestração, hooks de negócio, estado global (Zustand), data fetching (TanStack Query)      | Domain, Infrastructure              | —                                       |
+| Domain Layer         | Modelos TypeScript, regras de negócio, interfaces/contratos                                  | Nenhuma outra camada                | UI, Application, Infrastructure         |
+| Infrastructure Layer | API client (fetch), localStorage, analytics, SDKs externos                                   | Domain (implementa interfaces)      | UI, Application                         |
 
 <details>
 <summary>Exemplo — Responsabilidade de cada camada</summary>
@@ -74,15 +74,15 @@ Infrastructure Layer (API Client, Storage, Analytics)
 
 <!-- do blueprint: 04-domain-model.md (entidades), 08-use_cases.md (casos de uso) -->
 
-| Domínio | Responsabilidade | Componentes Próprios | Estado Próprio |
-| --- | --- | --- | --- |
-| auth | Autenticação JWT, proteção de rotas, seed phrase | LoginForm, SeedPhraseDisplay, SeedPhraseInput, AuthGuard | authStore (JWT, member, role) |
-| gallery | Upload, galeria de fotos/vídeos/documentos, busca, download | UploadDropzone, UploadQueue, GalleryGrid, GalleryTimeline, FileLightbox, SearchBar | uploadStore (fila), useFiles (TanStack Query) |
-| nodes | Gerenciamento de nós, monitoramento, drain | NodeList, NodeStatusBadge, AddNodeModal, DrainProgressBar | useNodes (TanStack Query) |
-| cluster | Criação de cluster, onboarding, convites | SetupClusterForm, InviteMemberModal, InviteLinkCopy, AcceptInviteForm | useCluster (TanStack Query) |
-| alerts | Alertas de saúde, notificações administrativas | AlertBell, AlertDropdown, AlertCard | useAlerts (TanStack Query) |
-| recovery | Recovery via seed phrase, rebuild de banco | RecoveryStepper, RecoveryProgress, RecoveryReport | recoveryStore (etapas, progresso) |
-| settings | Configurações do cluster e do membro | SettingsForm, MemberList, RoleSelector | useSettings (TanStack Query) |
+| Domínio  | Responsabilidade                                            | Componentes Próprios                                                               | Estado Próprio                                |
+| -------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------- |
+| auth     | Autenticação JWT, proteção de rotas, seed phrase            | LoginForm, SeedPhraseDisplay, SeedPhraseInput, AuthGuard                           | authStore (JWT, member, role)                 |
+| gallery  | Upload, galeria de fotos/vídeos/documentos, busca, download | UploadDropzone, UploadQueue, GalleryGrid, GalleryTimeline, FileLightbox, SearchBar | uploadStore (fila), useFiles (TanStack Query) |
+| nodes    | Gerenciamento de nós, monitoramento, drain                  | NodeList, NodeStatusBadge, AddNodeModal, DrainProgressBar                          | useNodes (TanStack Query)                     |
+| cluster  | Criação de cluster, onboarding, convites                    | SetupClusterForm, InviteMemberModal, InviteLinkCopy, AcceptInviteForm              | useCluster (TanStack Query)                   |
+| alerts   | Alertas de saúde, notificações administrativas              | AlertBell, AlertDropdown, AlertCard                                                | useAlerts (TanStack Query)                    |
+| recovery | Recovery via seed phrase, rebuild de banco                  | RecoveryStepper, RecoveryProgress, RecoveryReport                                  | recoveryStore (etapas, progresso)             |
+| settings | Configurações do cluster e do membro                        | SettingsForm, MemberList, RoleSelector                                             | useSettings (TanStack Query)                  |
 
 <!-- APPEND:dominios -->
 
@@ -112,12 +112,12 @@ Infrastructure Layer (API Client, Storage, Analytics)
 
 > Como funciona a camada server-side do Next.js no Alexandria?
 
-| Componente | Responsabilidade | Localização |
-| --- | --- | --- |
-| Middleware | Verificação de JWT em todas as rotas protegidas; redirect para `/login` ou `/setup` ou `/recovery` conforme estado do sistema | `middleware.ts` (root) |
-| Server Components | Fetch de dados do orquestrador no servidor para SSR; sem bundle client-side | `app/**/page.tsx` |
-| Server Actions | Mutações simples (ex.: marcar alerta como resolvido) sem criar endpoint API separado | `app/**/actions.ts` |
-| API Routes | Proxy para o orquestrador quando necessário (ex.: upload multipart com progress) | `app/api/**` |
+| Componente        | Responsabilidade                                                                                                              | Localização            |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| Middleware        | Verificação de JWT em todas as rotas protegidas; redirect para `/login` ou `/setup` ou `/recovery` conforme estado do sistema | `middleware.ts` (root) |
+| Server Components | Fetch de dados do orquestrador no servidor para SSR; sem bundle client-side                                                   | `app/**/page.tsx`      |
+| Server Actions    | Mutações simples (ex.: marcar alerta como resolvido) sem criar endpoint API separado                                          | `app/**/actions.ts`    |
+| API Routes        | Proxy para o orquestrador quando necessário (ex.: upload multipart com progress)                                              | `app/api/**`           |
 
 ### Fluxo de Autenticação no Middleware
 
@@ -173,6 +173,7 @@ graph TD
 ---
 
 <!-- added: opensource -->
+
 ## Contributor Setup Guide
 
 - **Prerequisites**: Node.js 22+, pnpm 9+, Docker (for local orchestrator + PostgreSQL + Redis)

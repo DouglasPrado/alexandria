@@ -41,12 +41,12 @@ Para **famílias que precisam preservar memórias digitais por décadas**, o **A
 
 > Quem são as pessoas (ou sistemas) que vão interagir diretamente com esta solução?
 
-| Persona | Necessidade | Frequência de Uso |
-| ------- | ----------- | ----------------- |
-| Administrador Familiar | Garantir que memórias da família estejam seguras, replicadas e recuperáveis; configurar e manter o sistema | Semanal |
-| Membro Familiar | Salvar e visualizar fotos/vídeos sem complicação técnica; acessar galeria compartilhada | Diário |
-| Fotógrafo Amador | Upload automático de fotos/vídeos; liberar espaço no celular mantendo previews | Diário |
-| Guardião de Memórias | Acessar fotos antigas, navegar por timeline, buscar por data/evento; curadoria do acervo | Mensal |
+| Persona                | Necessidade                                                                                                | Frequência de Uso |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------- |
+| Administrador Familiar | Garantir que memórias da família estejam seguras, replicadas e recuperáveis; configurar e manter o sistema | Semanal           |
+| Membro Familiar        | Salvar e visualizar fotos/vídeos sem complicação técnica; acessar galeria compartilhada                    | Diário            |
+| Fotógrafo Amador       | Upload automático de fotos/vídeos; liberar espaço no celular mantendo previews                             | Diário            |
+| Guardião de Memórias   | Acessar fotos antigas, navegar por timeline, buscar por data/evento; curadoria do acervo                   | Mensal            |
 
 ---
 
@@ -67,18 +67,18 @@ Para **famílias que precisam preservar memórias digitais por décadas**, o **A
 
 > Como vamos medir se o sistema está cumprindo seus objetivos?
 
-| Métrica | Meta | Como Medir |
-| ------- | ---- | ---------- |
-| Durabilidade de dados | 99.999999999% (11 nines) | Simulação estatística + monitoramento contínuo de replicação |
-| Taxa de replicação saudável | >99% dos chunks com 3+ réplicas | Dashboard de saúde do cluster |
-| Redução de armazenamento (fotos) | 10-20x vs JPEG original | Benchmark com acervo real (~5-8MB → ~300-600KB WebP) |
-| Redução de armazenamento (vídeos) | 3-5x vs H.264 4K original | Benchmark com acervo real (~2GB → ~400-600MB 1080p AV1) |
-| Tempo de recovery do orquestrador | <2 horas via seed phrase | Disaster drill real em nova VPS |
-| Deduplicação familiar | 30-70% redução | Análise de acervo real (fase 2) |
-| Adoção familiar | 100% dos membros | Telemetria de uso — contagem de usuários ativos no cluster |
-| Tempo de resposta API | p95 < 500ms para operações de metadata | APM / métricas de latência |
-| Disponibilidade do orquestrador | >99.5% uptime | Monitoramento externo |
-| Integridade de dados | 0% de chunks corrompidos não detectados | Scrubbing periódico com SHA-256 |
+| Métrica                           | Meta                                    | Como Medir                                                   |
+| --------------------------------- | --------------------------------------- | ------------------------------------------------------------ |
+| Durabilidade de dados             | 99.999999999% (11 nines)                | Simulação estatística + monitoramento contínuo de replicação |
+| Taxa de replicação saudável       | >99% dos chunks com 3+ réplicas         | Dashboard de saúde do cluster                                |
+| Redução de armazenamento (fotos)  | 10-20x vs JPEG original                 | Benchmark com acervo real (~5-8MB → ~300-600KB WebP)         |
+| Redução de armazenamento (vídeos) | 3-5x vs H.264 4K original               | Benchmark com acervo real (~2GB → ~400-600MB 1080p AV1)      |
+| Tempo de recovery do orquestrador | <2 horas via seed phrase                | Disaster drill real em nova VPS                              |
+| Deduplicação familiar             | 30-70% redução                          | Análise de acervo real (fase 2)                              |
+| Adoção familiar                   | 100% dos membros                        | Telemetria de uso — contagem de usuários ativos no cluster   |
+| Tempo de resposta API             | p95 < 500ms para operações de metadata  | APM / métricas de latência                                   |
+| Disponibilidade do orquestrador   | >99.5% uptime                           | Monitoramento externo                                        |
+| Integridade de dados              | 0% de chunks corrompidos não detectados | Scrubbing periódico com SHA-256                              |
 
 ---
 

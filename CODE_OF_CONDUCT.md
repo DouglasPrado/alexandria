@@ -7,6 +7,7 @@ We as members, contributors, and maintainers pledge to make participation in Ale
 ## Our Standards
 
 **Positive behaviors:**
+
 - Using welcoming and inclusive language
 - Being respectful of differing viewpoints and experiences
 - Gracefully accepting constructive criticism
@@ -14,6 +15,7 @@ We as members, contributors, and maintainers pledge to make participation in Ale
 - Showing empathy towards other community members
 
 **Unacceptable behaviors:**
+
 - Trolling, insulting/derogatory comments, and personal or political attacks
 - Public or private harassment
 - Publishing others' private information without explicit permission

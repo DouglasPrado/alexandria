@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { apiClient, ApiError } from '@/lib/api-client';
 import { useAuthStore } from '@/store/auth-store';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get('returnUrl') || '/dashboard';
   const setMember = useAuthStore((s) => s.setMember);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,11 +21,11 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await apiClient.post<{
-        member: { id: string; name: string; email: string; role: string; clusterId: string };
+        member: { id: string; name: string; email: string; role: 'admin' | 'member' | 'reader'; clusterId: string };
         accessToken: string;
       }>('/auth/login', { email, password });
       setMember(res.member);
-      router.push('/dashboard');
+      router.push(returnUrl);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Erro ao conectar com o servidor');
     } finally {

@@ -40,17 +40,20 @@ Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 pergun
 ## Contexto por Plataforma
 
 ### Se web:
+
 - Sentry para error tracking
 - Web Vitals RUM (Real User Monitoring)
 - Lighthouse CI para auditorias automatizadas
 
 ### Se mobile:
+
 - Sentry React Native para error tracking
 - Firebase Crashlytics para crash reporting
 - Firebase Analytics para eventos de uso
 - Monitoramento de OTA updates
 
 ### Se desktop:
+
 - Sentry Electron para error tracking
 - Crash reporting nativo do processo main
 - Telemetria de auto-update (sucesso/falha)
@@ -59,11 +62,13 @@ Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 pergun
 ## Geracao
 
 > **Modo de escrita:**
+>
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
 Preencha `docs/frontend/{client}/12-observability.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+
 - Informacoes do blueprint tecnico (fonte primaria)
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- do blueprint: 15-observability.md -->`)

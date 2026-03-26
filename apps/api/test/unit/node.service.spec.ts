@@ -30,6 +30,8 @@ const mockPrisma = {
   },
   chunkReplica: {
     count: jest.fn(),
+    findMany: jest.fn(),
+    deleteMany: jest.fn(),
   },
 };
 
@@ -37,6 +39,7 @@ const mockStorageService = {
   registerNode: jest.fn(),
   unregisterNode: jest.fn(),
   distributeChunks: jest.fn(),
+  reReplicateChunk: jest.fn().mockResolvedValue({ targetNodeId: 'node-2', success: true }),
 };
 
 describe('NodeService', () => {
@@ -141,6 +144,118 @@ describe('NodeService', () => {
       );
     });
 
+    it('should register AWS S3 node without explicit endpoint (derives from region)', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.node.create.mockImplementation((args: any) => ({
+        id: 'node-s3',
+        name: args.data.name,
+        type: args.data.type,
+        status: 'online',
+        totalCapacity: BigInt(0),
+        usedCapacity: BigInt(0),
+        lastHeartbeat: new Date(),
+        createdAt: new Date(),
+      }));
+
+      const result = await nodeService.register('cluster-1', 'admin-1', {
+        name: 'AWS S3 Node',
+        type: 's3',
+        bucket: 'my-bucket',
+        accessKey: 'AKIASYQG...',
+        secretKey: 'e+zjI6B2...',
+        region: 'sa-east-1',
+      });
+
+      expect(result.type).toBe('s3');
+      expect(result.status).toBe('online');
+      expect(mockStorageService.registerNode).toHaveBeenCalled();
+    });
+
+    it('should throw UnprocessableEntityException for R2 node without endpoint', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.node.create.mockImplementation((args: any) => ({
+        id: 'node-r2',
+        name: args.data.name,
+        type: args.data.type,
+        status: 'online',
+        totalCapacity: BigInt(0),
+        usedCapacity: BigInt(0),
+        lastHeartbeat: new Date(),
+        createdAt: new Date(),
+      }));
+
+      await expect(
+        nodeService.register('cluster-1', 'admin-1', {
+          name: 'Bad R2',
+          type: 'r2',
+          accessKey: 'AKIA...',
+          secretKey: 'secret...',
+        }),
+      ).rejects.toThrow(UnprocessableEntityException);
+    });
+
+    it('should throw UnprocessableEntityException for S3-compatible node without accessKey', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+
+      await expect(
+        nodeService.register('cluster-1', 'admin-1', {
+          name: 'No Creds',
+          type: 'r2',
+          endpoint: 'https://r2.example.com',
+          accessKey: '',
+          secretKey: '',
+        }),
+      ).rejects.toThrow(UnprocessableEntityException);
+    });
+
+    it('should throw UnprocessableEntityException for S3 node without accessKey', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.node.create.mockImplementation((args: any) => ({
+        id: 'node-s3',
+        name: args.data.name,
+        type: args.data.type,
+        status: 'online',
+        totalCapacity: BigInt(0),
+        usedCapacity: BigInt(0),
+        lastHeartbeat: new Date(),
+        createdAt: new Date(),
+      }));
+
+      await expect(
+        nodeService.register('cluster-1', 'admin-1', {
+          name: 'No Creds S3',
+          type: 's3',
+          bucket: 'my-bucket',
+          region: 'us-east-1',
+          accessKey: '',
+          secretKey: '',
+        }),
+      ).rejects.toThrow(UnprocessableEntityException);
+    });
+
+    it('should allow local node without S3 credentials', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.node.create.mockImplementation((args: any) => ({
+        id: 'node-local',
+        name: args.data.name,
+        type: args.data.type,
+        status: 'online',
+        totalCapacity: BigInt(0),
+        usedCapacity: BigInt(0),
+        lastHeartbeat: new Date(),
+        createdAt: new Date(),
+      }));
+
+      const result = await nodeService.register('cluster-1', 'admin-1', {
+        name: 'Local NAS',
+        type: 'local',
+        endpoint: '/mnt/data',
+      });
+
+      expect(result.type).toBe('local');
+      expect(mockStorageService.registerNode).toHaveBeenCalled();
+    });
+
     it('should throw UnprocessableEntityException if cluster has 50 nodes (RN-C4)', async () => {
       mockPrisma.node.count.mockResolvedValue(50);
 
@@ -241,23 +356,74 @@ describe('NodeService', () => {
   });
 
   describe('drain()', () => {
-    it('should set node status to draining', async () => {
+    it('should migrate chunks, set status to disconnected, and unregister from ring', async () => {
       mockPrisma.node.findUnique.mockResolvedValue({
         id: 'node-1',
         clusterId: 'cluster-1',
         status: 'online',
       });
-      mockPrisma.node.count.mockResolvedValue(4); // 4 nodes, 3 remain after drain
-      mockPrisma.chunkReplica.count.mockResolvedValue(100);
-      mockPrisma.node.update.mockResolvedValue({
-        id: 'node-1',
-        status: 'draining',
-      });
+      mockPrisma.node.count.mockResolvedValue(4);
+      // Node has 2 chunks to migrate
+      mockPrisma.chunkReplica.findMany.mockResolvedValue([
+        { id: 'r1', chunkId: 'chunk-a', nodeId: 'node-1', status: 'healthy' },
+        { id: 'r2', chunkId: 'chunk-b', nodeId: 'node-1', status: 'healthy' },
+      ]);
+      // Each chunk has < 3 active replicas on other nodes
+      mockPrisma.chunkReplica.count.mockResolvedValue(1);
+      mockPrisma.node.update.mockResolvedValue({ id: 'node-1', status: 'disconnected' });
+      mockPrisma.chunkReplica.deleteMany.mockResolvedValue({ count: 2 });
 
       const result = await nodeService.drain('node-1');
 
-      expect(result.status).toBe('draining');
-      expect(result.chunksToMigrate).toBe(100);
+      // Should set status to draining, then disconnected
+      expect(mockPrisma.node.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'node-1' },
+          data: expect.objectContaining({ status: 'draining' }),
+        }),
+      );
+      expect(mockPrisma.node.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'node-1' },
+          data: expect.objectContaining({ status: 'disconnected' }),
+        }),
+      );
+      // Should re-replicate chunks
+      expect(mockStorageService.reReplicateChunk).toHaveBeenCalledTimes(2);
+      expect(mockStorageService.reReplicateChunk).toHaveBeenCalledWith('chunk-a', ['node-1']);
+      expect(mockStorageService.reReplicateChunk).toHaveBeenCalledWith('chunk-b', ['node-1']);
+      // Should remove replicas from drained node
+      expect(mockPrisma.chunkReplica.deleteMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { nodeId: 'node-1' } }),
+      );
+      // Should unregister from ring
+      expect(mockStorageService.unregisterNode).toHaveBeenCalledWith('node-1');
+      // Should return final status
+      expect(result.status).toBe('disconnected');
+      expect(result.chunksRelocated).toBe(2);
+    });
+
+    it('should skip re-replication for chunks already with 3+ replicas', async () => {
+      mockPrisma.node.findUnique.mockResolvedValue({
+        id: 'node-1',
+        clusterId: 'cluster-1',
+        status: 'online',
+      });
+      mockPrisma.node.count.mockResolvedValue(4);
+      mockPrisma.chunkReplica.findMany.mockResolvedValue([
+        { id: 'r1', chunkId: 'chunk-a', nodeId: 'node-1', status: 'healthy' },
+      ]);
+      // Chunk already has 3 active replicas elsewhere
+      mockPrisma.chunkReplica.count.mockResolvedValue(3);
+      mockPrisma.node.update.mockResolvedValue({ id: 'node-1', status: 'disconnected' });
+      mockPrisma.chunkReplica.deleteMany.mockResolvedValue({ count: 1 });
+
+      const result = await nodeService.drain('node-1');
+
+      expect(mockStorageService.reReplicateChunk).not.toHaveBeenCalled();
+      expect(result.chunksRelocated).toBe(0);
+      expect(result.chunksSkipped).toBe(1);
+      expect(result.status).toBe('disconnected');
     });
 
     it('should throw NotFoundException for non-existent node', async () => {

@@ -7,6 +7,7 @@ description: Incrementa o blueprint tecnico com nova funcionalidade ou correcao 
 
 Atualiza os documentos existentes do blueprint tecnico de forma incremental,
 preservando todo o conteudo ja preenchido. Use este skill para:
+
 - **Adicionar** uma nova feature (novos requisitos, entidades, fluxos, casos de uso, etc.)
 - **Corrigir** informacoes existentes (entidades erradas, fluxos atualizados, requisitos corrigidos, etc.)
 - **Atualizar** versoes de tecnologias, nomes de componentes, endpoints, ou qualquer dado que mudou
@@ -19,6 +20,7 @@ Pergunte ao usuario:
 > "O que precisa ser atualizado no blueprint tecnico?
 >
 > Exemplos:
+>
 > - **Nova feature:** 'Sistema de notificacoes push'
 > - **Correcao:** 'A entidade Order agora tem campo `status` enum em vez de string'
 > - **Atualizacao:** 'Endpoint /api/users foi renomeado para /api/accounts'
@@ -67,25 +69,25 @@ Identifique o tipo de alteracao:
 
 Identifique quais documentos sao impactados. Apresente ao usuario:
 
-| Doc | Impactado? | Tipo | O que fazer |
-|-----|-----------|------|-------------|
-| 00-context | {{Sim/Nao}} | {{Adicao/Correcao/Atualizacao/Remocao}} | {{Descricao}} |
-| 01-vision | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 02-architecture-principles | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 03-requirements | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 04-domain-model | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 05-data-model | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 06-system-architecture | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 07-critical-flows | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 08-use-cases | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 09-state-models | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 10-architecture-decisions | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 11-build-plan | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 12-testing-strategy | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 13-security | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 14-scalability | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 15-observability | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| 16-evolution | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| Doc                        | Impactado?  | Tipo                                    | O que fazer   |
+| -------------------------- | ----------- | --------------------------------------- | ------------- |
+| 00-context                 | {{Sim/Nao}} | {{Adicao/Correcao/Atualizacao/Remocao}} | {{Descricao}} |
+| 01-vision                  | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 02-architecture-principles | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 03-requirements            | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 04-domain-model            | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 05-data-model              | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 06-system-architecture     | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 07-critical-flows          | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 08-use-cases               | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 09-state-models            | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 10-architecture-decisions  | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 11-build-plan              | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 12-testing-strategy        | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 13-security                | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 14-scalability             | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 15-observability           | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
+| 16-evolution               | {{Sim/Nao}} | {{Tipo}}                                | {{Descricao}} |
 
 > Confirme com o usuario antes de prosseguir: "Estes sao os documentos que serao atualizados. Deseja ajustar algo?"
 
@@ -104,6 +106,7 @@ Para CADA documento marcado como impactado, aplique conforme o tipo:
 5. **Marque** com: `<!-- adicionado: nome-da-feature -->`
 
 Marcadores disponiveis por documento:
+
 - `00-context.md`: `<!-- APPEND:actors -->`, `<!-- APPEND:external-systems -->`, `<!-- APPEND:constraints -->`
 - `01-vision.md`: `<!-- APPEND:objectives -->`, `<!-- APPEND:personas -->`, `<!-- APPEND:success-metrics -->`
 - `03-requirements.md`: `<!-- APPEND:functional-requirements -->`, `<!-- APPEND:nonfunctional-requirements -->`
@@ -154,18 +157,21 @@ Para documentos sem marcadores APPEND (02, 05, 06, 07, 08, 14, 15, 16), insira o
 ### Exemplo de insercao em tabela:
 
 **Antes:**
+
 ```
 | Administrador | Gerencia configuracoes do sistema |
 <!-- APPEND:actors -->
 ```
 
 **Edit:** old_string = `<!-- APPEND:actors -->`, new_string =
+
 ```
 | Auditor | Visualiza logs e relatorios de conformidade |
 <!-- APPEND:actors -->
 ```
 
 **Resultado:**
+
 ```
 | Administrador | Gerencia configuracoes do sistema |
 | Auditor | Visualiza logs e relatorios de conformidade |
@@ -175,6 +181,7 @@ Para documentos sem marcadores APPEND (02, 05, 06, 07, 08, 14, 15, 16), insira o
 ### Exemplo de insercao de ADR:
 
 **Antes:**
+
 ```
 ## ADR-002: Banco de dados relacional
 (conteudo existente)
@@ -183,6 +190,7 @@ Para documentos sem marcadores APPEND (02, 05, 06, 07, 08, 14, 15, 16), insira o
 ```
 
 **Edit:** old_string = `<!-- APPEND:adrs -->`, new_string =
+
 ```
 ---
 
@@ -204,6 +212,7 @@ Para documentos sem marcadores APPEND (02, 05, 06, 07, 08, 14, 15, 16), insira o
 ### Exemplo de insercao de fluxo critico:
 
 **Antes:**
+
 ```
 ## Fluxo: Checkout
 (conteudo existente)
@@ -242,12 +251,12 @@ Apresente ao usuario um resumo do que foi alterado:
 
 > "Alteracao **{{nome}}** aplicada ao blueprint. Modificacoes em **{{N}}** documentos:
 >
-> | Doc | Alteracao |
-> |-----|----------|
-> | 00-context | +{{X}} atores |
+> | Doc             | Alteracao                    |
+> | --------------- | ---------------------------- |
+> | 00-context      | +{{X}} atores                |
 > | 03-requirements | +{{Y}} requisitos funcionais |
-> | 04-domain-model | +{{Z}} entidades |
-> | ... | ... |
+> | 04-domain-model | +{{Z}} entidades             |
+> | ...             | ...                          |
 >
 > Revise os documentos atualizados e solicite ajustes se necessario."
 

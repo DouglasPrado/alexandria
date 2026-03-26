@@ -12,43 +12,43 @@ Define a estrutura de rotas da aplicação web (Next.js 16 App Router), a estrat
 
 ### Rotas Públicas (auth)
 
-| Rota | Layout | Página | Descrição |
-|------|--------|--------|-----------|
-| `/login` | AuthLayout | LoginPage | Login com email + senha |
+| Rota             | Layout     | Página           | Descrição                    |
+| ---------------- | ---------- | ---------------- | ---------------------------- |
+| `/login`         | AuthLayout | LoginPage        | Login com email + senha      |
 | `/invite/:token` | AuthLayout | AcceptInvitePage | Aceite de convite ao cluster |
 
 ### Rotas de Setup (sem cluster)
 
-| Rota | Layout | Página | Descrição |
-|------|--------|--------|-----------|
-| `/setup` | SetupLayout | SetupClusterPage | Criação do cluster (nome + senha admin) |
-| `/setup/seed` | SetupLayout | SeedPhrasePage | Exibição da seed phrase de 12 palavras |
+| Rota          | Layout      | Página           | Descrição                               |
+| ------------- | ----------- | ---------------- | --------------------------------------- |
+| `/setup`      | SetupLayout | SetupClusterPage | Criação do cluster (nome + senha admin) |
+| `/setup/seed` | SetupLayout | SeedPhrasePage   | Exibição da seed phrase de 12 palavras  |
 
 ### Rotas de Recovery (banco vazio)
 
-| Rota | Layout | Página | Descrição |
-|------|--------|--------|-----------|
-| `/recovery` | RecoveryLayout | RecoverySeedPage | Input da seed phrase de 12 palavras |
-| `/recovery/progress` | RecoveryLayout | RecoveryProgressPage | Stepper de progresso do recovery |
+| Rota                 | Layout         | Página               | Descrição                           |
+| -------------------- | -------------- | -------------------- | ----------------------------------- |
+| `/recovery`          | RecoveryLayout | RecoverySeedPage     | Input da seed phrase de 12 palavras |
+| `/recovery/progress` | RecoveryLayout | RecoveryProgressPage | Stepper de progresso do recovery    |
 
 ### Rotas Protegidas (membro autenticado)
 
-| Rota | Layout | Página | Descrição |
-|------|--------|--------|-----------|
-| `/dashboard` | AppLayout | GalleryPage | Galeria principal (grid/timeline de thumbnails) |
-| `/dashboard/file/:id` | AppLayout | FileDetailPage | Lightbox com preview, metadados e download |
-| `/dashboard/search` | AppLayout | SearchPage | Busca avançada com filtros |
-| `/dashboard/settings` | AppLayout | SettingsPage | Configurações do membro (perfil, senha) |
+| Rota                  | Layout    | Página         | Descrição                                       |
+| --------------------- | --------- | -------------- | ----------------------------------------------- |
+| `/dashboard`          | AppLayout | GalleryPage    | Galeria principal (grid/timeline de thumbnails) |
+| `/dashboard/file/:id` | AppLayout | FileDetailPage | Lightbox com preview, metadados e download      |
+| `/dashboard/search`   | AppLayout | SearchPage     | Busca avançada com filtros                      |
+| `/dashboard/settings` | AppLayout | SettingsPage   | Configurações do membro (perfil, senha)         |
 
 ### Rotas Admin (role: admin)
 
-| Rota | Layout | Página | Descrição |
-|------|--------|--------|-----------|
-| `/dashboard/nodes` | AppLayout | NodesPage | Lista e gerenciamento de nós |
-| `/dashboard/nodes/:id` | AppLayout | NodeDetailPage | Detalhe do nó (status, capacidade, drain) |
-| `/dashboard/alerts` | AppLayout | AlertsPage | Lista completa de alertas |
-| `/dashboard/members` | AppLayout | MembersPage | Gerenciamento de membros e convites |
-| `/dashboard/cluster` | AppLayout | ClusterSettingsPage | Configurações do cluster |
+| Rota                   | Layout    | Página              | Descrição                                 |
+| ---------------------- | --------- | ------------------- | ----------------------------------------- |
+| `/dashboard/nodes`     | AppLayout | NodesPage           | Lista e gerenciamento de nós              |
+| `/dashboard/nodes/:id` | AppLayout | NodeDetailPage      | Detalhe do nó (status, capacidade, drain) |
+| `/dashboard/alerts`    | AppLayout | AlertsPage          | Lista completa de alertas                 |
+| `/dashboard/members`   | AppLayout | MembersPage         | Gerenciamento de membros e convites       |
+| `/dashboard/cluster`   | AppLayout | ClusterSettingsPage | Configurações do cluster                  |
 
 <!-- APPEND:rotas -->
 
@@ -101,13 +101,13 @@ app/
 
 > Como rotas protegidas verificam autenticação e autorização?
 
-| Tipo | Guard | Redirect se Falhar |
-|------|-------|--------------------|
-| Públicas (`(auth)`) | Nenhum; se já autenticado, redireciona para `/dashboard` | N/A |
-| Setup (`(setup)`) | Verificação: banco existe mas sem cluster | `/dashboard` (se cluster existe) |
-| Recovery (`(recovery)`) | Verificação: banco vazio (fresh install ou reset) | `/dashboard` (se banco populado) |
-| Protegidas (`(app)`) | JWT válido via middleware | `/login` |
-| Admin | JWT válido + role = `admin` | `/dashboard` (sem permissão) ou `/login` (sem auth) |
+| Tipo                    | Guard                                                    | Redirect se Falhar                                  |
+| ----------------------- | -------------------------------------------------------- | --------------------------------------------------- |
+| Públicas (`(auth)`)     | Nenhum; se já autenticado, redireciona para `/dashboard` | N/A                                                 |
+| Setup (`(setup)`)       | Verificação: banco existe mas sem cluster                | `/dashboard` (se cluster existe)                    |
+| Recovery (`(recovery)`) | Verificação: banco vazio (fresh install ou reset)        | `/dashboard` (se banco populado)                    |
+| Protegidas (`(app)`)    | JWT válido via middleware                                | `/login`                                            |
+| Admin                   | JWT válido + role = `admin`                              | `/dashboard` (sem permissão) ou `/login` (sem auth) |
 
 ### Middleware de Autenticação
 
@@ -144,13 +144,13 @@ Request → middleware.ts
 
 > Quais layouts são reutilizados entre rotas?
 
-| Layout | Rotas que Usam | Componentes Incluídos |
-|--------|----------------|-----------------------|
-| RootLayout | Todas | Providers (QueryClient, Zustand), fonts, `<html>`, `<body>` |
-| AuthLayout | `/login`, `/invite/:token` | Logo Alexandria, card centralizado, fundo minimalista |
-| SetupLayout | `/setup`, `/setup/seed` | Logo, stepper de 2 passos (Criar → Seed), card centralizado |
-| RecoveryLayout | `/recovery`, `/recovery/progress` | Logo, stepper de 6 etapas, card centralizado |
-| AppLayout | `/dashboard/**` | Sidebar, Header (com AlertBell, Avatar), main content area |
+| Layout         | Rotas que Usam                    | Componentes Incluídos                                       |
+| -------------- | --------------------------------- | ----------------------------------------------------------- |
+| RootLayout     | Todas                             | Providers (QueryClient, Zustand), fonts, `<html>`, `<body>` |
+| AuthLayout     | `/login`, `/invite/:token`        | Logo Alexandria, card centralizado, fundo minimalista       |
+| SetupLayout    | `/setup`, `/setup/seed`           | Logo, stepper de 2 passos (Criar → Seed), card centralizado |
+| RecoveryLayout | `/recovery`, `/recovery/progress` | Logo, stepper de 6 etapas, card centralizado                |
+| AppLayout      | `/dashboard/**`                   | Sidebar, Header (com AlertBell, Avatar), main content area  |
 
 <!-- APPEND:layouts -->
 
@@ -188,23 +188,23 @@ RootLayout (providers, fonts, theme)
 - **Deep linking:** URLs compartilháveis com filtros via query params (`?type=photos&view=timeline`)
 - **Navegação responsiva:** Sidebar colapsa em ícones no tablet; hamburger menu no mobile
 
-| Elemento | Visível em | Comportamento |
-|----------|-----------|---------------|
-| Sidebar | Área logada (AppLayout) | Navegação entre seções: Galeria, Nós, Alertas, Membros, Config |
-| Header | Área logada (AppLayout) | SearchBar, AlertBell (badge), Avatar (menu: perfil, logout) |
-| UploadQueue | Área logada (flutuante) | Mini-bar fixa no canto inferior-direito durante uploads |
+| Elemento    | Visível em              | Comportamento                                                  |
+| ----------- | ----------------------- | -------------------------------------------------------------- |
+| Sidebar     | Área logada (AppLayout) | Navegação entre seções: Galeria, Nós, Alertas, Membros, Config |
+| Header      | Área logada (AppLayout) | SearchBar, AlertBell (badge), Avatar (menu: perfil, logout)    |
+| UploadQueue | Área logada (flutuante) | Mini-bar fixa no canto inferior-direito durante uploads        |
 
 ### Itens da Sidebar
 
-| Item | Ícone | Rota | Visível para |
-|------|-------|------|-------------|
-| Galeria | Photos | `/dashboard` | Todos |
-| Busca | Search | `/dashboard/search` | Todos |
-| Nós | HardDrive | `/dashboard/nodes` | Admin |
-| Alertas | Bell | `/dashboard/alerts` | Admin |
-| Membros | Users | `/dashboard/members` | Admin |
-| Cluster | Settings | `/dashboard/cluster` | Admin |
-| Minha Conta | User | `/dashboard/settings` | Todos |
+| Item        | Ícone     | Rota                  | Visível para |
+| ----------- | --------- | --------------------- | ------------ |
+| Galeria     | Photos    | `/dashboard`          | Todos        |
+| Busca       | Search    | `/dashboard/search`   | Todos        |
+| Nós         | HardDrive | `/dashboard/nodes`    | Admin        |
+| Alertas     | Bell      | `/dashboard/alerts`   | Admin        |
+| Membros     | Users     | `/dashboard/members`  | Admin        |
+| Cluster     | Settings  | `/dashboard/cluster`  | Admin        |
+| Minha Conta | User      | `/dashboard/settings` | Todos        |
 
 > Para detalhes sobre proteção de rotas e autenticação, (ver [11-security.md](11-security.md)).
 
@@ -212,9 +212,9 @@ RootLayout (providers, fonts, theme)
 
 ## Histórico de Decisões
 
-| Data | Decisão | Motivo |
-|------|---------|--------|
+| Data       | Decisão                                                                | Motivo                                                                                                        |
+| ---------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | 2026-03-24 | Route groups separados por estado do sistema (auth/setup/recovery/app) | Middleware pode redirecionar com base no estado: sem cluster → setup, banco vazio → recovery, sem JWT → login |
-| 2026-03-24 | Rotas admin dentro de `/dashboard/*` (não `/admin/*`) | Admin e membro compartilham AppLayout; separação por role guard no middleware, não por URL prefix |
-| 2026-03-24 | Sem breadcrumbs | Estrutura de navegação flat (max 2 níveis); sidebar + header suficientes para 7 seções |
-| 2026-03-24 | URL state para filtros da galeria | Permite compartilhar links filtrados e preservar estado no back/forward do browser |
+| 2026-03-24 | Rotas admin dentro de `/dashboard/*` (não `/admin/*`)                  | Admin e membro compartilham AppLayout; separação por role guard no middleware, não por URL prefix             |
+| 2026-03-24 | Sem breadcrumbs                                                        | Estrutura de navegação flat (max 2 níveis); sidebar + header suficientes para 7 seções                        |
+| 2026-03-24 | URL state para filtros da galeria                                      | Permite compartilhar links filtrados e preservar estado no back/forward do browser                            |

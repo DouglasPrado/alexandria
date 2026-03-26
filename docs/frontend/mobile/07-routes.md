@@ -10,30 +10,30 @@ Define a estrutura de navegacao do app, a estrategia de protecao de rotas e os p
 
 <!-- do blueprint: 08-use_cases.md (UC-001 a UC-007), 00-context.md (atores e roles), mobile/01-architecture.md (dominios) -->
 
-| Tela | Tipo | Navegador | Screen |
-|------|------|-----------|--------|
-| Login | Publica | `AuthStack` | `LoginScreen` |
-| Vault Unlock | Publica (pos-login) | `AuthStack` | `VaultUnlockScreen` |
-| Seed Recovery | Publica | `AuthStack` | `SeedRecoveryScreen` |
-| Criar Cluster (1a vez) | Publica (onboarding) | `OnboardingStack` | `CreateClusterScreen` |
-| Exibir Seed Phrase | Publica (onboarding) | `OnboardingStack` | `SeedPhraseDisplayScreen` |
-| Galeria | Protegida | `TabNavigator` (tab 1) | `GalleryScreen` |
-| Timeline | Protegida | `GalleryStack` | `TimelineScreen` |
-| Detalhe de Foto/Video | Protegida | `GalleryStack` | `PhotoDetailScreen` |
-| Fila de Upload | Protegida | `TabNavigator` (tab 2) | `UploadQueueScreen` |
-| Configuracoes de Sync | Protegida | `UploadStack` | `SyncSettingsScreen` |
-| Liberacao de Espaco | Protegida | `UploadStack` | `SpaceReleaseScreen` |
-| Cluster Dashboard | Protegida | `TabNavigator` (tab 3) | `ClusterDashboardScreen` |
-| Membros | Protegida | `ClusterStack` | `MembersScreen` |
-| Convidar Membro | Admin | `ClusterStack` | `InviteMemberScreen` |
-| Alertas | Protegida | `ClusterStack` | `AlertsScreen` |
-| Nos de Armazenamento | Admin | `NodesStack` | `NodesScreen` |
-| Detalhe do No | Admin | `NodesStack` | `NodeDetailScreen` |
-| Registrar No | Admin | `NodesStack` | `RegisterNodeScreen` |
-| Configuracoes | Protegida | `TabNavigator` (tab 4) | `SettingsScreen` |
-| Perfil do Membro | Protegida | `SettingsStack` | `ProfileScreen` |
-| Configuracoes de Notificacao | Protegida | `SettingsStack` | `NotificationSettingsScreen` |
-| Recovery via Seed | Admin | `SettingsStack` | `SeedRecoveryScreen` |
+| Tela                         | Tipo                 | Navegador              | Screen                       |
+| ---------------------------- | -------------------- | ---------------------- | ---------------------------- |
+| Login                        | Publica              | `AuthStack`            | `LoginScreen`                |
+| Vault Unlock                 | Publica (pos-login)  | `AuthStack`            | `VaultUnlockScreen`          |
+| Seed Recovery                | Publica              | `AuthStack`            | `SeedRecoveryScreen`         |
+| Criar Cluster (1a vez)       | Publica (onboarding) | `OnboardingStack`      | `CreateClusterScreen`        |
+| Exibir Seed Phrase           | Publica (onboarding) | `OnboardingStack`      | `SeedPhraseDisplayScreen`    |
+| Galeria                      | Protegida            | `TabNavigator` (tab 1) | `GalleryScreen`              |
+| Timeline                     | Protegida            | `GalleryStack`         | `TimelineScreen`             |
+| Detalhe de Foto/Video        | Protegida            | `GalleryStack`         | `PhotoDetailScreen`          |
+| Fila de Upload               | Protegida            | `TabNavigator` (tab 2) | `UploadQueueScreen`          |
+| Configuracoes de Sync        | Protegida            | `UploadStack`          | `SyncSettingsScreen`         |
+| Liberacao de Espaco          | Protegida            | `UploadStack`          | `SpaceReleaseScreen`         |
+| Cluster Dashboard            | Protegida            | `TabNavigator` (tab 3) | `ClusterDashboardScreen`     |
+| Membros                      | Protegida            | `ClusterStack`         | `MembersScreen`              |
+| Convidar Membro              | Admin                | `ClusterStack`         | `InviteMemberScreen`         |
+| Alertas                      | Protegida            | `ClusterStack`         | `AlertsScreen`               |
+| Nos de Armazenamento         | Admin                | `NodesStack`           | `NodesScreen`                |
+| Detalhe do No                | Admin                | `NodesStack`           | `NodeDetailScreen`           |
+| Registrar No                 | Admin                | `NodesStack`           | `RegisterNodeScreen`         |
+| Configuracoes                | Protegida            | `TabNavigator` (tab 4) | `SettingsScreen`             |
+| Perfil do Membro             | Protegida            | `SettingsStack`        | `ProfileScreen`              |
+| Configuracoes de Notificacao | Protegida            | `SettingsStack`        | `NotificationSettingsScreen` |
+| Recovery via Seed            | Admin                | `SettingsStack`        | `SeedRecoveryScreen`         |
 
 <!-- APPEND:rotas -->
 
@@ -102,17 +102,17 @@ app/
 
 <!-- do blueprint: mobile/00-frontend-vision.md (Expo Router v4), mobile/01-architecture.md (UI Layer) -->
 
-| Navegador | Tipo | Telas | Comportamento |
-|-----------|------|-------|---------------|
-| `RootNavigator` | Stack | AuthStack, OnboardingStack, TabNavigator | Controla fluxo raiz — auth guard redireciona conforme `isAuthenticated` |
-| `AuthStack` | Stack | Login, VaultUnlock, SeedRecovery | Sem header; animacao de slide vertical; Esc fecha vault unlock |
-| `OnboardingStack` | Stack | CreateCluster, SeedPhraseDisplay | Sem back button em SeedPhraseDisplay (obriga confirmacao) |
-| `TabNavigator` | Bottom Tabs | Gallery, Upload, Cluster, Settings | 4 tabs; `AlertBadge` no tab Cluster; transicao nativa por plataforma |
-| `GalleryStack` | Stack | Timeline, PhotoDetail | Header transparente sobre foto; swipe-back nativo (iOS) |
-| `UploadStack` | Stack | SyncSettings, SpaceRelease | Header com titulo e botao de fechar |
-| `ClusterStack` | Stack | Members, InviteMember, Alerts | Header com titulo; InviteMember como modal (sheet) |
-| `NodesStack` | Stack (Admin) | Nodes, NodeDetail, RegisterNode | Role guard: redireciona para ClusterDashboard se nao for admin |
-| `SettingsStack` | Stack | Profile, Notifications, Recovery | Header com back button; Recovery como modal |
+| Navegador         | Tipo          | Telas                                    | Comportamento                                                           |
+| ----------------- | ------------- | ---------------------------------------- | ----------------------------------------------------------------------- |
+| `RootNavigator`   | Stack         | AuthStack, OnboardingStack, TabNavigator | Controla fluxo raiz — auth guard redireciona conforme `isAuthenticated` |
+| `AuthStack`       | Stack         | Login, VaultUnlock, SeedRecovery         | Sem header; animacao de slide vertical; Esc fecha vault unlock          |
+| `OnboardingStack` | Stack         | CreateCluster, SeedPhraseDisplay         | Sem back button em SeedPhraseDisplay (obriga confirmacao)               |
+| `TabNavigator`    | Bottom Tabs   | Gallery, Upload, Cluster, Settings       | 4 tabs; `AlertBadge` no tab Cluster; transicao nativa por plataforma    |
+| `GalleryStack`    | Stack         | Timeline, PhotoDetail                    | Header transparente sobre foto; swipe-back nativo (iOS)                 |
+| `UploadStack`     | Stack         | SyncSettings, SpaceRelease               | Header com titulo e botao de fechar                                     |
+| `ClusterStack`    | Stack         | Members, InviteMember, Alerts            | Header com titulo; InviteMember como modal (sheet)                      |
+| `NodesStack`      | Stack (Admin) | Nodes, NodeDetail, RegisterNode          | Role guard: redireciona para ClusterDashboard se nao for admin          |
+| `SettingsStack`   | Stack         | Profile, Notifications, Recovery         | Header com back button; Recovery como modal                             |
 
 ```mermaid
 graph TD
@@ -160,16 +160,17 @@ graph TD
 
 <!-- do blueprint: 08-use_cases.md (UC-001, UC-002 — roles admin/member/reader), 00-context.md (Administrador Familiar, Membro Familiar) -->
 
-| Tipo | Guard | Redirect se Falhar |
-|------|-------|--------------------|
-| Publica | Nenhum | N/A |
-| Protegida (autenticada) | `isAuthenticated` no root layout | `/(auth)/login` |
-| Protegida (vault desbloqueado) | `vaultUnlocked` no root layout | `/(auth)/vault-unlock` |
-| Admin | `isAuthenticated` + `member.role === 'admin'` no layout do NodesStack | `/(tabs)/cluster` |
+| Tipo                           | Guard                                                                 | Redirect se Falhar     |
+| ------------------------------ | --------------------------------------------------------------------- | ---------------------- |
+| Publica                        | Nenhum                                                                | N/A                    |
+| Protegida (autenticada)        | `isAuthenticated` no root layout                                      | `/(auth)/login`        |
+| Protegida (vault desbloqueado) | `vaultUnlocked` no root layout                                        | `/(auth)/vault-unlock` |
+| Admin                          | `isAuthenticated` + `member.role === 'admin'` no layout do NodesStack | `/(tabs)/cluster`      |
 
 **Estrategia de protecao no root layout:**
 
 O `app/_layout.tsx` e o unico ponto de controle de autenticacao. Ao montar, ele:
+
 1. Chama `authStore.restoreSession()` — tenta restaurar JWT do `expo-secure-store`
 2. Enquanto carrega → exibe `SplashScreen` (sem redirect)
 3. Se nao autenticado e fora do grupo `(auth)` → redireciona para `/(auth)/login`
@@ -246,20 +247,20 @@ export default function NodesLayout() {
 
 <!-- do blueprint: 08-use_cases.md (UC-002 — link de convite via token), 00-context.md (Sync Engine em dispositivos) -->
 
-| Tipo | Configuracao | Exemplo |
-|------|-------------|---------|
-| URL Scheme | `alexandria://` | `alexandria://invite/tok_abc123` |
-| Universal Links (iOS) | `apple-app-site-association` no dominio do Orquestrador | `https://cluster.familia.com/invite/tok_abc123` |
-| App Links (Android) | `assetlinks.json` no dominio do Orquestrador | `https://cluster.familia.com/invite/tok_abc123` |
-| Push Notification Deep Link | Payload `{ screen, params }` via `expo-notifications` | Abre `AlertsScreen` ao tocar em alerta de no offline |
+| Tipo                        | Configuracao                                            | Exemplo                                              |
+| --------------------------- | ------------------------------------------------------- | ---------------------------------------------------- |
+| URL Scheme                  | `alexandria://`                                         | `alexandria://invite/tok_abc123`                     |
+| Universal Links (iOS)       | `apple-app-site-association` no dominio do Orquestrador | `https://cluster.familia.com/invite/tok_abc123`      |
+| App Links (Android)         | `assetlinks.json` no dominio do Orquestrador            | `https://cluster.familia.com/invite/tok_abc123`      |
+| Push Notification Deep Link | Payload `{ screen, params }` via `expo-notifications`   | Abre `AlertsScreen` ao tocar em alerta de no offline |
 
-| Link Externo | Tela de Destino | Parametros |
-|--------------|----------------|------------|
-| `/invite/:token` | `InviteMemberScreen` (aceitar convite) | `token` — valida assinatura e expiracao |
-| `/gallery/:fileId` | `PhotoDetailScreen` | `fileId` — abre detalhe direto |
-| `/cluster/alerts` | `AlertsScreen` | — — notificacao push de alerta critico |
-| `/nodes/:nodeId` | `NodeDetailScreen` | `nodeId` — notificacao de no offline (admin) |
-| `/recovery` | `SeedRecoveryScreen` | — — deep link de suporte para iniciar recovery |
+| Link Externo       | Tela de Destino                        | Parametros                                     |
+| ------------------ | -------------------------------------- | ---------------------------------------------- |
+| `/invite/:token`   | `InviteMemberScreen` (aceitar convite) | `token` — valida assinatura e expiracao        |
+| `/gallery/:fileId` | `PhotoDetailScreen`                    | `fileId` — abre detalhe direto                 |
+| `/cluster/alerts`  | `AlertsScreen`                         | — — notificacao push de alerta critico         |
+| `/nodes/:nodeId`   | `NodeDetailScreen`                     | `nodeId` — notificacao de no offline (admin)   |
+| `/recovery`        | `SeedRecoveryScreen`                   | — — deep link de suporte para iniciar recovery |
 
 ---
 
@@ -274,12 +275,12 @@ export default function NodesLayout() {
 - Gestos: **Swipe back** (iOS) em todas as telas de detalhe; **Pinch-to-zoom** no `PhotoDetailScreen`; **Swipe horizontal** entre fotos no `PhotoDetailScreen`; **Swipe to resolve** em `AlertItem`
 - Deep linking: **Universal Links** (iOS/Android) + **URL Scheme** (`alexandria://`)
 
-| Elemento | Visivel em | Comportamento |
-|----------|-----------|---------------|
-| Bottom Tab Bar | Todas as telas das tabs | 4 tabs: Gallery (Home), Upload, Cluster (com AlertBadge), Settings |
-| Stack Header | Telas de detalhe (Timeline, PhotoDetail, Members, etc.) | Back button + titulo + action icons contextuais |
-| BottomSheet | Acoes contextuais (InviteMember, RegisterNode, confirmacoes) | Gestos nativos de dismiss; `react-native-bottom-sheet` |
-| PhotoDetail Header | `PhotoDetailScreen` | Transparente sobre a foto; botoes de Download e Opcoes |
+| Elemento           | Visivel em                                                   | Comportamento                                                      |
+| ------------------ | ------------------------------------------------------------ | ------------------------------------------------------------------ |
+| Bottom Tab Bar     | Todas as telas das tabs                                      | 4 tabs: Gallery (Home), Upload, Cluster (com AlertBadge), Settings |
+| Stack Header       | Telas de detalhe (Timeline, PhotoDetail, Members, etc.)      | Back button + titulo + action icons contextuais                    |
+| BottomSheet        | Acoes contextuais (InviteMember, RegisterNode, confirmacoes) | Gestos nativos de dismiss; `react-native-bottom-sheet`             |
+| PhotoDetail Header | `PhotoDetailScreen`                                          | Transparente sobre a foto; botoes de Download e Opcoes             |
 
 > Para detalhes sobre protecao de rotas e autenticacao, (ver 11-security.md).
 
@@ -287,10 +288,10 @@ export default function NodesLayout() {
 
 ## Historico de Decisoes
 
-| Data | Decisao | Motivo |
-|------|---------|--------|
-| 2026-03-24 | Expo Router v4 (file-based) em vez de React Navigation imperative | Consistencia com Next.js (mesma convencao de rotas), deep linking automatico, typed routes |
-| 2026-03-24 | 4 Bottom Tabs (Gallery, Upload, Cluster, Settings) | Cada tab mapeia para um dominio principal; evitar mais de 5 tabs por convencao HIG/Material |
-| 2026-03-24 | Auth guard no root layout (nao middleware) | Expo Router nao tem middleware; root layout e o equivalente correto |
-| 2026-03-24 | NodesStack como grupo separado com admin guard proprio | Nodes e funcionalidade exclusiva do admin; isolar em grupo proprio evita leakage de UI para membros comuns |
-| 2026-03-24 | VaultUnlock como tela separada de Login | O vault e desbloqueado localmente (sem chamada de API); separar permite restaurar sessao sem re-autenticar no Orquestrador |
+| Data       | Decisao                                                           | Motivo                                                                                                                     |
+| ---------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 2026-03-24 | Expo Router v4 (file-based) em vez de React Navigation imperative | Consistencia com Next.js (mesma convencao de rotas), deep linking automatico, typed routes                                 |
+| 2026-03-24 | 4 Bottom Tabs (Gallery, Upload, Cluster, Settings)                | Cada tab mapeia para um dominio principal; evitar mais de 5 tabs por convencao HIG/Material                                |
+| 2026-03-24 | Auth guard no root layout (nao middleware)                        | Expo Router nao tem middleware; root layout e o equivalente correto                                                        |
+| 2026-03-24 | NodesStack como grupo separado com admin guard proprio            | Nodes e funcionalidade exclusiva do admin; isolar em grupo proprio evita leakage de UI para membros comuns                 |
+| 2026-03-24 | VaultUnlock como tela separada de Login                           | O vault e desbloqueado localmente (sem chamada de API); separar permite restaurar sessao sem re-autenticar no Orquestrador |

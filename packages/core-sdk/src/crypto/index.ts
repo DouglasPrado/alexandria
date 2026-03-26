@@ -1,8 +1,4 @@
-import {
-  createCipheriv,
-  createDecipheriv,
-  randomBytes,
-} from 'node:crypto';
+import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12; // GCM standard nonce: 96 bits
@@ -40,7 +36,9 @@ export function generateKey(): Buffer {
  */
 export function encrypt(plaintext: Buffer, key: Buffer): EncryptedData {
   if (key.length !== KEY_LENGTH) {
-    throw new Error(`Invalid key length: ${key.length} bytes. AES-256 requires exactly ${KEY_LENGTH} bytes.`);
+    throw new Error(
+      `Invalid key length: ${key.length} bytes. AES-256 requires exactly ${KEY_LENGTH} bytes.`,
+    );
   }
 
   const iv = randomBytes(IV_LENGTH);
@@ -63,10 +61,14 @@ export function encrypt(plaintext: Buffer, key: Buffer): EncryptedData {
  */
 export function decrypt(encrypted: EncryptedData, key: Buffer): Buffer {
   if (key.length !== KEY_LENGTH) {
-    throw new Error(`Invalid key length: ${key.length} bytes. AES-256 requires exactly ${KEY_LENGTH} bytes.`);
+    throw new Error(
+      `Invalid key length: ${key.length} bytes. AES-256 requires exactly ${KEY_LENGTH} bytes.`,
+    );
   }
 
-  const decipher = createDecipheriv(ALGORITHM, key, encrypted.iv, { authTagLength: AUTH_TAG_LENGTH });
+  const decipher = createDecipheriv(ALGORITHM, key, encrypted.iv, {
+    authTagLength: AUTH_TAG_LENGTH,
+  });
   decipher.setAuthTag(encrypted.authTag);
 
   return Buffer.concat([decipher.update(encrypted.ciphertext), decipher.final()]);

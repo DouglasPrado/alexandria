@@ -39,11 +39,13 @@ Se houver lacunas críticas que NÃO podem ser inferidas do PRD, faça até 3 pe
 ## Geração
 
 > **Modo de escrita:**
+>
 > - Se o documento contém apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento já tem conteúdo real (reexecução): use **Edit** para atualizar APENAS o que mudou. Preserve conteúdo existente. Insira novo conteúdo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar templates de uma feature específica sem reescrever, prefira `/blueprint-increment`.
 
 Preencha `docs/blueprint/17-communication.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+
 - Informações explícitas do PRD
 - Fluxos de `07-critical_flows.md` para mapear eventos que geram comunicação
 - Use cases de `08-use_cases.md` para identificar todos os pontos de envio
@@ -53,6 +55,7 @@ Preencha `docs/blueprint/17-communication.md` substituindo TODOS os `{{placehold
 - Inferências lógicas quando seguro (marque com `<!-- inferido do PRD -->`)
 
 **Regras específicas:**
+
 - Para cada email transacional, gere assunto, preheader, corpo, CTA e fallback texto
 - Para SMS, respeite o limite de 160 caracteres por mensagem
 - Para WhatsApp, use o formato de template aprovado pela Meta (header, body, footer, buttons)

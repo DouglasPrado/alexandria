@@ -52,20 +52,21 @@ Cria paginas visuais no Paper (paper.design) usando as ferramentas MCP. O fluxo 
 
 Leia os seguintes documentos para extrair os dados necessarios:
 
-| Documento | O que extrair |
-|-----------|---------------|
-| `docs/frontend/03-design-system.md` | Tokens: cores, tipografia, espacamento, breakpoints |
-| `docs/frontend/04-components.md` | Hierarquia de componentes, variantes e props dos primitivos |
-| `docs/frontend/07-routes.md` | Tabela de rotas, layouts, tipos (publica/protegida/admin) |
-| `docs/frontend/08-flows.md` | Fluxos de UI e interacoes por pagina |
-| `docs/frontend/05-state.md` | Estado gerenciado por pagina |
-| `docs/frontend/14-copies.md` | Textos/copies por pagina (se disponiveis) |
+| Documento                           | O que extrair                                               |
+| ----------------------------------- | ----------------------------------------------------------- |
+| `docs/frontend/03-design-system.md` | Tokens: cores, tipografia, espacamento, breakpoints         |
+| `docs/frontend/04-components.md`    | Hierarquia de componentes, variantes e props dos primitivos |
+| `docs/frontend/07-routes.md`        | Tabela de rotas, layouts, tipos (publica/protegida/admin)   |
+| `docs/frontend/08-flows.md`         | Fluxos de UI e interacoes por pagina                        |
+| `docs/frontend/05-state.md`         | Estado gerenciado por pagina                                |
+| `docs/frontend/14-copies.md`        | Textos/copies por pagina (se disponiveis)                   |
 
 ### 2.1: Consultar shadcn/ui e Tailwind v4 via Context7
 
 Antes de montar a referencia de componentes, consulte as documentacoes:
 
 **shadcn/ui:**
+
 1. Chame `mcp__context7__resolve-library-id` com query "shadcn/ui" para obter o ID da biblioteca
 2. Para cada componente listado no blueprint (`docs/frontend/04-components.md`), chame `mcp__context7__query-docs` para obter:
    - Variantes disponiveis (variant, size, etc.)
@@ -74,6 +75,7 @@ Antes de montar a referencia de componentes, consulte as documentacoes:
    - Composicao (ex: Dialog = DialogTrigger + DialogContent + DialogHeader + DialogFooter)
 
 **Tailwind CSS v4:**
+
 1. Chame `mcp__context7__resolve-library-id` com query "tailwindcss" para obter o ID
 2. Chame `mcp__context7__query-docs` para consultar:
    - Escala de cores padrao (slate, zinc, neutral, etc.) e como mapear para os tokens do blueprint
@@ -87,6 +89,7 @@ Isso garante que os componentes no Paper reflitam fielmente o shadcn/ui com esti
 ### 2.2: Montar Conjuntos de Referencia
 
 Monte conjuntos internos de referencia:
+
 - **TOKENS**: mapa de cores, escala tipografica (convertida para px), escala de espacamento, breakpoints
 - **COMPONENTES**: lista de primitivos e compostos com variantes do shadcn/ui (nomes, props, estados)
 - **ROTAS**: lista de rotas com layout, tipo e nome da pagina
@@ -139,17 +142,20 @@ Guarde o ID retornado como `DS_ID`.
 Construa cada secao com multiplos `write_html` (um grupo visual por chamada).
 
 **A) Header**
+
 - Titulo "Design System" (font 700, 36px, color texto principal)
 - Subtitulo com nome do projeto (font 400, 16px, color texto secundario)
 - Screenshot checkpoint
 
 **B) Paleta de Cores**
+
 - Titulo da secao "Cores"
 - Row 1: 4 swatches (primary, secondary, background, surface) — cada swatch = retangulo colorido (80x80px) + hex value + token name
 - Row 2: 4 swatches (text, error, warning, success)
 - Screenshot checkpoint → Review: Contrast, Alignment, Spacing
 
 **C) Escala Tipografica**
+
 - Titulo da secao "Tipografia"
 - Sample heading-1: "Heading 1 — {{font}} 700 / 36px"
 - Sample heading-2: "Heading 2 — {{font}} 600 / 24px"
@@ -159,11 +165,13 @@ Construa cada secao com multiplos `write_html` (um grupo visual por chamada).
 - Screenshot checkpoint → Review: Typography, Spacing
 
 **D) Sistema de Espacamento**
+
 - Titulo da secao "Espacamento"
 - Para cada token (xs=4px, sm=8px, md=16px, lg=24px, xl=32px, 2xl=48px): barra horizontal colorida com largura proporcional + label
 - Screenshot checkpoint → Review: Alignment
 
 **E) Breakpoints**
+
 - Titulo da secao "Breakpoints"
 - 4 indicadores visuais: sm (640px/Mobile), md (768px/Tablet), lg (1024px/Desktop), xl (1280px/Wide)
 - Screenshot checkpoint
@@ -194,6 +202,7 @@ Antes de criar componentes ou paginas, planeje TODAS as telas com seus component
 Cruzando ROTAS + FLUXOS + COMPONENTES do blueprint, monte o mapa completo.
 
 Para cada rota, identifique:
+
 - **Layout**: qual layout usa e quais componentes o layout contem (Sidebar, Navbar, Footer, etc.)
 - **Componentes de pagina**: quais componentes primitivos e compostos a pagina precisa
 - **Componentes de feature**: quais componentes especificos do dominio a pagina usa
@@ -206,14 +215,14 @@ Apresente o mapa completo:
 
 > "**Planejamento de Telas**
 >
-> | # | Rota | Layout | Componentes de Layout | Componentes de Pagina | Estados |
-> |---|------|--------|----------------------|----------------------|---------|
-> | 1 | `/` | MainLayout | Navbar, Footer | Hero, FeatureCards, CTA | default |
-> | 2 | `/login` | AuthLayout | Logo, Card | Input (email, password), Button (primary), Link | default, loading, error |
-> | 3 | `/register` | AuthLayout | Logo, Card | Input (name, email, password), Button, Link | default, loading, error |
-> | 4 | `/dashboard` | AppLayout | Sidebar, Navbar | StatsCards, DataTable, Charts | loading, empty, populated |
-> | 5 | `/settings` | AppLayout | Sidebar, Navbar | Tabs, Input, Select, Button, Avatar | default, saving |
-> | 6 | `/admin/users` | AdminLayout | AdminSidebar, Navbar | DataTable, Badge, Avatar, Button, Modal | loading, empty, populated |
+> | #   | Rota           | Layout      | Componentes de Layout | Componentes de Pagina                           | Estados                   |
+> | --- | -------------- | ----------- | --------------------- | ----------------------------------------------- | ------------------------- |
+> | 1   | `/`            | MainLayout  | Navbar, Footer        | Hero, FeatureCards, CTA                         | default                   |
+> | 2   | `/login`       | AuthLayout  | Logo, Card            | Input (email, password), Button (primary), Link | default, loading, error   |
+> | 3   | `/register`    | AuthLayout  | Logo, Card            | Input (name, email, password), Button, Link     | default, loading, error   |
+> | 4   | `/dashboard`   | AppLayout   | Sidebar, Navbar       | StatsCards, DataTable, Charts                   | loading, empty, populated |
+> | 5   | `/settings`    | AppLayout   | Sidebar, Navbar       | Tabs, Input, Select, Button, Avatar             | default, saving           |
+> | 6   | `/admin/users` | AdminLayout | AdminSidebar, Navbar  | DataTable, Badge, Avatar, Button, Modal         | loading, empty, populated |
 >
 > ---
 >
@@ -244,21 +253,23 @@ Apresente o mapa completo:
 >
 > **Lista completa de componentes a criar no Design System:**
 >
-> | Componente | Tipo | Variantes | Usado em |
-> |------------|------|-----------|----------|
-> | Button | Primitivo | primary, secondary, ghost, destructive × sm, md, lg | /login, /register, /settings, /admin/users |
-> | Input | Primitivo | text, password, search, number + error state | /login, /register, /settings |
-> | Card | Primitivo | default, outlined, elevated | /, /login, /register |
-> | ... | ... | ... | ... |
+> | Componente | Tipo      | Variantes                                           | Usado em                                   |
+> | ---------- | --------- | --------------------------------------------------- | ------------------------------------------ |
+> | Button     | Primitivo | primary, secondary, ghost, destructive × sm, md, lg | /login, /register, /settings, /admin/users |
+> | Input      | Primitivo | text, password, search, number + error state        | /login, /register, /settings               |
+> | Card       | Primitivo | default, outlined, elevated                         | /, /login, /register                       |
+> | ...        | ...       | ...                                                 | ...                                        |
 >
 > **Ordem sugerida de construcao de paginas** (maximiza reuso):
+>
 > 1. {{rota}} — introduz: {{componentes novos}}
 > 2. {{rota}} — introduz: {{componentes novos}}
-> ...
+>    ...
 >
 > Confirma o plano? Quer ajustar componentes ou ordem?"
 
 Aguarde aprovacao. O usuario pode:
+
 - Ajustar componentes de uma tela
 - Mudar a ordem de construcao
 - Adicionar/remover telas ou componentes
@@ -304,6 +315,7 @@ Para cada componente primitivo do plano:
 - Screenshot a cada 2-3 componentes → Review: Spacing, Alignment, Contrast
 
 Exemplo para Button:
+
 ```
 [Button]
 Usado em: /login, /register, /settings, /admin/users
@@ -317,6 +329,7 @@ Destructive:[sm] [md] [lg]
 **B) Compostos** (combinacoes de primitivos)
 
 Para cada componente composto:
+
 - **Nome + descricao** (font 600, 20px + font 400, 14px)
 - **Usado em:** {{rotas}}
 - **Renderizacao completa** do componente com primitivos reais (usando mesmos tokens)
@@ -325,6 +338,7 @@ Para cada componente composto:
 **C) Layout** (componentes estruturais)
 
 Para cada componente de layout:
+
 - **Nome** (font 600, 20px)
 - **Usado em:** {{rotas que usam este layout}}
 - **Renderizacao em miniatura** (escala reduzida mostrando a estrutura)
@@ -333,6 +347,7 @@ Para cada componente de layout:
 **D) Feature** (componentes de dominio)
 
 Para cada componente de feature:
+
 - **Nome + dominio** (font 600, 20px)
 - **Usado em:** {{rotas}}
 - **Renderizacao completa** usando primitivos e compostos ja definidos
@@ -357,11 +372,11 @@ COMPONENTES_NO_DS = [lista de todos os componentes renderizados]
 > **Tokens:** {{N}} cores, {{N}} tipografia, {{N}} espacamento, {{N}} breakpoints
 > **Componentes:** {{N}} primitivos, {{N}} compostos, {{N}} layout, {{N}} feature
 >
-> | Componente | Variantes | Usado em |
-> |------------|-----------|----------|
-> | Button | primary, secondary, ghost, destructive × 3 sizes | 4 paginas |
-> | Input | text, password, search + error | 3 paginas |
-> | ... | ... | ... |
+> | Componente | Variantes                                        | Usado em  |
+> | ---------- | ------------------------------------------------ | --------- |
+> | Button     | primary, secondary, ghost, destructive × 3 sizes | 4 paginas |
+> | Input      | text, password, search + error                   | 3 paginas |
+> | ...        | ...                                              | ...       |
 >
 > Pronto para comecar a compor as paginas. Primeira na fila: **{{rota}}**
 >
@@ -378,6 +393,7 @@ Agora monte cada pagina USANDO os componentes ja criados no Design System. O vis
 > "Compondo pagina {{N}}/{{total}}: **{{PageName}}** ({{rota}})
 >
 > **Componentes do DS que serao usados:**
+>
 > - Layout: {{componentes do layout}}
 > - Pagina: {{componentes da pagina}}
 > - Feature: {{componentes de feature}}"
@@ -452,6 +468,7 @@ Para cada fluxo critico da tela (baseado em `docs/frontend/08-flows.md`), crie u
 4. **Estado final** — tela apos a acao completar (ex: dados atualizados, redirect simulado mostrando a tela destino)
 
 **Convencoes de nomenclatura:**
+
 - Artboard principal: `Page — /login`
 - Estado de interacao: `Page — /login → Preenchendo form`
 - Estado de feedback: `Page — /login → Loading`
@@ -466,20 +483,24 @@ Os artboards de fluxo ficam na MESMA LINHA horizontal, imediatamente apos o artb
 ```
 
 **Anotacoes visuais:**
+
 - Entre cada artboard do fluxo, adicione uma seta visual (→) ou label indicando a acao que conecta os estados
 - Use `write_html` para criar um pequeno label entre artboards: "Click 'Entrar'" ou "Valida email" (font 400, 12px, cor secundaria)
 - Destaque o componente que mudou de estado com um outline sutil (1px, cor primary, com 20% opacity) para guiar o olhar
 
 **O que simular por tela:**
+
 - Fluxo principal (happy path) — OBRIGATORIO
 - Fluxo de erro mais comum — OBRIGATORIO
 - Estados intermediarios (loading, empty) — se relevantes
 
 **Quando NAO simular:**
+
 - Navegacao simples entre paginas (Link → outra rota) — basta a pagina destino existir como artboard proprio
 - Estados identicos a outra tela ja simulada
 
 **Exemplo para /login:**
+
 ```
 [/login]              → [/login → Form preenchido]  → [/login → Loading]        → [/login → Dashboard redirect]
 (estado inicial)        (inputs com valores,           (button disabled,            (tela do dashboard)
@@ -494,9 +515,11 @@ Os artboards de fluxo ficam na MESMA LINHA horizontal, imediatamente apos o artb
 > "**Fluxos de interacao para {{pagina}}:**
 >
 > **Happy path:** {{N}} artboards
+>
 > 1. Estado inicial → 2. {{acao}} → 3. {{feedback}} → 4. {{resultado}}
 >
 > **Erro:** {{N}} artboards
+>
 > 1. Estado inicial → 2. {{acao invalida}} → 3. {{feedback erro}}
 >
 > Criar fluxos de interacao? (S/N)"
@@ -512,6 +535,7 @@ Os artboards de fluxo ficam na MESMA LINHA horizontal, imediatamente apos o artb
 Se durante a composicao surgiu algum componente que NAO estava no planejamento:
 
 1. Informe ao usuario:
+
    > "Durante a construcao de **{{pagina}}**, identifiquei {{N}} componente(s) nao previsto(s): {{lista}}.
    > Vou adiciona-los ao Design System."
 
@@ -541,14 +565,15 @@ Quando o usuario encerrar:
 
 > "**Resumo do projeto no Paper:**
 >
-> | Artboard | Rota | Tipo | Dimensao |
-> |----------|------|------|----------|
-> | Design System | — | DS | 1440 x {{altura final}} |
-> | {{pagina}} | {{rota}} | Pagina | 1440 x 900 |
-> | {{pagina}} → {{acao}} | {{rota}} | Fluxo | 1440 x 900 |
-> | ... | ... | ... | ... |
+> | Artboard              | Rota     | Tipo   | Dimensao                |
+> | --------------------- | -------- | ------ | ----------------------- |
+> | Design System         | —        | DS     | 1440 x {{altura final}} |
+> | {{pagina}}            | {{rota}} | Pagina | 1440 x 900              |
+> | {{pagina}} → {{acao}} | {{rota}} | Fluxo  | 1440 x 900              |
+> | ...                   | ...      | ...    | ...                     |
 >
 > **Design System final:**
+>
 > - Tokens: {{N}} cores, {{N}} tipografia, {{N}} espacamento, {{N}} breakpoints
 > - Componentes: {{N}} primitivos, {{N}} compostos, {{N}} layout, {{N}} feature
 >

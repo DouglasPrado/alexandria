@@ -41,16 +41,19 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 ## Contexto por Plataforma
 
 ### Se web:
+
 - Camadas SSR/SSG, React Server Components, API routes
 - Middleware de autenticacao e redirecionamento no edge
 - Hydration boundaries e streaming
 
 ### Se mobile:
+
 - Bridge para modulos nativos (camera, GPS, biometria)
 - Arquitetura de navegacao (stack, tab, drawer)
 - Camada de comunicacao com APIs (offline queue, retry)
 
 ### Se desktop:
+
 - Processo main vs renderer (Electron) ou core vs webview (Tauri)
 - IPC (Inter-Process Communication) entre processos
 - Integracao com APIs do sistema operacional (filesystem, notifications, tray)
@@ -58,11 +61,13 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 ## Geracao
 
 > **Modo de escrita:**
+>
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
 Preencha `docs/frontend/{client}/01-architecture.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+
 - Informacoes do blueprint tecnico
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- do blueprint: XX-arquivo.md -->`)

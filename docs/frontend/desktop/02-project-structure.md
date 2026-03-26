@@ -112,14 +112,14 @@ src/
 
 **Recomendado: por feature.** Organizar por feature (dominio de negocio) agrupa tudo que e relacionado no mesmo lugar — componentes, hooks, API, tipos. Isso reduz a necessidade de navegar entre pastas distantes e facilita a exclusao ou refatoracao de uma feature inteira.
 
-| Feature | Descricao | Componentes Principais |
-| --- | --- | --- |
-| `auth` | Desbloqueio do vault local com senha, login no orquestrador, recovery via seed phrase de 12 palavras | `UnlockScreen`, `SeedPhraseInput`, `AuthGuard`, `LoginForm` |
-| `gallery` | Galeria de fotos/videos em grid, timeline cronologica, viewer de midia, navegacao por album/evento, download sob demanda | `GalleryGrid`, `MediaViewer`, `TimelineBar`, `AlbumList`, `MediaCard` |
-| `sync` | Interface do Sync Engine: progresso de uploads, fila de arquivos pendentes, configuracao de pastas monitoradas, placeholder files | `SyncQueue`, `FolderPicker`, `UploadProgressItem`, `SyncStatusBadge`, `SyncDashboard` |
-| `cluster` | Saude do cluster, lista de nos online/offline, convite de membros, configuracao de provedores cloud — restrito ao Administrador Familiar | `ClusterHealthPanel`, `NodeCard`, `NodeStatusBadge`, `InviteForm`, `ProviderSetup`, `RecoveryPanel` |
-| `vault` | Credenciais de provedores cloud (S3, R2, B2), tokens OAuth, senhas — desencriptados localmente com AES-256-GCM | `VaultItem`, `ProviderCredentialForm`, `VaultUnlockModal`, `VaultList` |
-| `settings` | Preferencias do app: pasta de sync, comportamento do tray, notificacoes, tema, auto-start com o SO | `SettingsPage`, `SyncFolderList`, `NotificationToggle`, `ThemeSelector`, `AutoStartToggle` |
+| Feature    | Descricao                                                                                                                                | Componentes Principais                                                                              |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `auth`     | Desbloqueio do vault local com senha, login no orquestrador, recovery via seed phrase de 12 palavras                                     | `UnlockScreen`, `SeedPhraseInput`, `AuthGuard`, `LoginForm`                                         |
+| `gallery`  | Galeria de fotos/videos em grid, timeline cronologica, viewer de midia, navegacao por album/evento, download sob demanda                 | `GalleryGrid`, `MediaViewer`, `TimelineBar`, `AlbumList`, `MediaCard`                               |
+| `sync`     | Interface do Sync Engine: progresso de uploads, fila de arquivos pendentes, configuracao de pastas monitoradas, placeholder files        | `SyncQueue`, `FolderPicker`, `UploadProgressItem`, `SyncStatusBadge`, `SyncDashboard`               |
+| `cluster`  | Saude do cluster, lista de nos online/offline, convite de membros, configuracao de provedores cloud — restrito ao Administrador Familiar | `ClusterHealthPanel`, `NodeCard`, `NodeStatusBadge`, `InviteForm`, `ProviderSetup`, `RecoveryPanel` |
+| `vault`    | Credenciais de provedores cloud (S3, R2, B2), tokens OAuth, senhas — desencriptados localmente com AES-256-GCM                           | `VaultItem`, `ProviderCredentialForm`, `VaultUnlockModal`, `VaultList`                              |
+| `settings` | Preferencias do app: pasta de sync, comportamento do tray, notificacoes, tema, auto-start com o SO                                       | `SettingsPage`, `SyncFolderList`, `NotificationToggle`, `ThemeSelector`, `AutoStartToggle`          |
 
 <!-- APPEND:features -->
 
@@ -178,12 +178,12 @@ alexandria/                   # Raiz do monorepo
   package.json
 ```
 
-| Package | Responsabilidade | Consumido por |
-| --- | --- | --- |
-| `core-sdk` | Criptografia AES-256-GCM, BIP-39, PBKDF2, SHA-256, tipos base (File, Chunk, Member, Node) | `desktop` (main), `orchestrator`, `node-agent` |
-| `ui` | Design system Alexandria: Button, Card, Badge, Modal, GalleryGrid, MediaCard — tokens CSS compartilhados | `desktop` (renderer), `web` |
-| `config` | Configs compartilhadas de ESLint, TypeScript (tsconfig base), Tailwind (tokens), Prettier | Todos os apps e packages |
-| `node-agent` | Agente de No: heartbeat, armazenamento de chunks, scrubbing — importado pelo desktop/main e roda standalone em NAS/VPS | `desktop` (main process), deploy standalone |
+| Package      | Responsabilidade                                                                                                       | Consumido por                                  |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `core-sdk`   | Criptografia AES-256-GCM, BIP-39, PBKDF2, SHA-256, tipos base (File, Chunk, Member, Node)                              | `desktop` (main), `orchestrator`, `node-agent` |
+| `ui`         | Design system Alexandria: Button, Card, Badge, Modal, GalleryGrid, MediaCard — tokens CSS compartilhados               | `desktop` (renderer), `web`                    |
+| `config`     | Configs compartilhadas de ESLint, TypeScript (tsconfig base), Tailwind (tokens), Prettier                              | Todos os apps e packages                       |
+| `node-agent` | Agente de No: heartbeat, armazenamento de chunks, scrubbing — importado pelo desktop/main e roda standalone em NAS/VPS | `desktop` (main process), deploy standalone    |
 
 ---
 
@@ -191,16 +191,16 @@ alexandria/                   # Raiz do monorepo
 
 > Quais sao as regras de importacao entre modulos?
 
-| De | Para | Permitido? | Observacao |
-| --- | --- | --- | --- |
-| `renderer/features/auth` | `renderer/features/billing` | Nao | Features nao importam de outras features |
-| `renderer/features/auth` | `renderer/components/ui` | Sim | Componentes compartilhados sao acessiveis |
-| `renderer/features/auth` | `renderer/hooks/` | Sim | Hooks globais sao acessiveis |
-| `renderer/features/auth` | `renderer/services/` | Sim | API client e IPC client sao compartilhados |
-| `renderer/components/ui` | `renderer/features/auth` | Nao | Componentes compartilhados nao conhecem features |
-| `renderer/*` | `main/*` | Nao | Renderer nunca importa diretamente do main process |
-| `renderer/*` | `shared/*` | Sim | Tipos e constantes compartilhados sao acessiveis |
-| `main/*` | `shared/*` | Sim | Tipos e constantes compartilhados sao acessiveis |
+| De                       | Para                        | Permitido? | Observacao                                         |
+| ------------------------ | --------------------------- | ---------- | -------------------------------------------------- |
+| `renderer/features/auth` | `renderer/features/billing` | Nao        | Features nao importam de outras features           |
+| `renderer/features/auth` | `renderer/components/ui`    | Sim        | Componentes compartilhados sao acessiveis          |
+| `renderer/features/auth` | `renderer/hooks/`           | Sim        | Hooks globais sao acessiveis                       |
+| `renderer/features/auth` | `renderer/services/`        | Sim        | API client e IPC client sao compartilhados         |
+| `renderer/components/ui` | `renderer/features/auth`    | Nao        | Componentes compartilhados nao conhecem features   |
+| `renderer/*`             | `main/*`                    | Nao        | Renderer nunca importa diretamente do main process |
+| `renderer/*`             | `shared/*`                  | Sim        | Tipos e constantes compartilhados sao acessiveis   |
+| `main/*`                 | `shared/*`                  | Sim        | Tipos e constantes compartilhados sao acessiveis   |
 
 <!-- APPEND:regras-importacao -->
 

@@ -7,7 +7,7 @@ export interface CurrentMemberPayload {
 }
 
 export const CurrentMember = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext): CurrentMemberPayload => {
+  (_data: unknown, ctx: ExecutionContext): CurrentMemberPayload => {
     const request = ctx.switchToHttp().getRequest();
     return request.user;
   },

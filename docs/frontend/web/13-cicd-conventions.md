@@ -25,17 +25,17 @@ Merge na Main
   → smoke test (health check + upload de foto de teste)
 ```
 
-| Etapa | Ferramenta | Timeout | Bloqueia Merge? |
-|-------|------------|---------|-----------------|
-| Lint | ESLint (flat config) | 30s | Sim |
-| Type Check | TypeScript (strict mode) | 60s | Sim |
-| Unit + Integration Tests | Vitest + Testing Library | 120s | Sim |
-| Coverage Report | Vitest (v8 provider) | 120s | Sim (threshold) |
-| Build | Next.js 16 (Turbopack) | 180s | Sim |
-| Lighthouse CI | Lighthouse CI | 60s | Não (report only) |
-| E2E | Playwright | 300s | Sim (na main) |
-| Deploy | SSH + Docker Compose | 180s | N/A |
-| Smoke Test | curl health + upload teste | 30s | Sim (rollback se falhar) |
+| Etapa                    | Ferramenta                 | Timeout | Bloqueia Merge?          |
+| ------------------------ | -------------------------- | ------- | ------------------------ |
+| Lint                     | ESLint (flat config)       | 30s     | Sim                      |
+| Type Check               | TypeScript (strict mode)   | 60s     | Sim                      |
+| Unit + Integration Tests | Vitest + Testing Library   | 120s    | Sim                      |
+| Coverage Report          | Vitest (v8 provider)       | 120s    | Sim (threshold)          |
+| Build                    | Next.js 16 (Turbopack)     | 180s    | Sim                      |
+| Lighthouse CI            | Lighthouse CI              | 60s     | Não (report only)        |
+| E2E                      | Playwright                 | 300s    | Sim (na main)            |
+| Deploy                   | SSH + Docker Compose       | 180s    | N/A                      |
+| Smoke Test               | curl health + upload teste | 30s     | Sim (rollback se falhar) |
 
 <details>
 <summary>Exemplo — GitHub Actions CI</summary>
@@ -96,10 +96,10 @@ jobs:
 
 <!-- do blueprint: 06-system-architecture.md (ambientes Dev e Prod) -->
 
-| Ambiente | URL | Branch | Deploy Automático? | Observação |
-|----------|-----|--------|--------------------|------------|
-| Development | http://localhost:3000 (web) / :8080 (API) | Local | N/A | Docker Compose local: PostgreSQL + Redis + MinIO |
-| Production | https://app.alexandria.local | main | Sim (após merge + E2E) | VPS Contabo/Hetzner; Caddy reverse proxy; TLS Let's Encrypt |
+| Ambiente    | URL                                       | Branch | Deploy Automático?     | Observação                                                  |
+| ----------- | ----------------------------------------- | ------ | ---------------------- | ----------------------------------------------------------- |
+| Development | http://localhost:3000 (web) / :8080 (API) | Local  | N/A                    | Docker Compose local: PostgreSQL + Redis + MinIO            |
+| Production  | https://app.alexandria.local              | main   | Sim (após merge + E2E) | VPS Contabo/Hetzner; Caddy reverse proxy; TLS Let's Encrypt |
 
 <!-- APPEND:ambientes -->
 
@@ -125,17 +125,17 @@ jobs:
 
 ### Arquivos e Pastas
 
-| Tipo | Padrão | Exemplo |
-|------|--------|---------|
-| Componentes | PascalCase | `GalleryGrid.tsx`, `UploadDropzone.tsx` |
-| Hooks | camelCase com prefixo `use` | `useFiles.ts`, `useUploadQueue.ts` |
-| API modules | kebab-case + `-api` suffix | `files-api.ts`, `nodes-api.ts` |
-| Types | kebab-case + `.types` suffix | `file.types.ts`, `node.types.ts` |
-| Utils | camelCase | `formatDate.ts`, `formatBytes.ts` |
-| Stores | camelCase + `Store` suffix | `authStore.ts`, `uploadStore.ts` |
-| Constantes | UPPER_SNAKE_CASE (dentro do arquivo) | `MAX_CONCURRENT_UPLOADS = 3` |
-| Testes | mesmo nome + `.test` | `GalleryGrid.test.tsx`, `useFiles.test.ts` |
-| Pages (App Router) | `page.tsx` (convenção Next.js) | `app/dashboard/page.tsx` |
+| Tipo               | Padrão                               | Exemplo                                    |
+| ------------------ | ------------------------------------ | ------------------------------------------ |
+| Componentes        | PascalCase                           | `GalleryGrid.tsx`, `UploadDropzone.tsx`    |
+| Hooks              | camelCase com prefixo `use`          | `useFiles.ts`, `useUploadQueue.ts`         |
+| API modules        | kebab-case + `-api` suffix           | `files-api.ts`, `nodes-api.ts`             |
+| Types              | kebab-case + `.types` suffix         | `file.types.ts`, `node.types.ts`           |
+| Utils              | camelCase                            | `formatDate.ts`, `formatBytes.ts`          |
+| Stores             | camelCase + `Store` suffix           | `authStore.ts`, `uploadStore.ts`           |
+| Constantes         | UPPER_SNAKE_CASE (dentro do arquivo) | `MAX_CONCURRENT_UPLOADS = 3`               |
+| Testes             | mesmo nome + `.test`                 | `GalleryGrid.test.tsx`, `useFiles.test.ts` |
+| Pages (App Router) | `page.tsx` (convenção Next.js)       | `app/dashboard/page.tsx`                   |
 
 ### Componentes
 
@@ -156,34 +156,34 @@ jobs:
 
 ### Branches
 
-| Padrão | Uso | Exemplo |
-|--------|-----|---------|
-| `feat/<descricao>` | Nova funcionalidade | `feat/gallery-timeline` |
-| `fix/<descricao>` | Correção de bug | `fix/upload-retry-on-503` |
+| Padrão                 | Uso                                      | Exemplo                         |
+| ---------------------- | ---------------------------------------- | ------------------------------- |
+| `feat/<descricao>`     | Nova funcionalidade                      | `feat/gallery-timeline`         |
+| `fix/<descricao>`      | Correção de bug                          | `fix/upload-retry-on-503`       |
 | `refactor/<descricao>` | Refatoração sem mudança de comportamento | `refactor/extract-upload-store` |
-| `docs/<descricao>` | Documentação | `docs/frontend-blueprint` |
+| `docs/<descricao>`     | Documentação                             | `docs/frontend-blueprint`       |
 
 ---
 
 ## Ferramentas de Qualidade
 
-| Ferramenta | Propósito | Configuração |
-|------------|-----------|-------------|
-| ESLint | Linting de código (flat config) | `eslint.config.js` — extends `@alexandria/config/eslint` |
-| Prettier | Formatação de código | `.prettierrc` — printWidth: 100, singleQuote: true, trailingComma: 'all' |
-| TypeScript | Tipagem estática (strict mode) | `tsconfig.json` — strict: true, noUncheckedIndexedAccess: true |
-| Husky | Git hooks (pre-commit, commit-msg) | `.husky/pre-commit` → lint-staged; `.husky/commit-msg` → commitlint |
-| lint-staged | Rodar lint/format apenas em arquivos staged | `.lintstagedrc` → ESLint + Prettier nos staged files |
-| commitlint | Validar formato de commits (Conventional Commits) | `commitlint.config.js` — extends `@commitlint/config-conventional` |
+| Ferramenta  | Propósito                                         | Configuração                                                             |
+| ----------- | ------------------------------------------------- | ------------------------------------------------------------------------ |
+| ESLint      | Linting de código (flat config)                   | `eslint.config.js` — extends `@alexandria/config/eslint`                 |
+| Prettier    | Formatação de código                              | `.prettierrc` — printWidth: 100, singleQuote: true, trailingComma: 'all' |
+| TypeScript  | Tipagem estática (strict mode)                    | `tsconfig.json` — strict: true, noUncheckedIndexedAccess: true           |
+| Husky       | Git hooks (pre-commit, commit-msg)                | `.husky/pre-commit` → lint-staged; `.husky/commit-msg` → commitlint      |
+| lint-staged | Rodar lint/format apenas em arquivos staged       | `.lintstagedrc` → ESLint + Prettier nos staged files                     |
+| commitlint  | Validar formato de commits (Conventional Commits) | `commitlint.config.js` — extends `@commitlint/config-conventional`       |
 
 ### Regras ESLint Customizadas
 
-| Regra | Configuração | Motivo |
-|-------|-------------|--------|
-| `no-restricted-imports` | Bloquear imports entre features | Features não importam umas das outras |
-| `react/no-danger` | Error | Impedir `dangerouslySetInnerHTML` (XSS) |
-| `@typescript-eslint/no-explicit-any` | Error | Forçar tipagem explícita |
-| `import/no-cycle` | Error | Evitar dependências circulares |
+| Regra                                | Configuração                    | Motivo                                  |
+| ------------------------------------ | ------------------------------- | --------------------------------------- |
+| `no-restricted-imports`              | Bloquear imports entre features | Features não importam umas das outras   |
+| `react/no-danger`                    | Error                           | Impedir `dangerouslySetInnerHTML` (XSS) |
+| `@typescript-eslint/no-explicit-any` | Error                           | Forçar tipagem explícita                |
+| `import/no-cycle`                    | Error                           | Evitar dependências circulares          |
 
 ---
 
@@ -205,18 +205,19 @@ jobs:
 
 ## Histórico de Decisões
 
-| Data | Decisão | Motivo |
-|------|---------|--------|
-| 2026-03-24 | pnpm em vez de npm/yarn | Mais rápido, disk-efficient, strict por padrão (phantom deps não permitidos) |
-| 2026-03-24 | Deploy via SSH + Docker Compose (não Vercel) | Self-hosted; VPS única; sem dependência de cloud provider; alinhado com princípio de simplicidade operacional |
-| 2026-03-24 | Sem staging environment | Time de 1 pessoa; E2E no CI + smoke test pós-deploy substituem staging; Docker Compose local para testes manuais |
-| 2026-03-24 | ESLint flat config | Formato novo e recomendado; mais simples que .eslintrc; suporte nativo a TypeScript |
-| 2026-03-24 | Conventional Commits + commitlint | Changelog automático; commits legíveis; força disciplina de mensagens |
-| 2026-03-24 | Storybook adiado para Fase 2 | Design system ainda em definição; componentes mudam rápido na Fase 1; overhead de manutenção |
+| Data       | Decisão                                      | Motivo                                                                                                           |
+| ---------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| 2026-03-24 | pnpm em vez de npm/yarn                      | Mais rápido, disk-efficient, strict por padrão (phantom deps não permitidos)                                     |
+| 2026-03-24 | Deploy via SSH + Docker Compose (não Vercel) | Self-hosted; VPS única; sem dependência de cloud provider; alinhado com princípio de simplicidade operacional    |
+| 2026-03-24 | Sem staging environment                      | Time de 1 pessoa; E2E no CI + smoke test pós-deploy substituem staging; Docker Compose local para testes manuais |
+| 2026-03-24 | ESLint flat config                           | Formato novo e recomendado; mais simples que .eslintrc; suporte nativo a TypeScript                              |
+| 2026-03-24 | Conventional Commits + commitlint            | Changelog automático; commits legíveis; força disciplina de mensagens                                            |
+| 2026-03-24 | Storybook adiado para Fase 2                 | Design system ainda em definição; componentes mudam rápido na Fase 1; overhead de manutenção                     |
 
 ---
 
 <!-- added: opensource -->
+
 ## CI for Contributors
 
 - **Automated PR checks**: every PR triggers lint → typecheck → unit tests → build. All must pass before merge — no exceptions.

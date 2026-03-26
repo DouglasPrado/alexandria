@@ -8,13 +8,13 @@ Documenta os fluxos críticos de interação do usuário com o app mobile (React
 
 ## Fluxos Críticos
 
-| # | Fluxo | Atores | Criticidade |
-|---|-------|--------|-------------|
-| 1 | Onboarding e Entrada no Cluster | Membro convidado | Alta |
-| 2 | Upload de Fotos e Vídeos | Membro autenticado | Alta |
-| 3 | Visualizar e Navegar pelo Acervo | Membro autenticado (qualquer role) | Alta |
-| 4 | Liberação de Espaço no Dispositivo | Membro / Fotógrafo Amador | Alta |
-| 5 | Monitoramento e Alertas (Admin) | Admin | Média |
+| #   | Fluxo                              | Atores                             | Criticidade |
+| --- | ---------------------------------- | ---------------------------------- | ----------- |
+| 1   | Onboarding e Entrada no Cluster    | Membro convidado                   | Alta        |
+| 2   | Upload de Fotos e Vídeos           | Membro autenticado                 | Alta        |
+| 3   | Visualizar e Navegar pelo Acervo   | Membro autenticado (qualquer role) | Alta        |
+| 4   | Liberação de Espaço no Dispositivo | Membro / Fotógrafo Amador          | Alta        |
+| 5   | Monitoramento e Alertas (Admin)    | Admin                              | Média       |
 
 ---
 
@@ -41,22 +41,22 @@ Documenta os fluxos críticos de interação do usuário com o app mobile (React
 
 **Componentes envolvidos:**
 
-| Componente | Responsabilidade |
-|------------|-----------------|
-| `InviteScreen` | Exibe detalhes do convite e formulário de aceite |
-| `AcceptInviteForm` | Captura nome e senha com validação inline |
-| `DeepLinkHandler` | Intercepta Universal/App Links e navega para tela correta |
-| `OnboardingOverlay` | Coach marks com dicas de uso (swipe para dismiss) |
-| `SplashScreen` | Exibido durante verificação de auth no app launch |
+| Componente          | Responsabilidade                                          |
+| ------------------- | --------------------------------------------------------- |
+| `InviteScreen`      | Exibe detalhes do convite e formulário de aceite          |
+| `AcceptInviteForm`  | Captura nome e senha com validação inline                 |
+| `DeepLinkHandler`   | Intercepta Universal/App Links e navega para tela correta |
+| `OnboardingOverlay` | Coach marks com dicas de uso (swipe para dismiss)         |
+| `SplashScreen`      | Exibido durante verificação de auth no app launch         |
 
 **Interações Nativas:**
 
-| Interação | Plataforma | Comportamento |
-|-----------|-----------|---------------|
-| Deep link | iOS: Universal Links, Android: App Links | Abre direto na tela de convite |
-| Haptic feedback | iOS e Android | `Haptics.notificationAsync(Success)` ao aceitar convite |
-| Keyboard avoiding | iOS e Android | `KeyboardAvoidingView` no formulário de aceite |
-| SecureStore | iOS: Keychain, Android: Keystore | Armazena JWT de forma segura |
+| Interação         | Plataforma                               | Comportamento                                           |
+| ----------------- | ---------------------------------------- | ------------------------------------------------------- |
+| Deep link         | iOS: Universal Links, Android: App Links | Abre direto na tela de convite                          |
+| Haptic feedback   | iOS e Android                            | `Haptics.notificationAsync(Success)` ao aceitar convite |
+| Keyboard avoiding | iOS e Android                            | `KeyboardAvoidingView` no formulário de aceite          |
+| SecureStore       | iOS: Keychain, Android: Keystore         | Armazena JWT de forma segura                            |
 
 **Tratamento de Erros:**
 
@@ -100,26 +100,26 @@ Documenta os fluxos críticos de interação do usuário com o app mobile (React
 
 **Componentes envolvidos:**
 
-| Componente | Responsabilidade |
-|------------|-----------------|
-| `UploadFAB` | Floating action button "+" na galeria |
-| `UploadOptionsSheet` | Bottom sheet com opções (Galeria, Câmera, Documentos) |
-| `ImagePickerMulti` | Seleção múltipla de fotos/vídeos do rolo |
-| `UploadMiniBar` | Barra colapsável acima das tabs com progresso geral |
-| `UploadQueueItem` | Item individual: mini-thumbnail + barra + retry |
-| `SyncSettingsScreen` | Configurações de sync automático |
-| `BackgroundSyncService` | Serviço de sync em background (expo-task-manager) |
+| Componente              | Responsabilidade                                      |
+| ----------------------- | ----------------------------------------------------- |
+| `UploadFAB`             | Floating action button "+" na galeria                 |
+| `UploadOptionsSheet`    | Bottom sheet com opções (Galeria, Câmera, Documentos) |
+| `ImagePickerMulti`      | Seleção múltipla de fotos/vídeos do rolo              |
+| `UploadMiniBar`         | Barra colapsável acima das tabs com progresso geral   |
+| `UploadQueueItem`       | Item individual: mini-thumbnail + barra + retry       |
+| `SyncSettingsScreen`    | Configurações de sync automático                      |
+| `BackgroundSyncService` | Serviço de sync em background (expo-task-manager)     |
 
 **Interações Nativas:**
 
-| Interação | Plataforma | Comportamento |
-|-----------|-----------|---------------|
-| Image picker | iOS: PHPickerViewController, Android: MediaStore | Seleção múltipla nativa |
-| Camera | iOS e Android | `expo-camera` com captura direta |
-| Haptic feedback | iOS e Android | Success ao completar, error ao falhar |
-| Background fetch | iOS: BGTaskScheduler, Android: WorkManager | Sync em background |
-| Local notification | iOS e Android | Notifica conclusão de lote de sync |
-| Permission request | iOS e Android | Solicitação de acesso à galeria e câmera |
+| Interação          | Plataforma                                       | Comportamento                            |
+| ------------------ | ------------------------------------------------ | ---------------------------------------- |
+| Image picker       | iOS: PHPickerViewController, Android: MediaStore | Seleção múltipla nativa                  |
+| Camera             | iOS e Android                                    | `expo-camera` com captura direta         |
+| Haptic feedback    | iOS e Android                                    | Success ao completar, error ao falhar    |
+| Background fetch   | iOS: BGTaskScheduler, Android: WorkManager       | Sync em background                       |
+| Local notification | iOS e Android                                    | Notifica conclusão de lote de sync       |
+| Permission request | iOS e Android                                    | Solicitação de acesso à galeria e câmera |
 
 **Tratamento de Erros:**
 
@@ -159,7 +159,8 @@ queued → uploading → processing → done
 6. Membro toca em thumbnail → navega para `(app)/file/[id]` (tela de detalhe fullscreen)
 7. **Foto:** imagem fullscreen com pinch-to-zoom e double-tap to zoom
 8. **Vídeo:** player nativo fullscreen com controles (`expo-av`)
-9. **Documento PDF:** preview da primeira página com botão "Abrir no leitor"
+9. **PDF:** preview da primeira página (PNG) com contagem de páginas + botão "Abrir no leitor"
+10. **Documento (não-PDF):** sem preview (exibe ícone por extensão + metadados)
 10. Swipe horizontal para navegar entre arquivos (prev/next)
 11. Swipe down para fechar e voltar à galeria (gesto de dismiss)
 12. Painel de metadados acessível via bottom sheet: data, tamanho, tipo, EXIF, localização
@@ -168,29 +169,29 @@ queued → uploading → processing → done
 
 **Componentes envolvidos:**
 
-| Componente | Responsabilidade |
-|------------|-----------------|
-| `GalleryGrid` | `FlatList` com grid responsivo (3-4 colunas), `getItemLayout` para performance |
-| `GalleryTimeline` | `SectionList` agrupado por mês/ano com sticky headers |
-| `SearchBar` | Input com debounce 300ms e filtros rápidos (chips) |
-| `FilterChips` | Chips: Fotos, Vídeos, Documentos, Todos |
-| `FileDetailScreen` | Tela fullscreen com gestos (zoom, swipe, dismiss) |
-| `ZoomableImage` | `react-native-gesture-handler` + `react-native-reanimated` para pinch-to-zoom |
-| `VideoPlayer` | Player nativo via `expo-av` com controles fullscreen |
-| `MetadataSheet` | Bottom sheet com metadados e EXIF |
-| `ShareButton` | Share sheet nativo via `expo-sharing` |
+| Componente         | Responsabilidade                                                               |
+| ------------------ | ------------------------------------------------------------------------------ |
+| `GalleryGrid`      | `FlatList` com grid responsivo (3-4 colunas), `getItemLayout` para performance |
+| `GalleryTimeline`  | `SectionList` agrupado por mês/ano com sticky headers                          |
+| `SearchBar`        | Input com debounce 300ms e filtros rápidos (chips)                             |
+| `FilterChips`      | Chips: Fotos, Vídeos, Documentos, Todos                                        |
+| `FileDetailScreen` | Tela fullscreen com gestos (zoom, swipe, dismiss)                              |
+| `ZoomableImage`    | `react-native-gesture-handler` + `react-native-reanimated` para pinch-to-zoom  |
+| `VideoPlayer`      | Player nativo via `expo-av` com controles fullscreen                           |
+| `MetadataSheet`    | Bottom sheet com metadados e EXIF                                              |
+| `ShareButton`      | Share sheet nativo via `expo-sharing`                                          |
 
 **Interações Gestuais:**
 
-| Gesto | Componente | Ação |
-|-------|-----------|------|
-| Pull-to-refresh | `GalleryGrid` / `GalleryTimeline` | `RefreshControl` recarrega dados |
-| Toque | Thumbnail | Navega para tela de detalhe |
-| Pinch-to-zoom | `ZoomableImage` | Zoom contínuo na foto |
-| Double tap | `ZoomableImage` | Zoom 2x / reset zoom |
-| Swipe horizontal | `FileDetailScreen` | Navega prev/next entre arquivos |
-| Swipe down | `FileDetailScreen` | Dismiss — volta para galeria |
-| Long press | Thumbnail | Seleciona para ações em lote (compartilhar, baixar) |
+| Gesto            | Componente                        | Ação                                                |
+| ---------------- | --------------------------------- | --------------------------------------------------- |
+| Pull-to-refresh  | `GalleryGrid` / `GalleryTimeline` | `RefreshControl` recarrega dados                    |
+| Toque            | Thumbnail                         | Navega para tela de detalhe                         |
+| Pinch-to-zoom    | `ZoomableImage`                   | Zoom contínuo na foto                               |
+| Double tap       | `ZoomableImage`                   | Zoom 2x / reset zoom                                |
+| Swipe horizontal | `FileDetailScreen`                | Navega prev/next entre arquivos                     |
+| Swipe down       | `FileDetailScreen`                | Dismiss — volta para galeria                        |
+| Long press       | Thumbnail                         | Seleciona para ações em lote (compartilhar, baixar) |
 
 **Tratamento de Erros:**
 
@@ -232,25 +233,25 @@ queued → uploading → processing → done
 
 **Componentes envolvidos:**
 
-| Componente | Responsabilidade |
-|------------|-----------------|
-| `StorageScreen` | Tela de armazenamento com gráfico e métricas |
-| `StorageChart` | Gráfico circular (espaço usado por tipo) |
-| `FreeSpaceButton` | CTA com estimativa de espaço liberável |
-| `FreeSpaceConfirmSheet` | Bottom sheet de confirmação com detalhes |
-| `FreeSpaceProgress` | Barra de progresso da liberação |
-| `FreeSpaceSummary` | Resumo final: GB liberados, arquivos convertidos |
-| `CloudBadge` | Ícone ☁ no thumbnail para arquivos armazenados na nuvem |
-| `AutoFreeSettings` | Toggle + slider de limiar para liberação automática |
+| Componente              | Responsabilidade                                        |
+| ----------------------- | ------------------------------------------------------- |
+| `StorageScreen`         | Tela de armazenamento com gráfico e métricas            |
+| `StorageChart`          | Gráfico circular (espaço usado por tipo)                |
+| `FreeSpaceButton`       | CTA com estimativa de espaço liberável                  |
+| `FreeSpaceConfirmSheet` | Bottom sheet de confirmação com detalhes                |
+| `FreeSpaceProgress`     | Barra de progresso da liberação                         |
+| `FreeSpaceSummary`      | Resumo final: GB liberados, arquivos convertidos        |
+| `CloudBadge`            | Ícone ☁ no thumbnail para arquivos armazenados na nuvem |
+| `AutoFreeSettings`      | Toggle + slider de limiar para liberação automática     |
 
 **Interações Nativas:**
 
-| Interação | Plataforma | Comportamento |
-|-----------|-----------|---------------|
-| Haptic feedback | iOS e Android | Medium impact ao confirmar, success ao concluir |
-| File system access | iOS: PhotoKit, Android: MediaStore | Substituir arquivos por thumbnails |
-| Disk space query | iOS e Android | Verificar espaço disponível no dispositivo |
-| Local notification | iOS e Android | Notificar liberação automática |
+| Interação          | Plataforma                         | Comportamento                                   |
+| ------------------ | ---------------------------------- | ----------------------------------------------- |
+| Haptic feedback    | iOS e Android                      | Medium impact ao confirmar, success ao concluir |
+| File system access | iOS: PhotoKit, Android: MediaStore | Substituir arquivos por thumbnails              |
+| Disk space query   | iOS e Android                      | Verificar espaço disponível no dispositivo      |
+| Local notification | iOS e Android                      | Notificar liberação automática                  |
 
 **Tratamento de Erros:**
 
@@ -282,34 +283,34 @@ queued → uploading → processing → done
 
 **Push Notifications:**
 
-| Tipo de Alerta | Prioridade Push | Título | Exemplo |
-|---------------|----------------|--------|---------|
-| Nó lost | Alta (imediata) | "⚠ Nó perdido" | "NAS-Home sem heartbeat há 1h. Auto-healing iniciado." |
-| Chunk irrecuperável | Alta (imediata) | "🔴 Dados em risco" | "3 chunks sem réplica saudável. Ação necessária." |
-| Replicação baixa | Normal | "Replicação degradada" | "15 chunks com menos de 3 réplicas." |
-| Espaço baixo (<20%) | Normal | "Espaço acabando" | "Nó S3-Backup com 85% de uso." |
-| Nó suspect | Silenciosa | "Nó instável" | "VPS-Cloud sem heartbeat há 30min." |
+| Tipo de Alerta      | Prioridade Push | Título                 | Exemplo                                                |
+| ------------------- | --------------- | ---------------------- | ------------------------------------------------------ |
+| Nó lost             | Alta (imediata) | "⚠ Nó perdido"         | "NAS-Home sem heartbeat há 1h. Auto-healing iniciado." |
+| Chunk irrecuperável | Alta (imediata) | "🔴 Dados em risco"    | "3 chunks sem réplica saudável. Ação necessária."      |
+| Replicação baixa    | Normal          | "Replicação degradada" | "15 chunks com menos de 3 réplicas."                   |
+| Espaço baixo (<20%) | Normal          | "Espaço acabando"      | "Nó S3-Backup com 85% de uso."                         |
+| Nó suspect          | Silenciosa      | "Nó instável"          | "VPS-Cloud sem heartbeat há 30min."                    |
 
 **Componentes envolvidos:**
 
-| Componente | Responsabilidade |
-|------------|-----------------|
-| `AlertListScreen` | Lista de alertas com filtro por severidade |
-| `AlertCard` | Card com severidade visual, título, timestamp, ação |
-| `AlertDetailSheet` | Bottom sheet com detalhes expandidos e ações |
-| `NodeStatusScreen` | Detalhes do nó: status, capacidade, heartbeats, chunks |
+| Componente                | Responsabilidade                                        |
+| ------------------------- | ------------------------------------------------------- |
+| `AlertListScreen`         | Lista de alertas com filtro por severidade              |
+| `AlertCard`               | Card com severidade visual, título, timestamp, ação     |
+| `AlertDetailSheet`        | Bottom sheet com detalhes expandidos e ações            |
+| `NodeStatusScreen`        | Detalhes do nó: status, capacidade, heartbeats, chunks  |
 | `PushNotificationHandler` | Registra token APNs/FCM, trata deep link de notificação |
-| `AlertBadge` | Badge na tab de admin com contagem de alertas ativos |
+| `AlertBadge`              | Badge na tab de admin com contagem de alertas ativos    |
 
 **Interações Nativas:**
 
-| Interação | Plataforma | Comportamento |
-|-----------|-----------|---------------|
-| Push notification | iOS: APNs, Android: FCM | Notificação com título e preview |
-| Deep link da notificação | iOS e Android | Abre direto na tela de alertas |
-| Swipe left | Lista de alertas | Revela botão "Resolver" |
-| Haptic feedback | iOS e Android | Feedback ao resolver alerta |
-| Badge count | iOS e Android | Número no ícone do app |
+| Interação                | Plataforma              | Comportamento                    |
+| ------------------------ | ----------------------- | -------------------------------- |
+| Push notification        | iOS: APNs, Android: FCM | Notificação com título e preview |
+| Deep link da notificação | iOS e Android           | Abre direto na tela de alertas   |
+| Swipe left               | Lista de alertas        | Revela botão "Resolver"          |
+| Haptic feedback          | iOS e Android           | Feedback ao resolver alerta      |
+| Badge count              | iOS e Android           | Número no ícone do app           |
 
 **Tratamento de Erros:**
 
@@ -324,29 +325,29 @@ queued → uploading → processing → done
 
 ## Padrões de Interação Mobile
 
-| Padrão | Onde Usado | Implementação |
-|--------|-----------|---------------|
-| Pull-to-refresh | Galeria, lista de alertas, lista de nós | `RefreshControl` no `FlatList`/`SectionList` |
-| Swipe actions | Alertas (resolver), uploads (cancelar) | `react-native-gesture-handler` / Swipeable |
-| Infinite scroll | Galeria com cursor pagination | `onEndReached` do `FlatList` + TanStack Query |
-| Skeleton loading | Todas as telas com dados assíncronos | Componentes Skeleton customizados |
-| Haptic feedback | Upload success/error, aceite de convite, liberar espaço, resolver alerta | `expo-haptics` |
-| Bottom sheet | Opções de upload, confirmações, metadados, filtros | `@gorhom/bottom-sheet` |
-| Toast/Snackbar | Feedback de ações (sucesso, erro, informativo) | `react-native-toast-message` |
-| Pinch-to-zoom | Visualização de fotos em detalhe | `react-native-gesture-handler` + `react-native-reanimated` |
-| Long press | Seleção múltipla na galeria | Custom gesture handler com estado de seleção |
-| Swipe to dismiss | Tela de detalhe de arquivo | Gesto vertical para fechar e voltar |
-| Offline banner | Todas as telas quando sem conexão | `@react-native-community/netinfo` + banner persistente |
+| Padrão           | Onde Usado                                                               | Implementação                                              |
+| ---------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| Pull-to-refresh  | Galeria, lista de alertas, lista de nós                                  | `RefreshControl` no `FlatList`/`SectionList`               |
+| Swipe actions    | Alertas (resolver), uploads (cancelar)                                   | `react-native-gesture-handler` / Swipeable                 |
+| Infinite scroll  | Galeria com cursor pagination                                            | `onEndReached` do `FlatList` + TanStack Query              |
+| Skeleton loading | Todas as telas com dados assíncronos                                     | Componentes Skeleton customizados                          |
+| Haptic feedback  | Upload success/error, aceite de convite, liberar espaço, resolver alerta | `expo-haptics`                                             |
+| Bottom sheet     | Opções de upload, confirmações, metadados, filtros                       | `@gorhom/bottom-sheet`                                     |
+| Toast/Snackbar   | Feedback de ações (sucesso, erro, informativo)                           | `react-native-toast-message`                               |
+| Pinch-to-zoom    | Visualização de fotos em detalhe                                         | `react-native-gesture-handler` + `react-native-reanimated` |
+| Long press       | Seleção múltipla na galeria                                              | Custom gesture handler com estado de seleção               |
+| Swipe to dismiss | Tela de detalhe de arquivo                                               | Gesto vertical para fechar e voltar                        |
+| Offline banner   | Todas as telas quando sem conexão                                        | `@react-native-community/netinfo` + banner persistente     |
 
 ---
 
 ## Histórico de Decisões
 
-| Data | Decisão | Motivo |
-|------|---------|--------|
-| 2026-03-24 | Criação de cluster não disponível no mobile | Seed phrase de 12 palavras requer tela grande e atenção; admin usa web para setup |
-| 2026-03-24 | Upload com fila persistida em MMKV | App pode ser fechado durante upload; fila retoma automaticamente no próximo launch |
-| 2026-03-24 | Sync automático via expo-task-manager | Background fetch para sync de novas fotos sem intervenção manual |
-| 2026-03-24 | Liberação de espaço como feature mobile-exclusive | Espaço em celular é limitado; substituir por thumbnails é alto valor para o usuário |
-| 2026-03-24 | Push notifications para alertas críticos | Admin precisa responder rápido a nós perdidos; celular é o dispositivo mais acessível |
-| 2026-03-24 | Thumbnails cacheados para modo offline | Galeria continua navegável sem conexão via TanStack Query persisted + MMKV |
+| Data       | Decisão                                           | Motivo                                                                                |
+| ---------- | ------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| 2026-03-24 | Criação de cluster não disponível no mobile       | Seed phrase de 12 palavras requer tela grande e atenção; admin usa web para setup     |
+| 2026-03-24 | Upload com fila persistida em MMKV                | App pode ser fechado durante upload; fila retoma automaticamente no próximo launch    |
+| 2026-03-24 | Sync automático via expo-task-manager             | Background fetch para sync de novas fotos sem intervenção manual                      |
+| 2026-03-24 | Liberação de espaço como feature mobile-exclusive | Espaço em celular é limitado; substituir por thumbnails é alto valor para o usuário   |
+| 2026-03-24 | Push notifications para alertas críticos          | Admin precisa responder rápido a nós perdidos; celular é o dispositivo mais acessível |
+| 2026-03-24 | Thumbnails cacheados para modo offline            | Galeria continua navegável sem conexão via TanStack Query persisted + MMKV            |

@@ -20,11 +20,11 @@ Define a pirâmide de testes do frontend web (Next.js 16), as ferramentas utiliz
         └─────────┘
 ```
 
-| Nível | Ferramenta | O que Testa | Meta de Cobertura |
-|-------|------------|-------------|-------------------|
-| Unit | Vitest | Hooks, utils, validações, store actions, lógica de domínio | 80%+ |
-| Integration | Vitest + Testing Library | Componentes + interações, formulários, estados visuais | 60%+ |
-| E2E | Playwright | Fluxos completos do usuário no browser | 100% dos 5 fluxos críticos |
+| Nível       | Ferramenta               | O que Testa                                                | Meta de Cobertura          |
+| ----------- | ------------------------ | ---------------------------------------------------------- | -------------------------- |
+| Unit        | Vitest                   | Hooks, utils, validações, store actions, lógica de domínio | 80%+                       |
+| Integration | Vitest + Testing Library | Componentes + interações, formulários, estados visuais     | 60%+                       |
+| E2E         | Playwright               | Fluxos completos do usuário no browser                     | 100% dos 5 fluxos críticos |
 
 ---
 
@@ -32,14 +32,14 @@ Define a pirâmide de testes do frontend web (Next.js 16), as ferramentas utiliz
 
 > O que testar em cada tipo de componente?
 
-| Tipo | O que Testar | O que NÃO Testar |
-|------|-------------|------------------|
-| Primitive (Button, Input, Badge) | Renderização, props, variantes, acessibilidade (role, aria) | Estilo visual (use Storybook visual regression) |
-| Composite (FormField, Stepper, EmptyState) | Interação entre primitivos, validação, estados (loading, error, empty) | Componentes filhos isolados |
-| Feature (GalleryGrid, UploadQueue, NodeList) | Fluxo completo com API mock, estados de loading/error/success, interações do usuário | Implementação interna, detalhes de styling |
-| Hooks (useFiles, useUploadQueue) | Retorno, side effects, edge cases, error handling | Implementação do React internals |
-| Utils (formatBytes, formatDate, validators) | Input/output, edge cases, tipos de entrada | — (100% testáveis) |
-| Stores (authStore, uploadStore) | Actions, transições de estado, persistência | Implementação do Zustand |
+| Tipo                                         | O que Testar                                                                         | O que NÃO Testar                                |
+| -------------------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------- |
+| Primitive (Button, Input, Badge)             | Renderização, props, variantes, acessibilidade (role, aria)                          | Estilo visual (use Storybook visual regression) |
+| Composite (FormField, Stepper, EmptyState)   | Interação entre primitivos, validação, estados (loading, error, empty)               | Componentes filhos isolados                     |
+| Feature (GalleryGrid, UploadQueue, NodeList) | Fluxo completo com API mock, estados de loading/error/success, interações do usuário | Implementação interna, detalhes de styling      |
+| Hooks (useFiles, useUploadQueue)             | Retorno, side effects, edge cases, error handling                                    | Implementação do React internals                |
+| Utils (formatBytes, formatDate, validators)  | Input/output, edge cases, tipos de entrada                                           | — (100% testáveis)                              |
+| Stores (authStore, uploadStore)              | Actions, transições de estado, persistência                                          | Implementação do Zustand                        |
 
 <details>
 <summary>Exemplo — Teste de componente (Integration)</summary>
@@ -133,15 +133,16 @@ describe('uploadStore', () => {
   });
 
   it('deve limitar uploads concorrentes a 3', () => {
-    const files = Array.from({ length: 5 }, (_, i) =>
-      new File(['content'], `photo${i}.jpg`, { type: 'image/jpeg' })
+    const files = Array.from(
+      { length: 5 },
+      (_, i) => new File(['content'], `photo${i}.jpg`, { type: 'image/jpeg' }),
     );
     useUploadStore.getState().addFiles(files);
 
     // Start all possible
     for (let i = 0; i < 5; i++) useUploadStore.getState().startNext();
 
-    const uploading = useUploadStore.getState().items.filter(i => i.status === 'uploading');
+    const uploading = useUploadStore.getState().items.filter((i) => i.status === 'uploading');
     expect(uploading).toHaveLength(3);
   });
 });
@@ -157,13 +158,13 @@ describe('uploadStore', () => {
 
 <!-- do blueprint: 07-critical_flows.md (5 fluxos), 12-testing_strategy.md (E2E) -->
 
-| # | Fluxo | Passos Testados | Critério de Sucesso |
-|---|-------|-----------------|---------------------|
-| 1 | Criação de Cluster | Setup → nome → seed exibida → confirma checkbox → dashboard | Dashboard carrega com empty state |
-| 2 | Upload de Arquivo | Login → dashboard → seleciona foto → upload → processing → thumbnail na galeria | Arquivo com status `ready` e thumbnail visível |
-| 3 | Visualizar e Baixar | Login → galeria → clica thumbnail → lightbox → metadados → download | Arquivo baixado com conteúdo correto |
-| 4 | Convidar Membro | Login admin → membros → convite → copiar link → abrir em outra sessão → aceitar | Novo membro listado com role correto |
-| 5 | Recovery via Seed | Acessa /recovery → insere 12 palavras → stepper completa → dashboard | Dashboard com arquivos recuperados |
+| #   | Fluxo               | Passos Testados                                                                 | Critério de Sucesso                            |
+| --- | ------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------- |
+| 1   | Criação de Cluster  | Setup → nome → seed exibida → confirma checkbox → dashboard                     | Dashboard carrega com empty state              |
+| 2   | Upload de Arquivo   | Login → dashboard → seleciona foto → upload → processing → thumbnail na galeria | Arquivo com status `ready` e thumbnail visível |
+| 3   | Visualizar e Baixar | Login → galeria → clica thumbnail → lightbox → metadados → download             | Arquivo baixado com conteúdo correto           |
+| 4   | Convidar Membro     | Login admin → membros → convite → copiar link → abrir em outra sessão → aceitar | Novo membro listado com role correto           |
+| 5   | Recovery via Seed   | Acessa /recovery → insere 12 palavras → stepper completa → dashboard            | Dashboard com arquivos recuperados             |
 
 <details>
 <summary>Exemplo — E2E Upload de Arquivo</summary>
@@ -200,22 +201,22 @@ test('upload de foto deve aparecer na galeria', async ({ page }) => {
 
 > Quais são as metas de cobertura por camada?
 
-| Camada | Meta | Medição |
-|--------|------|---------|
-| Domain (types, utils, validators) | 90%+ | Vitest coverage (v8) |
-| Application (hooks, stores) | 80%+ | Vitest coverage |
-| UI (components) | 60%+ | Testing Library + Vitest |
-| E2E (fluxos críticos) | 100% dos 5 fluxos | Playwright reports |
+| Camada                            | Meta              | Medição                  |
+| --------------------------------- | ----------------- | ------------------------ |
+| Domain (types, utils, validators) | 90%+              | Vitest coverage (v8)     |
+| Application (hooks, stores)       | 80%+              | Vitest coverage          |
+| UI (components)                   | 60%+              | Testing Library + Vitest |
+| E2E (fluxos críticos)             | 100% dos 5 fluxos | Playwright reports       |
 
 ### Áreas de Cobertura Obrigatória
 
-| Área | Justificativa |
-|------|---------------|
-| uploadStore (transições de estado) | Fila de upload é o fluxo mais complexo do frontend; bugs = perda de dados do usuário |
-| authStore (login, logout, role check) | Segurança; bugs = acesso não autorizado |
-| File validators (tipo, tamanho) | Primeira barreira contra uploads inválidos |
-| SeedPhraseInput (validação BIP-39) | Recovery depende de input correto; bugs = recovery falho |
-| Middleware de auth (redirect logic) | Proteção de rotas; bugs = exposição de dados |
+| Área                                  | Justificativa                                                                        |
+| ------------------------------------- | ------------------------------------------------------------------------------------ |
+| uploadStore (transições de estado)    | Fila de upload é o fluxo mais complexo do frontend; bugs = perda de dados do usuário |
+| authStore (login, logout, role check) | Segurança; bugs = acesso não autorizado                                              |
+| File validators (tipo, tamanho)       | Primeira barreira contra uploads inválidos                                           |
+| SeedPhraseInput (validação BIP-39)    | Recovery depende de input correto; bugs = recovery falho                             |
+| Middleware de auth (redirect logic)   | Proteção de rotas; bugs = exposição de dados                                         |
 
 <!-- APPEND:cobertura -->
 
@@ -233,13 +234,13 @@ test('upload de foto deve aparecer na galeria', async ({ page }) => {
 
 <!-- do blueprint: 12-testing_strategy.md (pipeline CI) -->
 
-| Etapa | Comando | Timeout | Gatilho | Bloqueante |
-|-------|---------|---------|---------|------------|
-| Lint + Type Check | `pnpm lint && pnpm typecheck` | 60s | Push / PR | Sim |
-| Unit + Integration | `pnpm test` | 120s | Push / PR | Sim |
-| Coverage report | `pnpm test:coverage` | 120s | PR | Sim (threshold) |
-| Build | `pnpm build` | 180s | PR | Sim |
-| E2E | `pnpm test:e2e` | 300s | Merge na main | Sim |
+| Etapa              | Comando                       | Timeout | Gatilho       | Bloqueante      |
+| ------------------ | ----------------------------- | ------- | ------------- | --------------- |
+| Lint + Type Check  | `pnpm lint && pnpm typecheck` | 60s     | Push / PR     | Sim             |
+| Unit + Integration | `pnpm test`                   | 120s    | Push / PR     | Sim             |
+| Coverage report    | `pnpm test:coverage`          | 120s    | PR            | Sim (threshold) |
+| Build              | `pnpm build`                  | 180s    | PR            | Sim             |
+| E2E                | `pnpm test:e2e`               | 300s    | Merge na main | Sim             |
 
 ### Thresholds de Cobertura
 
@@ -259,10 +260,10 @@ test('upload de foto deve aparecer na galeria', async ({ page }) => {
 
 ## Histórico de Decisões
 
-| Data | Decisão | Motivo |
-|------|---------|--------|
-| 2026-03-24 | Vitest em vez de Jest | Compatibilidade nativa com ESM e Vite; HMR nos testes; mais rápido para projetos Next.js |
-| 2026-03-24 | Playwright em vez de Cypress | Suporte nativo a múltiplos browsers, melhor performance, API async/await nativa |
-| 2026-03-24 | Testing Library (não Enzyme) | Testa comportamento do usuário, não implementação; alinhado com filosofia React moderna |
+| Data       | Decisão                                | Motivo                                                                                       |
+| ---------- | -------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 2026-03-24 | Vitest em vez de Jest                  | Compatibilidade nativa com ESM e Vite; HMR nos testes; mais rápido para projetos Next.js     |
+| 2026-03-24 | Playwright em vez de Cypress           | Suporte nativo a múltiplos browsers, melhor performance, API async/await nativa              |
+| 2026-03-24 | Testing Library (não Enzyme)           | Testa comportamento do usuário, não implementação; alinhado com filosofia React moderna      |
 | 2026-03-24 | Coverage obrigatória em stores e hooks | Upload queue e auth são fluxos críticos; bugs nessas áreas têm impacto direto na experiência |
-| 2026-03-24 | E2E apenas nos 5 fluxos críticos | Time de 1 pessoa; foco no que tem maior impacto; pirâmide 70/20/10 do blueprint |
+| 2026-03-24 | E2E apenas nos 5 fluxos críticos       | Time de 1 pessoa; foco no que tem maior impacto; pirâmide 70/20/10 do blueprint              |

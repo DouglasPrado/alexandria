@@ -73,15 +73,15 @@ apps/web/
 
 <!-- do blueprint: 04-domain-model.md (entidades), 08-use_cases.md (casos de uso) -->
 
-| Feature | Descrição | Componentes Principais |
-| --- | --- | --- |
-| auth | Autenticação JWT, login, proteção de rotas | LoginForm, AuthGuard, SessionProvider |
-| gallery | Upload, galeria de fotos/vídeos/documentos, busca, download | UploadDropzone, UploadQueue, GalleryGrid, GalleryTimeline, FileLightbox, SearchBar, FilterChips, VideoPlayer |
-| nodes | Gerenciamento de nós, monitoramento de saúde, drain | NodeList, NodeStatusBadge, AddNodeModal, NodeConnectivityTest, DrainProgressBar, DisconnectConfirmModal |
-| cluster | Criação de cluster, onboarding, seed phrase | SetupClusterForm, SeedPhraseDisplay, SeedConfirmCheckbox, EmptyStateDashboard |
-| alerts | Alertas de saúde do cluster, notificações admin | AlertBell, AlertDropdown, AlertCard, ClusterHealthSummary |
-| recovery | Recovery via seed phrase, rebuild | SeedPhraseInput, RecoveryStepper, RecoveryProgress, RecoveryReport |
-| settings | Configurações do cluster, membros, convites | InviteMemberModal, InviteLinkCopy, AcceptInviteForm, MemberList, RoleSelector |
+| Feature  | Descrição                                                   | Componentes Principais                                                                                       |
+| -------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| auth     | Autenticação JWT, login, proteção de rotas                  | LoginForm, AuthGuard, SessionProvider                                                                        |
+| gallery  | Upload, galeria de fotos/vídeos/documentos, busca, download | UploadDropzone, UploadQueue, GalleryGrid, GalleryTimeline, FileLightbox, SearchBar, FilterChips, VideoPlayer |
+| nodes    | Gerenciamento de nós, monitoramento de saúde, drain         | NodeList, NodeStatusBadge, AddNodeModal, NodeConnectivityTest, DrainProgressBar, DisconnectConfirmModal      |
+| cluster  | Criação de cluster, onboarding, seed phrase                 | SetupClusterForm, SeedPhraseDisplay, SeedConfirmCheckbox, EmptyStateDashboard                                |
+| alerts   | Alertas de saúde do cluster, notificações admin             | AlertBell, AlertDropdown, AlertCard, ClusterHealthSummary                                                    |
+| recovery | Recovery via seed phrase, rebuild                           | SeedPhraseInput, RecoveryStepper, RecoveryProgress, RecoveryReport                                           |
+| settings | Configurações do cluster, membros, convites                 | InviteMemberModal, InviteLinkCopy, AcceptInviteForm, MemberList, RoleSelector                                |
 
 <!-- APPEND:features -->
 
@@ -147,14 +147,14 @@ alexandria/
     core-sdk/                   # SDK core: criptografia, hashing, BIP-39 (usado pelo api e agentes)
 ```
 
-| Package | Responsabilidade | Consumido por |
-| --- | --- | --- |
-| ui | Design system: Button, Input, Card, Badge, Skeleton, Toast | web, mobile, desktop |
+| Package    | Responsabilidade                                                   | Consumido por        |
+| ---------- | ------------------------------------------------------------------ | -------------------- |
+| ui         | Design system: Button, Input, Card, Badge, Skeleton, Toast         | web, mobile, desktop |
 | api-client | Fetch wrapper tipado com interceptors (JWT, retry, error handling) | web, mobile, desktop |
-| types | Tipos compartilhados: File, Node, Cluster, Member, Alert, DTOs | todos |
-| config | ESLint, tsconfig, Tailwind, Prettier presets | todos |
-| utils | Funções puras: formatDate, formatBytes, cn (class merge) | todos |
-| core-sdk | Criptografia (AES-256-GCM), SHA-256, BIP-39, consistent hashing | api, agentes de nó |
+| types      | Tipos compartilhados: File, Node, Cluster, Member, Alert, DTOs     | todos                |
+| config     | ESLint, tsconfig, Tailwind, Prettier presets                       | todos                |
+| utils      | Funções puras: formatDate, formatBytes, cn (class merge)           | todos                |
+| core-sdk   | Criptografia (AES-256-GCM), SHA-256, BIP-39, consistent hashing    | api, agentes de nó   |
 
 ---
 
@@ -162,18 +162,18 @@ alexandria/
 
 > Quais são as regras de importação entre módulos?
 
-| De | Para | Permitido? | Observação |
-| --- | --- | --- | --- |
-| `features/gallery` | `features/nodes` | **Não** | Features não importam de outras features |
-| `features/gallery` | `components/ui` | **Sim** | Componentes compartilhados são acessíveis |
-| `features/gallery` | `hooks/` | **Sim** | Hooks globais são acessíveis |
-| `features/gallery` | `lib/` | **Sim** | API client e helpers são compartilhados |
-| `features/gallery` | `store/` | **Sim** | Stores globais (authStore, uploadStore) |
-| `features/gallery` | `types/` | **Sim** | Tipos compartilhados |
-| `components/ui` | `features/*` | **Não** | Componentes compartilhados não conhecem features |
-| `app/` | `features/*` | **Sim** | Rotas importam features para montar páginas |
-| `app/` | `components/layouts` | **Sim** | Layouts usados nos route groups |
-| `store/` | `features/*` | **Não** | Stores globais não conhecem features |
+| De                 | Para                 | Permitido? | Observação                                       |
+| ------------------ | -------------------- | ---------- | ------------------------------------------------ |
+| `features/gallery` | `features/nodes`     | **Não**    | Features não importam de outras features         |
+| `features/gallery` | `components/ui`      | **Sim**    | Componentes compartilhados são acessíveis        |
+| `features/gallery` | `hooks/`             | **Sim**    | Hooks globais são acessíveis                     |
+| `features/gallery` | `lib/`               | **Sim**    | API client e helpers são compartilhados          |
+| `features/gallery` | `store/`             | **Sim**    | Stores globais (authStore, uploadStore)          |
+| `features/gallery` | `types/`             | **Sim**    | Tipos compartilhados                             |
+| `components/ui`    | `features/*`         | **Não**    | Componentes compartilhados não conhecem features |
+| `app/`             | `features/*`         | **Sim**    | Rotas importam features para montar páginas      |
+| `app/`             | `components/layouts` | **Sim**    | Layouts usados nos route groups                  |
+| `store/`           | `features/*`         | **Não**    | Stores globais não conhecem features             |
 
 <!-- APPEND:regras-importacao -->
 

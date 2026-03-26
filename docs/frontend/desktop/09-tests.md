@@ -22,12 +22,12 @@ Define a piramide de testes do frontend desktop, as ferramentas utilizadas, os p
 
 <!-- do blueprint: 12-testing_strategy.md — piramide 70/20/10; desktop/08-flows.md — 5 fluxos criticos; 02-architecture_principles.md — Embrace Failure -->
 
-| Nivel | Ferramenta | O que Testa | Meta de Cobertura |
-|-------|------------|-------------|-------------------|
-| Unit | Vitest | Hooks, utils, logica de dominio, IPC stubs | 80%+ (90%+ em crypto/vault/chunking) |
-| Integration | Testing Library + Vitest | Componentes + interacoes no renderer com IPC mockado | 60%+ |
-| IPC | Vitest + mock `window.electronAPI` | Handlers IPC main↔renderer: vault, sync, cluster | 90%+ |
-| E2E | Playwright + `_electron` | Fluxos completos na app Electron real (unlock, sync, recovery) | 5 fluxos criticos: 100% |
+| Nivel       | Ferramenta                         | O que Testa                                                    | Meta de Cobertura                    |
+| ----------- | ---------------------------------- | -------------------------------------------------------------- | ------------------------------------ |
+| Unit        | Vitest                             | Hooks, utils, logica de dominio, IPC stubs                     | 80%+ (90%+ em crypto/vault/chunking) |
+| Integration | Testing Library + Vitest           | Componentes + interacoes no renderer com IPC mockado           | 60%+                                 |
+| IPC         | Vitest + mock `window.electronAPI` | Handlers IPC main↔renderer: vault, sync, cluster               | 90%+                                 |
+| E2E         | Playwright + `_electron`           | Fluxos completos na app Electron real (unlock, sync, recovery) | 5 fluxos criticos: 100%              |
 
 ---
 
@@ -35,12 +35,12 @@ Define a piramide de testes do frontend desktop, as ferramentas utilizadas, os p
 
 > Como testamos a comunicacao entre main process e renderer process?
 
-| O que Testar | Ferramenta | Estrategia |
-|-------------|------------|------------|
-| IPC handlers no main | Vitest | Mock do `event` object, testar handler isolado |
-| IPC calls no renderer | Vitest + mock do `window.electronAPI` | Mock da bridge, verificar chamadas |
-| Tipagem dos canais IPC | TypeScript strict | Canais tipados em `shared/ipc-channels.ts` |
-| Validacao de payloads | Vitest + Zod | Validar schema de entrada/saida dos handlers |
+| O que Testar           | Ferramenta                            | Estrategia                                     |
+| ---------------------- | ------------------------------------- | ---------------------------------------------- |
+| IPC handlers no main   | Vitest                                | Mock do `event` object, testar handler isolado |
+| IPC calls no renderer  | Vitest + mock do `window.electronAPI` | Mock da bridge, verificar chamadas             |
+| Tipagem dos canais IPC | TypeScript strict                     | Canais tipados em `shared/ipc-channels.ts`     |
+| Validacao de payloads  | Vitest + Zod                          | Validar schema de entrada/saida dos handlers   |
 
 <details>
 <summary>Exemplo — Teste de IPC handler</summary>
@@ -88,14 +88,14 @@ describe('ipcClient vault', () => {
 
 > O que testar em cada tipo de componente?
 
-| Tipo | O que Testar | O que NAO Testar |
-|------|-------------|------------------|
-| Primitive (Button, Input) | Rendering, props, acessibilidade | Estilo visual (use Storybook) |
-| Composite (Form, Table) | Interacao, validacao, estados | Componentes filhos isolados |
-| Desktop (TitleBar, FileDialog) | Chamadas IPC corretas, estados visuais | Comportamento nativo do OS |
-| Feature (UserProfile) | Fluxo completo, API/IPC mocking | Implementacao interna |
-| Hooks | Retorno, side effects, edge cases | Implementacao do React |
-| IPC Handlers (main) | Logica de negocio, validacao, erros | Internals do Electron/Tauri |
+| Tipo                           | O que Testar                           | O que NAO Testar              |
+| ------------------------------ | -------------------------------------- | ----------------------------- |
+| Primitive (Button, Input)      | Rendering, props, acessibilidade       | Estilo visual (use Storybook) |
+| Composite (Form, Table)        | Interacao, validacao, estados          | Componentes filhos isolados   |
+| Desktop (TitleBar, FileDialog) | Chamadas IPC corretas, estados visuais | Comportamento nativo do OS    |
+| Feature (UserProfile)          | Fluxo completo, API/IPC mocking        | Implementacao interna         |
+| Hooks                          | Retorno, side effects, edge cases      | Implementacao do React        |
+| IPC Handlers (main)            | Logica de negocio, validacao, erros    | Internals do Electron/Tauri   |
 
 <details>
 <summary>Exemplo — Teste de componente e hook</summary>
@@ -137,11 +137,11 @@ describe('useAuth', () => {
 
 > Como testamos a aplicacao desktop de ponta a ponta?
 
-| Ferramenta | Descricao | Quando Usar |
-|------------|-----------|-------------|
+| Ferramenta            | Descricao                                | Quando Usar                            |
+| --------------------- | ---------------------------------------- | -------------------------------------- |
 | Playwright + Electron | Playwright com suporte nativo a Electron | Fluxos completos, interacoes de janela |
-| Spectron (legado) | WebDriverIO para Electron | Projetos com Spectron existente |
-| Tauri Driver | WebDriver para Tauri | Apps Tauri |
+| Spectron (legado)     | WebDriverIO para Electron                | Projetos com Spectron existente        |
+| Tauri Driver          | WebDriver para Tauri                     | Apps Tauri                             |
 
 <details>
 <summary>Exemplo — E2E com Playwright + Electron</summary>
@@ -197,13 +197,13 @@ describe('Alexandria E2E — Vault Unlock + Gallery', () => {
 
 > Quais sao as metas de cobertura por camada?
 
-| Camada | Meta | Medicao |
-|--------|------|---------|
-| Domain (models, utils) | 90%+ | Vitest coverage (`npm run test:coverage`) |
-| Application (hooks) | 80%+ | Vitest coverage (`npm run test:coverage`) |
-| UI (components) | 60%+ | Testing Library + Vitest (`npm run test:coverage`) |
-| IPC Handlers (main) | 90%+ | Vitest coverage (`npm run test:ipc`) |
-| E2E (fluxos criticos) | 100% | Playwright reports (`npm run test:e2e`) |
+| Camada                 | Meta | Medicao                                            |
+| ---------------------- | ---- | -------------------------------------------------- |
+| Domain (models, utils) | 90%+ | Vitest coverage (`npm run test:coverage`)          |
+| Application (hooks)    | 80%+ | Vitest coverage (`npm run test:coverage`)          |
+| UI (components)        | 60%+ | Testing Library + Vitest (`npm run test:coverage`) |
+| IPC Handlers (main)    | 90%+ | Vitest coverage (`npm run test:ipc`)               |
+| E2E (fluxos criticos)  | 100% | Playwright reports (`npm run test:e2e`)            |
 
 <!-- APPEND:cobertura -->
 
@@ -220,12 +220,12 @@ describe('Alexandria E2E — Vault Unlock + Gallery', () => {
 - [x] Cobertura e reportada no PR
 - [x] Testes falhos bloqueiam merge
 
-| Etapa | Comando | Timeout |
-|-------|---------|---------|
-| Unit + Integration | `npm run test` | 60s |
-| IPC Tests | `npm run test:ipc` | 30s |
-| E2E | `npm run test:e2e` | 300s |
-| Coverage report | `npm run test:coverage` | 90s |
+| Etapa              | Comando                 | Timeout |
+| ------------------ | ----------------------- | ------- |
+| Unit + Integration | `npm run test`          | 60s     |
+| IPC Tests          | `npm run test:ipc`      | 30s     |
+| E2E                | `npm run test:e2e`      | 300s    |
+| Coverage report    | `npm run test:coverage` | 90s     |
 
 > Para pipeline completo, (ver 13-cicd-convencoes.md).
 
@@ -233,6 +233,6 @@ describe('Alexandria E2E — Vault Unlock + Gallery', () => {
 
 ## Historico de Decisoes
 
-| Data | Decisao | Motivo |
-|------|---------|--------|
+| Data       | Decisao                                            | Motivo                                                                                                                      |
+| ---------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | 2026-03-24 | Vitest para unit/IPC, Playwright+Electron para E2E | Vitest e nativo ao electron-vite e suporta mocking de IPC sem setup extra; Playwright tem suporte oficial a `_electron` API |

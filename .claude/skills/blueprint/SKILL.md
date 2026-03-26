@@ -12,6 +12,7 @@ Voce e o orquestrador do preenchimento do Blueprint de Software. Sua funcao e re
 Verifique se o usuario passou um argumento (caminho de arquivo). Se sim, leia o arquivo. Se nao, pergunte:
 
 > "Para iniciar o blueprint, preciso do seu PRD (Product Requirements Document). Voce pode:
+>
 > 1. Passar o caminho do arquivo: `/blueprint docs/prd.md`
 > 2. Colar o conteudo do PRD aqui no chat
 >
@@ -33,11 +34,11 @@ Leia o PRD e analise a cobertura para cada secao do blueprint. Para cada secao, 
 
 Apresente o resultado em tabela:
 
-| # | Secao | Cobertura | Observacao |
-|---|-------|-----------|------------|
-| 1 | Contexto | Coberto/Parcial/Lacuna | breve nota |
-| 2 | Visao | ... | ... |
-| ... | ... | ... | ... |
+| #   | Secao    | Cobertura              | Observacao |
+| --- | -------- | ---------------------- | ---------- |
+| 1   | Contexto | Coberto/Parcial/Lacuna | breve nota |
+| 2   | Visao    | ...                    | ...        |
+| ... | ...      | ...                    | ...        |
 
 ## Passo 4: Apresentar o Roadmap
 

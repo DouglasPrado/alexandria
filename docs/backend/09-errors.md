@@ -44,6 +44,7 @@ Define a hierarquia de excecoes, formato padrao de erro, catalogo de codigos e e
 ```
 
 **Regras:**
+
 - `code` e sempre UPPER_SNAKE_CASE
 - `message` e sempre em portugues e segura para exibir ao usuario
 - `details` so aparece em erros de validacao (400) — para outros status e `null`
@@ -78,7 +79,7 @@ AppError (base)
 │   ├── InviteAlreadyExistsError
 │   └── DuplicateFileError
 ├── BusinessRuleError (422)
-│   ├── InsufficientNodesError (< 3 nos para replicacao)
+│   ├── InsufficientNodesError (< 1 no para replicacao)
 │   ├── InvalidStateTransitionError
 │   ├── InvalidSeedPhraseError
 │   ├── FileTooLargeError
@@ -98,29 +99,29 @@ AppError (base)
 
 > Cada codigo e unico e documentado. Frontend usa o `code` para decidir como exibir o erro.
 
-| Codigo | Status | Mensagem | Quando | Retentavel |
-| --- | --- | --- | --- | --- |
-| VALIDATION_ERROR | 400 | Campos invalidos na requisicao | ValidationPipe rejeita body/params/query | Nao |
-| TOKEN_EXPIRED | 401 | Sua sessao expirou, faca login novamente | JWT com mais de 24h | Sim (re-login) |
-| INVALID_TOKEN | 401 | Token de autenticacao invalido | JWT malformado, assinatura invalida ou ausente | Nao |
-| INSUFFICIENT_PERMISSIONS | 403 | Voce nao tem permissao para esta acao | Role do membro nao tem acesso a rota | Nao |
-| CLUSTER_NOT_FOUND | 404 | Cluster nao encontrado | ID de cluster inexistente | Nao |
-| MEMBER_NOT_FOUND | 404 | Membro nao encontrado | ID de membro inexistente | Nao |
-| NODE_NOT_FOUND | 404 | No de armazenamento nao encontrado | ID de no inexistente | Nao |
-| FILE_NOT_FOUND | 404 | Arquivo nao encontrado | ID de arquivo inexistente ou chunk perdido | Nao |
-| MEMBER_ALREADY_EXISTS | 409 | Este email ja esta cadastrado no cluster | Email duplicado ao aceitar convite | Nao |
-| DUPLICATE_FILE | 409 | Este arquivo ja existe no cluster | Hash SHA-256 identico a arquivo existente | Nao |
-| INSUFFICIENT_NODES | 422 | Nos insuficientes para garantir replicacao | Menos de 3 nos ativos no cluster | Nao (admin deve adicionar nos) |
-| INVALID_SEED_PHRASE | 422 | Seed phrase invalida | Seed nao tem 12 palavras ou palavras fora do BIP-39 | Nao |
-| FILE_TOO_LARGE | 422 | Arquivo excede o tamanho maximo permitido | Arquivo ultrapassa limite do mediaType | Nao |
-| CLUSTER_FULL | 422 | Cluster atingiu o limite maximo | Mais de 10 membros ou 50 nos | Nao |
-| INVALID_STATE_TRANSITION | 422 | Transicao de estado invalida | Ex: drenar no que ja esta offline | Nao |
-| RATE_LIMIT_EXCEEDED | 429 | Muitas requisicoes, tente novamente em breve | Rate limit atingido (ver [08-middlewares.md](08-middlewares.md)) | Sim (apos cooldown indicado em X-RateLimit-Reset) |
-| INSUFFICIENT_REPLICATION | 503 | Replicacao insuficiente, tente novamente | Nao foi possivel replicar chunk em 3 nos | Sim (retry automatico) |
-| STORAGE_PROVIDER_ERROR | 502 | Erro no provedor de armazenamento | S3/R2/B2 retornou erro ou timeout | Sim (retry com backoff) |
-| EMAIL_SERVICE_ERROR | 502 | Erro ao enviar email | Servico de email falhou | Sim (retry com backoff) |
-| FFMPEG_ERROR | 502 | Erro ao processar midia | FFmpeg falhou na transcodificacao | Sim (retry) |
-| INTERNAL_ERROR | 500 | Erro interno do servidor | Erro nao tratado — bug ou falha inesperada | Sim (reportar se persistir) |
+| Codigo                   | Status | Mensagem                                     | Quando                                                           | Retentavel                                        |
+| ------------------------ | ------ | -------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------- |
+| VALIDATION_ERROR         | 400    | Campos invalidos na requisicao               | ValidationPipe rejeita body/params/query                         | Nao                                               |
+| TOKEN_EXPIRED            | 401    | Sua sessao expirou, faca login novamente     | JWT com mais de 24h                                              | Sim (re-login)                                    |
+| INVALID_TOKEN            | 401    | Token de autenticacao invalido               | JWT malformado, assinatura invalida ou ausente                   | Nao                                               |
+| INSUFFICIENT_PERMISSIONS | 403    | Voce nao tem permissao para esta acao        | Role do membro nao tem acesso a rota                             | Nao                                               |
+| CLUSTER_NOT_FOUND        | 404    | Cluster nao encontrado                       | ID de cluster inexistente                                        | Nao                                               |
+| MEMBER_NOT_FOUND         | 404    | Membro nao encontrado                        | ID de membro inexistente                                         | Nao                                               |
+| NODE_NOT_FOUND           | 404    | No de armazenamento nao encontrado           | ID de no inexistente                                             | Nao                                               |
+| FILE_NOT_FOUND           | 404    | Arquivo nao encontrado                       | ID de arquivo inexistente ou chunk perdido                       | Nao                                               |
+| MEMBER_ALREADY_EXISTS    | 409    | Este email ja esta cadastrado no cluster     | Email duplicado ao aceitar convite                               | Nao                                               |
+| DUPLICATE_FILE           | 409    | Este arquivo ja existe no cluster            | Hash SHA-256 identico a arquivo existente                        | Nao                                               |
+| INSUFFICIENT_NODES       | 422    | Nos insuficientes para garantir replicacao   | Menos de 1 no ativo no cluster                                   | Nao (admin deve adicionar nos)                    |
+| INVALID_SEED_PHRASE      | 422    | Seed phrase invalida                         | Seed nao tem 12 palavras ou palavras fora do BIP-39              | Nao                                               |
+| FILE_TOO_LARGE           | 422    | Arquivo excede o tamanho maximo permitido    | Arquivo ultrapassa limite do mediaType                           | Nao                                               |
+| CLUSTER_FULL             | 422    | Cluster atingiu o limite maximo              | Mais de 10 membros ou 50 nos                                     | Nao                                               |
+| INVALID_STATE_TRANSITION | 422    | Transicao de estado invalida                 | Ex: drenar no que ja esta offline                                | Nao                                               |
+| RATE_LIMIT_EXCEEDED      | 429    | Muitas requisicoes, tente novamente em breve | Rate limit atingido (ver [08-middlewares.md](08-middlewares.md)) | Sim (apos cooldown indicado em X-RateLimit-Reset) |
+| INSUFFICIENT_REPLICATION | 503    | Replicacao insuficiente, tente novamente     | Nao foi possivel replicar chunk em 3 nos                         | Sim (retry automatico)                            |
+| STORAGE_PROVIDER_ERROR   | 502    | Erro no provedor de armazenamento            | S3/R2/B2 retornou erro ou timeout                                | Sim (retry com backoff)                           |
+| EMAIL_SERVICE_ERROR      | 502    | Erro ao enviar email                         | Servico de email falhou                                          | Sim (retry com backoff)                           |
+| FFMPEG_ERROR             | 502    | Erro ao processar midia                      | FFmpeg falhou na transcodificacao                                | Sim (retry)                                       |
+| INTERNAL_ERROR           | 500    | Erro interno do servidor                     | Erro nao tratado — bug ou falha inesperada                       | Sim (reportar se persistir)                       |
 
 ---
 
@@ -128,24 +129,25 @@ AppError (base)
 
 > Como diferentes tipos de erro sao tratados?
 
-| Tipo de Erro | Onde Tratar | Logar | Alertar | Retry |
-| --- | --- | --- | --- | --- |
-| Validacao (400) | ValidationPipe — retorna antes de chegar ao controller | Debug | Nao | Nao — usuario corrige input |
-| Autenticacao (401) | JwtAuthGuard — rejeita no middleware | Warn | Se > 10 tentativas/min por IP (possivel brute force) | Nao — usuario faz re-login |
-| Autorizacao (403) | RolesGuard — rejeita no middleware | Warn | Se admin tenta acessar rota inexistente (possivel ataque) | Nao — role insuficiente |
-| Nao encontrado (404) | Service — lanca excecao tipada | Info | Nao | Nao |
-| Conflito (409) | Service — verifica unicidade antes de persistir | Info | Nao | Nao |
-| Regra de negocio (422) | Service — valida invariantes do dominio | Info | InsufficientNodes e ClusterFull geram alerta ao admin | Nao |
-| Rate limit (429) | ThrottlerGuard — rejeita no middleware | Warn | Se > 50 bloqueios/min (possivel abuso) | Sim — apos cooldown |
-| Servico externo (502) | Infrastructure layer — client HTTP com retry | Error | Se taxa de falha > 5% em 5 min | Sim — backoff exponencial (3 tentativas, base 1s) |
-| Replicacao (503) | Service — verifica replicas apos distribuicao | Error | Sempre — risco de perda de dados | Sim — retry automatico |
-| Interno (500) | GlobalExceptionFilter — catch-all | Error + stack trace | Sempre — Sentry/alertas | Depende — cliente pode retry |
+| Tipo de Erro           | Onde Tratar                                            | Logar               | Alertar                                                   | Retry                                             |
+| ---------------------- | ------------------------------------------------------ | ------------------- | --------------------------------------------------------- | ------------------------------------------------- |
+| Validacao (400)        | ValidationPipe — retorna antes de chegar ao controller | Debug               | Nao                                                       | Nao — usuario corrige input                       |
+| Autenticacao (401)     | JwtAuthGuard — rejeita no middleware                   | Warn                | Se > 10 tentativas/min por IP (possivel brute force)      | Nao — usuario faz re-login                        |
+| Autorizacao (403)      | RolesGuard — rejeita no middleware                     | Warn                | Se admin tenta acessar rota inexistente (possivel ataque) | Nao — role insuficiente                           |
+| Nao encontrado (404)   | Service — lanca excecao tipada                         | Info                | Nao                                                       | Nao                                               |
+| Conflito (409)         | Service — verifica unicidade antes de persistir        | Info                | Nao                                                       | Nao                                               |
+| Regra de negocio (422) | Service — valida invariantes do dominio                | Info                | InsufficientNodes e ClusterFull geram alerta ao admin     | Nao                                               |
+| Rate limit (429)       | ThrottlerGuard — rejeita no middleware                 | Warn                | Se > 50 bloqueios/min (possivel abuso)                    | Sim — apos cooldown                               |
+| Servico externo (502)  | Infrastructure layer — client HTTP com retry           | Error               | Se taxa de falha > 5% em 5 min                            | Sim — backoff exponencial (3 tentativas, base 1s) |
+| Replicacao (503)       | Service — verifica replicas apos distribuicao          | Error               | Sempre — risco de perda de dados                          | Sim — retry automatico                            |
+| Interno (500)          | GlobalExceptionFilter — catch-all                      | Error + stack trace | Sempre — Sentry/alertas                                   | Depende — cliente pode retry                      |
 
 > (ver [10-validation.md](10-validation.md) para regras de validacao por campo)
 
 ---
 
 <!-- added: opensource -->
+
 ## Error Handling for Contributors
 
 - **Adding new error codes**: follow `SCREAMING_SNAKE_CASE` convention (e.g., `VAULT_LOCKED`); register in the error catalog table above; implement as a class extending `AlexandriaError`

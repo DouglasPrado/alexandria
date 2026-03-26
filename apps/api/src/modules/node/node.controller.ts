@@ -35,6 +35,15 @@ export class NodeController {
     return this.nodeService.listByCluster(member.clusterId);
   }
 
+  /** GET /api/nodes/:id — Detalhe do nó (JWT) */
+  @Get(':id')
+  async findById(
+    @Param('id') id: string,
+    @CurrentMember() member: CurrentMemberPayload,
+  ) {
+    return this.nodeService.findById(id, member.clusterId);
+  }
+
   /** POST /api/nodes/:id/heartbeat — Heartbeat do agente (publica para agentes) */
   @Public()
   @Post(':id/heartbeat')

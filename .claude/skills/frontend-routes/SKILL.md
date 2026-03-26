@@ -40,16 +40,19 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 ## Contexto por Plataforma
 
 ### Se web:
+
 - URL-based App Router, file-based routing
 - Guards via middleware
 - Suporte a layouts aninhados e rotas paralelas
 
 ### Se mobile:
+
 - React Navigation com stacks, tabs e drawers
 - Deep linking via URL schemes e universal links
 - Navegacao gestual nativa
 
 ### Se desktop:
+
 - Window-based navigation
 - Menu bar e system tray com context menu
 - Suporte a multiplas janelas
@@ -57,11 +60,13 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 ## Geracao
 
 > **Modo de escrita:**
+>
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
 Preencha `docs/frontend/{client}/07-routes.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+
 - Informacoes explicitas do blueprint tecnico
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- do blueprint: XX-arquivo.md -->`)

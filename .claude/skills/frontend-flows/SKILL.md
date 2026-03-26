@@ -39,16 +39,19 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 ## Contexto por Plataforma
 
 ### Se web:
+
 - Page transitions, forms e modals
 - Navegacao baseada em URL e browser history
 - Fluxos de formularios multi-step
 
 ### Se mobile:
+
 - Gesture-based interactions (swipe, pull-to-refresh, swipe actions)
 - Haptic feedback em acoes criticas
 - Fluxos adaptados a tela touch
 
 ### Se desktop:
+
 - Drag-and-drop de arquivos
 - Keyboard shortcuts para acoes frequentes
 - Multi-window workflows
@@ -56,11 +59,13 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 ## Geracao
 
 > **Modo de escrita:**
+>
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
 Preencha `docs/frontend/{client}/08-flows.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+
 - Informacoes explicitas do blueprint tecnico
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- do blueprint: XX-arquivo.md -->`)

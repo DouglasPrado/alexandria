@@ -18,17 +18,19 @@
 ## Escopo
 
 ### Dentro do escopo
+
 - {{Funcionalidade ou capacidade incluída}}
 
 ### Fora do escopo
+
 - {{O que deliberadamente NÃO está incluído neste epic}}
 
 ---
 
 ## Stories
 
-| ID | Story | Prioridade | Status |
-|-----|-------|-----------|--------|
+| ID        | Story                  | Prioridade            | Status                 |
+| --------- | ---------------------- | --------------------- | ---------------------- |
 | ST-{{ID}} | {{Descrição da story}} | {{Must/Should/Could}} | {{Backlog/Doing/Done}} |
 
 ---
@@ -42,14 +44,14 @@
 
 ## Dependências
 
-| Dependência | Tipo | Status |
-|------------|------|--------|
+| Dependência               | Tipo                   | Status                   |
+| ------------------------- | ---------------------- | ------------------------ |
 | {{Epic, sistema ou time}} | {{Bloqueia / Depende}} | {{Resolvida / Pendente}} |
 
 ---
 
 ## Riscos
 
-| Risco | Impacto | Mitigação |
-|-------|---------|-----------|
+| Risco                  | Impacto              | Mitigação        |
+| ---------------------- | -------------------- | ---------------- |
 | {{Risco identificado}} | {{Alto/Médio/Baixo}} | {{Como mitigar}} |

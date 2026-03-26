@@ -157,16 +157,17 @@
 
 ## Priorização
 
-| Fase | Prioridade | Justificativa |
-|------|-----------|---------------|
-| Fase 0: Fundação | Crítica | Reduz risco técnico máximo: valida que criptografia, chunking e hashing funcionam antes de construir o resto |
-| Fase 1: MVP | Crítica | Entrega valor real: família usando o sistema; valida hipóteses (Full HD suficiente, recovery funciona) |
-| Fase 2: Evolução | Alta | Expande para mais famílias e provedores; deduplicação e OAuth aumentam valor significativamente |
-| Fase 3: Escala | Média | Otimização e features avançadas; necessário para GA mas não para validação |
+| Fase             | Prioridade | Justificativa                                                                                                |
+| ---------------- | ---------- | ------------------------------------------------------------------------------------------------------------ |
+| Fase 0: Fundação | Crítica    | Reduz risco técnico máximo: valida que criptografia, chunking e hashing funcionam antes de construir o resto |
+| Fase 1: MVP      | Crítica    | Entrega valor real: família usando o sistema; valida hipóteses (Full HD suficiente, recovery funciona)       |
+| Fase 2: Evolução | Alta       | Expande para mais famílias e provedores; deduplicação e OAuth aumentam valor significativamente              |
+| Fase 3: Escala   | Média      | Otimização e features avançadas; necessário para GA mas não para validação                                   |
 
 ---
 
 <!-- added: opensource -->
+
 ## Public Roadmap
 
 - **GitHub Projects**: public board at `https://github.com/douglas-prado/alexandria/projects` with milestones visible to the community
@@ -183,30 +184,30 @@
 
 ## Technical Risks
 
-| Risco | Impacto | Probabilidade | Mitigação |
-|-------|---------|---------------|-----------|
-| Recovery via seed falha em cenário real | Alto | Média | Disaster drills mensais desde Fase 1; testes automatizados de recovery; vaults dos membros replicados em 3+ nós |
-| Consistent hashing distribui chunks de forma desigual com poucos nós (<5) | Médio | Média | Virtual nodes com fator alto; rebalanceamento periódico; monitoramento de distribuição |
-| FFmpeg falha em formatos de vídeo inesperados | Médio | Alta | Whitelist de formatos suportados; fallback para codec genérico; arquivo marcado como error com retry |
-| Performance de criptografia AES-256-GCM insuficiente | Alto | Baixa | Benchmark na Fase 0; usar hardware AES-NI (presente em CPUs modernas); paralelizar chunks |
-| Provedor cloud muda API S3 ou elimina free tier | Alto | Baixa | StorageProvider abstrai provedor; dados em 3+ provedores; migração transparente |
-| Perda de seed phrase pelo usuário | Alto | Alta | Instruções claras; alerta persistente na UI; recovery guardians na Fase 3 (RF-005) |
-| Complexidade do envelope encryption causa bugs de criptografia | Alto | Média | Testes extensivos na Fase 0; usar packages auditados (crypto nativo, @noble/ciphers); nunca implementar crypto próprio |
-| Transcodificação de vídeo sobrecarrega VPS | Médio | Alta | Fila com rate limiting; processamento sequencial (não paralelo) de vídeos grandes; worker dedicado |
-| Conflito de chunks durante upload concorrente de mesmo arquivo | Médio | Baixa | Deduplicação por hash (content-addressable); constraint unique no banco; idempotência |
+| Risco                                                                     | Impacto | Probabilidade | Mitigação                                                                                                              |
+| ------------------------------------------------------------------------- | ------- | ------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Recovery via seed falha em cenário real                                   | Alto    | Média         | Disaster drills mensais desde Fase 1; testes automatizados de recovery; vaults dos membros replicados em 3+ nós        |
+| Consistent hashing distribui chunks de forma desigual com poucos nós (<5) | Médio   | Média         | Virtual nodes com fator alto; rebalanceamento periódico; monitoramento de distribuição                                 |
+| FFmpeg falha em formatos de vídeo inesperados                             | Médio   | Alta          | Whitelist de formatos suportados; fallback para codec genérico; arquivo marcado como error com retry                   |
+| Performance de criptografia AES-256-GCM insuficiente                      | Alto    | Baixa         | Benchmark na Fase 0; usar hardware AES-NI (presente em CPUs modernas); paralelizar chunks                              |
+| Provedor cloud muda API S3 ou elimina free tier                           | Alto    | Baixa         | StorageProvider abstrai provedor; dados em 3+ provedores; migração transparente                                        |
+| Perda de seed phrase pelo usuário                                         | Alto    | Alta          | Instruções claras; alerta persistente na UI; recovery guardians na Fase 3 (RF-005)                                     |
+| Complexidade do envelope encryption causa bugs de criptografia            | Alto    | Média         | Testes extensivos na Fase 0; usar packages auditados (crypto nativo, @noble/ciphers); nunca implementar crypto próprio |
+| Transcodificação de vídeo sobrecarrega VPS                                | Médio   | Alta          | Fila com rate limiting; processamento sequencial (não paralelo) de vídeos grandes; worker dedicado                     |
+| Conflito de chunks durante upload concorrente de mesmo arquivo            | Médio   | Baixa         | Deduplicação por hash (content-addressable); constraint unique no banco; idempotência                                  |
 
 ---
 
 ## Dependências Externas
 
-| Dependência | Tipo | Responsável | Status | Impacto se Atrasar |
-|-------------|------|-------------|--------|---------------------|
-| VPS Contabo | Infra | Douglas Prado | Pendente | Bloqueia deploy de Fase 1 |
-| Domínio DNS | Infra | Douglas Prado | Pendente | Bloqueia discovery de nós e TLS |
-| Bucket AWS S3 ou Cloudflare R2 | Serviço | Douglas Prado | Pendente | Bloqueia storage cloud na Fase 1 |
-| FFmpeg 7+ | Biblioteca | Open source | Disponível | Bloqueia pipeline de vídeo |
-| libvips | Biblioteca | Open source | Disponível | Bloqueia pipeline de fotos |
-| BIP-39 wordlist | Padrão | Open source | Disponível | Bloqueia geração de seed |
-| APIs OAuth (Google, Dropbox, Microsoft) | API | Google/Dropbox/Microsoft | Pendente | Bloqueia integração cloud na Fase 2 |
-| Apple Developer Account | Serviço | Douglas Prado | Pendente | Bloqueia mobile iOS na Fase 3 |
-| Google Play Developer Account | Serviço | Douglas Prado | Pendente | Bloqueia mobile Android na Fase 3 |
+| Dependência                             | Tipo       | Responsável              | Status     | Impacto se Atrasar                  |
+| --------------------------------------- | ---------- | ------------------------ | ---------- | ----------------------------------- |
+| VPS Contabo                             | Infra      | Douglas Prado            | Pendente   | Bloqueia deploy de Fase 1           |
+| Domínio DNS                             | Infra      | Douglas Prado            | Pendente   | Bloqueia discovery de nós e TLS     |
+| Bucket AWS S3 ou Cloudflare R2          | Serviço    | Douglas Prado            | Pendente   | Bloqueia storage cloud na Fase 1    |
+| FFmpeg 7+                               | Biblioteca | Open source              | Disponível | Bloqueia pipeline de vídeo          |
+| libvips                                 | Biblioteca | Open source              | Disponível | Bloqueia pipeline de fotos          |
+| BIP-39 wordlist                         | Padrão     | Open source              | Disponível | Bloqueia geração de seed            |
+| APIs OAuth (Google, Dropbox, Microsoft) | API        | Google/Dropbox/Microsoft | Pendente   | Bloqueia integração cloud na Fase 2 |
+| Apple Developer Account                 | Serviço    | Douglas Prado            | Pendente   | Bloqueia mobile iOS na Fase 3       |
+| Google Play Developer Account           | Serviço    | Douglas Prado            | Pendente   | Bloqueia mobile Android na Fase 3   |

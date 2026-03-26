@@ -10,12 +10,12 @@ Define os repositories, schema do ORM, estrategia de migrations, indices critico
 
 > Quais tecnologias de armazenamento sao usadas e para que?
 
-| Tecnologia | Funcao | Dados | Justificativa |
-| --- | --- | --- | --- |
-| PostgreSQL 18 | Dados transacionais | clusters, members, nodes, files, previews, manifests, chunks, chunk_replicas, vaults, alerts, invites | ACID, JSONB para metadata EXIF, indices GIN (ADR-004) |
-| Redis 7 | Filas e cache | Jobs BullMQ (pipeline midia), pub/sub (eventos internos), cache JWT | Latencia sub-ms; sem dados persistentes de negocio |
-| lru-cache | Cache in-memory | metadata galeria, ConsistentHashRing, status de nos | Hot data sem round-trip ao Redis |
-| StorageProvider (S3/R2/B2/local) | Chunks criptografados | Blocos AES-256-GCM de ~4MB | Interface unificada; durabilidade nos provedores |
+| Tecnologia                       | Funcao                | Dados                                                                                                 | Justificativa                                         |
+| -------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| PostgreSQL 18                    | Dados transacionais   | clusters, members, nodes, files, previews, manifests, chunks, chunk_replicas, vaults, alerts, invites | ACID, JSONB para metadata EXIF, indices GIN (ADR-004) |
+| Redis 7                          | Filas e cache         | Jobs BullMQ (pipeline midia), pub/sub (eventos internos), cache JWT                                   | Latencia sub-ms; sem dados persistentes de negocio    |
+| lru-cache                        | Cache in-memory       | metadata galeria, ConsistentHashRing, status de nos                                                   | Hot data sem round-trip ao Redis                      |
+| StorageProvider (S3/R2/B2/local) | Chunks criptografados | Blocos AES-256-GCM de ~4MB                                                                            | Interface unificada; durabilidade nos provedores      |
 
 <!-- APPEND:persistencia -->
 
@@ -31,12 +31,12 @@ Define os repositories, schema do ORM, estrategia de migrations, indices critico
 
 **Interface:**
 
-| Metodo | Parametros | Retorno | Query Principal |
-| --- | --- | --- | --- |
-| create(data) | CreateClusterData | Cluster | INSERT INTO clusters |
-| findById(id) | UUID | Cluster \| null | SELECT ... WHERE id = $1 |
-| findByClusterId(clusterId) | string | Cluster \| null | SELECT ... WHERE cluster_id = $1 |
-| updateStatus(id, status) | UUID, string | Cluster | UPDATE ... SET status = $1 WHERE id = $2 |
+| Metodo                     | Parametros        | Retorno         | Query Principal                          |
+| -------------------------- | ----------------- | --------------- | ---------------------------------------- |
+| create(data)               | CreateClusterData | Cluster         | INSERT INTO clusters                     |
+| findById(id)               | UUID              | Cluster \| null | SELECT ... WHERE id = $1                 |
+| findByClusterId(clusterId) | string            | Cluster \| null | SELECT ... WHERE cluster_id = $1         |
+| updateStatus(id, status)   | UUID, string      | Cluster         | UPDATE ... SET status = $1 WHERE id = $2 |
 
 ### MemberRepository
 
@@ -44,13 +44,13 @@ Define os repositories, schema do ORM, estrategia de migrations, indices critico
 
 **Interface:**
 
-| Metodo | Parametros | Retorno | Query Principal |
-| --- | --- | --- | --- |
-| create(data) | CreateMemberData | Member | INSERT INTO members |
-| findById(id) | UUID | Member \| null | SELECT ... WHERE id = $1 |
-| findByClusterAndEmail(clusterId, email) | UUID, string | Member \| null | SELECT ... WHERE cluster_id = $1 AND email = $2 |
-| listByCluster(clusterId) | UUID | Member[] | SELECT ... WHERE cluster_id = $1 |
-| countAdmins(clusterId) | UUID | number | SELECT COUNT(*) WHERE cluster_id = $1 AND role = 'admin' |
+| Metodo                                  | Parametros       | Retorno        | Query Principal                                           |
+| --------------------------------------- | ---------------- | -------------- | --------------------------------------------------------- |
+| create(data)                            | CreateMemberData | Member         | INSERT INTO members                                       |
+| findById(id)                            | UUID             | Member \| null | SELECT ... WHERE id = $1                                  |
+| findByClusterAndEmail(clusterId, email) | UUID, string     | Member \| null | SELECT ... WHERE cluster_id = $1 AND email = $2           |
+| listByCluster(clusterId)                | UUID             | Member[]       | SELECT ... WHERE cluster_id = $1                          |
+| countAdmins(clusterId)                  | UUID             | number         | SELECT COUNT(\*) WHERE cluster_id = $1 AND role = 'admin' |
 
 ### NodeRepository
 
@@ -58,17 +58,17 @@ Define os repositories, schema do ORM, estrategia de migrations, indices critico
 
 **Interface:**
 
-| Metodo | Parametros | Retorno | Query Principal |
-| --- | --- | --- | --- |
-| create(data) | CreateNodeData | Node | INSERT INTO nodes |
-| findById(id) | UUID | Node \| null | SELECT ... WHERE id = $1 |
-| listByCluster(clusterId) | UUID | Node[] | SELECT ... WHERE cluster_id = $1 |
-| listOnline(clusterId) | UUID | Node[] | SELECT ... WHERE cluster_id = $1 AND status = 'online' |
-| countOnline(clusterId) | UUID | number | SELECT COUNT(*) WHERE cluster_id = $1 AND status = 'online' |
-| findSuspect() | — | Node[] | SELECT ... WHERE last_heartbeat < NOW() - INTERVAL '30 min' AND status = 'online' |
-| findLost() | — | Node[] | SELECT ... WHERE last_heartbeat < NOW() - INTERVAL '1 hour' AND status = 'suspect' |
-| updateHeartbeat(id) | UUID | Node | UPDATE ... SET last_heartbeat = NOW(), status = 'online' |
-| updateStatus(id, status) | UUID, string | Node | UPDATE ... SET status = $1 |
+| Metodo                   | Parametros     | Retorno      | Query Principal                                                                    |
+| ------------------------ | -------------- | ------------ | ---------------------------------------------------------------------------------- |
+| create(data)             | CreateNodeData | Node         | INSERT INTO nodes                                                                  |
+| findById(id)             | UUID           | Node \| null | SELECT ... WHERE id = $1                                                           |
+| listByCluster(clusterId) | UUID           | Node[]       | SELECT ... WHERE cluster_id = $1                                                   |
+| listOnline(clusterId)    | UUID           | Node[]       | SELECT ... WHERE cluster_id = $1 AND status = 'online'                             |
+| countOnline(clusterId)   | UUID           | number       | SELECT COUNT(\*) WHERE cluster_id = $1 AND status = 'online'                       |
+| findSuspect()            | —              | Node[]       | SELECT ... WHERE last_heartbeat < NOW() - INTERVAL '30 min' AND status = 'online'  |
+| findLost()               | —              | Node[]       | SELECT ... WHERE last_heartbeat < NOW() - INTERVAL '1 hour' AND status = 'suspect' |
+| updateHeartbeat(id)      | UUID           | Node         | UPDATE ... SET last_heartbeat = NOW(), status = 'online'                           |
+| updateStatus(id, status) | UUID, string   | Node         | UPDATE ... SET status = $1                                                         |
 
 ### FileRepository
 
@@ -76,15 +76,15 @@ Define os repositories, schema do ORM, estrategia de migrations, indices critico
 
 **Interface:**
 
-| Metodo | Parametros | Retorno | Query Principal |
-| --- | --- | --- | --- |
-| create(data) | CreateFileData | File | INSERT INTO files |
-| findById(id) | UUID | File \| null | SELECT ... WHERE id = $1 |
-| findByContentHash(clusterId, hash) | UUID, string | File \| null | SELECT ... WHERE cluster_id = $1 AND content_hash = $2 |
-| listReady(clusterId, cursor?, limit?) | UUID, UUID?, number | File[] | SELECT ... WHERE cluster_id = $1 AND status = 'ready' AND id < $2 ORDER BY id DESC LIMIT $3 |
-| listByMember(memberId, cursor?, limit?) | UUID, UUID?, number | File[] | SELECT ... WHERE uploaded_by = $1 AND id < $2 ORDER BY id DESC LIMIT $3 |
-| listByMediaType(clusterId, type, cursor?, limit?) | UUID, string, UUID?, number | File[] | SELECT ... WHERE cluster_id = $1 AND media_type = $2 AND id < $3 ORDER BY id DESC LIMIT $4 |
-| updateStatus(id, status, errorMessage?) | UUID, string, string? | File | UPDATE ... SET status = $1, error_message = $2 |
+| Metodo                                            | Parametros                  | Retorno      | Query Principal                                                                             |
+| ------------------------------------------------- | --------------------------- | ------------ | ------------------------------------------------------------------------------------------- |
+| create(data)                                      | CreateFileData              | File         | INSERT INTO files                                                                           |
+| findById(id)                                      | UUID                        | File \| null | SELECT ... WHERE id = $1                                                                    |
+| findByContentHash(clusterId, hash)                | UUID, string                | File \| null | SELECT ... WHERE cluster_id = $1 AND content_hash = $2                                      |
+| listReady(clusterId, cursor?, limit?)             | UUID, UUID?, number         | File[]       | SELECT ... WHERE cluster_id = $1 AND status = 'ready' AND id < $2 ORDER BY id DESC LIMIT $3 |
+| listByMember(memberId, cursor?, limit?)           | UUID, UUID?, number         | File[]       | SELECT ... WHERE uploaded_by = $1 AND id < $2 ORDER BY id DESC LIMIT $3                     |
+| listByMediaType(clusterId, type, cursor?, limit?) | UUID, string, UUID?, number | File[]       | SELECT ... WHERE cluster_id = $1 AND media_type = $2 AND id < $3 ORDER BY id DESC LIMIT $4  |
+| updateStatus(id, status, errorMessage?)           | UUID, string, string?       | File         | UPDATE ... SET status = $1, error_message = $2                                              |
 
 ### ChunkRepository
 
@@ -92,14 +92,14 @@ Define os repositories, schema do ORM, estrategia de migrations, indices critico
 
 **Interface:**
 
-| Metodo | Parametros | Retorno | Query Principal |
-| --- | --- | --- | --- |
-| findById(id) | string (SHA-256) | Chunk \| null | SELECT ... WHERE id = $1 |
-| create(data) | CreateChunkData | Chunk | INSERT INTO chunks |
-| incrementRef(id) | string | Chunk | UPDATE ... SET reference_count = reference_count + 1 |
-| decrementRef(id) | string | Chunk | UPDATE ... SET reference_count = reference_count - 1 |
-| findOrphans() | — | Chunk[] | SELECT ... WHERE reference_count = 0 |
-| deleteOrphans() | — | number | DELETE FROM chunks WHERE reference_count = 0 |
+| Metodo           | Parametros       | Retorno       | Query Principal                                      |
+| ---------------- | ---------------- | ------------- | ---------------------------------------------------- |
+| findById(id)     | string (SHA-256) | Chunk \| null | SELECT ... WHERE id = $1                             |
+| create(data)     | CreateChunkData  | Chunk         | INSERT INTO chunks                                   |
+| incrementRef(id) | string           | Chunk         | UPDATE ... SET reference_count = reference_count + 1 |
+| decrementRef(id) | string           | Chunk         | UPDATE ... SET reference_count = reference_count - 1 |
+| findOrphans()    | —                | Chunk[]       | SELECT ... WHERE reference_count = 0                 |
+| deleteOrphans()  | —                | number        | DELETE FROM chunks WHERE reference_count = 0         |
 
 ### ChunkReplicaRepository
 
@@ -107,17 +107,17 @@ Define os repositories, schema do ORM, estrategia de migrations, indices critico
 
 **Interface:**
 
-| Metodo | Parametros | Retorno | Query Principal |
-| --- | --- | --- | --- |
-| create(data) | CreateReplicaData | ChunkReplica | INSERT INTO chunk_replicas |
-| countByChunk(chunkId) | string | number | SELECT COUNT(*) WHERE chunk_id = $1 AND status = 'healthy' |
-| listByNode(nodeId) | UUID | ChunkReplica[] | SELECT ... WHERE node_id = $1 |
-| listByChunk(chunkId) | string | ChunkReplica[] | SELECT ... WHERE chunk_id = $1 |
-| findSubReplicated(minReplicas) | number | {chunk_id, count}[] | SELECT chunk_id, COUNT(*) FROM chunk_replicas WHERE status = 'healthy' GROUP BY chunk_id HAVING COUNT(*) < $1 |
-| findUnverified(limit) | number | ChunkReplica[] | SELECT ... ORDER BY verified_at ASC NULLS FIRST LIMIT $1 |
-| updateVerified(id) | UUID | ChunkReplica | UPDATE ... SET verified_at = NOW() |
-| updateStatus(id, status) | UUID, string | ChunkReplica | UPDATE ... SET status = $1 |
-| deleteByNode(nodeId) | UUID | number | DELETE FROM chunk_replicas WHERE node_id = $1 |
+| Metodo                         | Parametros        | Retorno             | Query Principal                                                                                               |
+| ------------------------------ | ----------------- | ------------------- | ------------------------------------------------------------------------------------------------------------- |
+| create(data)                   | CreateReplicaData | ChunkReplica        | INSERT INTO chunk_replicas                                                                                    |
+| countByChunk(chunkId)          | string            | number              | SELECT COUNT(\*) WHERE chunk_id = $1 AND status = 'healthy'                                                   |
+| listByNode(nodeId)             | UUID              | ChunkReplica[]      | SELECT ... WHERE node_id = $1                                                                                 |
+| listByChunk(chunkId)           | string            | ChunkReplica[]      | SELECT ... WHERE chunk_id = $1                                                                                |
+| findSubReplicated(minReplicas) | number            | {chunk_id, count}[] | SELECT chunk_id, COUNT(_) FROM chunk_replicas WHERE status = 'healthy' GROUP BY chunk_id HAVING COUNT(_) < $1 |
+| findUnverified(limit)          | number            | ChunkReplica[]      | SELECT ... ORDER BY verified_at ASC NULLS FIRST LIMIT $1                                                      |
+| updateVerified(id)             | UUID              | ChunkReplica        | UPDATE ... SET verified_at = NOW()                                                                            |
+| updateStatus(id, status)       | UUID, string      | ChunkReplica        | UPDATE ... SET status = $1                                                                                    |
+| deleteByNode(nodeId)           | UUID              | number              | DELETE FROM chunk_replicas WHERE node_id = $1                                                                 |
 
 ### ManifestRepository
 
@@ -125,11 +125,11 @@ Define os repositories, schema do ORM, estrategia de migrations, indices critico
 
 **Interface:**
 
-| Metodo | Parametros | Retorno | Query Principal |
-| --- | --- | --- | --- |
-| create(data) | CreateManifestData | Manifest | INSERT INTO manifests |
-| findByFileId(fileId) | UUID | Manifest \| null | SELECT ... WHERE file_id = $1 |
-| bulkCreate(data) | CreateManifestData[] | number | INSERT INTO manifests ... (recovery bulk insert) |
+| Metodo               | Parametros           | Retorno          | Query Principal                                  |
+| -------------------- | -------------------- | ---------------- | ------------------------------------------------ |
+| create(data)         | CreateManifestData   | Manifest         | INSERT INTO manifests                            |
+| findByFileId(fileId) | UUID                 | Manifest \| null | SELECT ... WHERE file_id = $1                    |
+| bulkCreate(data)     | CreateManifestData[] | number           | INSERT INTO manifests ... (recovery bulk insert) |
 
 ### VaultRepository
 
@@ -137,11 +137,11 @@ Define os repositories, schema do ORM, estrategia de migrations, indices critico
 
 **Interface:**
 
-| Metodo | Parametros | Retorno | Query Principal |
-| --- | --- | --- | --- |
-| create(data) | CreateVaultData | Vault | INSERT INTO vaults |
-| findByMember(memberId) | UUID | Vault \| null | SELECT ... WHERE member_id = $1 |
-| update(memberId, data) | UUID, UpdateVaultData | Vault | UPDATE ... SET vault_data = $1 WHERE member_id = $2 |
+| Metodo                 | Parametros            | Retorno       | Query Principal                                     |
+| ---------------------- | --------------------- | ------------- | --------------------------------------------------- |
+| create(data)           | CreateVaultData       | Vault         | INSERT INTO vaults                                  |
+| findByMember(memberId) | UUID                  | Vault \| null | SELECT ... WHERE member_id = $1                     |
+| update(memberId, data) | UUID, UpdateVaultData | Vault         | UPDATE ... SET vault_data = $1 WHERE member_id = $2 |
 
 ### AlertRepository
 
@@ -149,12 +149,12 @@ Define os repositories, schema do ORM, estrategia de migrations, indices critico
 
 **Interface:**
 
-| Metodo | Parametros | Retorno | Query Principal |
-| --- | --- | --- | --- |
-| create(data) | CreateAlertData | Alert | INSERT INTO alerts |
-| listActive(clusterId) | UUID | Alert[] | SELECT ... WHERE cluster_id = $1 AND resolved = false ORDER BY created_at DESC |
-| listBySeverity(clusterId, severity) | UUID, string | Alert[] | SELECT ... WHERE cluster_id = $1 AND severity = $1 |
-| resolve(id) | UUID | Alert | UPDATE ... SET resolved = true, resolved_at = NOW() |
+| Metodo                              | Parametros      | Retorno | Query Principal                                                                |
+| ----------------------------------- | --------------- | ------- | ------------------------------------------------------------------------------ |
+| create(data)                        | CreateAlertData | Alert   | INSERT INTO alerts                                                             |
+| listActive(clusterId)               | UUID            | Alert[] | SELECT ... WHERE cluster_id = $1 AND resolved = false ORDER BY created_at DESC |
+| listBySeverity(clusterId, severity) | UUID, string    | Alert[] | SELECT ... WHERE cluster_id = $1 AND severity = $1                             |
+| resolve(id)                         | UUID            | Alert   | UPDATE ... SET resolved = true, resolved_at = NOW()                            |
 
 ### InviteRepository
 
@@ -162,13 +162,13 @@ Define os repositories, schema do ORM, estrategia de migrations, indices critico
 
 **Interface:**
 
-| Metodo | Parametros | Retorno | Query Principal |
-| --- | --- | --- | --- |
-| create(data) | CreateInviteData | Invite | INSERT INTO invites |
-| findByToken(token) | string | Invite \| null | SELECT ... WHERE token = $1 AND accepted_at IS NULL AND expires_at > NOW() |
-| findByClusterAndEmail(clusterId, email) | UUID, string | Invite \| null | SELECT ... WHERE cluster_id = $1 AND email = $2 |
-| accept(id) | UUID | Invite | UPDATE ... SET accepted_at = NOW() |
-| deleteExpired() | — | number | DELETE FROM invites WHERE expires_at < NOW() AND accepted_at IS NULL |
+| Metodo                                  | Parametros       | Retorno        | Query Principal                                                            |
+| --------------------------------------- | ---------------- | -------------- | -------------------------------------------------------------------------- |
+| create(data)                            | CreateInviteData | Invite         | INSERT INTO invites                                                        |
+| findByToken(token)                      | string           | Invite \| null | SELECT ... WHERE token = $1 AND accepted_at IS NULL AND expires_at > NOW() |
+| findByClusterAndEmail(clusterId, email) | UUID, string     | Invite \| null | SELECT ... WHERE cluster_id = $1 AND email = $2                            |
+| accept(id)                              | UUID             | Invite         | UPDATE ... SET accepted_at = NOW()                                         |
+| deleteExpired()                         | —                | number         | DELETE FROM invites WHERE expires_at < NOW() AND accepted_at IS NULL       |
 
 <!-- APPEND:repositories -->
 
@@ -433,14 +433,14 @@ model Invite {
 
 <!-- do blueprint: 05-data-model.md (estrategia de migracao) -->
 
-| Aspecto | Decisao |
-| --- | --- |
-| Ferramenta | Prisma Migrate (`prisma migrate deploy`) |
-| Convencao de nomes | `YYYYMMDDHHMMSS_descricao_em_snake_case` (ex: `20260315120000_create_clusters_table`) |
-| Rollback | Cada migration "up" tem "down" correspondente; rollback via `prisma migrate reset` |
-| Ambientes | Dev: `prisma migrate dev` (auto-apply); Prod: `prisma migrate deploy` (CI) |
-| Dados de seed | Apenas em dev (`prisma db seed`); nunca em prod |
-| Zero-downtime | ADD COLUMN + CREATE INDEX CONCURRENTLY sem interrupcao; DROP COLUMN apos 1 release deprecated |
+| Aspecto            | Decisao                                                                                       |
+| ------------------ | --------------------------------------------------------------------------------------------- |
+| Ferramenta         | Prisma Migrate (`prisma migrate deploy`)                                                      |
+| Convencao de nomes | `YYYYMMDDHHMMSS_descricao_em_snake_case` (ex: `20260315120000_create_clusters_table`)         |
+| Rollback           | Cada migration "up" tem "down" correspondente; rollback via `prisma migrate reset`            |
+| Ambientes          | Dev: `prisma migrate dev` (auto-apply); Prod: `prisma migrate deploy` (CI)                    |
+| Dados de seed      | Apenas em dev (`prisma db seed`); nunca em prod                                               |
+| Zero-downtime      | ADD COLUMN + CREATE INDEX CONCURRENTLY sem interrupcao; DROP COLUMN apos 1 release deprecated |
 
 ---
 
@@ -450,18 +450,18 @@ model Invite {
 
 <!-- do blueprint: 05-data-model.md (queries criticas) -->
 
-| Descricao | Tabelas | Frequencia | SLA (p95) | Otimizacao |
-| --- | --- | --- | --- | --- |
-| Listar arquivos ready do cluster (galeria) | files | Alta — toda abertura de galeria | < 100ms | idx_files_cluster_status + cursor por id |
-| Buscar arquivo por content_hash (dedup) | files | Alta — todo upload | < 50ms | idx_files_content_hash (BTREE) |
-| Contar replicas por chunk (fator 3x) | chunk_replicas | Alta — distribuicao e auto-healing | < 50ms | idx_chunk_replicas_chunk + COUNT |
-| Listar chunks de um no (drain/healing) | chunk_replicas | Media — no removido/perdido | < 200ms | idx_chunk_replicas_node |
-| Buscar nos com heartbeat atrasado | nodes | Media — scheduler cada 5min | < 100ms | idx_nodes_last_heartbeat |
-| Buscar replicas nao verificadas (scrubbing) | chunk_replicas | Media — scheduler periodico | < 200ms | idx_chunk_replicas_verified (NULLS FIRST) |
-| Listar alertas ativos (dashboard) | alerts | Media — refresh dashboard | < 100ms | idx_alerts_cluster_resolved |
-| Reassemblar arquivo (manifest + chunks) | manifests, manifest_chunks | Media — download | < 100ms | idx_manifests_file_id (UNIQUE) |
-| Buscar membro por email (login) | members | Alta — autenticacao | < 50ms | idx_members_cluster_email (UNIQUE) |
-| Contar nos ativos (validacao minimo 3) | nodes | Alta — todo upload | < 50ms | idx_nodes_cluster_status |
+| Descricao                                   | Tabelas                    | Frequencia                         | SLA (p95) | Otimizacao                                |
+| ------------------------------------------- | -------------------------- | ---------------------------------- | --------- | ----------------------------------------- |
+| Listar arquivos ready do cluster (galeria)  | files                      | Alta — toda abertura de galeria    | < 100ms   | idx_files_cluster_status + cursor por id  |
+| Buscar arquivo por content_hash (dedup)     | files                      | Alta — todo upload                 | < 50ms    | idx_files_content_hash (BTREE)            |
+| Contar replicas por chunk (fator 3x)        | chunk_replicas             | Alta — distribuicao e auto-healing | < 50ms    | idx_chunk_replicas_chunk + COUNT          |
+| Listar chunks de um no (drain/healing)      | chunk_replicas             | Media — no removido/perdido        | < 200ms   | idx_chunk_replicas_node                   |
+| Buscar nos com heartbeat atrasado           | nodes                      | Media — scheduler cada 5min        | < 100ms   | idx_nodes_last_heartbeat                  |
+| Buscar replicas nao verificadas (scrubbing) | chunk_replicas             | Media — scheduler periodico        | < 200ms   | idx_chunk_replicas_verified (NULLS FIRST) |
+| Listar alertas ativos (dashboard)           | alerts                     | Media — refresh dashboard          | < 100ms   | idx_alerts_cluster_resolved               |
+| Reassemblar arquivo (manifest + chunks)     | manifests, manifest_chunks | Media — download                   | < 100ms   | idx_manifests_file_id (UNIQUE)            |
+| Buscar membro por email (login)             | members                    | Alta — autenticacao                | < 50ms    | idx_members_cluster_email (UNIQUE)        |
+| Contar nos ativos (validacao minimo 1)      | nodes                      | Alta — todo upload                 | < 50ms    | idx_nodes_cluster_status                  |
 
 <!-- APPEND:queries -->
 
@@ -471,13 +471,13 @@ model Invite {
 
 > Como transacoes e consistencia sao tratadas?
 
-| Cenario | Tipo | Estrategia |
-| --- | --- | --- |
-| Criar arquivo + chunks + replicas | Transacao local | Prisma `$transaction([])` — atomico |
-| Criar cluster + admin + vault | Transacao local | Prisma `$transaction([])` — atomico |
-| Drain: migrar chunks + remover no | Transacao local por batch | Prisma `$transaction` por batch de chunks |
-| Pipeline midia → atualizar status | Eventual | Worker atualiza status apos processamento; se falhar, status fica "processing" |
-| Cache (lru-cache) + banco | Eventual | Event-driven: invalidar cache quando dados mudam via pub/sub |
+| Cenario                           | Tipo                      | Estrategia                                                                     |
+| --------------------------------- | ------------------------- | ------------------------------------------------------------------------------ |
+| Criar arquivo + chunks + replicas | Transacao local           | Prisma `$transaction([])` — atomico                                            |
+| Criar cluster + admin + vault     | Transacao local           | Prisma `$transaction([])` — atomico                                            |
+| Drain: migrar chunks + remover no | Transacao local por batch | Prisma `$transaction` por batch de chunks                                      |
+| Pipeline midia → atualizar status | Eventual                  | Worker atualiza status apos processamento; se falhar, status fica "processing" |
+| Cache (lru-cache) + banco         | Eventual                  | Event-driven: invalidar cache quando dados mudam via pub/sub                   |
 
 **Idempotencia:** Chunks sao content-addressable (SHA-256 = PK). Upload do mesmo conteudo reutiliza chunks existentes. Heartbeat e idempotente (UPDATE last_heartbeat).
 

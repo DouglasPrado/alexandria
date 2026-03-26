@@ -12,13 +12,13 @@ Define eventos de dominio, filas, workers assincronos, schemas de payload e estr
 
 > Qual tecnologia e padrao de mensageria o sistema usa?
 
-| Aspecto | Decisao |
-| --- | --- |
-| Message Broker | BullMQ (@nestjs/bullmq) |
-| Padrao | Queue (jobs) + Redis pub/sub (notificacoes real-time) |
-| Storage | Redis 7 |
-| Formato | JSON |
-| Idempotencia | Por eventId (UUID) + dedup no consumer |
+| Aspecto        | Decisao                                               |
+| -------------- | ----------------------------------------------------- |
+| Message Broker | BullMQ (@nestjs/bullmq)                               |
+| Padrao         | Queue (jobs) + Redis pub/sub (notificacoes real-time) |
+| Storage        | Redis 7                                               |
+| Formato        | JSON                                                  |
+| Idempotencia   | Por eventId (UUID) + dedup no consumer                |
 
 ---
 
@@ -26,22 +26,22 @@ Define eventos de dominio, filas, workers assincronos, schemas de payload e estr
 
 > Quais eventos existem, quem produz e quem consome?
 
-| Evento | Produtor | Consumidor(es) | Fila/Topico | Retry | DLQ |
-| --- | --- | --- | --- | --- | --- |
-| ClusterCreated | ClusterService | — (log only) | — (Redis pub/sub) | — | — |
-| ClusterRecovered | ClusterService | EmailWorker | email.send | 3x, backoff 2^n | email.send.dlq |
-| MemberJoined | MemberService | EmailWorker | email.send | 3x, backoff 2^n | email.send.dlq |
-| MemberRemoved | MemberService | — (log only) | — | — | — |
-| NodeRegistered | NodeService | — (Redis pub/sub) | — | — | — |
-| NodeSuspect | SchedulerService | — (log only) | — | — | — |
-| NodeLost | SchedulerService | AutoHealWorker, EmailWorker | healing.process, email.send | 5x backoff 2^n, 3x backoff 2^n | healing.dlq, email.send.dlq |
-| NodeDrained | NodeService | — (log only) | — | — | — |
-| FileUploaded | FileService | PhotoWorker OR VideoWorker | media.photos OR media.videos | 3x, backoff 2^n | media.dlq |
-| FileProcessed | PhotoWorker/VideoWorker | — (Redis pub/sub para UI) | — | — | — |
-| FileError | PhotoWorker/VideoWorker | EmailWorker | email.send | 3x, backoff 2^n | email.send.dlq |
-| FileCorrupted | HealthService | EmailWorker | email.send | 3x, backoff 2^n | email.send.dlq |
-| AlertCreated | HealthService | EmailWorker (se severity=critical) | email.send | 3x, backoff 2^n | email.send.dlq |
-| AlertResolved | HealthService | — (Redis pub/sub) | — | — | — |
+| Evento           | Produtor                | Consumidor(es)                     | Fila/Topico                  | Retry                          | DLQ                         |
+| ---------------- | ----------------------- | ---------------------------------- | ---------------------------- | ------------------------------ | --------------------------- |
+| ClusterCreated   | ClusterService          | — (log only)                       | — (Redis pub/sub)            | —                              | —                           |
+| ClusterRecovered | ClusterService          | EmailWorker                        | email.send                   | 3x, backoff 2^n                | email.send.dlq              |
+| MemberJoined     | MemberService           | EmailWorker                        | email.send                   | 3x, backoff 2^n                | email.send.dlq              |
+| MemberRemoved    | MemberService           | — (log only)                       | —                            | —                              | —                           |
+| NodeRegistered   | NodeService             | — (Redis pub/sub)                  | —                            | —                              | —                           |
+| NodeSuspect      | SchedulerService        | — (log only)                       | —                            | —                              | —                           |
+| NodeLost         | SchedulerService        | AutoHealWorker, EmailWorker        | healing.process, email.send  | 5x backoff 2^n, 3x backoff 2^n | healing.dlq, email.send.dlq |
+| NodeDrained      | NodeService             | — (log only)                       | —                            | —                              | —                           |
+| FileUploaded     | FileService             | PhotoWorker OR VideoWorker         | media.photos OR media.videos | 3x, backoff 2^n                | media.dlq                   |
+| FileProcessed    | PhotoWorker/VideoWorker | — (Redis pub/sub para UI)          | —                            | —                              | —                           |
+| FileError        | PhotoWorker/VideoWorker | EmailWorker                        | email.send                   | 3x, backoff 2^n                | email.send.dlq              |
+| FileCorrupted    | HealthService           | EmailWorker                        | email.send                   | 3x, backoff 2^n                | email.send.dlq              |
+| AlertCreated     | HealthService           | EmailWorker (se severity=critical) | email.send                   | 3x, backoff 2^n                | email.send.dlq              |
+| AlertResolved    | HealthService           | — (Redis pub/sub)                  | —                            | —                              | —                           |
 
 ---
 
@@ -164,12 +164,12 @@ Todos os eventos seguem o envelope padrao abaixo. O campo `payload` varia por ti
 
 > Quais workers processam filas? Documente concorrencia, timeout e retry.
 
-| Worker | Fila | Funcao | Concorrencia | Timeout | Retry | DLQ |
-| --- | --- | --- | --- | --- | --- | --- |
-| PhotoWorker | media.photos | libvips resize WebP 1920px + gerar thumbnail + extrair EXIF + chunk + encrypt + distribute | 3 | 60s | 3x, backoff 2^n | media.dlq |
-| VideoWorker | media.videos | FFmpeg 1080p H.265/AV1 + gerar preview 480p + extrair metadata + chunk + encrypt + distribute | 1 | 600s (10min) | 3x, backoff 2^n | media.dlq |
-| EmailWorker | email.send | Enviar email via Resend SDK | 5 | 30s | 3x, linear 30s | email.send.dlq |
-| AutoHealWorker | healing.process | Re-replicar chunks de node perdido para nodes saudaveis | 1 | 3600s (1h) | 5x, backoff 2^n | healing.dlq |
+| Worker         | Fila            | Funcao                                                                                        | Concorrencia | Timeout      | Retry           | DLQ            |
+| -------------- | --------------- | --------------------------------------------------------------------------------------------- | ------------ | ------------ | --------------- | -------------- |
+| PhotoWorker    | media.photos    | libvips resize WebP 1920px + gerar thumbnail + extrair EXIF + chunk + encrypt + distribute    | 3            | 60s          | 3x, backoff 2^n | media.dlq      |
+| VideoWorker    | media.videos    | FFmpeg 1080p H.265/AV1 + gerar preview 480p + extrair metadata + chunk + encrypt + distribute | 1            | 600s (10min) | 3x, backoff 2^n | media.dlq      |
+| EmailWorker    | email.send      | Enviar email via Resend SDK                                                                   | 5            | 30s          | 3x, linear 30s  | email.send.dlq |
+| AutoHealWorker | healing.process | Re-replicar chunks de node perdido para nodes saudaveis                                       | 1            | 3600s (1h)   | 5x, backoff 2^n | healing.dlq    |
 
 ---
 
@@ -177,11 +177,11 @@ Todos os eventos seguem o envelope padrao abaixo. O campo `payload` varia por ti
 
 > Como retries sao configurados?
 
-| Estrategia | Descricao | Quando Usar |
-| --- | --- | --- |
-| Backoff exponencial | 1s, 2s, 4s, 8s, 16s... | Servicos externos (S3/R2/B2, APIs), workers de media |
-| Backoff linear | 30s, 60s, 90s... | Email (Resend) |
-| Imediato | Retry sem delay | Erros transientes de banco (deadlock, connection reset) |
+| Estrategia          | Descricao              | Quando Usar                                             |
+| ------------------- | ---------------------- | ------------------------------------------------------- |
+| Backoff exponencial | 1s, 2s, 4s, 8s, 16s... | Servicos externos (S3/R2/B2, APIs), workers de media    |
+| Backoff linear      | 30s, 60s, 90s...       | Email (Resend)                                          |
+| Imediato            | Retry sem delay        | Erros transientes de banco (deadlock, connection reset) |
 
 **Dead Letter Queue:** Apos esgotar retries, o evento vai para a DLQ correspondente. Um alerta e gerado automaticamente (AlertCreated com severity=warning). A DLQ e revisada manualmente pelo admin via dashboard ou CLI.
 
@@ -191,19 +191,20 @@ Todos os eventos seguem o envelope padrao abaixo. O campo `payload` varia por ti
 
 > Tarefas agendadas via @nestjs/schedule.
 
-| Job | Frequencia | Funcao | Timeout |
-| --- | --- | --- | --- |
-| HeartbeatCheck | A cada 5 min | Encontrar nodes suspect/lost, atualizar status, emitir NodeSuspect/NodeLost | 60s |
-| Scrubbing | Diario as 03:00 | Verificar lote de 1000 replicas de chunks (recalculo SHA-256) | 7200s (2h) |
-| GarbageCollection | Diario as 04:00 | Encontrar e deletar chunks orfaos (reference_count = 0) | 3600s (1h) |
-| CleanExpiredInvites | Diario as 05:00 | Deletar convites expirados | 60s |
-| AlertCleanup | Semanal domingo 06:00 | Deletar alertas resolvidos com mais de 90 dias | 300s |
+| Job                 | Frequencia            | Funcao                                                                      | Timeout    |
+| ------------------- | --------------------- | --------------------------------------------------------------------------- | ---------- |
+| HeartbeatCheck      | A cada 5 min          | Encontrar nodes suspect/lost, atualizar status, emitir NodeSuspect/NodeLost | 60s        |
+| Scrubbing           | Diario as 03:00       | Verificar lote de 1000 replicas de chunks (recalculo SHA-256)               | 7200s (2h) |
+| GarbageCollection   | Diario as 04:00       | Encontrar e deletar chunks orfaos (reference_count = 0)                     | 3600s (1h) |
+| CleanExpiredInvites | Diario as 05:00       | Deletar convites expirados                                                  | 60s        |
+| AlertCleanup        | Semanal domingo 06:00 | Deletar alertas resolvidos com mais de 90 dias                              | 300s       |
 
 > (ver [13-integrations.md](13-integrations.md) para clients de APIs externas)
 
 ---
 
 <!-- added: opensource -->
+
 ## Event System for Contributors
 
 - **Adding new events**: create event class in `src/domain/events/` following `PascalCase` + `Event` suffix (e.g., `ChunkExpiredEvent`); register in the event registry; document schema in this file

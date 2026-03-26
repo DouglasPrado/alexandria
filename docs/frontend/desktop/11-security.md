@@ -8,13 +8,13 @@ Define o modelo de seguranca do frontend desktop, cobrindo autenticacao, proteca
 
 > Como o frontend desktop gerencia autenticacao?
 
-| Aspecto | Implementacao |
-|---------|---------------|
-| Tipo de autenticacao | JWT assinado com chave do cluster (Ed25519); sem senhas — acesso via convite + vault unlock |
-| Armazenamento do token | `safeStorage.encryptString()` → electron-store key `auth.token`; nunca em texto puro em disco |
-| Refresh token strategy | JWT re-emitido automaticamente quando valido e com < 1h restante; vault deve estar desbloqueado |
-| Expiracao | 24h (alinhado com `13-security.md`); sessao encerrada se vault for bloqueado antes disso |
-| Logout | Limpa `auth.token` do electron-store + zera Zustand stores em memoria + POST `/auth/logout` no orquestrador |
+| Aspecto                | Implementacao                                                                                               |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Tipo de autenticacao   | JWT assinado com chave do cluster (Ed25519); sem senhas — acesso via convite + vault unlock                 |
+| Armazenamento do token | `safeStorage.encryptString()` → electron-store key `auth.token`; nunca em texto puro em disco               |
+| Refresh token strategy | JWT re-emitido automaticamente quando valido e com < 1h restante; vault deve estar desbloqueado             |
+| Expiracao              | 24h (alinhado com `13-security.md`); sessao encerrada se vault for bloqueado antes disso                    |
+| Logout                 | Limpa `auth.token` do electron-store + zera Zustand stores em memoria + POST `/auth/logout` no orquestrador |
 
 <details>
 <summary>Exemplo — Armazenamento seguro com safeStorage (Electron)</summary>
@@ -57,22 +57,22 @@ function getToken(): string | null {
 
 ### Context Isolation e Sandbox
 
-| Configuracao | Valor Recomendado | Descricao |
-|-------------|-------------------|-----------|
-| `contextIsolation` | `true` | Isola contexto do preload do renderer |
-| `sandbox` | `true` | Restringe acesso do renderer a APIs do Node.js |
-| `nodeIntegration` | `false` | Desabilita Node.js no renderer |
-| `webSecurity` | `true` | Mantem politicas de seguranca web |
-| `allowRunningInsecureContent` | `false` | Bloqueia conteudo HTTP em HTTPS |
+| Configuracao                  | Valor Recomendado | Descricao                                      |
+| ----------------------------- | ----------------- | ---------------------------------------------- |
+| `contextIsolation`            | `true`            | Isola contexto do preload do renderer          |
+| `sandbox`                     | `true`            | Restringe acesso do renderer a APIs do Node.js |
+| `nodeIntegration`             | `false`           | Desabilita Node.js no renderer                 |
+| `webSecurity`                 | `true`            | Mantem politicas de seguranca web              |
+| `allowRunningInsecureContent` | `false`           | Bloqueia conteudo HTTP em HTTPS                |
 
 ### Secure IPC (Validacao de Mensagens)
 
-| Aspecto | Implementacao |
-|---------|---------------|
-| Canais tipados | Todos os canais IPC definidos em `shared/ipc-channels.ts` com tipos |
-| Validacao de payload | Zod schemas para validar entrada de cada handler |
-| Whitelist de canais | Preload expoe apenas canais permitidos via `contextBridge` |
-| Rate limiting | Limitar frequencia de chamadas IPC do renderer |
+| Aspecto              | Implementacao                                                       |
+| -------------------- | ------------------------------------------------------------------- |
+| Canais tipados       | Todos os canais IPC definidos em `shared/ipc-channels.ts` com tipos |
+| Validacao de payload | Zod schemas para validar entrada de cada handler                    |
+| Whitelist de canais  | Preload expoe apenas canais permitidos via `contextBridge`          |
+| Rate limiting        | Limitar frequencia de chamadas IPC do renderer                      |
 
 <details>
 <summary>Exemplo — Preload seguro com contextBridge</summary>
@@ -83,18 +83,34 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 // Whitelist explicita de canais Alexandria
 const ALLOWED_CHANNELS = [
-  'vault:unlock', 'vault:lock', 'vault:status',
-  'file:list', 'file:download', 'file:upload-batch',
-  'sync:start', 'sync:stop', 'sync:add-folder', 'sync:remove-folder',
-  'cluster:health', 'cluster:nodes-list',
-  'node:register', 'node:drain',
-  'settings:get', 'settings:set',
-  'app:get-version', 'app:get-metrics',
+  'vault:unlock',
+  'vault:lock',
+  'vault:status',
+  'file:list',
+  'file:download',
+  'file:upload-batch',
+  'sync:start',
+  'sync:stop',
+  'sync:add-folder',
+  'sync:remove-folder',
+  'cluster:health',
+  'cluster:nodes-list',
+  'node:register',
+  'node:drain',
+  'settings:get',
+  'settings:set',
+  'app:get-version',
+  'app:get-metrics',
 ] as const;
 const ALLOWED_EVENTS = [
-  'app:update-available', 'sync:progress', 'sync:queue-update',
-  'node:status-changed', 'file:ready', 'cluster:alert-fired',
-  'app:online-status', 'app:theme-changed',
+  'app:update-available',
+  'sync:progress',
+  'sync:queue-update',
+  'node:status-changed',
+  'file:ready',
+  'cluster:alert-fired',
+  'app:online-status',
+  'app:theme-changed',
 ] as const;
 
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -121,16 +137,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 > Quais protecoes estao implementadas?
 
-| Vulnerabilidade | Protecao | Implementacao |
-|-----------------|----------|---------------|
-| XSS (Cross-Site Scripting) | Sanitizacao de inputs, escape de output | React auto-escapa output por padrao; DOMPurify para qualquer HTML dinamico (ex: preview de doc) |
-| Remote Code Execution | Sandbox + context isolation | `nodeIntegration: false`, `sandbox: true`, `contextIsolation: true` em todas as janelas |
-| Prototype Pollution | Validacao de payloads IPC | Zod schemas validam entrada de cada handler; `Object.freeze` em constantes criticas |
-| Path Traversal | Validacao de caminhos de arquivo | Main process valida que paths estao dentro de `userData`, `downloads` ou pastas selecionadas pelo usuario |
-| Clickjacking | Frame protection | `webPreferences.webSecurity: true`; CSP `frame-ancestors 'none'` |
-| Injection | Validacao de inputs | Zod schemas em todos os handlers IPC; Prisma type-safe elimina SQL injection no orquestrador |
-| Sensitive Data Exposure | Encriptacao de dados em disco | JWT via `safeStorage` (OS keychain); vault em arquivo AES-256-GCM separado; secrets nunca em texto puro |
-| Supply Chain Attack | Lockfile + auditoria de dependencias | `pnpm-lock.yaml` commitado; `pnpm audit` no CI; Dependabot para alertas de vulnerabilidades |
+| Vulnerabilidade            | Protecao                                | Implementacao                                                                                             |
+| -------------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| XSS (Cross-Site Scripting) | Sanitizacao de inputs, escape de output | React auto-escapa output por padrao; DOMPurify para qualquer HTML dinamico (ex: preview de doc)           |
+| Remote Code Execution      | Sandbox + context isolation             | `nodeIntegration: false`, `sandbox: true`, `contextIsolation: true` em todas as janelas                   |
+| Prototype Pollution        | Validacao de payloads IPC               | Zod schemas validam entrada de cada handler; `Object.freeze` em constantes criticas                       |
+| Path Traversal             | Validacao de caminhos de arquivo        | Main process valida que paths estao dentro de `userData`, `downloads` ou pastas selecionadas pelo usuario |
+| Clickjacking               | Frame protection                        | `webPreferences.webSecurity: true`; CSP `frame-ancestors 'none'`                                          |
+| Injection                  | Validacao de inputs                     | Zod schemas em todos os handlers IPC; Prisma type-safe elimina SQL injection no orquestrador              |
+| Sensitive Data Exposure    | Encriptacao de dados em disco           | JWT via `safeStorage` (OS keychain); vault em arquivo AES-256-GCM separado; secrets nunca em texto puro   |
+| Supply Chain Attack        | Lockfile + auditoria de dependencias    | `pnpm-lock.yaml` commitado; `pnpm audit` no CI; Dependabot para alertas de vulnerabilidades               |
 
 <!-- APPEND:vulnerabilidades -->
 
@@ -167,11 +183,11 @@ Content-Security-Policy:
 
 > A aplicacao e assinada digitalmente?
 
-| Plataforma | Ferramenta | Certificado | Descricao |
-|------------|-----------|-------------|-----------|
-| Windows | SignTool via electron-builder | Code Signing Certificate (Standard OV para distribuicao interna familiar; EV se publicar na Microsoft Store) | Assinatura Authenticode para .exe e NSIS installer |
-| macOS | codesign + notarytool via electron-builder | Apple Developer ID Application ($99/ano) + notarization obrigatoria para macOS 15+ | Assinatura + notarization evita bloqueio do Gatekeeper |
-| Linux | GPG via electron-builder | Chave GPG do projeto (Douglas Prado) | Assinatura de .deb, .rpm e AppImage; verificavel por `gpg --verify` |
+| Plataforma | Ferramenta                                 | Certificado                                                                                                  | Descricao                                                           |
+| ---------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| Windows    | SignTool via electron-builder              | Code Signing Certificate (Standard OV para distribuicao interna familiar; EV se publicar na Microsoft Store) | Assinatura Authenticode para .exe e NSIS installer                  |
+| macOS      | codesign + notarytool via electron-builder | Apple Developer ID Application ($99/ano) + notarization obrigatoria para macOS 15+                           | Assinatura + notarization evita bloqueio do Gatekeeper              |
+| Linux      | GPG via electron-builder                   | Chave GPG do projeto (Douglas Prado)                                                                         | Assinatura de .deb, .rpm e AppImage; verificavel por `gpg --verify` |
 
 > Aplicacoes nao assinadas geram alertas de seguranca no OS e podem ser bloqueadas pelo SmartScreen (Windows) ou Gatekeeper (macOS).
 
@@ -181,13 +197,13 @@ Content-Security-Policy:
 
 > Como garantimos que atualizacoes sao autenticas?
 
-| Aspecto | Implementacao |
-|---------|---------------|
-| Canal de distribuicao | GitHub Releases (`electron-updater` com `provider: 'github'`); publico e verificavel |
-| Verificacao de assinatura | `electron-updater` verifica assinatura do binario automaticamente (usando certificado embutido no app) |
-| HTTPS obrigatorio | Sim — `electron-updater` rejeita downloads via HTTP |
-| Rollback | Versao anterior mantida em cache local; rollback manual se nova versao falhar ao iniciar |
-| Verificacao de integridade | `electron-updater` gera e verifica SHA-512 checksum de cada artefato de update |
+| Aspecto                    | Implementacao                                                                                          |
+| -------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Canal de distribuicao      | GitHub Releases (`electron-updater` com `provider: 'github'`); publico e verificavel                   |
+| Verificacao de assinatura  | `electron-updater` verifica assinatura do binario automaticamente (usando certificado embutido no app) |
+| HTTPS obrigatorio          | Sim — `electron-updater` rejeita downloads via HTTP                                                    |
+| Rollback                   | Versao anterior mantida em cache local; rollback manual se nova versao falhar ao iniciar               |
+| Verificacao de integridade | `electron-updater` gera e verifica SHA-512 checksum de cada artefato de update                         |
 
 ---
 
@@ -195,12 +211,12 @@ Content-Security-Policy:
 
 > Como controlamos o acesso ao file system?
 
-| Regra | Implementacao |
-|-------|---------------|
-| Renderer nunca acessa FS diretamente | Todas as operacoes via IPC para o main process |
-| Paths sao validados no main | Verificar que o path esta dentro de diretorios permitidos |
-| Diretorios permitidos | `app.getPath('userData')`, `app.getPath('downloads')`, paths selecionados pelo usuario via dialog |
-| Operacoes de escrita logadas | Registrar toda operacao de escrita no file system |
+| Regra                                | Implementacao                                                                                     |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| Renderer nunca acessa FS diretamente | Todas as operacoes via IPC para o main process                                                    |
+| Paths sao validados no main          | Verificar que o path esta dentro de diretorios permitidos                                         |
+| Diretorios permitidos                | `app.getPath('userData')`, `app.getPath('downloads')`, paths selecionados pelo usuario via dialog |
+| Operacoes de escrita logadas         | Registrar toda operacao de escrita no file system                                                 |
 
 ---
 
@@ -227,8 +243,8 @@ Content-Security-Policy:
 
 ## Historico de Decisoes
 
-| Data | Decisao | Motivo |
-|------|---------|--------|
+| Data       | Decisao                                                 | Motivo                                                                                                                                               |
+| ---------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 2026-03-24 | `safeStorage` para JWT em vez de keychain nativo direto | API Electron abstrai OS keychain (macOS), DPAPI (Windows) e libsecret (Linux) sem dependencias nativas extras; integra com electron-store via base64 |
-| 2026-03-24 | `connect-src 'none'` no CSP do renderer | Renderer nao faz fetch direto — toda comunicacao e via IPC. CSP mais restritiva elimina superficie de SSRF/exfiltration no renderer |
-| 2026-03-24 | GitHub Releases como canal de auto-update | Distribuicao publica e auditavel; electron-updater tem suporte nativo; sem custo de infraestrutura adicional para projeto familiar open-source |
+| 2026-03-24 | `connect-src 'none'` no CSP do renderer                 | Renderer nao faz fetch direto — toda comunicacao e via IPC. CSP mais restritiva elimina superficie de SSRF/exfiltration no renderer                  |
+| 2026-03-24 | GitHub Releases como canal de auto-update               | Distribuicao publica e auditavel; electron-updater tem suporte nativo; sem custo de infraestrutura adicional para projeto familiar open-source       |

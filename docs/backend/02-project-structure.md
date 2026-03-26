@@ -114,6 +114,7 @@ alexandria/                          # Raiz do monorepo
 ```
 
 <!-- added: opensource -->
+
 ### Contributor Directory Guide
 
 - **Where to add new features**: domain modules go in `src/modules/your-feature/`; shared utilities in `src/shared/`; new storage adapters in `src/infrastructure/storage/adapters/`
@@ -129,23 +130,23 @@ alexandria/                          # Raiz do monorepo
 
 > Como arquivos e pastas sao nomeados?
 
-| Tipo | Convencao | Exemplo |
-| --- | --- | --- |
-| Modulo NestJS | kebab-case + .module.ts | cluster.module.ts |
-| Controller | kebab-case + .controller.ts | cluster.controller.ts |
-| Service | kebab-case + .service.ts | cluster.service.ts |
-| Repository | kebab-case + .repository.ts | member.repository.ts |
-| DTO | PascalCase + sufixo Dto | CreateClusterDto, ClusterResponseDto |
-| Guard | PascalCase + Guard | JwtAuthGuard, RolesGuard |
-| Interceptor | PascalCase + Interceptor | LoggingInterceptor |
-| Pipe | PascalCase + Pipe | ValidationPipe |
-| Filter | PascalCase + Filter | GlobalExceptionFilter |
-| Worker | kebab-case + .worker.ts | photo.worker.ts, video.worker.ts |
-| Decorator | PascalCase + decorator | @CurrentMember(), @Roles() |
-| Evento | PascalCase passado | ClusterCreated, FileProcessed |
-| Erro | PascalCase + Error | ClusterNotFoundError, InsufficientNodesError |
-| Teste | arquivo.spec.ts | cluster.service.spec.ts |
-| Migration | YYYYMMDDHHMMSS_descricao | 20260315120000_create_clusters_table |
+| Tipo          | Convencao                   | Exemplo                                      |
+| ------------- | --------------------------- | -------------------------------------------- |
+| Modulo NestJS | kebab-case + .module.ts     | cluster.module.ts                            |
+| Controller    | kebab-case + .controller.ts | cluster.controller.ts                        |
+| Service       | kebab-case + .service.ts    | cluster.service.ts                           |
+| Repository    | kebab-case + .repository.ts | member.repository.ts                         |
+| DTO           | PascalCase + sufixo Dto     | CreateClusterDto, ClusterResponseDto         |
+| Guard         | PascalCase + Guard          | JwtAuthGuard, RolesGuard                     |
+| Interceptor   | PascalCase + Interceptor    | LoggingInterceptor                           |
+| Pipe          | PascalCase + Pipe           | ValidationPipe                               |
+| Filter        | PascalCase + Filter         | GlobalExceptionFilter                        |
+| Worker        | kebab-case + .worker.ts     | photo.worker.ts, video.worker.ts             |
+| Decorator     | PascalCase + decorator      | @CurrentMember(), @Roles()                   |
+| Evento        | PascalCase passado          | ClusterCreated, FileProcessed                |
+| Erro          | PascalCase + Error          | ClusterNotFoundError, InsufficientNodesError |
+| Teste         | arquivo.spec.ts             | cluster.service.spec.ts                      |
+| Migration     | YYYYMMDDHHMMSS_descricao    | 20260315120000_create_clusters_table         |
 
 <!-- APPEND:nomenclatura -->
 
@@ -175,18 +176,18 @@ src/modules/{modulo}/
 
 > Quais arquivos de configuracao existem na raiz do projeto?
 
-| Arquivo | Proposito |
-| --- | --- |
-| package.json | Scripts root: `pnpm dev`, `pnpm build`, `pnpm test`, `pnpm lint` |
-| pnpm-workspace.yaml | Define packages: core-sdk, orchestrator, node-agent |
-| tsconfig.json | TypeScript base config (strict, ESNext, paths) |
-| .env.example | Template: DATABASE_URL, REDIS_URL, JWT_SECRET, RESEND_API_KEY |
-| docker-compose.yml | Producao: orchestrator + PG18 + Redis 7 + web + Caddy |
-| docker-compose.dev.yml | Dev: PG18 + Redis 7 |
-| Dockerfile | Multi-stage build (pnpm install → build → prune) |
-| .eslintrc.js | ESLint + @typescript-eslint + Prettier |
-| .prettierrc | Prettier config (singleQuote, trailingComma, semi) |
-| jest.config.ts | Jest com ts-jest, paths, testcontainers setup |
-| CLAUDE.md | Context router para Claude Code |
+| Arquivo                | Proposito                                                        |
+| ---------------------- | ---------------------------------------------------------------- |
+| package.json           | Scripts root: `pnpm dev`, `pnpm build`, `pnpm test`, `pnpm lint` |
+| pnpm-workspace.yaml    | Define packages: core-sdk, orchestrator, node-agent              |
+| tsconfig.json          | TypeScript base config (strict, ESNext, paths)                   |
+| .env.example           | Template: DATABASE_URL, REDIS_URL, JWT_SECRET, RESEND_API_KEY    |
+| docker-compose.yml     | Producao: orchestrator + PG18 + Redis 7 + web + Caddy            |
+| docker-compose.dev.yml | Dev: PG18 + Redis 7                                              |
+| Dockerfile             | Multi-stage build (pnpm install → build → prune)                 |
+| .eslintrc.js           | ESLint + @typescript-eslint + Prettier                           |
+| .prettierrc            | Prettier config (singleQuote, trailingComma, semi)               |
+| jest.config.ts         | Jest com ts-jest, paths, testcontainers setup                    |
+| CLAUDE.md              | Context router para Claude Code                                  |
 
 > (ver [03-domain.md](03-domain.md) para detalhes das entidades)

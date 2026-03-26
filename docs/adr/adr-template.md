@@ -32,34 +32,34 @@
 
 {{Breve descrição da abordagem.}}
 
-| Aspecto | Avaliação |
-|---------|-----------|
-| Prós | {{Vantagens}} |
-| Contras | {{Desvantagens}} |
+| Aspecto | Avaliação                |
+| ------- | ------------------------ |
+| Prós    | {{Vantagens}}            |
+| Contras | {{Desvantagens}}         |
 | Esforço | {{Baixo / Médio / Alto}} |
-| Risco | {{Baixo / Médio / Alto}} |
+| Risco   | {{Baixo / Médio / Alto}} |
 
 ### Opção B: {{Nome}}
 
 {{Breve descrição da abordagem.}}
 
-| Aspecto | Avaliação |
-|---------|-----------|
-| Prós | {{Vantagens}} |
-| Contras | {{Desvantagens}} |
+| Aspecto | Avaliação                |
+| ------- | ------------------------ |
+| Prós    | {{Vantagens}}            |
+| Contras | {{Desvantagens}}         |
 | Esforço | {{Baixo / Médio / Alto}} |
-| Risco | {{Baixo / Médio / Alto}} |
+| Risco   | {{Baixo / Médio / Alto}} |
 
-### Opção C: {{Nome}} *(opcional)*
+### Opção C: {{Nome}} _(opcional)_
 
 {{Breve descrição da abordagem.}}
 
-| Aspecto | Avaliação |
-|---------|-----------|
-| Prós | {{Vantagens}} |
-| Contras | {{Desvantagens}} |
+| Aspecto | Avaliação                |
+| ------- | ------------------------ |
+| Prós    | {{Vantagens}}            |
+| Contras | {{Desvantagens}}         |
 | Esforço | {{Baixo / Médio / Alto}} |
-| Risco | {{Baixo / Médio / Alto}} |
+| Risco   | {{Baixo / Médio / Alto}} |
 
 ---
 
@@ -106,6 +106,6 @@
 
 ## Histórico
 
-| Data | Autor | Mudança |
-|------|-------|---------|
+| Data           | Autor     | Mudança |
+| -------------- | --------- | ------- |
 | {{AAAA-MM-DD}} | {{autor}} | Criação |

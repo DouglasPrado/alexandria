@@ -29,14 +29,15 @@ Define as camadas arquiteturais, regras de dependencia, fronteiras de dominio e 
 └─────────────────────────────────────────┘
 ```
 
-| Camada | Contem | Regra de Dependencia |
-| --- | --- | --- |
-| Presentation | Controllers NestJS, Guards (auth, rate limit), Interceptors (logging, serialization), Pipes (validation) | So depende de Application |
-| Application | Services (orquestracao), DTOs (request/response), use case orchestrators | So depende de Domain |
-| Domain | Entities (Cluster, Member, Node, File, Chunk...), value objects, domain events, domain errors, interfaces de repository | Nao depende de nenhuma outra camada |
-| Infrastructure | Prisma repositories, Redis cache/pub-sub, BullMQ producers/consumers, StorageProvider (S3/R2/B2/local), Resend email client | Implementa interfaces do Domain |
+| Camada         | Contem                                                                                                                      | Regra de Dependencia                |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| Presentation   | Controllers NestJS, Guards (auth, rate limit), Interceptors (logging, serialization), Pipes (validation)                    | So depende de Application           |
+| Application    | Services (orquestracao), DTOs (request/response), use case orchestrators                                                    | So depende de Domain                |
+| Domain         | Entities (Cluster, Member, Node, File, Chunk...), value objects, domain events, domain errors, interfaces de repository     | Nao depende de nenhuma outra camada |
+| Infrastructure | Prisma repositories, Redis cache/pub-sub, BullMQ producers/consumers, StorageProvider (S3/R2/B2/local), Resend email client | Implementa interfaces do Domain     |
 
 <!-- added: opensource -->
+
 ### Contributor Architecture Guide
 
 - **Layer boundaries**: Controllers call Services; Services call Repositories and external Clients; Repositories only touch Prisma. Never call a Repository from a Controller directly.
@@ -68,15 +69,15 @@ Define as camadas arquiteturais, regras de dependencia, fronteiras de dominio e 
 
 <!-- do blueprint: 04-domain-model.md (entidades) + 06-system-architecture.md -->
 
-| Modulo/Dominio | Responsabilidade | Entidades Principais | Depende de |
-| --- | --- | --- | --- |
-| Cluster | Criacao, seed phrase, identity crypto, recovery | Cluster, Invite | — |
-| Member | Convite, ingresso, roles, vault | Member, Vault | Cluster |
-| Node | Registro, heartbeat, drain, status lifecycle | Node | Cluster, Member |
-| File | Upload, pipeline de midia, previews, galeria | File, Preview | Cluster, Member |
-| Storage | Chunking, criptografia, distribuicao, manifest | Manifest, Chunk, ChunkReplica | Node, File |
-| Health | Alertas, scrubbing, auto-healing, GC, rebalanceamento | Alert | Node, Storage |
-| Notification | Email transacional (convites, alertas, recovery) | — | Member, Health |
+| Modulo/Dominio | Responsabilidade                                      | Entidades Principais          | Depende de      |
+| -------------- | ----------------------------------------------------- | ----------------------------- | --------------- |
+| Cluster        | Criacao, seed phrase, identity crypto, recovery       | Cluster, Invite               | —               |
+| Member         | Convite, ingresso, roles, vault                       | Member, Vault                 | Cluster         |
+| Node           | Registro, heartbeat, drain, status lifecycle          | Node                          | Cluster, Member |
+| File           | Upload, pipeline de midia, previews, galeria          | File, Preview                 | Cluster, Member |
+| Storage        | Chunking, criptografia, distribuicao, manifest        | Manifest, Chunk, ChunkReplica | Node, File      |
+| Health         | Alertas, scrubbing, auto-healing, GC, rebalanceamento | Alert                         | Node, Storage   |
+| Notification   | Email transacional (convites, alertas, recovery)      | —                             | Member, Health  |
 
 <!-- APPEND:dominios -->
 
@@ -88,15 +89,15 @@ Define as camadas arquiteturais, regras de dependencia, fronteiras de dominio e 
 
 <!-- do blueprint: 07-critical_flows.md -->
 
-| De | Para | Tipo | Mecanismo | Exemplo |
-| --- | --- | --- | --- | --- |
-| File | Storage | Sincrono | Chamada de Service | FileService chama StorageService.distributeChunks() |
-| File | Notification | Assincrono | Evento BullMQ | FileError → EmailWorker envia erro ao membro |
-| Node | Health | Assincrono | Evento Redis pub/sub | NodeLost → HealthService dispara auto-healing |
-| Health | Storage | Sincrono | Chamada de Service | AutoHealingService chama StorageService.reReplicateChunk() |
-| Cluster | Member | Sincrono | Chamada de Service | ClusterService chama MemberService.createAdmin() |
-| Member | Notification | Assincrono | Evento BullMQ | MemberJoined → EmailWorker envia boas-vindas |
-| Health | Notification | Assincrono | Evento BullMQ | AlertCreated (critical) → EmailWorker envia alerta |
+| De      | Para         | Tipo       | Mecanismo            | Exemplo                                                    |
+| ------- | ------------ | ---------- | -------------------- | ---------------------------------------------------------- |
+| File    | Storage      | Sincrono   | Chamada de Service   | FileService chama StorageService.distributeChunks()        |
+| File    | Notification | Assincrono | Evento BullMQ        | FileError → EmailWorker envia erro ao membro               |
+| Node    | Health       | Assincrono | Evento Redis pub/sub | NodeLost → HealthService dispara auto-healing              |
+| Health  | Storage      | Sincrono   | Chamada de Service   | AutoHealingService chama StorageService.reReplicateChunk() |
+| Cluster | Member       | Sincrono   | Chamada de Service   | ClusterService chama MemberService.createAdmin()           |
+| Member  | Notification | Assincrono | Evento BullMQ        | MemberJoined → EmailWorker envia boas-vindas               |
+| Health  | Notification | Assincrono | Evento BullMQ        | AlertCreated (critical) → EmailWorker envia alerta         |
 
 <!-- APPEND:comunicacao -->
 
@@ -108,10 +109,10 @@ Define as camadas arquiteturais, regras de dependencia, fronteiras de dominio e 
 
 <!-- do blueprint: 11-build_plan.md + backend-answers.md -->
 
-| Ambiente | Infraestrutura | Deploy | URL |
-| --- | --- | --- | --- |
-| Development | Docker Compose local (PG18 + Redis 7) | `pnpm dev` | localhost:3333 |
-| Production | Docker Compose em VPS Contabo (orquestrador + PG18 + Redis 7 + web client + Caddy) | `docker compose up -d` | https://{dominio-do-usuario} |
+| Ambiente    | Infraestrutura                                                                     | Deploy                 | URL                          |
+| ----------- | ---------------------------------------------------------------------------------- | ---------------------- | ---------------------------- |
+| Development | Docker Compose local (PG18 + Redis 7)                                              | `pnpm dev`             | localhost:3333               |
+| Production  | Docker Compose em VPS Contabo (orquestrador + PG18 + Redis 7 + web client + Caddy) | `docker compose up -d` | https://{dominio-do-usuario} |
 
 **Pipeline CI/CD:**
 

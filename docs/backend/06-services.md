@@ -35,21 +35,21 @@ Define todos os services do backend — metodos, parametros, retorno, dependenci
 
 **Dependencias:**
 
-| Dependencia | Tipo | Funcao |
-| --- | --- | --- |
-| ClusterRepository | Repository | Persistencia de clusters |
-| MemberService | Service | Criacao do admin inicial do cluster |
-| VaultService | Service | Criacao do vault do admin |
+| Dependencia            | Tipo           | Funcao                                       |
+| ---------------------- | -------------- | -------------------------------------------- |
+| ClusterRepository      | Repository     | Persistencia de clusters                     |
+| MemberService          | Service        | Criacao do admin inicial do cluster          |
+| VaultService           | Service        | Criacao do vault do admin                    |
 | CoreSDK (CryptoEngine) | Infrastructure | Geracao de chaves, derivacao BIP-39, SHA-256 |
-| EventBus | Infrastructure | Emissao de ClusterCreated, ClusterRecovered |
+| EventBus               | Infrastructure | Emissao de ClusterCreated, ClusterRecovered  |
 
 **Metodos:**
 
-| Metodo | Parametros | Retorno | Descricao |
-| --- | --- | --- | --- |
-| create(dto) | CreateClusterDTO { name, seedPhrase, adminName, adminEmail } | Cluster | Gera identidade criptografica, cria cluster, cria admin com vault, emite ClusterCreated |
-| recover(seedPhrase) | string (12 palavras BIP-39) | Cluster | Reconstroi cluster a partir da seed — re-deriva chaves, reconecta nos, reindeza manifests |
-| findById(id) | UUID | Cluster \| null | Busca cluster por ID interno |
+| Metodo              | Parametros                                                   | Retorno         | Descricao                                                                                 |
+| ------------------- | ------------------------------------------------------------ | --------------- | ----------------------------------------------------------------------------------------- |
+| create(dto)         | CreateClusterDTO { name, seedPhrase, adminName, adminEmail } | Cluster         | Gera identidade criptografica, cria cluster, cria admin com vault, emite ClusterCreated   |
+| recover(seedPhrase) | string (12 palavras BIP-39)                                  | Cluster         | Reconstroi cluster a partir da seed — re-deriva chaves, reconecta nos, reindeza manifests |
+| findById(id)        | UUID                                                         | Cluster \| null | Busca cluster por ID interno                                                              |
 
 ---
 
@@ -61,24 +61,24 @@ Define todos os services do backend — metodos, parametros, retorno, dependenci
 
 **Dependencias:**
 
-| Dependencia | Tipo | Funcao |
-| --- | --- | --- |
-| MemberRepository | Repository | CRUD de membros |
-| InviteRepository | Repository | CRUD de convites |
-| VaultService | Service | Criacao de vault pessoal do membro |
-| EmailService | Service | Envio de email de convite e boas-vindas |
-| EventBus | Infrastructure | Emissao de MemberJoined, MemberRemoved |
+| Dependencia      | Tipo           | Funcao                                  |
+| ---------------- | -------------- | --------------------------------------- |
+| MemberRepository | Repository     | CRUD de membros                         |
+| InviteRepository | Repository     | CRUD de convites                        |
+| VaultService     | Service        | Criacao de vault pessoal do membro      |
+| EmailService     | Service        | Envio de email de convite e boas-vindas |
+| EventBus         | Infrastructure | Emissao de MemberJoined, MemberRemoved  |
 
 **Metodos:**
 
-| Metodo | Parametros | Retorno | Descricao |
-| --- | --- | --- | --- |
-| createAdmin(clusterId, dto) | UUID, CreateAdminDTO { name, email } | Member | Cria membro admin durante criacao do cluster (chamado internamente) |
-| invite(clusterId, dto) | UUID, InviteDTO { email, role } | Invite | Gera token de convite, envia email, emite InviteSent |
-| acceptInvite(token, dto) | string, AcceptInviteDTO { name, password } | Member | Valida token, cria membro, cria vault, emite MemberJoined |
-| findById(id) | UUID | Member \| null | Busca membro por ID |
-| listByCluster(clusterId) | UUID | Member[] | Lista todos os membros de um cluster |
-| remove(id) | UUID | void | Remove membro, revoga acesso ao vault, emite MemberRemoved |
+| Metodo                      | Parametros                                 | Retorno        | Descricao                                                           |
+| --------------------------- | ------------------------------------------ | -------------- | ------------------------------------------------------------------- |
+| createAdmin(clusterId, dto) | UUID, CreateAdminDTO { name, email }       | Member         | Cria membro admin durante criacao do cluster (chamado internamente) |
+| invite(clusterId, dto)      | UUID, InviteDTO { email, role }            | Invite         | Gera token de convite, envia email, emite InviteSent                |
+| acceptInvite(token, dto)    | string, AcceptInviteDTO { name, password } | Member         | Valida token, cria membro, cria vault, emite MemberJoined           |
+| findById(id)                | UUID                                       | Member \| null | Busca membro por ID                                                 |
+| listByCluster(clusterId)    | UUID                                       | Member[]       | Lista todos os membros de um cluster                                |
+| remove(id)                  | UUID                                       | void           | Remove membro, revoga acesso ao vault, emite MemberRemoved          |
 
 ---
 
@@ -90,22 +90,22 @@ Define todos os services do backend — metodos, parametros, retorno, dependenci
 
 **Dependencias:**
 
-| Dependencia | Tipo | Funcao |
-| --- | --- | --- |
-| NodeRepository | Repository | CRUD de nos |
-| StorageService | Service | Consulta de chunks por no para drain |
+| Dependencia        | Tipo           | Funcao                                               |
+| ------------------ | -------------- | ---------------------------------------------------- |
+| NodeRepository     | Repository     | CRUD de nos                                          |
+| StorageService     | Service        | Consulta de chunks por no para drain                 |
 | ConsistentHashRing | Infrastructure | Atualizacao do anel de hash ao adicionar/remover nos |
-| EventBus | Infrastructure | Emissao de NodeRegistered, NodeDrained, NodeOffline |
+| EventBus           | Infrastructure | Emissao de NodeRegistered, NodeDrained, NodeOffline  |
 
 **Metodos:**
 
-| Metodo | Parametros | Retorno | Descricao |
-| --- | --- | --- | --- |
-| register(clusterId, dto) | UUID, RegisterNodeDTO { name, endpoint, storageCapacity, region } | Node | Registra no, adiciona ao hash ring, emite NodeRegistered |
-| heartbeat(nodeId) | UUID | void | Atualiza last_seen_at, recalcula latencia |
-| drain(nodeId) | UUID | void | Inicia processo de drenagem — migra chunks, remove do ring, emite NodeDrained |
-| findById(id) | UUID | Node \| null | Busca no por ID |
-| listByCluster(clusterId) | UUID | Node[] | Lista nos de um cluster com status atual |
+| Metodo                   | Parametros                                                        | Retorno      | Descricao                                                                     |
+| ------------------------ | ----------------------------------------------------------------- | ------------ | ----------------------------------------------------------------------------- |
+| register(clusterId, dto) | UUID, RegisterNodeDTO { name, endpoint, storageCapacity, region } | Node         | Registra no, adiciona ao hash ring, emite NodeRegistered                      |
+| heartbeat(nodeId)        | UUID                                                              | void         | Atualiza last_seen_at, recalcula latencia                                     |
+| drain(nodeId)            | UUID                                                              | void         | Inicia processo de drenagem — migra chunks, remove do ring, emite NodeDrained |
+| findById(id)             | UUID                                                              | Node \| null | Busca no por ID                                                               |
+| listByCluster(clusterId) | UUID                                                              | Node[]       | Lista nos de um cluster com status atual                                      |
 
 ---
 
@@ -117,23 +117,23 @@ Define todos os services do backend — metodos, parametros, retorno, dependenci
 
 **Dependencias:**
 
-| Dependencia | Tipo | Funcao |
-| --- | --- | --- |
-| FileRepository | Repository | CRUD de arquivos |
-| PreviewRepository | Repository | CRUD de previews (thumbnails, video previews) |
-| StorageService | Service | Distribuicao de chunks e reassemblagem |
-| BullMQ queue | Infrastructure | Enfileiramento de jobs de processamento de midia |
-| EventBus | Infrastructure | Emissao de FileUploaded, FileReady, FileError |
+| Dependencia       | Tipo           | Funcao                                           |
+| ----------------- | -------------- | ------------------------------------------------ |
+| FileRepository    | Repository     | CRUD de arquivos                                 |
+| PreviewRepository | Repository     | CRUD de previews (thumbnails, video previews, pdf_page) |
+| StorageService    | Service        | Distribuicao de chunks e reassemblagem           |
+| BullMQ queue      | Infrastructure | Enfileiramento de jobs de processamento de midia |
+| EventBus          | Infrastructure | Emissao de FileUploaded, FileReady, FileError    |
 
 **Metodos:**
 
-| Metodo | Parametros | Retorno | Descricao |
-| --- | --- | --- | --- |
-| upload(clusterId, memberId, file) | UUID, UUID, FileBuffer | File | Registra arquivo (status: processing), enfileira job de midia, retorna imediatamente |
-| findById(id) | UUID | File \| null | Busca arquivo por ID com metadados e preview |
-| listGallery(clusterId, cursor?, limit?) | UUID, string?, number? | PaginatedResult\<File\> | Lista arquivos do cluster com cursor-based pagination, ordenado por created_at desc |
-| listByType(clusterId, type, cursor?, limit?) | UUID, FileType, string?, number? | PaginatedResult\<File\> | Filtra por tipo (photo, video, document) com paginacao |
-| download(fileId) | UUID | ReadableStream | Reassembla chunks via StorageService, decripta e retorna stream |
+| Metodo                                       | Parametros                       | Retorno                 | Descricao                                                                            |
+| -------------------------------------------- | -------------------------------- | ----------------------- | ------------------------------------------------------------------------------------ |
+| upload(clusterId, memberId, file)            | UUID, UUID, FileBuffer           | File                    | Registra arquivo (status: processing), enfileira job de midia, retorna imediatamente |
+| findById(id)                                 | UUID                             | File \| null            | Busca arquivo por ID com metadados e preview                                         |
+| listGallery(clusterId, cursor?, limit?)      | UUID, string?, number?           | PaginatedResult\<File\> | Lista arquivos do cluster com cursor-based pagination, ordenado por created_at desc  |
+| listByType(clusterId, type, cursor?, limit?) | UUID, FileType, string?, number? | PaginatedResult\<File\> | Filtra por tipo (photo, video, document) com paginacao                               |
+| download(fileId)                             | UUID                             | ReadableStream          | Reassembla chunks via StorageService, decripta e retorna stream                      |
 
 ---
 
@@ -145,24 +145,24 @@ Define todos os services do backend — metodos, parametros, retorno, dependenci
 
 **Dependencias:**
 
-| Dependencia | Tipo | Funcao |
-| --- | --- | --- |
-| ChunkRepository | Repository | CRUD de chunks |
-| ChunkReplicaRepository | Repository | CRUD de replicas de chunks |
-| ManifestRepository | Repository | CRUD de manifests |
-| CoreSDK (ChunkingEngine) | Infrastructure | Divisao de conteudo em blocos de ~4MB com SHA-256 |
-| CoreSDK (CryptoEngine) | Infrastructure | Envelope encryption, AES-256-GCM, assinatura de manifests |
-| CoreSDK (ConsistentHashRing) | Infrastructure | Selecao de nos destino para distribuicao |
-| StorageProvider | Infrastructure | Interface unificada para S3/R2/B2/agentes locais |
+| Dependencia                  | Tipo           | Funcao                                                    |
+| ---------------------------- | -------------- | --------------------------------------------------------- |
+| ChunkRepository              | Repository     | CRUD de chunks                                            |
+| ChunkReplicaRepository       | Repository     | CRUD de replicas de chunks                                |
+| ManifestRepository           | Repository     | CRUD de manifests                                         |
+| CoreSDK (ChunkingEngine)     | Infrastructure | Divisao de conteudo em blocos de ~4MB com SHA-256         |
+| CoreSDK (CryptoEngine)       | Infrastructure | Envelope encryption, AES-256-GCM, assinatura de manifests |
+| CoreSDK (ConsistentHashRing) | Infrastructure | Selecao de nos destino para distribuicao                  |
+| StorageProvider              | Infrastructure | Interface unificada para S3/R2/B2/agentes locais          |
 
 **Metodos:**
 
-| Metodo | Parametros | Retorno | Descricao |
-| --- | --- | --- | --- |
-| distributeChunks(file, optimizedContent) | File, Buffer | Chunk[] | Divide em chunks, dedup por hash, criptografa, distribui 3x, cria registros |
-| reReplicateChunk(chunkId) | UUID | ChunkReplica | Copia chunk de replica saudavel para novo no selecionado via hash ring |
-| reassembleFile(fileId) | UUID | ReadableStream | Le manifest, busca chunks dos nos, decripta, reassembla em stream |
-| createManifest(file, chunks) | File, Chunk[] | Manifest | Cria manifest JSON com chunks_json + file_key_encrypted, assina com chave do cluster |
+| Metodo                                   | Parametros    | Retorno        | Descricao                                                                            |
+| ---------------------------------------- | ------------- | -------------- | ------------------------------------------------------------------------------------ |
+| distributeChunks(file, optimizedContent) | File, Buffer  | Chunk[]        | Divide em chunks, dedup por hash, criptografa, distribui 3x, cria registros          |
+| reReplicateChunk(chunkId)                | UUID          | ChunkReplica   | Copia chunk de replica saudavel para novo no selecionado via hash ring               |
+| reassembleFile(fileId)                   | UUID          | ReadableStream | Le manifest, busca chunks dos nos, decripta, reassembla em stream                    |
+| createManifest(file, chunks)             | File, Chunk[] | Manifest       | Cria manifest JSON com chunks_json + file_key_encrypted, assina com chave do cluster |
 
 ---
 
@@ -174,25 +174,25 @@ Define todos os services do backend — metodos, parametros, retorno, dependenci
 
 **Dependencias:**
 
-| Dependencia | Tipo | Funcao |
-| --- | --- | --- |
-| AlertRepository | Repository | CRUD de alertas |
-| NodeRepository | Repository | Consulta de nos e seus heartbeats |
-| ChunkReplicaRepository | Repository | Consulta de replicas por no e contagem de replicas |
-| StorageService | Service | Re-replicacao de chunks sub-replicados |
-| EmailService | Service | Notificacao de alertas criticos ao admin |
-| EventBus | Infrastructure | Emissao de NodeLost, AutoHealComplete, ScrubComplete |
+| Dependencia            | Tipo           | Funcao                                               |
+| ---------------------- | -------------- | ---------------------------------------------------- |
+| AlertRepository        | Repository     | CRUD de alertas                                      |
+| NodeRepository         | Repository     | Consulta de nos e seus heartbeats                    |
+| ChunkReplicaRepository | Repository     | Consulta de replicas por no e contagem de replicas   |
+| StorageService         | Service        | Re-replicacao de chunks sub-replicados               |
+| EmailService           | Service        | Notificacao de alertas criticos ao admin             |
+| EventBus               | Infrastructure | Emissao de NodeLost, AutoHealComplete, ScrubComplete |
 
 **Metodos:**
 
-| Metodo | Parametros | Retorno | Descricao |
-| --- | --- | --- | --- |
-| checkHeartbeats() | — | void | Verifica nos com last_seen_at > threshold (5min), marca como offline, cria alerta, dispara autoHeal |
-| autoHeal(nodeId) | UUID | void | Encontra chunks sub-replicados do no perdido, re-replica via StorageService, resolve alerta |
-| scrub(batchSize) | number | ScrubResult | Verifica integridade de chunks via SHA-256 em lotes, cria alertas para corrompidos |
-| garbageCollect() | — | GCResult | Remove chunks orfaos (sem referencia em manifests) e replicas de nos removidos |
-| createAlert(data) | CreateAlertDTO | Alert | Cria alerta com severidade e metadata |
-| resolveAlert(id) | UUID | Alert | Marca alerta como resolvido |
+| Metodo            | Parametros     | Retorno     | Descricao                                                                                           |
+| ----------------- | -------------- | ----------- | --------------------------------------------------------------------------------------------------- |
+| checkHeartbeats() | —              | void        | Verifica nos com last_seen_at > threshold (5min), marca como offline, cria alerta, dispara autoHeal |
+| autoHeal(nodeId)  | UUID           | void        | Encontra chunks sub-replicados do no perdido, re-replica via StorageService, resolve alerta         |
+| scrub(batchSize)  | number         | ScrubResult | Verifica integridade de chunks via SHA-256 em lotes, cria alertas para corrompidos                  |
+| garbageCollect()  | —              | GCResult    | Remove chunks orfaos (sem referencia em manifests) e replicas de nos removidos                      |
+| createAlert(data) | CreateAlertDTO | Alert       | Cria alerta com severidade e metadata                                                               |
+| resolveAlert(id)  | UUID           | Alert       | Marca alerta como resolvido                                                                         |
 
 ---
 
@@ -204,19 +204,19 @@ Define todos os services do backend — metodos, parametros, retorno, dependenci
 
 **Dependencias:**
 
-| Dependencia | Tipo | Funcao |
-| --- | --- | --- |
-| Resend SDK | Infrastructure | API de envio de emails transacionais |
+| Dependencia | Tipo           | Funcao                               |
+| ----------- | -------------- | ------------------------------------ |
+| Resend SDK  | Infrastructure | API de envio de emails transacionais |
 
 **Metodos:**
 
-| Metodo | Parametros | Retorno | Descricao |
-| --- | --- | --- | --- |
-| sendInvite(data) | InviteEmailDTO { to, clusterName, inviterName, token } | void | Email de convite com link de aceite |
-| sendWelcome(data) | WelcomeEmailDTO { to, memberName, clusterName } | void | Email de boas-vindas apos aceite |
-| sendNodeLostAlert(data) | NodeLostEmailDTO { to, nodeName, clusterName, chunksAffected } | void | Alerta de no perdido ao admin |
-| sendRecoveryComplete(data) | RecoveryEmailDTO { to, clusterName, nodesReconnected, filesReindexed } | void | Confirmacao de recovery completo |
-| sendFileError(data) | FileErrorEmailDTO { to, fileName, errorType } | void | Notificacao de erro no processamento de arquivo |
+| Metodo                     | Parametros                                                             | Retorno | Descricao                                       |
+| -------------------------- | ---------------------------------------------------------------------- | ------- | ----------------------------------------------- |
+| sendInvite(data)           | InviteEmailDTO { to, clusterName, inviterName, token }                 | void    | Email de convite com link de aceite             |
+| sendWelcome(data)          | WelcomeEmailDTO { to, memberName, clusterName }                        | void    | Email de boas-vindas apos aceite                |
+| sendNodeLostAlert(data)    | NodeLostEmailDTO { to, nodeName, clusterName, chunksAffected }         | void    | Alerta de no perdido ao admin                   |
+| sendRecoveryComplete(data) | RecoveryEmailDTO { to, clusterName, nodesReconnected, filesReindexed } | void    | Confirmacao de recovery completo                |
+| sendFileError(data)        | FileErrorEmailDTO { to, fileName, errorType }                          | void    | Notificacao de erro no processamento de arquivo |
 
 <!-- APPEND:services -->
 
@@ -365,10 +365,10 @@ Define todos os services do backend — metodos, parametros, retorno, dependenci
 
 > Como os services recebem suas dependencias?
 
-| Estrategia | Descricao |
-| --- | --- |
-| Constructor injection via NestJS | Dependencias injetadas via `@Injectable()` e decorators `@Inject()` no construtor |
-| Module-scoped providers | Cada modulo NestJS (ClusterModule, MemberModule, etc.) registra seus services e repositories como providers |
+| Estrategia                                | Descricao                                                                                                                         |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Constructor injection via NestJS          | Dependencias injetadas via `@Injectable()` e decorators `@Inject()` no construtor                                                 |
+| Module-scoped providers                   | Cada modulo NestJS (ClusterModule, MemberModule, etc.) registra seus services e repositories como providers                       |
 | Token-based injection para infraestrutura | CoreSDK, StorageProvider e EventBus injetados via tokens customizados (`@Inject('CRYPTO_ENGINE')`, `@Inject('STORAGE_PROVIDER')`) |
 
 ```typescript

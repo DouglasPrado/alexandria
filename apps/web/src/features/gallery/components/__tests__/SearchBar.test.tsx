@@ -37,25 +37,15 @@ describe('SearchBar', () => {
     expect(screen.getByText('Arquivos')).toBeInTheDocument();
   });
 
-  it('renderiza os inputs de período (de e até) — UC-010 RF-064', () => {
+  it('renderiza os date pickers de período (De e Até) — UC-010 RF-064', () => {
     render(<SearchBar {...defaultProps} />);
-    expect(screen.getByLabelText('De')).toBeInTheDocument();
-    expect(screen.getByLabelText('Até')).toBeInTheDocument();
+    expect(screen.getByText('De')).toBeInTheDocument();
+    expect(screen.getByText('Até')).toBeInTheDocument();
+    expect(screen.getByText('Data início')).toBeInTheDocument();
+    expect(screen.getByText('Data fim')).toBeInTheDocument();
   });
 
-  it('chama onFromChange ao selecionar data inicial', () => {
-    render(<SearchBar {...defaultProps} />);
-    fireEvent.change(screen.getByLabelText('De'), { target: { value: '2025-01-01' } });
-    expect(defaultProps.onFromChange).toHaveBeenCalledWith('2025-01-01T00:00:00.000Z');
-  });
-
-  it('chama onToChange ao selecionar data final', () => {
-    render(<SearchBar {...defaultProps} />);
-    fireEvent.change(screen.getByLabelText('Até'), { target: { value: '2025-12-31' } });
-    expect(defaultProps.onToChange).toHaveBeenCalledWith('2025-12-31T23:59:59.999Z');
-  });
-
-  it('exibe valores de data nos inputs quando from/to estão preenchidos', () => {
+  it('exibe datas formatadas nos date pickers quando from/to estão preenchidos', () => {
     render(
       <SearchBar
         {...defaultProps}
@@ -63,8 +53,16 @@ describe('SearchBar', () => {
         to="2025-12-31T23:59:59.999Z"
       />,
     );
-    expect((screen.getByLabelText('De') as HTMLInputElement).value).toBe('2025-01-01');
-    expect((screen.getByLabelText('Até') as HTMLInputElement).value).toBe('2025-12-31');
+    // DatePicker mostra a data formatada em português
+    expect(screen.getByText(/01 de jan/i)).toBeInTheDocument();
+    expect(screen.getByText(/31 de dez/i)).toBeInTheDocument();
+  });
+
+  it('abre o calendar popover ao clicar no date picker "De"', () => {
+    render(<SearchBar {...defaultProps} />);
+    fireEvent.click(screen.getByText('Data início'));
+    // Calendar renders weekday headers when open
+    expect(screen.getByText('dom')).toBeInTheDocument();
   });
 
   it('debounce 300ms no input de busca por nome', async () => {

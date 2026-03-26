@@ -8,17 +8,17 @@
 
 > Melhorias técnicas planejadas além do MVP, alinhadas às fases do PRD.
 
-| Item | Prioridade | Justificativa | Fase estimada |
-|------|------------|---------------|---------------|
-| Deduplicação global entre membros | Alta | Famílias compartilham 20-60% de fotos duplicadas (WhatsApp); economia significativa de storage | Fase 2 |
-| Integração OAuth (Google Drive, Dropbox, OneDrive) | Alta | Expande storage gratuito de ~100GB/pessoa (S3/R2) para ~200GB+ combinando provedores | Fase 2 |
-| Desktop client (Tauri) | Alta | Sync engine nativo para auto-upload; liberação de espaço automática; agente de nó integrado | Fase 2 |
-| Family Storage Protocol (FSP) v1 | Média | Protocolo versionado permite evolução sem breaking changes; qualquer cliente pode implementar | Fase 2 |
-| Erasure coding (10+4 shards) | Média | Economia de ~40% vs replicação 3x para mesma durabilidade; viabiliza escala de storage | Fase 3 |
-| Mobile client (React Native) | Média | Upload automático do rolo da câmera; placeholder files; liberação de espaço no celular | Fase 3 |
-| Indexação inteligente (EXIF, faces, OCR) | Baixa | Busca por pessoa, local e texto em documentos; valor alto mas complexidade também | Fase 3 |
-| Migração de formatos (workers de conversão) | Baixa | Codecs evoluem em décadas; workers convertem WebP→futuro formato automaticamente | Fase 3 |
-| Content-defined chunking (Rabin fingerprint) | Baixa | Melhora deduplicação entre versões de arquivos; mais complexo que fixed-size | Fase 2-3 |
+| Item                                               | Prioridade | Justificativa                                                                                  | Fase estimada |
+| -------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------- | ------------- |
+| Deduplicação global entre membros                  | Alta       | Famílias compartilham 20-60% de fotos duplicadas (WhatsApp); economia significativa de storage | Fase 2        |
+| Integração OAuth (Google Drive, Dropbox, OneDrive) | Alta       | Expande storage gratuito de ~100GB/pessoa (S3/R2) para ~200GB+ combinando provedores           | Fase 2        |
+| Desktop client (Tauri)                             | Alta       | Sync engine nativo para auto-upload; liberação de espaço automática; agente de nó integrado    | Fase 2        |
+| Family Storage Protocol (FSP) v1                   | Média      | Protocolo versionado permite evolução sem breaking changes; qualquer cliente pode implementar  | Fase 2        |
+| Erasure coding (10+4 shards)                       | Média      | Economia de ~40% vs replicação 3x para mesma durabilidade; viabiliza escala de storage         | Fase 3        |
+| Mobile client (React Native)                       | Média      | Upload automático do rolo da câmera; placeholder files; liberação de espaço no celular         | Fase 3        |
+| Indexação inteligente (EXIF, faces, OCR)           | Baixa      | Busca por pessoa, local e texto em documentos; valor alto mas complexidade também              | Fase 3        |
+| Migração de formatos (workers de conversão)        | Baixa      | Codecs evoluem em décadas; workers convertem WebP→futuro formato automaticamente               | Fase 3        |
+| Content-defined chunking (Rabin fingerprint)       | Baixa      | Melhora deduplicação entre versões de arquivos; mais complexo que fixed-size                   | Fase 2-3      |
 
 ---
 
@@ -26,17 +26,17 @@
 
 > Trade-offs aceitos nas decisões da v1 que geram débito a ser pago.
 
-| Débito | Impacto | Esforço para resolver | Prioridade |
-|--------|---------|----------------------|------------|
-| Sem recovery guardians (multi-seed) — perda da seed = perda total | Alto — risco de perda irreversível se admin perder seed | M (2-3 semanas) | Alta |
-| Chunking fixo (~4MB) em vez de content-defined | Médio — deduplicação entre versões de arquivos é subótima | L (3-6 semanas) | Média |
-| Sem mutual TLS entre nós (RF-051 é Should) | Médio — nó não-autorizado poderia se conectar se tiver endpoint | M (2-3 semanas) | Média |
-| Sem assinatura criptográfica de manifests (RF-052 é Should) | Médio — manifest adulterado não seria detectado sem scrubbing | S (1 semana) | Média |
-| Media workers inline no orquestrador (mesmo processo) | Médio — transcodificação de vídeo pesada compete com API | M (separar em processo dedicado) | Média |
-| Sem rate limiting por provedor cloud (apenas backoff reativo) | Baixo — rate limits do S3/R2 são altos; risco baixo em volume familiar | S (1 semana) | Baixa |
-| Web client sem offline support | Baixo — galeria não funciona sem internet; placeholders são locais mas UI não | M (Service Worker + cache) | Baixa |
-| Sem versionamento de API (endpoints não versionados) | Baixo — v1 não tem clientes terceiros; risco cresce com FSP na fase 2 | S (adicionar /v1/ prefix) | Baixa |
-| PostgreSQL single-instance (sem read replicas) | Baixo — volume familiar não justifica; gargalo não atingido | M (se volume crescer) | Baixa |
+| Débito                                                            | Impacto                                                                       | Esforço para resolver            | Prioridade |
+| ----------------------------------------------------------------- | ----------------------------------------------------------------------------- | -------------------------------- | ---------- |
+| Sem recovery guardians (multi-seed) — perda da seed = perda total | Alto — risco de perda irreversível se admin perder seed                       | M (2-3 semanas)                  | Alta       |
+| Chunking fixo (~4MB) em vez de content-defined                    | Médio — deduplicação entre versões de arquivos é subótima                     | L (3-6 semanas)                  | Média      |
+| Sem mutual TLS entre nós (RF-051 é Should)                        | Médio — nó não-autorizado poderia se conectar se tiver endpoint               | M (2-3 semanas)                  | Média      |
+| Sem assinatura criptográfica de manifests (RF-052 é Should)       | Médio — manifest adulterado não seria detectado sem scrubbing                 | S (1 semana)                     | Média      |
+| Media workers inline no orquestrador (mesmo processo)             | Médio — transcodificação de vídeo pesada compete com API                      | M (separar em processo dedicado) | Média      |
+| Sem rate limiting por provedor cloud (apenas backoff reativo)     | Baixo — rate limits do S3/R2 são altos; risco baixo em volume familiar        | S (1 semana)                     | Baixa      |
+| Web client sem offline support                                    | Baixo — galeria não funciona sem internet; placeholders são locais mas UI não | M (Service Worker + cache)       | Baixa      |
+| Sem versionamento de API (endpoints não versionados)              | Baixo — v1 não tem clientes terceiros; risco cresce com FSP na fase 2         | S (adicionar /v1/ prefix)        | Baixa      |
+| PostgreSQL single-instance (sem read replicas)                    | Baixo — volume familiar não justifica; gargalo não atingido                   | M (se volume crescer)            | Baixa      |
 
 ### Processo de Gestão de Débitos
 
@@ -96,11 +96,12 @@ Vault inclui campo `version` no header criptografado. Novas versões podem mudar
 
 ### Itens em Deprecação
 
-| Funcionalidade | Data de deprecação | Alternativa | Data de remoção |
-|---|---|---|---|
-| Nenhum item deprecated atualmente | — | — | — |
+| Funcionalidade                    | Data de deprecação | Alternativa | Data de remoção |
+| --------------------------------- | ------------------ | ----------- | --------------- |
+| Nenhum item deprecated atualmente | —                  | —           | —               |
 
 > Itens candidatos a deprecação futura:
+>
 > - Formato de manifest v1 → v2 (quando content-defined chunking for implementado)
 > - WebP como formato padrão → AVIF (se benchmark confirmar vantagem significativa — hipótese H-06)
 > - H.265 como codec de vídeo → AV1 (quando encoding speed for aceitável em CPUs familiares)
@@ -129,6 +130,6 @@ Este documento deve ser revisado quando:
 
 ### Histórico de Revisões
 
-| Data | Autor | Seções alteradas | Motivo |
-|------|-------|------------------|--------|
-| 2026-03-16 | Douglas Prado | Todas (00-16) | Criação inicial do blueprint completo a partir do PRD v1.0.0 |
+| Data       | Autor         | Seções alteradas | Motivo                                                       |
+| ---------- | ------------- | ---------------- | ------------------------------------------------------------ |
+| 2026-03-16 | Douglas Prado | Todas (00-16)    | Criação inicial do blueprint completo a partir do PRD v1.0.0 |

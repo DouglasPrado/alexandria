@@ -23,16 +23,17 @@
 7. **Media Worker** otimiza conforme tipo:
    - foto → libvips resize max 1920px + WebP
    - vídeo → FFmpeg 1080p H.265/AV1
-   - documento → bypass de otimização (optimized_size = original_size); chunk diretamente
+   - documento → sem otimização (optimized_size = original_size); chunk diretamente
 8. **Media Worker** gera preview conforme tipo:
-   - foto → thumbnail ~50KB
-   - vídeo → 480p ~5MB
-   - documento PDF → imagem da primeira página via pdf-render
-   - documento genérico → ícone por extensão/MIME type (sem preview de conteúdo)
+   - foto → thumbnail ~50KB WebP
+   - vídeo → 480p ~5MB MP4
+   - PDF → render da primeira página ~5-50KB PNG (via pdfjs-dist + node-canvas)
+   - documento (não-PDF) / archive → sem preview
 9. **Media Worker** extrai metadados conforme tipo:
    - foto → EXIF (data, GPS, câmera, lente)
    - vídeo → duração, resolução, codec
-   - documento → páginas (PDF), encoding (texto), tamanho comprimido (archive)
+   - PDF → contagem de páginas
+   - documento (não-PDF) → encoding (texto), tamanho comprimido (archive)
 10. **Core SDK** divide conteúdo otimizado em chunks de ~4MB e calcula SHA-256 de cada
 11. **Core SDK** verifica deduplicação: se hash já existe em `chunks`, cria referência sem rearmazenar
 12. **Core SDK** gera file key via envelope encryption (master key → file key) e criptografa cada chunk com AES-256-GCM
@@ -50,27 +51,27 @@
 
 ### Tratamento de Erros
 
-| Passo | Falha possível | Comportamento esperado |
-|-------|---------------|----------------------|
-| 2 | Upload interrompido por falha de rede | Web Client faz retry automático; chunks parciais descartados pelo Orquestrador após timeout |
-| 3 | Token JWT expirado ou permissão insuficiente | Retorna 401/403; Web Client redireciona para re-autenticação |
-| 7 | FFmpeg falha na transcodificação (codec não suportado, arquivo corrompido) | Job marcado como erro; file status → "error"; alerta ao membro; job movido para DLQ no Redis |
-| 11 | Hash idêntico encontrado (arquivo duplicado) | Chunks existentes reutilizados; novo manifest aponta para mesmos chunks; economia de espaço |
-| 13 | Menos de 3 nós ativos disponíveis | Upload bloqueado; retorna 503 "nós insuficientes para replicação mínima"; alerta ao admin |
-| 14 | Nó destino falha durante recebimento | Selecionar próximo nó no ConsistentHashRing; retry no nó original após backoff exponencial |
-| 14 | S3/R2 retorna rate limit (429) | Respeitar retry-after header; enfileirar para retry com backoff exponencial via NestJS Guard |
-| 15 | Transação PostgreSQL falha | Rollback automático; chunks já enviados ficam órfãos (GC remove depois); retry do job |
-| 17 | Falha ao replicar manifest nos nós | Manifest mantido no Orquestrador; retry de replicação em background; alerta gerado |
+| Passo | Falha possível                                                             | Comportamento esperado                                                                       |
+| ----- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 2     | Upload interrompido por falha de rede                                      | Web Client faz retry automático; chunks parciais descartados pelo Orquestrador após timeout  |
+| 3     | Token JWT expirado ou permissão insuficiente                               | Retorna 401/403; Web Client redireciona para re-autenticação                                 |
+| 7     | FFmpeg falha na transcodificação (codec não suportado, arquivo corrompido) | Job marcado como erro; file status → "error"; alerta ao membro; job movido para DLQ no Redis |
+| 11    | Hash idêntico encontrado (arquivo duplicado)                               | Chunks existentes reutilizados; novo manifest aponta para mesmos chunks; economia de espaço  |
+| 13    | Menos de 1 nó ativo disponível                                             | Upload bloqueado; retorna 503 "nós insuficientes para replicação mínima"; alerta ao admin    |
+| 14    | Nó destino falha durante recebimento                                       | Selecionar próximo nó no ConsistentHashRing; retry no nó original após backoff exponencial   |
+| 14    | S3/R2 retorna rate limit (429)                                             | Respeitar retry-after header; enfileirar para retry com backoff exponencial via NestJS Guard |
+| 15    | Transação PostgreSQL falha                                                 | Rollback automático; chunks já enviados ficam órfãos (GC remove depois); retry do job        |
+| 17    | Falha ao replicar manifest nos nós                                         | Manifest mantido no Orquestrador; retry de replicação em background; alerta gerado           |
 
 ### Requisitos de Performance
 
-| Métrica | Valor esperado |
-|---------|---------------|
-| Latência upload API (p95) | < 500ms (aceitar arquivo + enfileirar) |
-| Pipeline completo (foto 5MB) | < 10s (optimize + chunk + encrypt + distribute) |
-| Pipeline completo (vídeo 2GB) | < 5min (transcode é gargalo) |
+| Métrica                             | Valor esperado                                               |
+| ----------------------------------- | ------------------------------------------------------------ |
+| Latência upload API (p95)           | < 500ms (aceitar arquivo + enfileirar)                       |
+| Pipeline completo (foto 5MB)        | < 10s (optimize + chunk + encrypt + distribute)              |
+| Pipeline completo (vídeo 2GB)       | < 5min (transcode é gargalo)                                 |
 | Pipeline completo (documento 100MB) | < 30s (sem otimização — apenas chunk + encrypt + distribute) |
-| Throughput mínimo | 10 uploads concorrentes |
+| Throughput mínimo                   | 10 uploads concorrentes                                      |
 
 ---
 
@@ -106,24 +107,24 @@
 
 ### Tratamento de Erros
 
-| Passo | Falha possível | Comportamento esperado |
-|-------|---------------|----------------------|
-| 3 | Seed phrase inválida (palavra fora do wordlist) | Mensagem clara "Palavra X não faz parte do dicionário BIP-39"; pedir correção |
-| 4 | Seed phrase incorreta (válida mas errada) | Master key errada → vaults não descriptografam (AEAD auth tag falha); mensagem "Seed incorreta" |
-| 5 | Vaults não encontrados em nenhum nó | Recovery parcial: admin precisa re-inserir credenciais S3/R2 manualmente; alerta |
-| 8 | Manifests não encontrados em nenhum nó | Recovery impossível sem manifests; alerta crítico; chunks existem mas não podem ser reassemblados |
-| 9 | PostgreSQL falha durante bulk insert | Retry por lotes; transação parcial; progresso salvo para continuar de onde parou |
-| 11 | Nó local não resolve DNS ou está offline | Nó reconectará quando voltar online; chunks temporariamente indisponíveis; não bloqueia recovery |
-| 13 | Chunks faltando (nós destruídos durante downtime) | Auto-healing re-replica a partir de nós restantes; se sem réplica → arquivo marcado como corrompido |
+| Passo | Falha possível                                    | Comportamento esperado                                                                              |
+| ----- | ------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| 3     | Seed phrase inválida (palavra fora do wordlist)   | Mensagem clara "Palavra X não faz parte do dicionário BIP-39"; pedir correção                       |
+| 4     | Seed phrase incorreta (válida mas errada)         | Master key errada → vaults não descriptografam (AEAD auth tag falha); mensagem "Seed incorreta"     |
+| 5     | Vaults não encontrados em nenhum nó               | Recovery parcial: admin precisa re-inserir credenciais S3/R2 manualmente; alerta                    |
+| 8     | Manifests não encontrados em nenhum nó            | Recovery impossível sem manifests; alerta crítico; chunks existem mas não podem ser reassemblados   |
+| 9     | PostgreSQL falha durante bulk insert              | Retry por lotes; transação parcial; progresso salvo para continuar de onde parou                    |
+| 11    | Nó local não resolve DNS ou está offline          | Nó reconectará quando voltar online; chunks temporariamente indisponíveis; não bloqueia recovery    |
+| 13    | Chunks faltando (nós destruídos durante downtime) | Auto-healing re-replica a partir de nós restantes; se sem réplica → arquivo marcado como corrompido |
 
 ### Requisitos de Performance
 
-| Métrica | Valor esperado |
-|---------|---------------|
-| Recovery completo (seed → sistema operacional) | < 2 horas para 100k arquivos |
-| Rebuild do índice PostgreSQL | < 30 minutos para 100k manifests |
-| Reconexão de nós via DNS | < 5 minutos após atualização DNS (TTL 300s) |
-| Validação de integridade | < 1 hora para scan completo |
+| Métrica                                        | Valor esperado                              |
+| ---------------------------------------------- | ------------------------------------------- |
+| Recovery completo (seed → sistema operacional) | < 2 horas para 100k arquivos                |
+| Rebuild do índice PostgreSQL                   | < 30 minutos para 100k manifests            |
+| Reconexão de nós via DNS                       | < 5 minutos após atualização DNS (TTL 300s) |
+| Validação de integridade                       | < 1 hora para scan completo                 |
 
 ---
 
@@ -156,23 +157,23 @@
 
 ### Tratamento de Erros
 
-| Passo | Falha possível | Comportamento esperado |
-|-------|---------------|----------------------|
-| 3 | Nó volta online durante período de espera | Status volta para "online"; heartbeat retomado; auto-healing cancelado; alerta resolvido |
-| 6 | Chunk sem nenhuma réplica restante | Chunk marcado como irrecuperável; arquivo afetado status → "corrupted"; alerta crítico |
-| 7 | Nós restantes sem espaço suficiente | Alerta "espaço insuficiente para auto-healing"; admin notificado para adicionar nós |
-| 8 | Réplica de leitura corrompida (hash ≠ chunk_id) | Tentar próxima réplica; se todas corrompidas → chunk irrecuperável |
-| 9 | Falha de rede durante cópia | Retry com backoff exponencial; chunk permanece na fila de re-replicação |
-| 9 | Rate limit do provedor cloud | Respeitar retry-after; backoff exponencial; continuar com próximos chunks |
+| Passo | Falha possível                                  | Comportamento esperado                                                                   |
+| ----- | ----------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| 3     | Nó volta online durante período de espera       | Status volta para "online"; heartbeat retomado; auto-healing cancelado; alerta resolvido |
+| 6     | Chunk sem nenhuma réplica restante              | Chunk marcado como irrecuperável; arquivo afetado status → "corrupted"; alerta crítico   |
+| 7     | Nós restantes sem espaço suficiente             | Alerta "espaço insuficiente para auto-healing"; admin notificado para adicionar nós      |
+| 8     | Réplica de leitura corrompida (hash ≠ chunk_id) | Tentar próxima réplica; se todas corrompidas → chunk irrecuperável                       |
+| 9     | Falha de rede durante cópia                     | Retry com backoff exponencial; chunk permanece na fila de re-replicação                  |
+| 9     | Rate limit do provedor cloud                    | Respeitar retry-after; backoff exponencial; continuar com próximos chunks                |
 
 ### Requisitos de Performance
 
-| Métrica | Valor esperado |
-|---------|---------------|
-| Detecção de nó suspect | < 30 minutos após último heartbeat |
-| Detecção de nó lost | < 1 hora após último heartbeat |
-| Re-replicação completa | < 2 horas para nó com 10GB de chunks |
-| Throughput de cópia | Limitado pela banda do provedor mais lento |
+| Métrica                | Valor esperado                             |
+| ---------------------- | ------------------------------------------ |
+| Detecção de nó suspect | < 30 minutos após último heartbeat         |
+| Detecção de nó lost    | < 1 hora após último heartbeat             |
+| Re-replicação completa | < 2 horas para nó com 10GB de chunks       |
+| Throughput de cópia    | Limitado pela banda do provedor mais lento |
 
 ---
 
@@ -208,21 +209,21 @@
 
 ### Tratamento de Erros
 
-| Passo | Falha possível | Comportamento esperado |
-|-------|---------------|----------------------|
-| 3 | Falha na geração de entropia (CSPRNG) | Retorna 500; log de erro; não criar cluster com entropia fraca |
-| 9 | PostgreSQL indisponível | Retorna 503; seed phrase NÃO é exibida (cluster não foi criado); retry |
-| 12 | Admin não confirma seed | Cluster criado mas seed nunca mais será exibida; alerta persistente na UI |
-| 14 | Token de convite expirado | Membro recebe erro "Convite expirado"; admin gera novo convite |
-| 15 | E-mail já existe no cluster | Retorna 409 "Membro já existe"; não duplicar |
+| Passo | Falha possível                        | Comportamento esperado                                                    |
+| ----- | ------------------------------------- | ------------------------------------------------------------------------- |
+| 3     | Falha na geração de entropia (CSPRNG) | Retorna 500; log de erro; não criar cluster com entropia fraca            |
+| 9     | PostgreSQL indisponível               | Retorna 503; seed phrase NÃO é exibida (cluster não foi criado); retry    |
+| 12    | Admin não confirma seed               | Cluster criado mas seed nunca mais será exibida; alerta persistente na UI |
+| 14    | Token de convite expirado             | Membro recebe erro "Convite expirado"; admin gera novo convite            |
+| 15    | E-mail já existe no cluster           | Retorna 409 "Membro já existe"; não duplicar                              |
 
 ### Requisitos de Performance
 
-| Métrica | Valor esperado |
-|---------|---------------|
+| Métrica                  | Valor esperado                     |
+| ------------------------ | ---------------------------------- |
 | Criação do cluster (p95) | < 2s (geração de chaves + persist) |
-| Geração de convite | < 200ms |
-| Aceite de convite | < 500ms |
+| Geração de convite       | < 200ms                            |
+| Aceite de convite        | < 500ms                            |
 
 ---
 
@@ -257,18 +258,18 @@
 
 ### Tratamento de Erros
 
-| Passo | Falha possível | Comportamento esperado |
-|-------|---------------|----------------------|
-| 5 | Nó offline durante leitura | Skip réplica; será verificada no próximo ciclo; não bloqueia batch |
-| 10 | Todas as réplicas de um chunk corrompidas | Chunk marcado como irrecuperável; arquivo afetado status → "corrupted"; alerta crítico |
-| 11 | Falha ao escrever réplica reparada | Retry com backoff; se persistir, alerta ao admin |
-| 5-12 | Scrubbing sobrecarrega nós (IO-bound) | Rate limiting interno: max N verificações/minuto por nó; priorizar nós idle |
+| Passo | Falha possível                            | Comportamento esperado                                                                 |
+| ----- | ----------------------------------------- | -------------------------------------------------------------------------------------- |
+| 5     | Nó offline durante leitura                | Skip réplica; será verificada no próximo ciclo; não bloqueia batch                     |
+| 10    | Todas as réplicas de um chunk corrompidas | Chunk marcado como irrecuperável; arquivo afetado status → "corrupted"; alerta crítico |
+| 11    | Falha ao escrever réplica reparada        | Retry com backoff; se persistir, alerta ao admin                                       |
+| 5-12  | Scrubbing sobrecarrega nós (IO-bound)     | Rate limiting interno: max N verificações/minuto por nó; priorizar nós idle            |
 
 ### Requisitos de Performance
 
-| Métrica | Valor esperado |
-|---------|---------------|
-| Throughput de verificação | > 100 chunks/minuto |
-| Ciclo completo (10k chunks) | < 2 horas |
-| Overhead nos nós | < 10% de IO adicional durante scrubbing |
-| Latência de reparo | < 30s por chunk corrompido |
+| Métrica                     | Valor esperado                          |
+| --------------------------- | --------------------------------------- |
+| Throughput de verificação   | > 100 chunks/minuto                     |
+| Ciclo completo (10k chunks) | < 2 horas                               |
+| Overhead nos nós            | < 10% de IO adicional durante scrubbing |
+| Latência de reparo          | < 30s por chunk corrompido              |

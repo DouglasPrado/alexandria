@@ -37,9 +37,9 @@
 
 ## Tasks Técnicas
 
-| ID | Task | Tipo | Estimativa |
-|-----|------|------|-----------|
-| TSK-{{ID}} | {{Descrição}} | {{backend/frontend/infra/teste}} | {{P/M/G}} |
+| ID         | Task          | Tipo                             | Estimativa |
+| ---------- | ------------- | -------------------------------- | ---------- |
+| TSK-{{ID}} | {{Descrição}} | {{backend/frontend/infra/teste}} | {{P/M/G}}  |
 
 ---
 

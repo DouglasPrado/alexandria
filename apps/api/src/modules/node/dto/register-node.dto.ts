@@ -1,4 +1,5 @@
 import { IsString, IsIn, IsOptional, MinLength, MaxLength } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class RegisterNodeDto {
   @IsString()
@@ -7,6 +8,7 @@ export class RegisterNodeDto {
   name!: string;
 
   @IsString()
+  @Transform(({ value }) => (typeof value === 'string' ? value.toLowerCase() : value))
   @IsIn(['local', 's3', 'r2', 'b2', 'vps'])
   type!: string;
 

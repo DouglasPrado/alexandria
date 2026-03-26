@@ -3,20 +3,30 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
-import { Images, HardDrive, Bell, Users, Settings, LogOut } from 'lucide-react';
+import { Images, Search, HardDrive, Bell, Users, Settings, User, LogOut } from 'lucide-react';
 
+/**
+ * Sidebar navigation items.
+ * Fonte: docs/frontend/web/07-routes.md (Itens da Sidebar)
+ * adminOnly: visível apenas para role admin
+ */
 const navItems = [
-  { href: '/dashboard', label: 'Galeria', icon: Images },
-  { href: '/dashboard/nodes', label: 'Nos', icon: HardDrive },
-  { href: '/dashboard/alerts', label: 'Alertas', icon: Bell },
-  { href: '/dashboard/members', label: 'Membros', icon: Users },
-  { href: '/dashboard/settings', label: 'Configuracoes', icon: Settings },
+  { href: '/dashboard', label: 'Galeria', icon: Images, adminOnly: false },
+  { href: '/dashboard/search', label: 'Busca', icon: Search, adminOnly: false },
+  { href: '/dashboard/nodes', label: 'Nós', icon: HardDrive, adminOnly: true },
+  { href: '/dashboard/alerts', label: 'Alertas', icon: Bell, adminOnly: true },
+  { href: '/dashboard/members', label: 'Membros', icon: Users, adminOnly: true },
+  { href: '/dashboard/cluster', label: 'Cluster', icon: Settings, adminOnly: true },
+  { href: '/dashboard/settings', label: 'Minha Conta', icon: User, adminOnly: false },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const member = useAuthStore((s) => s.member);
   const logout = useAuthStore((s) => s.logout);
+  const isAdmin = member?.role === 'admin';
+
+  const visibleItems = navItems.filter((item) => !item.adminOnly || isAdmin);
 
   return (
     <div className="min-h-screen bg-[var(--background)] flex">
@@ -26,9 +36,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <p className="text-xs text-[var(--muted-foreground)] mt-0.5 truncate">{member?.name || 'Membro'}</p>
         </div>
         <nav className="flex-1 p-3 space-y-1">
-          {navItems.map((item) => {
+          {visibleItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
             return (
               <Link
                 key={item.href}

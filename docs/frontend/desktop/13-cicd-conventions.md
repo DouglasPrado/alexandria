@@ -25,18 +25,18 @@ Merge na Main
   → publish (GitHub Releases / S3)
 ```
 
-| Etapa | Ferramenta | Timeout | Bloqueia Merge? |
-|-------|------------|---------|-----------------|
-| Lint | ESLint 9 (flat config) | 30s | Sim |
-| Type Check | `tsc --noEmit` (strict mode) | 60s | Sim |
-| Unit Tests | Vitest 2 + Testing Library | 60s | Sim |
-| IPC Tests | Vitest 2 (mock `window.electronAPI`) | 30s | Sim |
-| Build | electron-vite 3 (main + renderer + preload) | 120s | Sim |
-| E2E | Playwright + `_electron` | 300s | Sim (apenas na main) |
-| Package | electron-builder 25 (DMG + NSIS + AppImage) | 600s | N/A (apenas em tags v*) |
-| Code Signing | SignTool (Windows) / codesign (macOS) | 120s | N/A |
-| Notarization | Apple notarytool (macOS 15+) | 300s | N/A (macOS only) |
-| Publish | GitHub Releases (`electron-builder --publish always`) | 180s | N/A |
+| Etapa        | Ferramenta                                            | Timeout | Bloqueia Merge?          |
+| ------------ | ----------------------------------------------------- | ------- | ------------------------ |
+| Lint         | ESLint 9 (flat config)                                | 30s     | Sim                      |
+| Type Check   | `tsc --noEmit` (strict mode)                          | 60s     | Sim                      |
+| Unit Tests   | Vitest 2 + Testing Library                            | 60s     | Sim                      |
+| IPC Tests    | Vitest 2 (mock `window.electronAPI`)                  | 30s     | Sim                      |
+| Build        | electron-vite 3 (main + renderer + preload)           | 120s    | Sim                      |
+| E2E          | Playwright + `_electron`                              | 300s    | Sim (apenas na main)     |
+| Package      | electron-builder 25 (DMG + NSIS + AppImage)           | 600s    | N/A (apenas em tags v\*) |
+| Code Signing | SignTool (Windows) / codesign (macOS)                 | 120s    | N/A                      |
+| Notarization | Apple notarytool (macOS 15+)                          | 300s    | N/A (macOS only)         |
+| Publish      | GitHub Releases (`electron-builder --publish always`) | 180s    | N/A                      |
 
 <details>
 <summary>Exemplo — GitHub Actions para Electron</summary>
@@ -153,12 +153,12 @@ jobs:
 
 > Quais formatos de instalador sao gerados?
 
-| Plataforma | Formato | Ferramenta | Observacao |
-|------------|---------|-----------|------------|
-| Windows | NSIS (.exe) | electron-builder 25 | Instalador com wizard; suporte a instalacao silenciosa (`/S`) |
-| macOS | DMG | electron-builder 25 | Drag-and-drop para Applications; requer notarization |
-| Linux | AppImage | electron-builder 25 | Executavel universal sem instalacao; compativel com qualquer distro |
-| Linux | .deb | electron-builder 25 | Para Debian/Ubuntu; instalacao via `dpkg -i` |
+| Plataforma | Formato     | Ferramenta          | Observacao                                                          |
+| ---------- | ----------- | ------------------- | ------------------------------------------------------------------- |
+| Windows    | NSIS (.exe) | electron-builder 25 | Instalador com wizard; suporte a instalacao silenciosa (`/S`)       |
+| macOS      | DMG         | electron-builder 25 | Drag-and-drop para Applications; requer notarization                |
+| Linux      | AppImage    | electron-builder 25 | Executavel universal sem instalacao; compativel com qualquer distro |
+| Linux      | .deb        | electron-builder 25 | Para Debian/Ubuntu; instalacao via `dpkg -i`                        |
 
 ---
 
@@ -166,18 +166,18 @@ jobs:
 
 > Como a aplicacao se atualiza?
 
-| Aspecto | Configuracao |
-|---------|-------------|
-| Mecanismo | `electron-updater` (parte do `electron-builder`) — `autoUpdater` Electron nativo |
-| Canal de distribuicao | GitHub Releases — publico, auditavel, sem custo de infraestrutura |
-| Verificacao | Assinatura digital (code sign) + checksum SHA-512 gerado pelo `electron-builder` |
-| Estrategia | Download em background (silencioso) + `UpdateBanner` no renderer para prompt de reinicializacao |
-| Fallback | Link direto para GitHub Releases no `UpdateBanner` se auto-update falhar |
+| Aspecto               | Configuracao                                                                                    |
+| --------------------- | ----------------------------------------------------------------------------------------------- |
+| Mecanismo             | `electron-updater` (parte do `electron-builder`) — `autoUpdater` Electron nativo                |
+| Canal de distribuicao | GitHub Releases — publico, auditavel, sem custo de infraestrutura                               |
+| Verificacao           | Assinatura digital (code sign) + checksum SHA-512 gerado pelo `electron-builder`                |
+| Estrategia            | Download em background (silencioso) + `UpdateBanner` no renderer para prompt de reinicializacao |
+| Fallback              | Link direto para GitHub Releases no `UpdateBanner` se auto-update falhar                        |
 
-| Canal | Publico | Frequencia de Check |
-|-------|---------|---------------------|
-| Stable | Todos os usuarios (default) | A cada 4 horas (`autoUpdater.checkForUpdatesAndNotify()`) |
-| Beta | Usuarios opt-in (ativar em Settings → Beta Program) | A cada 1 hora |
+| Canal  | Publico                                             | Frequencia de Check                                       |
+| ------ | --------------------------------------------------- | --------------------------------------------------------- |
+| Stable | Todos os usuarios (default)                         | A cada 4 horas (`autoUpdater.checkForUpdatesAndNotify()`) |
+| Beta   | Usuarios opt-in (ativar em Settings → Beta Program) | A cada 1 hora                                             |
 
 ---
 
@@ -185,11 +185,11 @@ jobs:
 
 > Como garantimos que os binarios sao confiaveis?
 
-| Plataforma | Processo | Certificado | CI Secret |
-|------------|----------|-------------|-----------|
-| Windows | Authenticode signing | EV Code Signing Certificate | `CSC_LINK`, `CSC_KEY_PASSWORD` |
-| macOS | codesign + notarization | Apple Developer ID | `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID` |
-| Linux | GPG signing | GPG key | `GPG_PRIVATE_KEY`, `GPG_PASSPHRASE` |
+| Plataforma | Processo                | Certificado                 | CI Secret                                                  |
+| ---------- | ----------------------- | --------------------------- | ---------------------------------------------------------- |
+| Windows    | Authenticode signing    | EV Code Signing Certificate | `CSC_LINK`, `CSC_KEY_PASSWORD`                             |
+| macOS      | codesign + notarization | Apple Developer ID          | `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID` |
+| Linux      | GPG signing             | GPG key                     | `GPG_PRIVATE_KEY`, `GPG_PASSPHRASE`                        |
 
 > macOS: Notarization e obrigatoria desde macOS 10.15 (Catalina). Binarios nao notarizados sao bloqueados pelo Gatekeeper.
 
@@ -199,11 +199,11 @@ jobs:
 
 > Quais ambientes existem?
 
-| Ambiente | Distribuicao | Branch | Auto-Update? |
-|----------|-------------|--------|--------------------|
-| Development | `pnpm --filter desktop dev` (electron-vite HMR) | Local | N/A |
-| Beta | Instalador assinado distribuido manualmente | `develop` (tag `v*-beta`) | Sim (canal beta, check 1h) |
-| Production | GitHub Releases publico | `main` (tag `v*` sem pre-release) | Sim (canal stable, check 4h) |
+| Ambiente    | Distribuicao                                    | Branch                            | Auto-Update?                 |
+| ----------- | ----------------------------------------------- | --------------------------------- | ---------------------------- |
+| Development | `pnpm --filter desktop dev` (electron-vite HMR) | Local                             | N/A                          |
+| Beta        | Instalador assinado distribuido manualmente     | `develop` (tag `v*-beta`)         | Sim (canal beta, check 1h)   |
+| Production  | GitHub Releases publico                         | `main` (tag `v*` sem pre-release) | Sim (canal stable, check 4h) |
 
 <!-- APPEND:ambientes -->
 
@@ -215,16 +215,16 @@ jobs:
 
 ### Arquivos e Pastas
 
-| Tipo | Padrao | Exemplo |
-|------|--------|---------|
-| Componentes | PascalCase | `UserProfile.tsx` |
-| Hooks | camelCase com prefixo `use` | `useUser.ts` |
-| IPC Handlers | kebab-case | `user-handlers.ts` |
-| IPC Channels | namespace:action | `user:get`, `file:save` |
-| Utils | camelCase | `formatDate.ts` |
-| Types | PascalCase | `User.ts` |
-| Constantes | UPPER_SNAKE_CASE | `API_BASE_URL` |
-| Testes | mesmo nome + `.test` | `UserProfile.test.tsx` |
+| Tipo         | Padrao                      | Exemplo                 |
+| ------------ | --------------------------- | ----------------------- |
+| Componentes  | PascalCase                  | `UserProfile.tsx`       |
+| Hooks        | camelCase com prefixo `use` | `useUser.ts`            |
+| IPC Handlers | kebab-case                  | `user-handlers.ts`      |
+| IPC Channels | namespace:action            | `user:get`, `file:save` |
+| Utils        | camelCase                   | `formatDate.ts`         |
+| Types        | PascalCase                  | `User.ts`               |
+| Constantes   | UPPER_SNAKE_CASE            | `API_BASE_URL`          |
+| Testes       | mesmo nome + `.test`        | `UserProfile.test.tsx`  |
 
 ### Componentes
 
@@ -243,13 +243,13 @@ jobs:
 
 ## Ferramentas de Qualidade
 
-| Ferramenta | Proposito | Configuracao |
-|------------|-----------|-------------|
-| ESLint 9 | Linting de codigo | `apps/desktop/eslint.config.ts` (flat config, herda de `packages/config/eslint`) |
-| Prettier 3 | Formatacao de codigo | `.prettierrc.json` na raiz do monorepo (compartilhado) |
-| TypeScript 5 | Tipagem estatica (`strict: true`, `noUncheckedIndexedAccess`) | `apps/desktop/tsconfig.json` (extends `packages/config/tsconfig`) |
-| Husky | Git hooks (pre-commit) | `.husky/pre-commit` — roda `lint-staged` |
-| lint-staged | Rodar lint apenas em arquivos staged | `.lintstagedrc.json` — `eslint --fix` + `prettier --write` |
+| Ferramenta   | Proposito                                                     | Configuracao                                                                     |
+| ------------ | ------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| ESLint 9     | Linting de codigo                                             | `apps/desktop/eslint.config.ts` (flat config, herda de `packages/config/eslint`) |
+| Prettier 3   | Formatacao de codigo                                          | `.prettierrc.json` na raiz do monorepo (compartilhado)                           |
+| TypeScript 5 | Tipagem estatica (`strict: true`, `noUncheckedIndexedAccess`) | `apps/desktop/tsconfig.json` (extends `packages/config/tsconfig`)                |
+| Husky        | Git hooks (pre-commit)                                        | `.husky/pre-commit` — roda `lint-staged`                                         |
+| lint-staged  | Rodar lint apenas em arquivos staged                          | `.lintstagedrc.json` — `eslint --fix` + `prettier --write`                       |
 
 ---
 
@@ -270,8 +270,8 @@ jobs:
 
 ## Historico de Decisoes
 
-| Data | Decisao | Motivo |
-|------|---------|--------|
-| 2026-03-24 | pnpm workspaces para monorepo + `pnpm --filter desktop` no CI | pnpm tem linking mais eficiente que npm workspaces; `--filter` permite rodar comandos apenas no workspace relevante sem alterar outros pacotes |
-| 2026-03-24 | GitHub Actions como CI/CD (sem CircleCI/GitLab) | Projeto ja hospedado no GitHub; GitHub Actions incluido no free tier para repos publicos; integracao nativa com GitHub Releases para distribuicao |
-| 2026-03-24 | Job `e2e` apenas na main (nao em PRs) | E2E com Playwright+Electron requer build completo (~5-8 min); PRs validam com unit + IPC tests para feedback rapido; E2E na main garante qualidade antes do release |
+| Data       | Decisao                                                       | Motivo                                                                                                                                                              |
+| ---------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-03-24 | pnpm workspaces para monorepo + `pnpm --filter desktop` no CI | pnpm tem linking mais eficiente que npm workspaces; `--filter` permite rodar comandos apenas no workspace relevante sem alterar outros pacotes                      |
+| 2026-03-24 | GitHub Actions como CI/CD (sem CircleCI/GitLab)               | Projeto ja hospedado no GitHub; GitHub Actions incluido no free tier para repos publicos; integracao nativa com GitHub Releases para distribuicao                   |
+| 2026-03-24 | Job `e2e` apenas na main (nao em PRs)                         | E2E com Playwright+Electron requer build completo (~5-8 min); PRs validam com unit + IPC tests para feedback rapido; E2E na main garante qualidade antes do release |

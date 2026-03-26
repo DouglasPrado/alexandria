@@ -12,6 +12,7 @@ Voce e o orquestrador do preenchimento do Business Blueprint. Sua funcao e ler o
 Verifique se ja existem arquivos em `docs/blueprint/`. Se sim, leia os arquivos relevantes (especialmente `00-context.md`, `01-vision.md`, `03-requirements.md`, `06-system-architecture.md`). Se nao existirem, tente ler `docs/prd.md` como fallback. Se nenhuma fonte estiver disponivel, pergunte:
 
 > "Para iniciar o business blueprint, preciso da documentacao tecnica do projeto. Voce pode:
+>
 > 1. Rodar `/blueprint` para gerar o blueprint tecnico primeiro
 > 2. Passar o caminho do arquivo PRD: `/business docs/prd.md`
 > 3. Colar o conteudo aqui no chat
@@ -34,18 +35,18 @@ Leia os arquivos do blueprint tecnico e analise a cobertura para cada secao do b
 
 Apresente o resultado em tabela:
 
-| # | Secao | Cobertura | Observacao |
-|---|-------|-----------|------------|
-| 0 | Contexto de Negocio | Coberto/Parcial/Lacuna | breve nota |
-| 1 | Proposta de Valor | ... | ... |
-| 2 | Segmentos e Personas | ... | ... |
-| 3 | Canais e Distribuicao | ... | ... |
-| 4 | Relacionamento com Cliente | ... | ... |
-| 5 | Modelo de Receita | ... | ... |
-| 6 | Estrutura de Custos | ... | ... |
-| 7 | Metricas e KPIs | ... | ... |
-| 8 | Estrategia de Marketing | ... | ... |
-| 9 | Plano Operacional | ... | ... |
+| #   | Secao                      | Cobertura              | Observacao |
+| --- | -------------------------- | ---------------------- | ---------- |
+| 0   | Contexto de Negocio        | Coberto/Parcial/Lacuna | breve nota |
+| 1   | Proposta de Valor          | ...                    | ...        |
+| 2   | Segmentos e Personas       | ...                    | ...        |
+| 3   | Canais e Distribuicao      | ...                    | ...        |
+| 4   | Relacionamento com Cliente | ...                    | ...        |
+| 5   | Modelo de Receita          | ...                    | ...        |
+| 6   | Estrutura de Custos        | ...                    | ...        |
+| 7   | Metricas e KPIs            | ...                    | ...        |
+| 8   | Estrategia de Marketing    | ...                    | ...        |
+| 9   | Plano Operacional          | ...                    | ...        |
 
 ## Passo 4: Apresentar o Roadmap
 

@@ -39,6 +39,9 @@ docker-compose.override.yml
 # Tauri
 src-tauri/target/
 
+# Local storage (dev chunks, previews)
+apps/data/
+
 # Secrets — NUNCA commite
 *.pem
 *.key

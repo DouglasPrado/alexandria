@@ -7,6 +7,7 @@ description: Incrementa o frontend blueprint com nova funcionalidade ou correcao
 
 Atualiza os documentos existentes do frontend blueprint de forma incremental,
 preservando todo o conteudo ja preenchido. Use este skill para:
+
 - **Adicionar** uma nova feature (novos componentes, rotas, fluxos, etc.)
 - **Corrigir** informacoes existentes (props erradas, rotas renomeadas, fluxos atualizados, etc.)
 - **Atualizar** versoes de tecnologias, endpoints, nomes, ou qualquer dado que mudou
@@ -16,6 +17,7 @@ preservando todo o conteudo ja preenchido. Use este skill para:
 Pergunte ao usuario qual cliente deseja atualizar:
 
 > "Qual cliente voce quer atualizar?
+>
 > - **web** — Cliente web
 > - **mobile** — Cliente mobile
 > - **desktop** — Cliente desktop
@@ -33,6 +35,7 @@ Pergunte ao usuario:
 > "O que precisa ser atualizado no frontend blueprint?
 >
 > Exemplos:
+>
 > - **Nova feature:** 'Sistema de chat em tempo real'
 > - **Correcao:** 'O componente UserCard agora recebe prop `avatarUrl` em vez de `imageUrl`'
 > - **Atualizacao:** 'Rota /settings foi renomeada para /preferences'
@@ -47,19 +50,23 @@ Aguarde a resposta antes de prosseguir.
 Leia os documentos conforme o cliente selecionado:
 
 ### Se `shared`:
+
 1. `docs/frontend/shared/03-design-system.md`
 2. `docs/frontend/shared/06-data-layer.md`
 3. `docs/frontend/shared/15-api-dependencies.md`
 
 ### Se cliente especifico (web, mobile, ou desktop):
+
 Leia os documentos compartilhados E os do cliente:
 
 **Shared:**
+
 1. `docs/frontend/shared/03-design-system.md`
 2. `docs/frontend/shared/06-data-layer.md`
 3. `docs/frontend/shared/15-api-dependencies.md`
 
 **Per-client** (`docs/frontend/{client}/`):
+
 1. `docs/frontend/{client}/00-frontend-vision.md`
 2. `docs/frontend/{client}/01-architecture.md`
 3. `docs/frontend/{client}/02-project-structure.md`
@@ -75,6 +82,7 @@ Leia os documentos compartilhados E os do cliente:
 13. `docs/frontend/{client}/14-copies.md`
 
 ### Se `all`:
+
 Leia TODOS os documentos em `docs/frontend/shared/` e `docs/frontend/{cada cliente existente}/`.
 
 Leia tambem os arquivos relevantes de `docs/blueprint/` para contexto do sistema (entidades, fluxos, requisitos).
@@ -95,23 +103,23 @@ Identifique o tipo de alteracao:
 
 Identifique quais documentos sao impactados. Apresente ao usuario com coluna de cliente:
 
-| Cliente | Doc | Impactado? | Tipo | O que fazer |
-|---------|-----|-----------|------|-------------|
-| shared | 03-design-system | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| shared | 06-data-layer | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| shared | 15-api-dependencies | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| {{client}} | 00-visao | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| {{client}} | 01-architecture | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| {{client}} | 02-estrutura | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| {{client}} | 04-components | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| {{client}} | 05-state | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| {{client}} | 07-routes | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| {{client}} | 08-flows | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| {{client}} | 09-tests | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| {{client}} | 10-performance | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| {{client}} | 11-security | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| {{client}} | 12-observability | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
-| {{client}} | 13-cicd | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| Cliente    | Doc                 | Impactado?  | Tipo     | O que fazer   |
+| ---------- | ------------------- | ----------- | -------- | ------------- |
+| shared     | 03-design-system    | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| shared     | 06-data-layer       | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| shared     | 15-api-dependencies | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 00-visao            | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 01-architecture     | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 02-estrutura        | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 04-components       | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 05-state            | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 07-routes           | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 08-flows            | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 09-tests            | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 10-performance      | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 11-security         | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 12-observability    | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
+| {{client}} | 13-cicd             | {{Sim/Nao}} | {{Tipo}} | {{Descricao}} |
 
 > **Aviso cross-client:** Se a alteracao impacta documentos em `shared/`, avise o usuario que a mudanca afetara TODOS os clientes.
 
@@ -167,18 +175,21 @@ Para CADA documento marcado como impactado, aplique conforme o tipo:
 ### Exemplo de insercao em tabela:
 
 **Antes:**
+
 ```
 | Button | variant, size | primary, secondary |
 <!-- APPEND:primitivos -->
 ```
 
 **Edit:** old_string = `<!-- APPEND:primitivos -->`, new_string =
+
 ```
 | ChatInput | value, onSend, placeholder | text, voice |
 <!-- APPEND:primitivos -->
 ```
 
 **Resultado:**
+
 ```
 | Button | variant, size | primary, secondary |
 | ChatInput | value, onSend, placeholder | text, voice |
@@ -188,6 +199,7 @@ Para CADA documento marcado como impactado, aplique conforme o tipo:
 ### Exemplo de insercao de fluxo:
 
 **Antes:**
+
 ```
 ### Fluxo 2: Checkout
 (conteudo existente)
@@ -196,6 +208,7 @@ Para CADA documento marcado como impactado, aplique conforme o tipo:
 ```
 
 **Edit:** old_string = `<!-- APPEND:fluxos -->`, new_string =
+
 ```
 ---
 
@@ -226,12 +239,12 @@ Apresente ao usuario um resumo do que foi adicionado:
 
 > "Funcionalidade **{{nome}}** documentada para **{{cliente}}**. Alteracoes em **{{N}}** documentos:
 >
-> | Cliente | Doc | Alteracao |
-> |---------|-----|----------|
-> | {{client}} | 04-components | +{{X}} componentes |
-> | {{client}} | 05-state | +{{Y}} stores, +{{Z}} eventos |
-> | shared | 06-data-layer | +{{W}} hooks |
-> | ... | ... | ... |
+> | Cliente    | Doc           | Alteracao                     |
+> | ---------- | ------------- | ----------------------------- |
+> | {{client}} | 04-components | +{{X}} componentes            |
+> | {{client}} | 05-state      | +{{Y}} stores, +{{Z}} eventos |
+> | shared     | 06-data-layer | +{{W}} hooks                  |
+> | ...        | ...           | ...                           |
 >
 > Revise os documentos atualizados e solicite ajustes se necessario."
 

@@ -18,15 +18,16 @@
 
 **Atributos da marca:**
 
-| Atributo | Descrição |
-| --- | --- |
-| Personalidade | Técnico mas acessível, confiável, transparente, resiliente |
-| Tom de voz | Direto e honesto; usa analogias (biblioteca, bibliotecário); sem hype; reconhece limitações |
-| Valores | Durabilidade acima de tudo, privacidade por design, código aberto, autonomia do usuário |
+| Atributo      | Descrição                                                                                   |
+| ------------- | ------------------------------------------------------------------------------------------- |
+| Personalidade | Técnico mas acessível, confiável, transparente, resiliente                                  |
+| Tom de voz    | Direto e honesto; usa analogias (biblioteca, bibliotecário); sem hype; reconhece limitações |
+| Valores       | Durabilidade acima de tudo, privacidade por design, código aberto, autonomia do usuário     |
 
 **Tagline / Slogan:** "Your memories, your devices, your rules. Recovery in 12 words."
 
 **Tagline alternatives:**
+
 - "Lots of Copies Keep Stuff Safe — for your family."
 - "The family storage system nobody can shut down."
 - "Distributed storage that survives any disaster."
@@ -41,12 +42,12 @@
 
 **Plano de Lançamento:**
 
-| Phase | Period | Actions | Goal |
-| ----- | ------ | ------- | ---- |
-| **Pre-launch** | Weeks 1–2 | Polish README, real screenshots, functional Docker Compose, demo GIF. Submit to awesome-selfhosted. Public RFC for architecture feedback. | README "Quick Start" in <5 minutes |
-| **Show HN** | Week 3 | Post "Show HN: Alexandria — distributed family storage with 12-word recovery". Be available 24h to answer comments. | Front page; 100+ upvotes; 50+ stars |
-| **First 30 days** | Weeks 4–8 | Post on r/selfhosted and r/datahoarder. Answer every issue in <24h. Technical blog post on architecture. | 200 stars; 50 Docker pulls/week; 10 active clusters |
-| **First 90 days** | Weeks 9–16 | Public disaster drill (video). CONTRIBUTING.md + "good first issue" labels. Second blog post. Cross-post Dev.to/Medium. YouTube tutorial. | 1,000 stars; 50 active clusters; 5 contributors |
+| Phase             | Period     | Actions                                                                                                                                   | Goal                                                |
+| ----------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| **Pre-launch**    | Weeks 1–2  | Polish README, real screenshots, functional Docker Compose, demo GIF. Submit to awesome-selfhosted. Public RFC for architecture feedback. | README "Quick Start" in <5 minutes                  |
+| **Show HN**       | Week 3     | Post "Show HN: Alexandria — distributed family storage with 12-word recovery". Be available 24h to answer comments.                       | Front page; 100+ upvotes; 50+ stars                 |
+| **First 30 days** | Weeks 4–8  | Post on r/selfhosted and r/datahoarder. Answer every issue in <24h. Technical blog post on architecture.                                  | 200 stars; 50 Docker pulls/week; 10 active clusters |
+| **First 90 days** | Weeks 9–16 | Public disaster drill (video). CONTRIBUTING.md + "good first issue" labels. Second blog post. Cross-post Dev.to/Medium. YouTube tutorial. | 1,000 stars; 50 active clusters; 5 contributors     |
 
 **Primeiros usuários (como conquistar os 10-50 iniciais):**
 
@@ -88,11 +89,11 @@
 
 ## Content Channels
 
-| Canal | Objetivo | Investimento (Tempo/mês) | ROI Esperado |
-| --- | --- | --- | --- |
-| GitHub + README | Aquisição + Conversão (instalação) | 4h (manter docs, responder issues) | Alto — principal vitrine do projeto; stars virais |
-| Reddit (r/selfhosted, r/datahoarder) | Awareness + Aquisição | 4h (posts, respostas, engajamento) | Alto — público-alvo exato; custo zero |
-| Blog técnico (Dev.to / site próprio) | Awareness + SEO | 8h (1 post técnico/mês) | Médio-Alto — conteúdo evergreen; SEO de longa cauda |
+| Canal                                | Objetivo                           | Investimento (Tempo/mês)           | ROI Esperado                                        |
+| ------------------------------------ | ---------------------------------- | ---------------------------------- | --------------------------------------------------- |
+| GitHub + README                      | Aquisição + Conversão (instalação) | 4h (manter docs, responder issues) | Alto — principal vitrine do projeto; stars virais   |
+| Reddit (r/selfhosted, r/datahoarder) | Awareness + Aquisição              | 4h (posts, respostas, engajamento) | Alto — público-alvo exato; custo zero               |
+| Blog técnico (Dev.to / site próprio) | Awareness + SEO                    | 8h (1 post técnico/mês)            | Médio-Alto — conteúdo evergreen; SEO de longa cauda |
 
 > **Regra:** 1 canal por vez. Validar GitHub + Reddit primeiro. Só adicionar blog quando os dois primeiros estiverem gerando tração consistente.
 
@@ -132,11 +133,11 @@ Post técnico → Tráfego orgânico → Instalação → Contribuição → Mel
 
 **Pilares de conteúdo:**
 
-| Pilar | Objetivo | Exemplo de Temas |
-| --- | --- | --- |
-| Arquitetura e decisões técnicas | Awareness (comunidade técnica) | "Como funciona o consistent hashing do Alexandria", "Por que escolhemos envelope encryption", "Erasure coding vs replicação 3x" |
-| Durabilidade e disaster recovery | Awareness + Confiança | "Disaster drill público: destruímos o servidor e recuperamos tudo em 47 minutos", "Bit rot é real: como o scrubbing nos salvou" |
-| Comparativos e migração | Aquisição | "Alexandria vs Immich vs Syncthing: qual o certo para você?", "Migrei 500GB do Google Photos para o Alexandria — o que aprendi" |
+| Pilar                            | Objetivo                       | Exemplo de Temas                                                                                                                |
+| -------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| Arquitetura e decisões técnicas  | Awareness (comunidade técnica) | "Como funciona o consistent hashing do Alexandria", "Por que escolhemos envelope encryption", "Erasure coding vs replicação 3x" |
+| Durabilidade e disaster recovery | Awareness + Confiança          | "Disaster drill público: destruímos o servidor e recuperamos tudo em 47 minutos", "Bit rot é real: como o scrubbing nos salvou" |
+| Comparativos e migração          | Aquisição                      | "Alexandria vs Immich vs Syncthing: qual o certo para você?", "Migrei 500GB do Google Photos para o Alexandria — o que aprendi" |
 
 **Formatos opcionais (adicionar quando o principal estiver estável):**
 
@@ -151,13 +152,13 @@ Post técnico → Tráfego orgânico → Instalação → Contribuição → Mel
 
 **Time allocated for community:** ~16h/month (4h/week)
 
-| Atividade / Canal | Tempo Mensal | % do Total | Resultado Esperado |
-| --- | --- | --- | --- |
-| GitHub (README, issues, docs) | 4h | 25% | README sempre atualizado; issues respondidas em <24h |
-| Reddit + HN (posts, respostas) | 4h | 25% | 2-4 participações relevantes/mês; tráfego para GitHub |
-| Blog post técnico | 6h | 37,5% | 1 post/mês; SEO de longa cauda; material para compartilhar |
-| Discord/comunidade (suporte, engajamento) | 2h | 12,5% | Comunidade ativa; feedback direto; retenção |
-| **Total** | **16h** | **100%** | |
+| Atividade / Canal                         | Tempo Mensal | % do Total | Resultado Esperado                                         |
+| ----------------------------------------- | ------------ | ---------- | ---------------------------------------------------------- |
+| GitHub (README, issues, docs)             | 4h           | 25%        | README sempre atualizado; issues respondidas em <24h       |
+| Reddit + HN (posts, respostas)            | 4h           | 25%        | 2-4 participações relevantes/mês; tráfego para GitHub      |
+| Blog post técnico                         | 6h           | 37,5%      | 1 post/mês; SEO de longa cauda; material para compartilhar |
+| Discord/comunidade (suporte, engajamento) | 2h           | 12,5%      | Comunidade ativa; feedback direto; retenção                |
+| **Total**                                 | **16h**      | **100%**   |                                                            |
 
 > **Princípio:** para projeto open-source solo, 4h/semana de "marketing" é o máximo sustentável sem comprometer o desenvolvimento. Se a tração justificar, aumentar para 8h/semana após o mês 6.
 

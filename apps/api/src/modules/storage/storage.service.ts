@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { resolve } from 'node:path';
+import { createDecipheriv } from 'node:crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   split,
@@ -59,26 +60,39 @@ export class StorageService implements OnModuleInit {
               : LOCAL_CHUNKS_DIR;
             provider = new LocalStorageProvider(localPath);
           } else {
-            // Para S3/R2/B2: credenciais estao encriptadas no configEncrypted
-            // No MVP, usamos endpoint do banco + credenciais placeholder
-            // Em producao, descriptografar config do vault do owner
-            const endpoint = node.endpoint || '';
-            const accessKeyId = process.env.AWS_ACCESS_KEY_ID || '';
-            const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || '';
-
-            // Skip S3 nodes with missing endpoint or credentials — they can't serve requests
-            if (!endpoint || !accessKeyId || !secretAccessKey) {
-              console.log(`[StorageService] Skipping node ${node.id} (${node.type}) — missing endpoint or credentials`);
+            // Decrypt config from configEncrypted (RN-N4)
+            const config = this.decryptNodeConfig(node.configEncrypted);
+            if (!config) {
+              console.log(`[StorageService] Skipping node ${node.id} (${node.type}) — failed to decrypt config`);
               continue;
             }
 
-            provider = new S3StorageProvider({
-              endpoint,
-              region: 'us-east-1',
-              bucket: 'alexandria',
+            const accessKeyId = config.accessKey || '';
+            const secretAccessKey = config.secretKey || '';
+            if (!accessKeyId || !secretAccessKey) {
+              console.log(`[StorageService] Skipping node ${node.id} (${node.type}) — missing credentials`);
+              continue;
+            }
+
+            // R2/B2/VPS need endpoint; AWS S3 derives from region
+            const endpoint = config.endpoint || '';
+            const needsEndpoint = node.type !== 's3';
+            if (needsEndpoint && !endpoint) {
+              console.log(`[StorageService] Skipping node ${node.id} (${node.type}) — missing endpoint`);
+              continue;
+            }
+
+            const s3Config: ConstructorParameters<typeof S3StorageProvider>[0] = {
+              region: config.region || 'us-east-1',
+              bucket: config.bucket || '',
               accessKeyId,
               secretAccessKey,
-            });
+            };
+            if (endpoint) {
+              s3Config.endpoint = endpoint;
+            }
+
+            provider = new S3StorageProvider(s3Config);
           }
 
           this.ring.addNode(node.id, 100);
@@ -364,7 +378,7 @@ export class StorageService implements OnModuleInit {
       capacityByNode.set(r.nodeId, current + BigInt(sizeByChunk.get(r.chunkId) ?? 0));
     }
     for (const [nodeId, added] of capacityByNode) {
-      await this.prisma.node.update({
+      await this.prisma.node.updateMany({
         where: { id: nodeId },
         data: { usedCapacity: { increment: added } },
       });
@@ -394,6 +408,13 @@ export class StorageService implements OnModuleInit {
     }
 
     await provider.put(key, data);
+
+    // Update usedCapacity on the node (best-effort — node may have been removed)
+    await this.prisma.node.updateMany({
+      where: { id: nodeId },
+      data: { usedCapacity: { increment: BigInt(data.length) } },
+    });
+
     return { nodeId, key };
   }
 
@@ -486,5 +507,29 @@ export class StorageService implements OnModuleInit {
     const provider = this.providers.get(nodeId);
     if (!provider) return; // node may have been removed — skip silently
     await provider.delete(key);
+  }
+
+  /**
+   * Descriptografa configEncrypted de um no (AES-256-GCM).
+   * Contraparte de NodeService.encryptConfig.
+   * Formato: iv(12) + authTag(16) + ciphertext
+   */
+  private decryptNodeConfig(
+    configEncrypted: Buffer | Uint8Array | null | undefined,
+  ): { endpoint?: string; bucket?: string; accessKey?: string; secretKey?: string; region?: string } | null {
+    if (!configEncrypted || configEncrypted.length < 29) return null;
+    try {
+      const buf = Buffer.from(configEncrypted);
+      const key = Buffer.alloc(32, 0); // Same placeholder key as NodeService.encryptConfig
+      const iv = buf.subarray(0, 12);
+      const authTag = buf.subarray(12, 28);
+      const ciphertext = buf.subarray(28);
+      const decipher = createDecipheriv('aes-256-gcm', key, iv);
+      decipher.setAuthTag(authTag);
+      const decrypted = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+      return JSON.parse(decrypted.toString('utf-8'));
+    } catch {
+      return null;
+    }
   }
 }

@@ -8,13 +8,13 @@ Documenta os fluxos criticos de interacao do usuario com o frontend desktop. Cad
 
 > Quais sao os 3-5 fluxos mais importantes da aplicacao?
 
-| # | Fluxo | Atores | Criticidade |
-|---|-------|--------|-------------|
-| 1 | Desbloqueio do Vault e Primeiro Acesso | Qualquer membro da familia | Maxima — bloqueio de toda a UI |
-| 2 | Onboarding: Criar ou Entrar no Cluster | Administrador Familiar (criar) / Membro convidado (entrar) | Maxima — pre-requisito para uso |
-| 3 | Sync Automatico de Pasta | Fotografo Amador / Membro Familiar | Maxima — valor central do app desktop |
-| 4 | Upload Manual via Drag-and-Drop | Qualquer membro | Alta — acao frequente |
-| 5 | Recovery via Seed Phrase (no Desktop) | Administrador Familiar | Alta — resiliencia do sistema |
+| #   | Fluxo                                  | Atores                                                     | Criticidade                           |
+| --- | -------------------------------------- | ---------------------------------------------------------- | ------------------------------------- |
+| 1   | Desbloqueio do Vault e Primeiro Acesso | Qualquer membro da familia                                 | Maxima — bloqueio de toda a UI        |
+| 2   | Onboarding: Criar ou Entrar no Cluster | Administrador Familiar (criar) / Membro convidado (entrar) | Maxima — pre-requisito para uso       |
+| 3   | Sync Automatico de Pasta               | Fotografo Amador / Membro Familiar                         | Maxima — valor central do app desktop |
+| 4   | Upload Manual via Drag-and-Drop        | Qualquer membro                                            | Alta — acao frequente                 |
+| 5   | Recovery via Seed Phrase (no Desktop)  | Administrador Familiar                                     | Alta — resiliencia do sistema         |
 
 ---
 
@@ -39,12 +39,12 @@ Documenta os fluxos criticos de interacao do usuario com o frontend desktop. Cad
 
 **Componentes envolvidos:**
 
-| Componente | Responsabilidade |
-|------------|-----------------|
-| `UnlockScreen` | Captura senha, exibe feedback de tentativas invalidas |
-| `AuthGuard` | Verifica `authStore.isVaultUnlocked`; redireciona para `/gallery` apos unlock |
-| `authStore` | Recebe payload do IPC, armazena estado do membro em memoria |
-| `VaultManager` (main) | Deriva chave PBKDF2, decripta vault AES-256-GCM, retorna resultado |
+| Componente            | Responsabilidade                                                              |
+| --------------------- | ----------------------------------------------------------------------------- |
+| `UnlockScreen`        | Captura senha, exibe feedback de tentativas invalidas                         |
+| `AuthGuard`           | Verifica `authStore.isVaultUnlocked`; redireciona para `/gallery` apos unlock |
+| `authStore`           | Recebe payload do IPC, armazena estado do membro em memoria                   |
+| `VaultManager` (main) | Deriva chave PBKDF2, decripta vault AES-256-GCM, retorna resultado            |
 
 **Tratamento de Erros:**
 
@@ -89,11 +89,11 @@ Documenta os fluxos criticos de interacao do usuario com o frontend desktop. Cad
 
 **Componentes envolvidos:**
 
-| Componente | Responsabilidade |
-|------------|-----------------|
-| `OnboardingWizard` | Multi-step wizard com navegacao entre passos e validacao por passo |
-| `SeedPhraseDisplay` | Grid 3×4 de palavras com mascara e obrigatoriedade de confirmacao |
-| `VaultManager` (main) | Gera seed, deriva master key, cria arquivo vault criptografado |
+| Componente            | Responsabilidade                                                   |
+| --------------------- | ------------------------------------------------------------------ |
+| `OnboardingWizard`    | Multi-step wizard com navegacao entre passos e validacao por passo |
+| `SeedPhraseDisplay`   | Grid 3×4 de palavras com mascara e obrigatoriedade de confirmacao  |
+| `VaultManager` (main) | Gera seed, deriva master key, cria arquivo vault criptografado     |
 
 **Tratamento de Erros:**
 
@@ -130,20 +130,20 @@ Documenta os fluxos criticos de interacao do usuario com o frontend desktop. Cad
 
 **Componentes envolvidos:**
 
-| Componente | Responsabilidade |
-|------------|-----------------|
-| `FolderPicker` | Invoca `dialog.showOpenDialog` via IPC; adiciona pasta ao `syncStore` |
-| `SyncDashboard` | Exibe status geral: pastas monitoradas, fila, velocidade de upload |
+| Componente           | Responsabilidade                                                      |
+| -------------------- | --------------------------------------------------------------------- |
+| `FolderPicker`       | Invoca `dialog.showOpenDialog` via IPC; adiciona pasta ao `syncStore` |
+| `SyncDashboard`      | Exibe status geral: pastas monitoradas, fila, velocidade de upload    |
 | `UploadProgressItem` | Progresso individual por arquivo: nome, tamanho, % completado, status |
-| `SyncStatusBadge` | Badge no sidebar item "Sync" com contagem de arquivos na fila |
-| `TrayManager` (main) | Icone animado `tray-syncing.png` + tooltip com contagem |
-| `SyncEngine` (main) | chokidar watch + `uploadQueue` + orquestracao de uploads |
+| `SyncStatusBadge`    | Badge no sidebar item "Sync" com contagem de arquivos na fila         |
+| `TrayManager` (main) | Icone animado `tray-syncing.png` + tooltip com contagem               |
+| `SyncEngine` (main)  | chokidar watch + `uploadQueue` + orquestracao de uploads              |
 
 **Tratamento de Erros:**
 
 - **Arquivo com formato nao suportado** → entrada na fila com status `skipped`; tooltip: "Formato nao suportado"
 - **Upload de arquivo falha (rede)** → status `error` na fila; botao "Retry"; retry automatico apos 60s (3 tentativas)
-- **Menos de 3 nos ativos** → upload pausado; `AlertBanner` em `/sync`: "Nos insuficientes para replicacao. Sync pausado."
+- **Menos de 1 no ativo** → upload pausado; `AlertBanner` em `/sync`: "Nos insuficientes para replicacao. Sync pausado."
 - **Pasta removida do disco** → chokidar emite `unwatch`; entrada em `syncStore` mantida mas marcada como `folder_not_found`; alerta no `SyncDashboard`
 - **Arquivo em uso por outro processo** → chokidar re-tenta apos arquivo ser liberado (`awaitWriteFinish` no config)
 
@@ -171,11 +171,11 @@ Documenta os fluxos criticos de interacao do usuario com o frontend desktop. Cad
 
 **Componentes envolvidos:**
 
-| Componente | Responsabilidade |
-|------------|-----------------|
-| Drop Zone (overlay global) | Detecta `dragover` na `mainWindow`; exibe area de drop visual |
-| `UploadProgressItem` | Progresso por arquivo — overlay flutuante ou na pagina `/sync` |
-| `GalleryGrid` | Atualiza grid em tempo real conforme arquivos ficam `ready` |
+| Componente                 | Responsabilidade                                               |
+| -------------------------- | -------------------------------------------------------------- |
+| Drop Zone (overlay global) | Detecta `dragover` na `mainWindow`; exibe area de drop visual  |
+| `UploadProgressItem`       | Progresso por arquivo — overlay flutuante ou na pagina `/sync` |
+| `GalleryGrid`              | Atualiza grid em tempo real conforme arquivos ficam `ready`    |
 
 **Tratamento de Erros:**
 
@@ -209,12 +209,12 @@ Documenta os fluxos criticos de interacao do usuario com o frontend desktop. Cad
 
 **Componentes envolvidos:**
 
-| Componente | Responsabilidade |
-|------------|-----------------|
-| `RecoveryPage` | Wizard 3-etapas: URL + seed + progresso |
+| Componente        | Responsabilidade                                                     |
+| ----------------- | -------------------------------------------------------------------- |
+| `RecoveryPage`    | Wizard 3-etapas: URL + seed + progresso                              |
 | `SeedPhraseInput` | 12 campos com autocomplete BIP-39, validacao visual, suporte a colar |
 | Progress Timeline | Etapas de recovery com status (pendente/em-progresso/concluido/erro) |
-| Recovery Log | Feed de eventos em tempo real (scroll automatico para o fim) |
+| Recovery Log      | Feed de eventos em tempo real (scroll automatico para o fim)         |
 
 **Tratamento de Erros:**
 
@@ -238,11 +238,11 @@ Documenta os fluxos criticos de interacao do usuario com o frontend desktop. Cad
 
 <!-- do blueprint: desktop/04-components.md — Drop Zone global; desktop/08-flows.md — Fluxo 4 -->
 
-| Acao | Componente | Comportamento |
-|------|-----------|---------------|
-| Arrastar arquivo(s) do Explorer/Finder para a janela | Drop Zone overlay global | Overlay azul aparece; `dragover` previne default; `drop` coleta paths e envia via IPC `file:upload-batch` |
-| Arrastar foto da galeria para o Explorer/Finder | `MediaCard` (drag source) | `draggable=true` + `ondragstart` define `text/uri-list` com URL de download; OS inicia download ao soltar |
-| Arrastar pasta monitorada do `SyncDashboard` para remover | `SyncFolderList` item | Reordenacao de pastas (futura funcionalidade); por ora, icone de remover na linha |
+| Acao                                                      | Componente                | Comportamento                                                                                             |
+| --------------------------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Arrastar arquivo(s) do Explorer/Finder para a janela      | Drop Zone overlay global  | Overlay azul aparece; `dragover` previne default; `drop` coleta paths e envia via IPC `file:upload-batch` |
+| Arrastar foto da galeria para o Explorer/Finder           | `MediaCard` (drag source) | `draggable=true` + `ondragstart` define `text/uri-list` com URL de download; OS inicia download ao soltar |
+| Arrastar pasta monitorada do `SyncDashboard` para remover | `SyncFolderList` item     | Reordenacao de pastas (futura funcionalidade); por ora, icone de remover na linha                         |
 
 ```typescript
 // renderer/components/desktop/DropZone.tsx
@@ -278,22 +278,22 @@ useEffect(() => {
 
 <!-- do blueprint: desktop/07-routes.md — menu bar com atalhos -->
 
-| Atalho | Acao | Contexto |
-|--------|------|----------|
-| `Cmd/Ctrl+1` | Navegar para Galeria (grid) | Global |
-| `Cmd/Ctrl+2` | Navegar para Timeline | Global |
-| `Cmd/Ctrl+3` | Navegar para Sync | Global |
-| `Cmd/Ctrl+4` | Navegar para Cluster | Global (admin) |
-| `Cmd/Ctrl+5` | Navegar para Vault | Global |
-| `Cmd/Ctrl+,` | Abrir Configuracoes | Global |
-| `Cmd/Ctrl+U` | Upload manual (abre file dialog) | Global |
-| `Cmd/Ctrl+L` | Bloquear vault | Global |
-| `Cmd/Ctrl+F` | Busca de arquivos (abre command palette) | Galeria |
-| `Esc` | Fechar media viewer / fechar modal | Media viewer, modais |
-| `Seta esquerda/direita` | Navegar entre fotos no viewer | Media viewer aberto |
-| `Space` | Pausar/retomar sync | Pagina `/sync` |
-| `F11` | Tela cheia | Global |
-| `Cmd/Ctrl+Q` | Sair completamente do app | Global |
+| Atalho                  | Acao                                     | Contexto             |
+| ----------------------- | ---------------------------------------- | -------------------- |
+| `Cmd/Ctrl+1`            | Navegar para Galeria (grid)              | Global               |
+| `Cmd/Ctrl+2`            | Navegar para Timeline                    | Global               |
+| `Cmd/Ctrl+3`            | Navegar para Sync                        | Global               |
+| `Cmd/Ctrl+4`            | Navegar para Cluster                     | Global (admin)       |
+| `Cmd/Ctrl+5`            | Navegar para Vault                       | Global               |
+| `Cmd/Ctrl+,`            | Abrir Configuracoes                      | Global               |
+| `Cmd/Ctrl+U`            | Upload manual (abre file dialog)         | Global               |
+| `Cmd/Ctrl+L`            | Bloquear vault                           | Global               |
+| `Cmd/Ctrl+F`            | Busca de arquivos (abre command palette) | Galeria              |
+| `Esc`                   | Fechar media viewer / fechar modal       | Media viewer, modais |
+| `Seta esquerda/direita` | Navegar entre fotos no viewer            | Media viewer aberto  |
+| `Space`                 | Pausar/retomar sync                      | Pagina `/sync`       |
+| `F11`                   | Tela cheia                               | Global               |
+| `Cmd/Ctrl+Q`            | Sair completamente do app                | Global               |
 
 <!-- APPEND:shortcuts -->
 
@@ -303,13 +303,13 @@ useEffect(() => {
 
 <!-- do blueprint: 00-context.md — alertas de saude; desktop/04-components.md — NativeNotification -->
 
-| Evento | Titulo | Corpo | Acao ao Clicar |
-|--------|--------|-------|----------------|
-| Arquivo sincronizado (batch) | "Alexandria — Sync concluido" | "12 fotos salvas com sucesso no cluster" | Abre galeria na rota `/gallery` e foca na janela |
-| No offline detectado | "Alexandria — No offline" | "PC do Avo ficou offline. Auto-healing iniciado." | Abre `/cluster` e exibe detalhes do no |
-| Atualizacao disponivel | "Alexandria — Atualizacao disponivel" | "Versao 1.2.0 pronta para instalar" | Exibe `UpdateBanner` na janela principal |
-| Alerta critico do cluster | "Alexandria — Atencao" | "Replicacao abaixo do minimo em 3 arquivos" | Abre `/cluster/alerts` |
-| Recovery concluido | "Alexandria — Recovery completo" | "27.432 arquivos recuperados com sucesso" | Foca na janela principal |
+| Evento                       | Titulo                                | Corpo                                             | Acao ao Clicar                                   |
+| ---------------------------- | ------------------------------------- | ------------------------------------------------- | ------------------------------------------------ |
+| Arquivo sincronizado (batch) | "Alexandria — Sync concluido"         | "12 fotos salvas com sucesso no cluster"          | Abre galeria na rota `/gallery` e foca na janela |
+| No offline detectado         | "Alexandria — No offline"             | "PC do Avo ficou offline. Auto-healing iniciado." | Abre `/cluster` e exibe detalhes do no           |
+| Atualizacao disponivel       | "Alexandria — Atualizacao disponivel" | "Versao 1.2.0 pronta para instalar"               | Exibe `UpdateBanner` na janela principal         |
+| Alerta critico do cluster    | "Alexandria — Atencao"                | "Replicacao abaixo do minimo em 3 arquivos"       | Abre `/cluster/alerts`                           |
+| Recovery concluido           | "Alexandria — Recovery completo"      | "27.432 arquivos recuperados com sucesso"         | Foca na janela principal                         |
 
 <!-- APPEND:notifications -->
 
@@ -319,13 +319,13 @@ useEffect(() => {
 
 <!-- do blueprint: desktop/04-components.md — FileDialog IPC; desktop/shared/06-data-layer.md — File System API -->
 
-| Operacao | Metodo | Dialogo Nativo? | Filtros |
-|----------|--------|-----------------|---------|
-| Selecionar pasta para sync | `dialog.showOpenDialog({ properties: ['openDirectory'] })` | Sim | — |
-| Upload manual de arquivo(s) | `dialog.showOpenDialog({ properties: ['openFile', 'multiSelections'] })` | Sim | JPEG, PNG, HEIC, MP4, MOV, PDF, DOCX e mais |
-| Salvar arquivo baixado | `dialog.showSaveDialog()` + `fs.writeFile()` | Sim | Extensao original preservada |
-| Ler arquivo para upload | IPC → `fs.readFile()` (stream) | Nao | — |
-| Verificar se pasta existe | IPC → `fs.access()` | Nao | — |
+| Operacao                    | Metodo                                                                   | Dialogo Nativo? | Filtros                                     |
+| --------------------------- | ------------------------------------------------------------------------ | --------------- | ------------------------------------------- |
+| Selecionar pasta para sync  | `dialog.showOpenDialog({ properties: ['openDirectory'] })`               | Sim             | —                                           |
+| Upload manual de arquivo(s) | `dialog.showOpenDialog({ properties: ['openFile', 'multiSelections'] })` | Sim             | JPEG, PNG, HEIC, MP4, MOV, PDF, DOCX e mais |
+| Salvar arquivo baixado      | `dialog.showSaveDialog()` + `fs.writeFile()`                             | Sim             | Extensao original preservada                |
+| Ler arquivo para upload     | IPC → `fs.readFile()` (stream)                                           | Nao             | —                                           |
+| Verificar se pasta existe   | IPC → `fs.access()`                                                      | Nao             | —                                           |
 
 ---
 
@@ -336,8 +336,8 @@ useEffect(() => {
 - [ ] Nao — janela unica e suficiente
 - [x] Sim — janela modal para onboarding
 
-| Janela | Quando Abre | Comunicacao com Main Window |
-|--------|------------|----------------------------|
+| Janela             | Quando Abre                                               | Comunicacao com Main Window                                   |
+| ------------------ | --------------------------------------------------------- | ------------------------------------------------------------- |
 | `OnboardingWindow` | App inicia sem cluster configurado (`hasCluster = false`) | IPC: `onboarding:complete` fecha modal e atualiza `authStore` |
 
 > Para detalhes sobre testes de fluxos, (ver 09-tests.md).
@@ -346,9 +346,9 @@ useEffect(() => {
 
 ## Historico de Decisoes
 
-| Data | Decisao | Motivo |
-|------|---------|--------|
-| 2026-03-24 | Drop zone global (em qualquer tela) vs restrita a galeria | UX: usuario pode arrastar arquivos de qualquer lugar sem precisar navegar para a galeria primeiro |
-| 2026-03-24 | Fechar janela occulta app (nao fecha) | Sync precisa continuar em background; documentado com dialogo de confirmacao na primeira vez |
-| 2026-03-24 | Recovery como rota publica `/recovery` (sem vault unlocked) | Recovery pode ser necessario sem acesso ao vault; precisa ser acessivel na tela de unlock |
-| 2026-03-24 | SeedPhraseInput com 12 campos individuais (nao textarea) | Facilita identificacao de palavras incorretas por posicao; autocomplete BIP-39 por campo |
+| Data       | Decisao                                                     | Motivo                                                                                            |
+| ---------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| 2026-03-24 | Drop zone global (em qualquer tela) vs restrita a galeria   | UX: usuario pode arrastar arquivos de qualquer lugar sem precisar navegar para a galeria primeiro |
+| 2026-03-24 | Fechar janela occulta app (nao fecha)                       | Sync precisa continuar em background; documentado com dialogo de confirmacao na primeira vez      |
+| 2026-03-24 | Recovery como rota publica `/recovery` (sem vault unlocked) | Recovery pode ser necessario sem acesso ao vault; precisa ser acessivel na tela de unlock         |
+| 2026-03-24 | SeedPhraseInput com 12 campos individuais (nao textarea)    | Facilita identificacao de palavras incorretas por posicao; autocomplete BIP-39 por campo          |

@@ -40,17 +40,20 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 ## Contexto por Plataforma
 
 ### Se web:
+
 - Core Web Vitals: LCP, INP, CLS como metricas primarias
 - Code splitting e lazy loading de rotas
 - Streaming SSR e progressive hydration
 
 ### Se mobile:
+
 - App startup time (cold start e warm start)
 - Frame rate alvo de 60fps
 - Consumo de memoria e bateria
 - Otimizacoes do Hermes engine
 
 ### Se desktop:
+
 - Startup time da aplicacao
 - Uso de memoria (main process + renderer)
 - Consumo de CPU em idle e em uso
@@ -59,11 +62,13 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 ## Geracao
 
 > **Modo de escrita:**
+>
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
 Preencha `docs/frontend/{client}/10-performance.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+
 - Informacoes explicitas do blueprint tecnico
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- do blueprint: XX-arquivo.md -->`)

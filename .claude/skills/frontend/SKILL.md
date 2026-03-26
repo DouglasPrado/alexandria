@@ -33,6 +33,7 @@ Leia todos os arquivos do blueprint tecnico em `docs/blueprint/` como fonte prim
 Se o blueprint tecnico estiver vazio ou incompleto, use `docs/prd.md` como fallback. Se nenhum dos dois estiver disponivel, pergunte:
 
 > "Para iniciar o frontend blueprint, preciso do blueprint tecnico preenchido (docs/blueprint/). Voce pode:
+>
 > 1. Rodar `/blueprint` para preencher o blueprint tecnico primeiro
 > 2. Passar o caminho do PRD como fallback: `/frontend docs/prd.md`
 >
@@ -54,6 +55,7 @@ Se o usuario aceitar, mova os arquivos correspondentes.
 Pergunte ao usuario quais clientes frontend ele precisa documentar:
 
 > "Quais clientes frontend voce precisa documentar?
+>
 > 1. **Web** (Next.js / Remix / SPA)
 > 2. **Mobile** (React Native / Expo)
 > 3. **Desktop** (Electron / Tauri)
@@ -109,11 +111,11 @@ Apresente uma tabela de cobertura por cliente selecionado:
 
 ### Documentos Compartilhados (shared)
 
-| # | Secao | Cobertura | Observacao |
-|---|-------|-----------|------------|
-| 03 | Design System | Coberto/Parcial/Lacuna | breve nota |
-| 06 | Data Layer | ... | ... |
-| 15 | Dependencias de API | ... | ... |
+| #   | Secao               | Cobertura              | Observacao |
+| --- | ------------------- | ---------------------- | ---------- |
+| 03  | Design System       | Coberto/Parcial/Lacuna | breve nota |
+| 06  | Data Layer          | ...                    | ...        |
+| 15  | Dependencias de API | ...                    | ...        |
 
 ### Documentos por Cliente
 
@@ -121,21 +123,21 @@ Para CADA cliente selecionado (web, mobile, desktop), apresente:
 
 > **Cliente: {{web/mobile/desktop}}**
 
-| # | Secao | Cobertura | Observacao |
-|---|-------|-----------|------------|
-| 00 | Visao do Frontend | Coberto/Parcial/Lacuna | breve nota |
-| 01 | Arquitetura | ... | ... |
-| 02 | Estrutura do Projeto | ... | ... |
-| 04 | Componentes | ... | ... |
-| 05 | Gerenciamento de Estado | ... | ... |
-| 07 | Rotas e Navegacao | ... | ... |
-| 08 | Fluxos de Interface | ... | ... |
-| 09 | Estrategia de Testes | ... | ... |
-| 10 | Performance | ... | ... |
-| 11 | Seguranca | ... | ... |
-| 12 | Observabilidade | ... | ... |
-| 13 | CI/CD e Convencoes | ... | ... |
-| 14 | Copies | ... | ... |
+| #   | Secao                   | Cobertura              | Observacao |
+| --- | ----------------------- | ---------------------- | ---------- |
+| 00  | Visao do Frontend       | Coberto/Parcial/Lacuna | breve nota |
+| 01  | Arquitetura             | ...                    | ...        |
+| 02  | Estrutura do Projeto    | ...                    | ...        |
+| 04  | Componentes             | ...                    | ...        |
+| 05  | Gerenciamento de Estado | ...                    | ...        |
+| 07  | Rotas e Navegacao       | ...                    | ...        |
+| 08  | Fluxos de Interface     | ...                    | ...        |
+| 09  | Estrategia de Testes    | ...                    | ...        |
+| 10  | Performance             | ...                    | ...        |
+| 11  | Seguranca               | ...                    | ...        |
+| 12  | Observabilidade         | ...                    | ...        |
+| 13  | CI/CD e Convencoes      | ...                    | ...        |
+| 14  | Copies                  | ...                    | ...        |
 
 ## Passo 5: Apresentar o Roadmap
 

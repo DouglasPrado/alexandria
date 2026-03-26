@@ -14,13 +14,13 @@ Paleta base derivada de Beautiful Blues (Coolors) — transmite confianca, segur
 
 **Paleta de 5 cores:**
 
-| Cor | Hex | Papel |
-| --- | --- | --- |
-| Cor 1 (ancora) | `#011F4B` | `--primary` — CTA, botoes principais, links |
-| Cor 2 (complementar) | `#03396C` | `--accent` — destaques, hover states |
-| Cor 3 (neutra) | `#005B96` | `--secondary` — backgrounds alternativos, badges |
-| Cor 4 (atencao) | `#6497B1` | `--info` — informacional, status neutro |
-| Cor 5 (suave) | `#B3CDE0` | `--muted` — areas desabilitadas, bordas suaves |
+| Cor                  | Hex       | Papel                                            |
+| -------------------- | --------- | ------------------------------------------------ |
+| Cor 1 (ancora)       | `#011F4B` | `--primary` — CTA, botoes principais, links      |
+| Cor 2 (complementar) | `#03396C` | `--accent` — destaques, hover states             |
+| Cor 3 (neutra)       | `#005B96` | `--secondary` — backgrounds alternativos, badges |
+| Cor 4 (atencao)      | `#6497B1` | `--info` — informacional, status neutro          |
+| Cor 5 (suave)        | `#B3CDE0` | `--muted` — areas desabilitadas, bordas suaves   |
 
 <!-- do blueprint: 01-vision.md — identidade de seguranca, confianca e preservacao familiar -->
 
@@ -32,110 +32,110 @@ Paleta base derivada de Beautiful Blues (Coolors) — transmite confianca, segur
     --radius: 0.625rem;
 
     /* Backgrounds */
-    --background: oklch(0.985 0.002 250);       /* #F8FAFC — fundo principal */
-    --foreground: oklch(0.145 0.030 250);        /* #011F4B derivado — texto principal */
+    --background: oklch(0.985 0.002 250); /* #F8FAFC — fundo principal */
+    --foreground: oklch(0.145 0.03 250); /* #011F4B derivado — texto principal */
 
     /* Cards e Popovers */
-    --card: oklch(0.995 0.001 250);              /* #FFFFFF — fundo de cards */
-    --card-foreground: oklch(0.145 0.030 250);   /* texto em cards */
-    --popover: oklch(0.995 0.001 250);           /* fundo de popovers */
-    --popover-foreground: oklch(0.145 0.030 250);
+    --card: oklch(0.995 0.001 250); /* #FFFFFF — fundo de cards */
+    --card-foreground: oklch(0.145 0.03 250); /* texto em cards */
+    --popover: oklch(0.995 0.001 250); /* fundo de popovers */
+    --popover-foreground: oklch(0.145 0.03 250);
 
     /* Cores semanticas */
-    --primary: oklch(0.250 0.060 250);           /* #011F4B — CTA, botoes principais */
-    --primary-foreground: oklch(0.985 0.002 250);/* texto sobre primary */
-    --secondary: oklch(0.920 0.020 250);         /* #E8F0FE — backgrounds secundarios */
-    --secondary-foreground: oklch(0.250 0.060 250);
-    --accent: oklch(0.320 0.065 250);            /* #03396C — destaques, hovers */
+    --primary: oklch(0.25 0.06 250); /* #011F4B — CTA, botoes principais */
+    --primary-foreground: oklch(0.985 0.002 250); /* texto sobre primary */
+    --secondary: oklch(0.92 0.02 250); /* #E8F0FE — backgrounds secundarios */
+    --secondary-foreground: oklch(0.25 0.06 250);
+    --accent: oklch(0.32 0.065 250); /* #03396C — destaques, hovers */
     --accent-foreground: oklch(0.985 0.002 250);
-    --muted: oklch(0.920 0.010 250);             /* areas desabilitadas */
-    --muted-foreground: oklch(0.520 0.020 250);  /* texto muted */
+    --muted: oklch(0.92 0.01 250); /* areas desabilitadas */
+    --muted-foreground: oklch(0.52 0.02 250); /* texto muted */
 
     /* Status */
-    --destructive: oklch(0.550 0.200 25);        /* #DC2626 — erros, delete */
+    --destructive: oklch(0.55 0.2 25); /* #DC2626 — erros, delete */
     --destructive-foreground: oklch(0.985 0.002 250);
-    --success: oklch(0.550 0.170 155);           /* #059669 — sucesso */
+    --success: oklch(0.55 0.17 155); /* #059669 — sucesso */
     --success-foreground: oklch(0.985 0.002 250);
-    --warning: oklch(0.700 0.160 75);            /* #D97706 — alertas */
-    --warning-foreground: oklch(0.150 0.030 75);
-    --info: oklch(0.550 0.080 240);              /* #6497B1 — informacional */
+    --warning: oklch(0.7 0.16 75); /* #D97706 — alertas */
+    --warning-foreground: oklch(0.15 0.03 75);
+    --info: oklch(0.55 0.08 240); /* #6497B1 — informacional */
     --info-foreground: oklch(0.985 0.002 250);
 
     /* Bordas e inputs */
-    --border: oklch(0.870 0.015 250);            /* bordas gerais */
-    --input: oklch(0.870 0.015 250);             /* bordas de inputs */
-    --ring: oklch(0.250 0.060 250);              /* focus ring = primary */
+    --border: oklch(0.87 0.015 250); /* bordas gerais */
+    --input: oklch(0.87 0.015 250); /* bordas de inputs */
+    --ring: oklch(0.25 0.06 250); /* focus ring = primary */
 
     /* Charts (5 cores da paleta) */
-    --chart-1: oklch(0.250 0.060 250);           /* #011F4B */
-    --chart-2: oklch(0.320 0.065 250);           /* #03396C */
-    --chart-3: oklch(0.430 0.090 240);           /* #005B96 */
-    --chart-4: oklch(0.550 0.080 240);           /* #6497B1 */
-    --chart-5: oklch(0.780 0.060 240);           /* #B3CDE0 */
+    --chart-1: oklch(0.25 0.06 250); /* #011F4B */
+    --chart-2: oklch(0.32 0.065 250); /* #03396C */
+    --chart-3: oklch(0.43 0.09 240); /* #005B96 */
+    --chart-4: oklch(0.55 0.08 240); /* #6497B1 */
+    --chart-5: oklch(0.78 0.06 240); /* #B3CDE0 */
 
     /* Sidebar */
-    --sidebar: oklch(0.970 0.005 250);
-    --sidebar-foreground: oklch(0.145 0.030 250);
-    --sidebar-primary: oklch(0.250 0.060 250);
+    --sidebar: oklch(0.97 0.005 250);
+    --sidebar-foreground: oklch(0.145 0.03 250);
+    --sidebar-primary: oklch(0.25 0.06 250);
     --sidebar-primary-foreground: oklch(0.985 0.002 250);
-    --sidebar-accent: oklch(0.940 0.015 250);
-    --sidebar-accent-foreground: oklch(0.250 0.060 250);
-    --sidebar-border: oklch(0.870 0.015 250);
-    --sidebar-ring: oklch(0.250 0.060 250);
+    --sidebar-accent: oklch(0.94 0.015 250);
+    --sidebar-accent-foreground: oklch(0.25 0.06 250);
+    --sidebar-border: oklch(0.87 0.015 250);
+    --sidebar-ring: oklch(0.25 0.06 250);
   }
 
   .dark {
     /* Backgrounds */
-    --background: oklch(0.145 0.030 250);        /* fundo principal dark */
-    --foreground: oklch(0.920 0.010 250);        /* texto principal dark */
+    --background: oklch(0.145 0.03 250); /* fundo principal dark */
+    --foreground: oklch(0.92 0.01 250); /* texto principal dark */
 
     /* Cards e Popovers */
-    --card: oklch(0.200 0.030 250);
-    --card-foreground: oklch(0.920 0.010 250);
-    --popover: oklch(0.200 0.030 250);
-    --popover-foreground: oklch(0.920 0.010 250);
+    --card: oklch(0.2 0.03 250);
+    --card-foreground: oklch(0.92 0.01 250);
+    --popover: oklch(0.2 0.03 250);
+    --popover-foreground: oklch(0.92 0.01 250);
 
     /* Cores semanticas */
-    --primary: oklch(0.780 0.060 240);           /* #B3CDE0 — primary invertido */
-    --primary-foreground: oklch(0.145 0.030 250);
-    --secondary: oklch(0.220 0.030 250);
-    --secondary-foreground: oklch(0.870 0.015 250);
-    --accent: oklch(0.550 0.080 240);            /* #6497B1 */
-    --accent-foreground: oklch(0.145 0.030 250);
-    --muted: oklch(0.250 0.020 250);
-    --muted-foreground: oklch(0.600 0.015 250);
+    --primary: oklch(0.78 0.06 240); /* #B3CDE0 — primary invertido */
+    --primary-foreground: oklch(0.145 0.03 250);
+    --secondary: oklch(0.22 0.03 250);
+    --secondary-foreground: oklch(0.87 0.015 250);
+    --accent: oklch(0.55 0.08 240); /* #6497B1 */
+    --accent-foreground: oklch(0.145 0.03 250);
+    --muted: oklch(0.25 0.02 250);
+    --muted-foreground: oklch(0.6 0.015 250);
 
     /* Status */
-    --destructive: oklch(0.600 0.200 25);
+    --destructive: oklch(0.6 0.2 25);
     --destructive-foreground: oklch(0.985 0.002 250);
-    --success: oklch(0.600 0.170 155);
-    --success-foreground: oklch(0.145 0.030 250);
-    --warning: oklch(0.750 0.160 75);
-    --warning-foreground: oklch(0.150 0.030 75);
-    --info: oklch(0.600 0.080 240);
-    --info-foreground: oklch(0.145 0.030 250);
+    --success: oklch(0.6 0.17 155);
+    --success-foreground: oklch(0.145 0.03 250);
+    --warning: oklch(0.75 0.16 75);
+    --warning-foreground: oklch(0.15 0.03 75);
+    --info: oklch(0.6 0.08 240);
+    --info-foreground: oklch(0.145 0.03 250);
 
     /* Bordas e inputs */
-    --border: oklch(0.300 0.020 250);
-    --input: oklch(0.300 0.020 250);
-    --ring: oklch(0.780 0.060 240);
+    --border: oklch(0.3 0.02 250);
+    --input: oklch(0.3 0.02 250);
+    --ring: oklch(0.78 0.06 240);
 
     /* Charts */
-    --chart-1: oklch(0.780 0.060 240);
-    --chart-2: oklch(0.600 0.080 240);
-    --chart-3: oklch(0.500 0.090 240);
-    --chart-4: oklch(0.380 0.065 250);
-    --chart-5: oklch(0.280 0.060 250);
+    --chart-1: oklch(0.78 0.06 240);
+    --chart-2: oklch(0.6 0.08 240);
+    --chart-3: oklch(0.5 0.09 240);
+    --chart-4: oklch(0.38 0.065 250);
+    --chart-5: oklch(0.28 0.06 250);
 
     /* Sidebar */
-    --sidebar: oklch(0.170 0.030 250);
-    --sidebar-foreground: oklch(0.920 0.010 250);
-    --sidebar-primary: oklch(0.780 0.060 240);
-    --sidebar-primary-foreground: oklch(0.145 0.030 250);
-    --sidebar-accent: oklch(0.250 0.025 250);
-    --sidebar-accent-foreground: oklch(0.870 0.015 250);
-    --sidebar-border: oklch(0.300 0.020 250);
-    --sidebar-ring: oklch(0.780 0.060 240);
+    --sidebar: oklch(0.17 0.03 250);
+    --sidebar-foreground: oklch(0.92 0.01 250);
+    --sidebar-primary: oklch(0.78 0.06 240);
+    --sidebar-primary-foreground: oklch(0.145 0.03 250);
+    --sidebar-accent: oklch(0.25 0.025 250);
+    --sidebar-accent-foreground: oklch(0.87 0.015 250);
+    --sidebar-border: oklch(0.3 0.02 250);
+    --sidebar-ring: oklch(0.78 0.06 240);
   }
 }
 ```
@@ -152,18 +152,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary:     { DEFAULT: '#011F4B', foreground: '#F8FAFC' },
-        accent:      { DEFAULT: '#03396C', foreground: '#F8FAFC' },
-        secondary:   { DEFAULT: '#005B96', foreground: '#F8FAFC' },
-        info:        { DEFAULT: '#6497B1', foreground: '#F8FAFC' },
-        muted:       { DEFAULT: '#B3CDE0', foreground: '#374151' },
+        primary: { DEFAULT: '#011F4B', foreground: '#F8FAFC' },
+        accent: { DEFAULT: '#03396C', foreground: '#F8FAFC' },
+        secondary: { DEFAULT: '#005B96', foreground: '#F8FAFC' },
+        info: { DEFAULT: '#6497B1', foreground: '#F8FAFC' },
+        muted: { DEFAULT: '#B3CDE0', foreground: '#374151' },
         destructive: { DEFAULT: '#DC2626', foreground: '#F8FAFC' },
-        success:     { DEFAULT: '#059669', foreground: '#F8FAFC' },
-        warning:     { DEFAULT: '#D97706', foreground: '#1F2937' },
-        background:  '#F8FAFC',
-        foreground:  '#011F4B',
-        card:        '#FFFFFF',
-        border:      '#CBD5E1',
+        success: { DEFAULT: '#059669', foreground: '#F8FAFC' },
+        warning: { DEFAULT: '#D97706', foreground: '#1F2937' },
+        background: '#F8FAFC',
+        foreground: '#011F4B',
+        card: '#FFFFFF',
+        border: '#CBD5E1',
       },
     },
   },
@@ -224,70 +224,70 @@ No desktop, fontes NAO devem ser carregadas via CDN (Google Fonts) pois o app pr
 
 **Tokens de tipografia:**
 
-| Token | Font Family | Uso |
-| --- | --- | --- |
-| `--font-heading` | `'Merriweather', serif` | Titulos h1-h3, hero, destaque |
-| `--font-body` | `'Montserrat', sans-serif` | Corpo de texto, paragrafos, labels, UI |
-| `--font-mono` | `'JetBrains Mono', monospace` | Codigo, hashes, seed phrases, dados tecnicos |
+| Token            | Font Family                   | Uso                                          |
+| ---------------- | ----------------------------- | -------------------------------------------- |
+| `--font-heading` | `'Merriweather', serif`       | Titulos h1-h3, hero, destaque                |
+| `--font-body`    | `'Montserrat', sans-serif`    | Corpo de texto, paragrafos, labels, UI       |
+| `--font-mono`    | `'JetBrains Mono', monospace` | Codigo, hashes, seed phrases, dados tecnicos |
 
 **Escala de tamanhos:**
 
-| Token | Size | Uso |
-| --- | --- | --- |
-| `font-size-xs` | 12px / 0.75rem | Captions, badges, metadata |
-| `font-size-sm` | 14px / 0.875rem | Labels, textos auxiliares, botoes pequenos |
-| `font-size-base` | 16px / 1rem | Corpo de texto padrao |
-| `font-size-lg` | 18px / 1.125rem | Subtitulos, lead text |
-| `font-size-xl` | 20px / 1.25rem | Heading 3 |
-| `font-size-2xl` | 24px / 1.5rem | Heading 2 |
-| `font-size-3xl` | 30px / 1.875rem | Heading 1 |
-| `font-size-4xl` | 36px / 2.25rem | Hero, pagina titulo |
+| Token            | Size            | Uso                                        |
+| ---------------- | --------------- | ------------------------------------------ |
+| `font-size-xs`   | 12px / 0.75rem  | Captions, badges, metadata                 |
+| `font-size-sm`   | 14px / 0.875rem | Labels, textos auxiliares, botoes pequenos |
+| `font-size-base` | 16px / 1rem     | Corpo de texto padrao                      |
+| `font-size-lg`   | 18px / 1.125rem | Subtitulos, lead text                      |
+| `font-size-xl`   | 20px / 1.25rem  | Heading 3                                  |
+| `font-size-2xl`  | 24px / 1.5rem   | Heading 2                                  |
+| `font-size-3xl`  | 30px / 1.875rem | Heading 1                                  |
+| `font-size-4xl`  | 36px / 2.25rem  | Hero, pagina titulo                        |
 
 **Escala de pesos:**
 
-| Token | Weight | Uso |
-| --- | --- | --- |
-| `font-light` | 300 | Texto decorativo, grandes numeros |
-| `font-regular` | 400 | Corpo de texto, paragrafos |
-| `font-medium` | 500 | Labels, nav items, enfase leve |
-| `font-semibold` | 600 | Subtitulos, botoes, table headers |
-| `font-bold` | 700 | Headings, CTA, destaque forte |
+| Token           | Weight | Uso                               |
+| --------------- | ------ | --------------------------------- |
+| `font-light`    | 300    | Texto decorativo, grandes numeros |
+| `font-regular`  | 400    | Corpo de texto, paragrafos        |
+| `font-medium`   | 500    | Labels, nav items, enfase leve    |
+| `font-semibold` | 600    | Subtitulos, botoes, table headers |
+| `font-bold`     | 700    | Headings, CTA, destaque forte     |
 
 **Alturas de linha:**
 
-| Token | Valor | Uso |
-| --- | --- | --- |
-| `leading-tight` | 1.25 | Headings, titulos curtos |
-| `leading-normal` | 1.5 | Corpo de texto |
-| `leading-relaxed` | 1.75 | Textos longos, paragrafos extensos |
+| Token             | Valor | Uso                                |
+| ----------------- | ----- | ---------------------------------- |
+| `leading-tight`   | 1.25  | Headings, titulos curtos           |
+| `leading-normal`  | 1.5   | Corpo de texto                     |
+| `leading-relaxed` | 1.75  | Textos longos, paragrafos extensos |
 
 ### Espacamento
 
 > Sistema baseado em grid de 4px (Tailwind default)
 
-| Token | Valor | Uso |
-| --- | --- | --- |
-| `space-0.5` | 2px | Micro ajustes |
-| `space-1` | 4px | Gaps minimos, padding de badges |
-| `space-2` | 8px | Padding interno de componentes compactos |
-| `space-3` | 12px | Gap entre icone e texto |
-| `space-4` | 16px | Padding padrao de componentes |
-| `space-5` | 20px | Gap entre items de lista |
-| `space-6` | 24px | Margem entre secoes pequenas |
-| `space-8` | 32px | Padding de cards e containers |
-| `space-10` | 40px | Gap entre secoes de pagina |
-| `space-12` | 48px | Margem entre blocos maiores |
-| `space-16` | 64px | Espacamento de hero/header |
+| Token       | Valor | Uso                                      |
+| ----------- | ----- | ---------------------------------------- |
+| `space-0.5` | 2px   | Micro ajustes                            |
+| `space-1`   | 4px   | Gaps minimos, padding de badges          |
+| `space-2`   | 8px   | Padding interno de componentes compactos |
+| `space-3`   | 12px  | Gap entre icone e texto                  |
+| `space-4`   | 16px  | Padding padrao de componentes            |
+| `space-5`   | 20px  | Gap entre items de lista                 |
+| `space-6`   | 24px  | Margem entre secoes pequenas             |
+| `space-8`   | 32px  | Padding de cards e containers            |
+| `space-10`  | 40px  | Gap entre secoes de pagina               |
+| `space-12`  | 48px  | Margem entre blocos maiores              |
+| `space-16`  | 64px  | Espacamento de hero/header               |
 
 ### Breakpoints
 
-| Token | Valor | Dispositivo | Uso |
-| --- | --- | --- | --- |
-| `sm` | 640px | Mobile landscape | Grid 1 coluna → 2 colunas |
-| `md` | 768px | Tablet | Sidebar colapsavel, grid 2-3 colunas |
-| `lg` | 1024px | Desktop | Layout completo com sidebar, grid 3-4 colunas |
-| `xl` | 1280px | Wide desktop | Galeria com 5+ colunas, containers max-width |
-| `2xl` | 1536px | Ultra-wide | Conteudo centralizado, margens generosas |
+| Token | Valor  | Dispositivo      | Uso                                           |
+| ----- | ------ | ---------------- | --------------------------------------------- |
+| `sm`  | 640px  | Mobile landscape | Grid 1 coluna → 2 colunas                     |
+| `md`  | 768px  | Tablet           | Sidebar colapsavel, grid 2-3 colunas          |
+| `lg`  | 1024px | Desktop          | Layout completo com sidebar, grid 3-4 colunas |
+| `xl`  | 1280px | Wide desktop     | Galeria com 5+ colunas, containers max-width  |
+| `2xl` | 1536px | Ultra-wide       | Conteudo centralizado, margens generosas      |
 
 ---
 
@@ -309,7 +309,7 @@ O Alexandria usa **CSS variables com classe `.dark`** no `<html>`, seguindo o pa
 
 ```tsx
 // app/layout.tsx
-import { ThemeProvider } from "next-themes"
+import { ThemeProvider } from 'next-themes';
 
 export default function RootLayout({ children }) {
   return (
@@ -325,7 +325,7 @@ export default function RootLayout({ children }) {
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }
 ```
 
@@ -413,6 +413,7 @@ window.electronAPI.on('theme:system-changed', (theme: string) => {
 Fonte **primaria** para icones com animacao. Usar para interacoes e feedback visual.
 
 **Casos de uso:**
+
 - Loading states (Loader, RefreshCw animados)
 - Upload/download progress (Upload, Download, CloudUpload)
 - Estado de saude do cluster (Shield, ShieldCheck, ShieldAlert)
@@ -424,6 +425,7 @@ Fonte **primaria** para icones com animacao. Usar para interacoes e feedback vis
 Fonte **complementar** para icones estaticos de UI estrutural.
 
 **Casos de uso:**
+
 - Navegacao (Home, Settings, Users, HardDrive)
 - Acoes em botoes (Plus, Trash2, Edit, Copy)
 - Menus e dropdowns (ChevronDown, MoreHorizontal, Search)
@@ -432,15 +434,16 @@ Fonte **complementar** para icones estaticos de UI estrutural.
 
 ### Tokens de icone
 
-| Token | Valor | Uso |
-| --- | --- | --- |
-| `icon-size-sm` | 16px | Inline em texto, badges, metadata |
-| `icon-size-md` | 20px | Botoes, menus, nav items |
-| `icon-size-lg` | 24px | Headers, cards, destaque |
-| `icon-size-xl` | 32px | Empty states, hero, onboarding |
-| `icon-stroke` | 1.5px | Espessura padrao (2px para sm) |
+| Token          | Valor | Uso                               |
+| -------------- | ----- | --------------------------------- |
+| `icon-size-sm` | 16px  | Inline em texto, badges, metadata |
+| `icon-size-md` | 20px  | Botoes, menus, nav items          |
+| `icon-size-lg` | 24px  | Headers, cards, destaque          |
+| `icon-size-xl` | 32px  | Empty states, hero, onboarding    |
+| `icon-stroke`  | 1.5px | Espessura padrao (2px para sm)    |
 
 **Regras:**
+
 - Todos os icones usam `currentColor` para herdar cor do contexto
 - Icones animados (lucide-animated) para feedback e transicoes
 - Icones estaticos (shadcn/ui icons) para UI estrutural
@@ -455,42 +458,42 @@ Fonte **complementar** para icones estaticos de UI estrutural.
 
 **Web:**
 
-| Ferramenta | Proposito | Referencia |
-| --- | --- | --- |
-| shadcn/ui | Biblioteca de componentes base (Radix + Tailwind) | https://ui.shadcn.com |
-| Storybook | Documentacao interativa e visual de componentes | Local: `npm run storybook` |
-| Tailwind CSS v4 | Framework utilitario para estilizacao | https://tailwindcss.com |
-| next-themes | Gerenciamento de temas (light/dark) | https://github.com/pacocoursey/next-themes |
-| Coolors | Paleta de cores e validacao de contraste | https://coolors.co |
-| Fontpair | Escolha de pares tipograficos | https://www.fontpair.co |
+| Ferramenta      | Proposito                                         | Referencia                                 |
+| --------------- | ------------------------------------------------- | ------------------------------------------ |
+| shadcn/ui       | Biblioteca de componentes base (Radix + Tailwind) | https://ui.shadcn.com                      |
+| Storybook       | Documentacao interativa e visual de componentes   | Local: `npm run storybook`                 |
+| Tailwind CSS v4 | Framework utilitario para estilizacao             | https://tailwindcss.com                    |
+| next-themes     | Gerenciamento de temas (light/dark)               | https://github.com/pacocoursey/next-themes |
+| Coolors         | Paleta de cores e validacao de contraste          | https://coolors.co                         |
+| Fontpair        | Escolha de pares tipograficos                     | https://www.fontpair.co                    |
 
 **Mobile:**
 
 <!-- do blueprint: mobile/00-frontend-vision.md — NativeWind v4, expo-image, FlashList -->
 
-| Ferramenta | Proposito | Referencia |
-| --- | --- | --- |
-| NativeWind v4 | Tailwind CSS para React Native — mesmos tokens do web | https://www.nativewind.dev |
-| expo-font | Carregamento de fontes customizadas (Merriweather + Montserrat) | https://docs.expo.dev/versions/latest/sdk/font/ |
-| expo-image | Cache de imagens nativo de alta performance (thumbnails) | https://docs.expo.dev/versions/latest/sdk/image/ |
-| FlashList (Shopify) | Virtualizacao de listas longas (galeria de fotos) | https://shopify.github.io/flash-list/ |
-| react-native-reanimated | Animacoes nativas de alta performance | https://docs.swmansion.com/react-native-reanimated/ |
-| react-native-gesture-handler | Gestos nativos (swipe, pinch, long press) | https://docs.swmansion.com/react-native-gesture-handler/ |
+| Ferramenta                   | Proposito                                                       | Referencia                                               |
+| ---------------------------- | --------------------------------------------------------------- | -------------------------------------------------------- |
+| NativeWind v4                | Tailwind CSS para React Native — mesmos tokens do web           | https://www.nativewind.dev                               |
+| expo-font                    | Carregamento de fontes customizadas (Merriweather + Montserrat) | https://docs.expo.dev/versions/latest/sdk/font/          |
+| expo-image                   | Cache de imagens nativo de alta performance (thumbnails)        | https://docs.expo.dev/versions/latest/sdk/image/         |
+| FlashList (Shopify)          | Virtualizacao de listas longas (galeria de fotos)               | https://shopify.github.io/flash-list/                    |
+| react-native-reanimated      | Animacoes nativas de alta performance                           | https://docs.swmansion.com/react-native-reanimated/      |
+| react-native-gesture-handler | Gestos nativos (swipe, pinch, long press)                       | https://docs.swmansion.com/react-native-gesture-handler/ |
 
 **Desktop:**
 
 <!-- do blueprint: desktop/00-frontend-vision.md — Electron 34, electron-vite 3, electron-builder, shadcn/ui, TanStack Virtual -->
 
-| Ferramenta | Proposito | Referencia |
-| --- | --- | --- |
-| shadcn/ui | Componentes base (Radix UI + Tailwind) — mesmos do web | https://ui.shadcn.com |
-| electron-vite | Build + HMR para main e renderer; substituicao ao webpack | https://electron-vite.org |
-| electron-builder | Empacotamento DMG (macOS), NSIS (Windows), AppImage (Linux) | https://www.electron.build |
-| electron-store | Persistencia de preferencias do usuario (tema, pastas sync, etc.) | https://github.com/sindresorhus/electron-store |
-| electron-updater | Auto-update via GitHub Releases; suporte a staged rollout | https://www.electron.build/auto-update |
-| TanStack Virtual | Virtualizacao de galeria com dezenas de milhares de fotos | https://tanstack.com/virtual |
-| chokidar | File watching para o Sync Engine; suporta FSEvents e inotify | https://github.com/paulmillr/chokidar |
-| Tailwind CSS v4 | Framework utilitario — mesmos tokens do web via `packages/config` | https://tailwindcss.com |
+| Ferramenta       | Proposito                                                         | Referencia                                     |
+| ---------------- | ----------------------------------------------------------------- | ---------------------------------------------- |
+| shadcn/ui        | Componentes base (Radix UI + Tailwind) — mesmos do web            | https://ui.shadcn.com                          |
+| electron-vite    | Build + HMR para main e renderer; substituicao ao webpack         | https://electron-vite.org                      |
+| electron-builder | Empacotamento DMG (macOS), NSIS (Windows), AppImage (Linux)       | https://www.electron.build                     |
+| electron-store   | Persistencia de preferencias do usuario (tema, pastas sync, etc.) | https://github.com/sindresorhus/electron-store |
+| electron-updater | Auto-update via GitHub Releases; suporte a staged rollout         | https://www.electron.build/auto-update         |
+| TanStack Virtual | Virtualizacao de galeria com dezenas de milhares de fotos         | https://tanstack.com/virtual                   |
+| chokidar         | File watching para o Sync Engine; suporta FSEvents e inotify      | https://github.com/paulmillr/chokidar          |
+| Tailwind CSS v4  | Framework utilitario — mesmos tokens do web via `packages/config` | https://tailwindcss.com                        |
 
 ---
 
@@ -500,24 +503,24 @@ Fonte **complementar** para icones estaticos de UI estrutural.
 
 > Componentes primitivos via shadcn/ui (Radix UI + Tailwind). Consumidos pelo app web (Next.js 16).
 
-| Componente | Variantes | Status | Prioridade |
-| --- | --- | --- | --- |
-| Button | primary, secondary, ghost, destructive, outline, link | Pronto | P0 |
-| Input | text, password, search, number, file | Pronto | P0 |
-| Select | single, multi, searchable (via Combobox) | Pronto | P0 |
-| Card | default, outlined, elevated | Pronto | P0 |
-| Avatar | image, initials, fallback | Pronto | P0 |
-| Badge | default, secondary, destructive, outline | Pronto | P0 |
-| Dialog | default, confirmation (alert-dialog), fullscreen | Pronto | P0 |
-| Toast (Sonner) | success, error, warning, info | Pronto | P0 |
-| Tooltip | top, bottom, left, right | Pronto | P1 |
-| Skeleton | text, card, avatar, table, gallery | Pronto | P1 |
-| Progress | linear, circular (upload/processing) | Pronto | P1 |
-| DropdownMenu | default, with icons, with shortcuts | Pronto | P1 |
-| Sheet | left (sidebar mobile), right (details panel) | Pronto | P1 |
-| Tabs | default, underline (galeria views) | Pronto | P1 |
-| Table | sortable, selectable (file listing) | Pronto | P2 |
-| Command | palette (busca global de arquivos) | Planejado | P2 |
+| Componente     | Variantes                                             | Status    | Prioridade |
+| -------------- | ----------------------------------------------------- | --------- | ---------- |
+| Button         | primary, secondary, ghost, destructive, outline, link | Pronto    | P0         |
+| Input          | text, password, search, number, file                  | Pronto    | P0         |
+| Select         | single, multi, searchable (via Combobox)              | Pronto    | P0         |
+| Card           | default, outlined, elevated                           | Pronto    | P0         |
+| Avatar         | image, initials, fallback                             | Pronto    | P0         |
+| Badge          | default, secondary, destructive, outline              | Pronto    | P0         |
+| Dialog         | default, confirmation (alert-dialog), fullscreen      | Pronto    | P0         |
+| Toast (Sonner) | success, error, warning, info                         | Pronto    | P0         |
+| Tooltip        | top, bottom, left, right                              | Pronto    | P1         |
+| Skeleton       | text, card, avatar, table, gallery                    | Pronto    | P1         |
+| Progress       | linear, circular (upload/processing)                  | Pronto    | P1         |
+| DropdownMenu   | default, with icons, with shortcuts                   | Pronto    | P1         |
+| Sheet          | left (sidebar mobile), right (details panel)          | Pronto    | P1         |
+| Tabs           | default, underline (galeria views)                    | Pronto    | P1         |
+| Table          | sortable, selectable (file listing)                   | Pronto    | P2         |
+| Command        | palette (busca global de arquivos)                    | Planejado | P2         |
 
 ### Mobile (React Native + NativeWind v4)
 
@@ -525,23 +528,23 @@ Fonte **complementar** para icones estaticos de UI estrutural.
 
 <!-- do blueprint: mobile/00-frontend-vision.md — React Native, NativeWind v4, FlashList, expo-image -->
 
-| Componente | Implementacao | Status | Prioridade |
-| --- | --- | --- | --- |
-| Button | `Pressable` + NativeWind; variantes: primary, secondary, ghost, destructive | Planejado | P0 |
-| TextInput | `TextInput` nativo + NativeWind; variantes: text, password, search | Planejado | P0 |
-| Card | `View` + NativeWind; variantes: default, outlined, elevated | Planejado | P0 |
-| Avatar | `expo-image` com fallback de iniciais | Planejado | P0 |
-| Badge | `View` + `Text` NativeWind; variantes: status, counter, role | Planejado | P0 |
-| Modal | `Modal` RN ou `BottomSheet` (react-native-bottom-sheet); confirmacao, fullscreen | Planejado | P0 |
-| Toast / Snackbar | `react-native-toast-message`; success, error, warning, info | Planejado | P0 |
-| Skeleton | `View` animado com `react-native-reanimated`; gallery, card, list | Planejado | P1 |
-| ProgressBar | `Animated.View` ou `react-native-reanimated`; upload progress linear | Planejado | P1 |
-| PhotoThumbnail | `expo-image` com blurhash placeholder + `Pressable` | Planejado | P0 |
-| GalleryGrid | `FlashList` 3 colunas com `PhotoThumbnail`; 60fps garantido | Planejado | P0 |
-| NodeHealthBadge | `View` + icone + `Text`; variantes: online, suspect, lost, draining | Planejado | P1 |
-| UploadProgressBar | Linear com percentual + nome do arquivo; animado via reanimated | Planejado | P1 |
-| ActionSheet | `BottomSheet` (react-native-bottom-sheet); acoes contextuais nativas | Planejado | P1 |
-| SeedPhraseDisplay | Grid 3x4 de palavras com `expo-secure-store` integration | Planejado | P1 |
+| Componente        | Implementacao                                                                    | Status    | Prioridade |
+| ----------------- | -------------------------------------------------------------------------------- | --------- | ---------- |
+| Button            | `Pressable` + NativeWind; variantes: primary, secondary, ghost, destructive      | Planejado | P0         |
+| TextInput         | `TextInput` nativo + NativeWind; variantes: text, password, search               | Planejado | P0         |
+| Card              | `View` + NativeWind; variantes: default, outlined, elevated                      | Planejado | P0         |
+| Avatar            | `expo-image` com fallback de iniciais                                            | Planejado | P0         |
+| Badge             | `View` + `Text` NativeWind; variantes: status, counter, role                     | Planejado | P0         |
+| Modal             | `Modal` RN ou `BottomSheet` (react-native-bottom-sheet); confirmacao, fullscreen | Planejado | P0         |
+| Toast / Snackbar  | `react-native-toast-message`; success, error, warning, info                      | Planejado | P0         |
+| Skeleton          | `View` animado com `react-native-reanimated`; gallery, card, list                | Planejado | P1         |
+| ProgressBar       | `Animated.View` ou `react-native-reanimated`; upload progress linear             | Planejado | P1         |
+| PhotoThumbnail    | `expo-image` com blurhash placeholder + `Pressable`                              | Planejado | P0         |
+| GalleryGrid       | `FlashList` 3 colunas com `PhotoThumbnail`; 60fps garantido                      | Planejado | P0         |
+| NodeHealthBadge   | `View` + icone + `Text`; variantes: online, suspect, lost, draining              | Planejado | P1         |
+| UploadProgressBar | Linear com percentual + nome do arquivo; animado via reanimated                  | Planejado | P1         |
+| ActionSheet       | `BottomSheet` (react-native-bottom-sheet); acoes contextuais nativas             | Planejado | P1         |
+| SeedPhraseDisplay | Grid 3x4 de palavras com `expo-secure-store` integration                         | Planejado | P1         |
 
 ### Desktop (Electron + shadcn/ui + Tailwind CSS v4)
 
@@ -552,35 +555,35 @@ Fonte **complementar** para icones estaticos de UI estrutural.
 
 **Primitivos compartilhados (via packages/ui — identicos ao web):**
 
-| Componente | Variantes | Status | Prioridade |
-| --- | --- | --- | --- |
-| Button | primary, secondary, ghost, destructive, outline | Reutiliza web | P0 |
-| Input | text, password, search | Reutiliza web | P0 |
-| Card | default, outlined, elevated | Reutiliza web | P0 |
-| Badge | default, secondary, destructive, outline | Reutiliza web | P0 |
-| Dialog | default, confirmation | Reutiliza web | P0 |
-| Toast (Sonner) | success, error, warning, info | Reutiliza web | P0 |
-| Progress | linear (upload/sync) | Reutiliza web | P1 |
-| Skeleton | card, gallery, list | Reutiliza web | P1 |
-| DropdownMenu | com icones, com atalhos | Reutiliza web | P1 |
-| Tabs | galeria views (grid/timeline/album) | Reutiliza web | P1 |
+| Componente     | Variantes                                       | Status        | Prioridade |
+| -------------- | ----------------------------------------------- | ------------- | ---------- |
+| Button         | primary, secondary, ghost, destructive, outline | Reutiliza web | P0         |
+| Input          | text, password, search                          | Reutiliza web | P0         |
+| Card           | default, outlined, elevated                     | Reutiliza web | P0         |
+| Badge          | default, secondary, destructive, outline        | Reutiliza web | P0         |
+| Dialog         | default, confirmation                           | Reutiliza web | P0         |
+| Toast (Sonner) | success, error, warning, info                   | Reutiliza web | P0         |
+| Progress       | linear (upload/sync)                            | Reutiliza web | P1         |
+| Skeleton       | card, gallery, list                             | Reutiliza web | P1         |
+| DropdownMenu   | com icones, com atalhos                         | Reutiliza web | P1         |
+| Tabs           | galeria views (grid/timeline/album)             | Reutiliza web | P1         |
 
 **Componentes desktop-specific (exclusivos do app desktop):**
 
-| Componente | Descricao | Status | Prioridade |
-| --- | --- | --- | --- |
-| `TitleBar` | Barra de titulo personalizada para janela frameless; exibe nome da janela + `WindowControls`; macOS oculta controles (usa native) | Planejado | P0 |
-| `WindowControls` | Botoes min/max/close nativos para Windows e Linux; ocultos no macOS (usa decoracao nativa) | Planejado | P0 |
-| `TrayMenu` | Menu de contexto do system tray: show/hide janela, status do sync, ultimo upload, quit | Planejado | P0 |
-| `SyncStatusIndicator` | Icone animado no tray refletindo estado do Sync Engine: idle, syncing, error, paused | Planejado | P0 |
-| `UploadQueuePanel` | Lista de arquivos na fila de upload com progresso individual, cancelar, retry | Planejado | P0 |
-| `FolderPicker` | Botao que abre `dialog.showOpenDialog` do Electron para selecionar pasta de sync | Planejado | P0 |
-| `NodeHealthDot` | Indicador colorido (verde/amarelo/vermelho) do status de um no; tooltip com detalhes | Planejado | P1 |
-| `ClusterHealthBar` | Barra de status compacta no rodape: nos online/total, chunks replicados, alertas ativos | Planejado | P1 |
-| `SeedPhraseDisplay` | Grid 3x4 de 12 palavras BIP-39 com mascara/reveal e botao de copia — usado no onboarding e recovery | Planejado | P1 |
-| `UnlockScreen` | Tela de desbloqueio do vault: input de senha + feedback de tentativas + botao de recovery | Planejado | P0 |
-| `OnboardingWizard` | Wizard passo-a-passo para primeiro uso: criar cluster OU entrar em cluster existente via convite | Planejado | P1 |
-| `UpdateBanner` | Banner no topo da janela quando nova versao disponivel: changelog + botao de instalar | Planejado | P2 |
+| Componente            | Descricao                                                                                                                         | Status    | Prioridade |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------- |
+| `TitleBar`            | Barra de titulo personalizada para janela frameless; exibe nome da janela + `WindowControls`; macOS oculta controles (usa native) | Planejado | P0         |
+| `WindowControls`      | Botoes min/max/close nativos para Windows e Linux; ocultos no macOS (usa decoracao nativa)                                        | Planejado | P0         |
+| `TrayMenu`            | Menu de contexto do system tray: show/hide janela, status do sync, ultimo upload, quit                                            | Planejado | P0         |
+| `SyncStatusIndicator` | Icone animado no tray refletindo estado do Sync Engine: idle, syncing, error, paused                                              | Planejado | P0         |
+| `UploadQueuePanel`    | Lista de arquivos na fila de upload com progresso individual, cancelar, retry                                                     | Planejado | P0         |
+| `FolderPicker`        | Botao que abre `dialog.showOpenDialog` do Electron para selecionar pasta de sync                                                  | Planejado | P0         |
+| `NodeHealthDot`       | Indicador colorido (verde/amarelo/vermelho) do status de um no; tooltip com detalhes                                              | Planejado | P1         |
+| `ClusterHealthBar`    | Barra de status compacta no rodape: nos online/total, chunks replicados, alertas ativos                                           | Planejado | P1         |
+| `SeedPhraseDisplay`   | Grid 3x4 de 12 palavras BIP-39 com mascara/reveal e botao de copia — usado no onboarding e recovery                               | Planejado | P1         |
+| `UnlockScreen`        | Tela de desbloqueio do vault: input de senha + feedback de tentativas + botao de recovery                                         | Planejado | P0         |
+| `OnboardingWizard`    | Wizard passo-a-passo para primeiro uso: criar cluster OU entrar em cluster existente via convite                                  | Planejado | P1         |
+| `UpdateBanner`        | Banner no topo da janela quando nova versao disponivel: changelog + botao de instalar                                             | Planejado | P2         |
 
 <!-- APPEND:catalogo -->
 
@@ -598,25 +601,25 @@ Fonte **complementar** para icones estaticos de UI estrutural.
 
 ### Contraste de Cores
 
-| Par de Cores | Ratio Minimo | Tipo | Status |
-| --- | --- | --- | --- |
-| `--foreground` sobre `--background` (#011F4B / #F8FAFC) | 14.5:1 (AA+) | Texto corpo | Conforme |
-| `--foreground` sobre `--card` (#011F4B / #FFFFFF) | 15.4:1 (AA+) | Texto em cards | Conforme |
-| `--destructive` sobre `--background` (#DC2626 / #F8FAFC) | 4.6:1 (AA) | Mensagens de erro | Conforme |
-| `--muted-foreground` sobre `--background` | 4.5:1 (AA) | Placeholders, hints | Conforme |
-| `--primary` sobre `--primary-foreground` (#011F4B / #F8FAFC) | 14.5:1 (AA+) | Botoes primarios | Conforme |
+| Par de Cores                                                 | Ratio Minimo | Tipo                | Status   |
+| ------------------------------------------------------------ | ------------ | ------------------- | -------- |
+| `--foreground` sobre `--background` (#011F4B / #F8FAFC)      | 14.5:1 (AA+) | Texto corpo         | Conforme |
+| `--foreground` sobre `--card` (#011F4B / #FFFFFF)            | 15.4:1 (AA+) | Texto em cards      | Conforme |
+| `--destructive` sobre `--background` (#DC2626 / #F8FAFC)     | 4.6:1 (AA)   | Mensagens de erro   | Conforme |
+| `--muted-foreground` sobre `--background`                    | 4.5:1 (AA)   | Placeholders, hints | Conforme |
+| `--primary` sobre `--primary-foreground` (#011F4B / #F8FAFC) | 14.5:1 (AA+) | Botoes primarios    | Conforme |
 
 ### Componentes Acessiveis
 
-| Componente | Requisitos a11y | ARIA Patterns |
-| --- | --- | --- |
-| Button | Focavel via Tab, ativavel via Enter/Space, `aria-label` se icone-only, `aria-disabled` quando desabilitado | `role="button"` |
-| Dialog | Focus trap, Esc para fechar, `aria-modal="true"`, `aria-labelledby` no titulo | `role="dialog"` |
-| Toast | `aria-live="polite"` para info/success, `"assertive"` para error, auto-dismiss nao bloqueia acao | `role="status"` ou `role="alert"` |
-| Input | Label associada via `htmlFor`, `aria-invalid` em erro, `aria-describedby` para hint/error message | — |
-| Select | Navegavel via setas, Enter para selecionar, Esc para fechar, `aria-expanded` | `role="listbox"` |
-| Progress | `aria-valuenow`, `aria-valuemin`, `aria-valuemax`, label descritivo do upload | `role="progressbar"` |
-| Gallery Grid | Navegavel via setas, Enter para abrir preview, `aria-label` com nome do arquivo | `role="grid"` |
+| Componente   | Requisitos a11y                                                                                            | ARIA Patterns                     |
+| ------------ | ---------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| Button       | Focavel via Tab, ativavel via Enter/Space, `aria-label` se icone-only, `aria-disabled` quando desabilitado | `role="button"`                   |
+| Dialog       | Focus trap, Esc para fechar, `aria-modal="true"`, `aria-labelledby` no titulo                              | `role="dialog"`                   |
+| Toast        | `aria-live="polite"` para info/success, `"assertive"` para error, auto-dismiss nao bloqueia acao           | `role="status"` ou `role="alert"` |
+| Input        | Label associada via `htmlFor`, `aria-invalid` em erro, `aria-describedby` para hint/error message          | —                                 |
+| Select       | Navegavel via setas, Enter para selecionar, Esc para fechar, `aria-expanded`                               | `role="listbox"`                  |
+| Progress     | `aria-valuenow`, `aria-valuemin`, `aria-valuemax`, label descritivo do upload                              | `role="progressbar"`              |
+| Gallery Grid | Navegavel via setas, Enter para abrir preview, `aria-label` com nome do arquivo                            | `role="grid"`                     |
 
 <!-- APPEND:a11y -->
 
@@ -634,6 +637,7 @@ Fonte **complementar** para icones estaticos de UI estrutural.
 ---
 
 <!-- added: opensource -->
+
 ## Design System for Contributors
 
 - **Adding components**: create in `packages/ui/src/components/YourComponent/` with `YourComponent.tsx`, `YourComponent.test.tsx`, and `YourComponent.stories.tsx` (Phase 2+)

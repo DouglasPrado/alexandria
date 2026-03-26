@@ -10,11 +10,11 @@ Define a piramide de testes, ferramentas, cobertura minima e cenarios obrigatori
 
 > Qual proporcao de testes por tipo?
 
-| Tipo | Proporcao | Objetivo | Velocidade |
-| --- | --- | --- | --- |
-| Unitario | 70% | Regras de negocio isoladas (entities, core SDK, services) | < 1s por teste |
-| Integracao | 20% | Contratos com banco, cache, filas, pipelines de midia | < 5s por teste |
-| E2E | 10% | Fluxos criticos ponta a ponta (upload, recovery, auto-healing) | < 30s por teste |
+| Tipo       | Proporcao | Objetivo                                                       | Velocidade      |
+| ---------- | --------- | -------------------------------------------------------------- | --------------- |
+| Unitario   | 70%       | Regras de negocio isoladas (entities, core SDK, services)      | < 1s por teste  |
+| Integracao | 20%       | Contratos com banco, cache, filas, pipelines de midia          | < 5s por teste  |
+| E2E        | 10%       | Fluxos criticos ponta a ponta (upload, recovery, auto-healing) | < 30s por teste |
 
 ---
 
@@ -22,16 +22,16 @@ Define a piramide de testes, ferramentas, cobertura minima e cenarios obrigatori
 
 > Quais ferramentas sao usadas para cada tipo de teste?
 
-| Tipo | Ferramenta | Funcao |
-| --- | --- | --- |
-| Framework | Jest | Runner e assertions |
-| Integracao | testcontainers (JS) | PostgreSQL 18, Redis 7, MinIO em Docker |
-| HTTP | supertest | Testes de endpoint |
-| Carga | k6 | Stress e performance |
-| E2E | Playwright (web) + Jest (API) | Fluxos completos |
-| Mocking | Jest mocks | Isolar dependencias |
-| Cobertura | istanbul/c8 | Metricas de cobertura |
-| Property-based | fast-check | Testes de propriedade para crypto |
+| Tipo           | Ferramenta                    | Funcao                                  |
+| -------------- | ----------------------------- | --------------------------------------- |
+| Framework      | Jest                          | Runner e assertions                     |
+| Integracao     | testcontainers (JS)           | PostgreSQL 18, Redis 7, MinIO em Docker |
+| HTTP           | supertest                     | Testes de endpoint                      |
+| Carga          | k6                            | Stress e performance                    |
+| E2E            | Playwright (web) + Jest (API) | Fluxos completos                        |
+| Mocking        | Jest mocks                    | Isolar dependencias                     |
+| Cobertura      | istanbul/c8                   | Metricas de cobertura                   |
+| Property-based | fast-check                    | Testes de propriedade para crypto       |
 
 ---
 
@@ -39,14 +39,14 @@ Define a piramide de testes, ferramentas, cobertura minima e cenarios obrigatori
 
 > Quais sao os thresholds de cobertura?
 
-| Escopo | Cobertura Minima | Justificativa |
-| --- | --- | --- |
-| Geral | 80% | Baseline de qualidade |
-| Core SDK (crypto, chunking, hashing) | 90% | Bugs em crypto = corrupcao de dados |
-| Domain entities | 95% | Regras de negocio, zero margem para bug |
-| Services | 85% | Logica de orquestracao |
-| Controllers | 70% | Delegam para services, menos logica |
-| Fluxos criticos | 100% | Upload, recovery, auto-healing sem excecao |
+| Escopo                               | Cobertura Minima | Justificativa                              |
+| ------------------------------------ | ---------------- | ------------------------------------------ |
+| Geral                                | 80%              | Baseline de qualidade                      |
+| Core SDK (crypto, chunking, hashing) | 90%              | Bugs em crypto = corrupcao de dados        |
+| Domain entities                      | 95%              | Regras de negocio, zero margem para bug    |
+| Services                             | 85%              | Logica de orquestracao                     |
+| Controllers                          | 70%              | Delegam para services, menos logica        |
+| Fluxos criticos                      | 100%             | Upload, recovery, auto-healing sem excecao |
 
 ---
 
@@ -130,12 +130,12 @@ test/
 
 > Quais ambientes sao usados para testes?
 
-| Ambiente | Banco | Cache | Filas | Servicos Externos |
-| --- | --- | --- | --- | --- |
-| Unit | Mock | Mock | Mock | Mock |
-| Integration | testcontainers (PG 18) | testcontainers (Redis 7) | In-memory BullMQ | MinIO (S3), sample media files |
-| E2E | Docker Compose (PG 18) | Docker Compose (Redis 7) | Docker Compose (Redis) | MinIO + Playwright |
-| Load | Docker Compose | Docker Compose | Docker Compose | k6 scripts |
+| Ambiente    | Banco                  | Cache                    | Filas                  | Servicos Externos              |
+| ----------- | ---------------------- | ------------------------ | ---------------------- | ------------------------------ |
+| Unit        | Mock                   | Mock                     | Mock                   | Mock                           |
+| Integration | testcontainers (PG 18) | testcontainers (Redis 7) | In-memory BullMQ       | MinIO (S3), sample media files |
+| E2E         | Docker Compose (PG 18) | Docker Compose (Redis 7) | Docker Compose (Redis) | MinIO + Playwright             |
+| Load        | Docker Compose         | Docker Compose           | Docker Compose         | k6 scripts                     |
 
 ---
 
@@ -143,20 +143,21 @@ test/
 
 > Quando cada tipo de teste roda no CI?
 
-| Etapa | Trigger | Testes | Timeout | Bloqueia Merge |
-| --- | --- | --- | --- | --- |
-| PR | Push/open PR | jest (unit) + eslint + prettier | 3 min | Sim |
-| Merge to main | Merge | jest (unit + integration com testcontainers) | 5 min | Sim |
-| Pre-deploy | Manual | E2E (Docker Compose) | 15 min | Sim |
-| Post-deploy | Apos deploy | Smoke (health check + upload de foto teste) | 2 min | Sim (rollback) |
-| Mensal | Cron | Disaster drill (recovery via seed) + chaos tests | 120 min | Nao (relatorio) |
-| Semanal | Cron | k6 load tests | 30 min | Nao (alerta) |
+| Etapa         | Trigger      | Testes                                           | Timeout | Bloqueia Merge  |
+| ------------- | ------------ | ------------------------------------------------ | ------- | --------------- |
+| PR            | Push/open PR | jest (unit) + eslint + prettier                  | 3 min   | Sim             |
+| Merge to main | Merge        | jest (unit + integration com testcontainers)     | 5 min   | Sim             |
+| Pre-deploy    | Manual       | E2E (Docker Compose)                             | 15 min  | Sim             |
+| Post-deploy   | Apos deploy  | Smoke (health check + upload de foto teste)      | 2 min   | Sim (rollback)  |
+| Mensal        | Cron         | Disaster drill (recovery via seed) + chaos tests | 120 min | Nao (relatorio) |
+| Semanal       | Cron         | k6 load tests                                    | 30 min  | Nao (alerta)    |
 
 **Tempo maximo de CI (PR → merge):** < 10 minutos.
 
 ---
 
 <!-- added: opensource -->
+
 ## Testing Guide for Contributors
 
 - **Running tests locally**:

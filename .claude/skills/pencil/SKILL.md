@@ -25,15 +25,15 @@ Cria designs visuais no Pencil (pencil.dev) usando as ferramentas MCP nativas. O
 
 ### Nomes das ferramentas
 
-| Tool curto | Tool MCP completo | Uso |
-|------------|-------------------|-----|
-| `batch_design` | `mcp__pencil__batch_design` | Criar/modificar/mover/deletar elementos via linguagem natural |
-| `batch_get` | `mcp__pencil__batch_get` | Inspecionar hierarquia, listar componentes, buscar elementos |
-| `get_screenshot` | `mcp__pencil__get_screenshot` | Verificacao visual em milestones (fim de fase/pagina) |
-| `snapshot_layout` | `mcp__pencil__snapshot_layout` | Verificacao automatica por grupo — detecta problemas de posicionamento |
-| `get_editor_state` | `mcp__pencil__get_editor_state` | Confirmar contexto (arquivo ativo, selecao) e conexao MCP |
-| `get_variables` | `mcp__pencil__get_variables` | Ler variables existentes |
-| `set_variables` | `mcp__pencil__set_variables` | Registrar tokens (cores, tipografia, spacing, radius) com temas |
+| Tool curto         | Tool MCP completo               | Uso                                                                    |
+| ------------------ | ------------------------------- | ---------------------------------------------------------------------- |
+| `batch_design`     | `mcp__pencil__batch_design`     | Criar/modificar/mover/deletar elementos via linguagem natural          |
+| `batch_get`        | `mcp__pencil__batch_get`        | Inspecionar hierarquia, listar componentes, buscar elementos           |
+| `get_screenshot`   | `mcp__pencil__get_screenshot`   | Verificacao visual em milestones (fim de fase/pagina)                  |
+| `snapshot_layout`  | `mcp__pencil__snapshot_layout`  | Verificacao automatica por grupo — detecta problemas de posicionamento |
+| `get_editor_state` | `mcp__pencil__get_editor_state` | Confirmar contexto (arquivo ativo, selecao) e conexao MCP              |
+| `get_variables`    | `mcp__pencil__get_variables`    | Ler variables existentes                                               |
+| `set_variables`    | `mcp__pencil__set_variables`    | Registrar tokens (cores, tipografia, spacing, radius) com temas        |
 
 ### Regras de uso
 
@@ -75,20 +75,21 @@ Cria designs visuais no Pencil (pencil.dev) usando as ferramentas MCP nativas. O
 
 Leia os seguintes documentos para extrair os dados necessarios:
 
-| Documento | O que extrair |
-|-----------|---------------|
-| `docs/frontend/03-design-system.md` | Tokens: cores, tipografia, espacamento, breakpoints |
-| `docs/frontend/04-components.md` | Hierarquia de componentes, variantes e props dos primitivos |
-| `docs/frontend/07-routes.md` | Tabela de rotas, layouts, tipos (publica/protegida/admin) |
-| `docs/frontend/08-flows.md` | Fluxos de UI e interacoes por pagina |
-| `docs/frontend/05-state.md` | Estado gerenciado por pagina |
-| `docs/frontend/14-copies.md` | Textos/copies por pagina (se disponiveis) |
+| Documento                           | O que extrair                                               |
+| ----------------------------------- | ----------------------------------------------------------- |
+| `docs/frontend/03-design-system.md` | Tokens: cores, tipografia, espacamento, breakpoints         |
+| `docs/frontend/04-components.md`    | Hierarquia de componentes, variantes e props dos primitivos |
+| `docs/frontend/07-routes.md`        | Tabela de rotas, layouts, tipos (publica/protegida/admin)   |
+| `docs/frontend/08-flows.md`         | Fluxos de UI e interacoes por pagina                        |
+| `docs/frontend/05-state.md`         | Estado gerenciado por pagina                                |
+| `docs/frontend/14-copies.md`        | Textos/copies por pagina (se disponiveis)                   |
 
 ### 2.1: Consultar shadcn/ui e Tailwind v4 via Context7
 
 Antes de montar a referencia de componentes, consulte as documentacoes:
 
 **shadcn/ui:**
+
 1. Chame `mcp__context7__resolve-library-id` com query "shadcn/ui" para obter o ID da biblioteca
 2. Para cada componente listado no blueprint (`docs/frontend/04-components.md`), chame `mcp__context7__query-docs` para obter:
    - Variantes disponiveis (variant, size, etc.)
@@ -97,6 +98,7 @@ Antes de montar a referencia de componentes, consulte as documentacoes:
    - Composicao (ex: Dialog = DialogTrigger + DialogContent + DialogHeader + DialogFooter)
 
 **Tailwind CSS v4:**
+
 1. Chame `mcp__context7__resolve-library-id` com query "tailwindcss" para obter o ID
 2. Chame `mcp__context7__query-docs` para consultar:
    - Escala de cores padrao e como mapear para os tokens do blueprint
@@ -108,6 +110,7 @@ Antes de montar a referencia de componentes, consulte as documentacoes:
 ### 2.2: Montar Conjuntos de Referencia
 
 Monte conjuntos internos de referencia:
+
 - **TOKENS**: mapa de cores (com valores light e dark), escala tipografica (em px), escala de espacamento, breakpoints
 - **COMPONENTES**: lista de primitivos e compostos com variantes do shadcn/ui (nomes, props, estados)
 - **ROTAS**: lista de rotas com layout, tipo e nome da pagina
@@ -122,12 +125,12 @@ Monte conjuntos internos de referencia:
 
 Via `mcp__pencil__set_variables`, criar tokens organizados por categoria:
 
-| Categoria | Exemplos | Temas |
-|-----------|----------|-------|
-| Cores | `$color-primary`, `$color-secondary`, `$color-background`, `$color-foreground`, `$color-muted`, `$color-error`, `$color-warning`, `$color-success` | light + dark |
-| Tipografia | `$font-family-sans`, `$font-family-mono`, `$font-size-xs` (12), `$font-size-sm` (14), `$font-size-base` (16), `$font-size-lg` (18), `$font-size-xl` (20), `$font-size-2xl` (24), `$font-size-3xl` (30), `$font-size-4xl` (36) | — |
-| Spacing | `$space-xs` (4), `$space-sm` (8), `$space-md` (16), `$space-lg` (24), `$space-xl` (32), `$space-2xl` (48) | — |
-| Radius | `$radius-sm` (2), `$radius-md` (6), `$radius-lg` (8), `$radius-xl` (12) | — |
+| Categoria  | Exemplos                                                                                                                                                                                                                      | Temas        |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| Cores      | `$color-primary`, `$color-secondary`, `$color-background`, `$color-foreground`, `$color-muted`, `$color-error`, `$color-warning`, `$color-success`                                                                            | light + dark |
+| Tipografia | `$font-family-sans`, `$font-family-mono`, `$font-size-xs` (12), `$font-size-sm` (14), `$font-size-base` (16), `$font-size-lg` (18), `$font-size-xl` (20), `$font-size-2xl` (24), `$font-size-3xl` (30), `$font-size-4xl` (36) | —            |
+| Spacing    | `$space-xs` (4), `$space-sm` (8), `$space-md` (16), `$space-lg` (24), `$space-xl` (32), `$space-2xl` (48)                                                                                                                     | —            |
+| Radius     | `$radius-sm` (2), `$radius-md` (6), `$radius-lg` (8), `$radius-xl` (12)                                                                                                                                                       | —            |
 
 **Temas light/dark:** As variables de cores suportam valores diferentes por tema. Paginas sao compostas usando o tema light por padrao. O tema dark e verificavel alternando o tema no Pencil (properties panel). NAO e necessario criar frames duplicados para dark mode — as variables fazem a troca automaticamente.
 
@@ -206,6 +209,7 @@ Antes de criar componentes ou paginas, planeje TODAS as telas com seus component
 Cruzando ROTAS + FLUXOS + COMPONENTES do blueprint, monte o mapa completo.
 
 Para cada rota, identifique:
+
 - **Layout**: qual layout usa e quais componentes o layout contem (Sidebar, Navbar, Footer, etc.)
 - **Componentes de pagina**: quais componentes primitivos e compostos a pagina precisa
 - **Componentes de feature**: quais componentes especificos do dominio a pagina usa
@@ -218,14 +222,14 @@ Apresente o mapa completo:
 
 > "**Planejamento de Telas**
 >
-> | # | Rota | Layout | Componentes de Layout | Componentes de Pagina | Estados |
-> |---|------|--------|----------------------|----------------------|---------|
-> | 1 | `/` | MainLayout | Navbar, Footer | Hero, FeatureCards, CTA | default |
-> | 2 | `/login` | AuthLayout | Logo, Card | Input (email, password), Button (primary), Link | default, loading, error |
-> | 3 | `/register` | AuthLayout | Logo, Card | Input (name, email, password), Button, Link | default, loading, error |
-> | 4 | `/dashboard` | AppLayout | Sidebar, Navbar | StatsCards, DataTable, Charts | loading, empty, populated |
-> | 5 | `/settings` | AppLayout | Sidebar, Navbar | Tabs, Input, Select, Button, Avatar | default, saving |
-> | 6 | `/admin/users` | AdminLayout | AdminSidebar, Navbar | DataTable, Badge, Avatar, Button, Modal | loading, empty, populated |
+> | #   | Rota           | Layout      | Componentes de Layout | Componentes de Pagina                           | Estados                   |
+> | --- | -------------- | ----------- | --------------------- | ----------------------------------------------- | ------------------------- |
+> | 1   | `/`            | MainLayout  | Navbar, Footer        | Hero, FeatureCards, CTA                         | default                   |
+> | 2   | `/login`       | AuthLayout  | Logo, Card            | Input (email, password), Button (primary), Link | default, loading, error   |
+> | 3   | `/register`    | AuthLayout  | Logo, Card            | Input (name, email, password), Button, Link     | default, loading, error   |
+> | 4   | `/dashboard`   | AppLayout   | Sidebar, Navbar       | StatsCards, DataTable, Charts                   | loading, empty, populated |
+> | 5   | `/settings`    | AppLayout   | Sidebar, Navbar       | Tabs, Input, Select, Button, Avatar             | default, saving           |
+> | 6   | `/admin/users` | AdminLayout | AdminSidebar, Navbar  | DataTable, Badge, Avatar, Button, Modal         | loading, empty, populated |
 >
 > ---
 >
@@ -248,21 +252,23 @@ Apresente o mapa completo:
 >
 > **Lista completa de componentes a criar no Design System:**
 >
-> | Componente | Tipo | Variantes | Usado em |
-> |------------|------|-----------|----------|
-> | Button | Primitivo | primary, secondary, ghost, destructive x sm, md, lg | /login, /register, /settings, /admin/users |
-> | Input | Primitivo | text, password, search, number + error state | /login, /register, /settings |
-> | Card | Primitivo | default, outlined, elevated | /, /login, /register |
-> | ... | ... | ... | ... |
+> | Componente | Tipo      | Variantes                                           | Usado em                                   |
+> | ---------- | --------- | --------------------------------------------------- | ------------------------------------------ |
+> | Button     | Primitivo | primary, secondary, ghost, destructive x sm, md, lg | /login, /register, /settings, /admin/users |
+> | Input      | Primitivo | text, password, search, number + error state        | /login, /register, /settings               |
+> | Card       | Primitivo | default, outlined, elevated                         | /, /login, /register                       |
+> | ...        | ...       | ...                                                 | ...                                        |
 >
 > **Ordem sugerida de construcao de paginas** (maximiza reuso):
+>
 > 1. {{rota}} — introduz: {{componentes novos}}
 > 2. {{rota}} — introduz: {{componentes novos}}
-> ...
+>    ...
 >
 > Confirma o plano? Quer ajustar componentes ou ordem?"
 
 Aguarde aprovacao. O usuario pode:
+
 - Ajustar componentes de uma tela
 - Mudar a ordem de construcao
 - Adicionar/remover telas ou componentes
@@ -286,6 +292,7 @@ Via `mcp__pencil__batch_design`:
 > "Dentro do frame 'Design System', apos a secao de Tokens, cria sub-frames para organizar os componentes: 'Primitivos', 'Compostos', 'Layout', 'Feature'. Cada sub-frame com titulo em fonte $font-family-sans 700 $font-size-2xl e layout vertical com gap 24px."
 
 Estrutura resultante:
+
 ```
 Design System (frame raiz)
 +-- Tokens (Passo 3)
@@ -308,19 +315,23 @@ Para cada componente primitivo do plano, use `mcp__pencil__batch_design` com pro
 Exemplos de prompts:
 
 **Button:**
+
 > "Dentro do frame 'Design System > Primitivos', cria um componente reutilizavel chamado 'Button/Primary/md' com estilo shadcn/ui: frame com layout horizontal, align center, justify center, padding $space-sm $space-md, fundo $color-primary, border-radius $radius-md, texto 'Button' em fonte $font-family-sans 500 $font-size-sm cor branca. Marca como componente reutilizavel."
 
 > "Cria variantes adicionais lado a lado: 'Button/Secondary/md' (fundo transparente, borda 1px $color-muted, texto $color-foreground), 'Button/Ghost/md' (fundo transparente, sem borda, texto $color-foreground), 'Button/Destructive/md' (fundo $color-error, texto branca). Todas reutilizaveis."
 
 **Input:**
+
 > "Dentro do frame 'Design System > Primitivos', cria um componente reutilizavel chamado 'Input/Default' com estilo shadcn/ui: frame com borda 1px cor $color-muted, border-radius $radius-md, padding $space-sm 12px, altura 36px, largura 280px, texto placeholder 'Type here...' em fonte $font-family-sans 400 $font-size-sm cor $color-muted. Marca como componente reutilizavel."
 
 > "Cria variante 'Input/Error': mesma base do Input/Default mas com borda $color-error e um texto 'Error message' em fonte $font-family-sans 400 12px cor $color-error abaixo do input. Marca como componente reutilizavel."
 
 **Badge:**
+
 > "Dentro do frame 'Design System > Primitivos', cria um componente reutilizavel chamado 'Badge/Default' com estilo shadcn/ui: frame inline com padding 2px $space-sm, border-radius 9999px, fundo $color-primary com 10% opacidade, texto 'Badge' em fonte $font-family-sans 500 12px cor $color-primary. Marca como reutilizavel."
 
 Para cada primitivo:
+
 - **Nome do componente** + **"Usado em:"** {{lista de rotas}} (fonte $font-family-sans 400 12px cor $color-muted)
 - **Variantes lado a lado** — cada variante em tamanho real com label abaixo
 
@@ -331,12 +342,15 @@ Para cada primitivo:
 Compostos usam **instancias** dos primitivos ja criados e **slots** para areas substituiveis.
 
 **Card:**
+
 > "Dentro do frame 'Design System > Compostos', cria um componente reutilizavel chamado 'Card' com estilo shadcn/ui: frame com layout vertical, padding $space-lg, gap $space-md, borda 1px cor $color-muted, border-radius $radius-lg, fundo $color-background. Adiciona um texto 'Card Title' como header em fonte $font-family-sans 600 $font-size-lg. Abaixo, cria um frame vazio de 100% largura e altura minima 80px marcado como slot para conteudo. Marca o Card inteiro como componente reutilizavel."
 
 **Modal/Dialog:**
+
 > "Dentro do frame 'Design System > Compostos', cria um componente reutilizavel chamado 'Modal' com estilo shadcn/ui: frame overlay de 480px largura, fundo $color-background, border-radius $radius-xl, shadow-lg, padding $space-lg, layout vertical, gap $space-md. Header com titulo 'Modal Title' em $font-family-sans 600 $font-size-lg e um botao X no canto superior direito. Area central como slot para conteudo. Footer com layout horizontal, justify end, gap $space-sm, contendo instancias de Button/Secondary e Button/Primary. Marca como reutilizavel."
 
 Para cada composto:
+
 - **Nome + descricao** + **"Usado em:"** {{rotas}}
 - **Renderizacao completa** com primitivos reais
 
@@ -347,12 +361,15 @@ Para cada composto:
 Componentes de layout com slots para conteudo principal.
 
 **AppLayout:**
+
 > "Dentro do frame 'Design System > Layout', cria um componente reutilizavel chamado 'AppLayout' de 1440x900: frame com layout horizontal. Filho esquerdo: frame vertical de 240px de largura, fundo $color-background com borda direita 1px $color-muted, padding $space-md (area da Sidebar). Filho direito: frame vertical flex-grow com layout vertical. Dentro do filho direito: frame horizontal de 64px de altura com borda inferior 1px $color-muted, padding horizontal $space-lg (Navbar). Abaixo, frame marcado como slot para conteudo da pagina com padding $space-lg. Marca como componente reutilizavel."
 
 **AuthLayout:**
+
 > "Dentro do frame 'Design System > Layout', cria um componente reutilizavel chamado 'AuthLayout' de 1440x900: frame com layout horizontal. Metade esquerda: fundo $color-primary com 5% opacidade, centralizado, contendo logo placeholder. Metade direita: layout vertical, centralizado, com slot para conteudo do formulario. Marca como componente reutilizavel."
 
 Para cada layout:
+
 - **Nome** + **"Usado em:"** {{rotas que usam este layout}}
 - **Renderizacao em escala real**
 
@@ -378,12 +395,12 @@ Componentes de feature combinam primitivos e compostos usando instancias.
 > **Tokens:** {{N}} cores, {{N}} tipografia, {{N}} espacamento, {{N}} breakpoints, {{N}} radius
 > **Componentes:** {{N}} primitivos, {{N}} compostos, {{N}} layout, {{N}} feature
 >
-> | Componente | Variantes | Usado em |
-> |------------|-----------|----------|
-> | Button | primary, secondary, ghost, destructive x md | {{N}} paginas |
-> | Input | default, error | {{N}} paginas |
-> | Card | default | {{N}} paginas |
-> | ... | ... | ... |
+> | Componente | Variantes                                   | Usado em      |
+> | ---------- | ------------------------------------------- | ------------- |
+> | Button     | primary, secondary, ghost, destructive x md | {{N}} paginas |
+> | Input      | default, error                              | {{N}} paginas |
+> | Card       | default                                     | {{N}} paginas |
+> | ...        | ...                                         | ...           |
 >
 > Pronto para comecar a compor as paginas. Primeira na fila: **{{rota}}**
 >
@@ -400,6 +417,7 @@ Agora monte cada pagina USANDO instancias (`ref`) dos componentes ja criados no 
 > "Compondo pagina {{N}}/{{total}}: **{{PageName}}** ({{rota}})
 >
 > **Componentes do DS que serao usados:**
+>
 > - Layout: {{componentes do layout}}
 > - Pagina: {{componentes da pagina}}
 > - Feature: {{componentes de feature}}"
@@ -436,14 +454,17 @@ Posicione o frame ao lado do anterior (horizontalmente). Gap de 100px entre pagi
 Siga a ordem:
 
 1. **Shell do layout** — instancia do componente de layout
+
    > "No frame 'Page — /dashboard', insere uma instancia do componente 'AppLayout'."
 
 2. **Preencher slots do layout** — instancias de Sidebar, Navbar com conteudo
+
    > "No slot da Sidebar do AppLayout, insere itens de navegacao: logo no topo, e abaixo links 'Dashboard', 'Settings', 'Users' em $font-family-sans 400 $font-size-sm. O item 'Dashboard' fica destacado com fundo $color-primary 10% e cor $color-primary."
 
    > "No Navbar, insere breadcrumb 'Home / Dashboard' a esquerda e um avatar com dropdown a direita."
 
 3. **Conteudo da pagina** — instancias dos componentes de pagina/feature
+
    > "No slot de conteudo principal do AppLayout, insere: uma row horizontal com 4 instancias de 'StatsCard' (muda labels para 'Receita', 'Usuarios', 'Pedidos', 'Conversao' e valores para 'R$ 12.450', '1.234', '856', '3.2%'). Abaixo, insere uma instancia de DataTable com 5 rows de dados placeholder."
 
 4. **Textos e dados** — copies do blueprint ou dados placeholder realistas
@@ -461,6 +482,7 @@ Siga a ordem:
 Se durante a composicao surgiu algum componente que NAO estava no planejamento:
 
 1. Informe ao usuario:
+
    > "Durante a construcao de **{{pagina}}**, identifiquei {{N}} componente(s) nao previsto(s): {{lista}}.
    > Vou adiciona-los ao Design System."
 
@@ -489,17 +511,21 @@ Simula a experiencia do usuario com frames sequenciais representando estados ant
 ### 7.1: Identificar Fluxos por Pagina
 
 Para cada pagina, baseado no plano (Passo 4) e em `docs/frontend/08-flows.md`:
+
 - **Happy path** — obrigatorio
 - **Erro mais comum** — obrigatorio
 - Estados intermediarios (loading, empty) — se relevantes
 
 Apresente ao usuario antes de criar:
+
 > "**Fluxos de interacao para {{pagina}}:**
 >
 > **Happy path:** {{N}} frames
+>
 > 1. Estado inicial -> 2. {{acao}} -> 3. {{feedback}} -> 4. {{resultado}}
 >
 > **Erro:** {{N}} frames
+>
 > 1. Estado inicial -> 2. {{acao invalida}} -> 3. {{feedback erro}}
 >
 > Criar fluxos de interacao? (S/N)"
@@ -512,7 +538,7 @@ Para cada estado do fluxo, use `mcp__pencil__batch_design` para duplicar o frame
 
 **Happy path exemplo (/login):**
 
-> "Duplica o frame 'Page — /login' e renomeia para 'Page — /login -> Form preenchido'. Posiciona a direita com gap de 60px. No novo frame, altera o texto do Input de email para 'user@email.com' e o Input de senha para '********'."
+> "Duplica o frame 'Page — /login' e renomeia para 'Page — /login -> Form preenchido'. Posiciona a direita com gap de 60px. No novo frame, altera o texto do Input de email para 'user@email.com' e o Input de senha para '**\*\*\*\***'."
 
 > "Duplica o frame 'Page — /login -> Form preenchido' e renomeia para 'Page — /login -> Loading'. Posiciona a direita com gap de 60px. No novo frame, desabilita o Button (opacidade 50%) e altera o texto para 'Entrando...'."
 
@@ -525,6 +551,7 @@ Para cada estado do fluxo, use `mcp__pencil__batch_design` para duplicar o frame
 > "Duplica o frame 'Page — /login -> Email invalido' e renomeia para 'Page — /login -> Erro API'. Posiciona a direita com gap de 60px. Adiciona um toast no topo direito com fundo $color-error, texto 'Credenciais invalidas' em branco."
 
 **Nomenclatura:**
+
 - `Page — /login` (base)
 - `Page — /login -> Form preenchido`
 - `Page — /login -> Loading`
@@ -546,6 +573,7 @@ Entre cada frame do fluxo, adicione labels descrevendo a acao:
 > "Entre os frames 'Page — /login' e 'Page — /login -> Form preenchido', adiciona um texto 'Preenche email e senha' com fonte $font-family-sans 400 12px cor $color-muted, posicionado entre os dois frames."
 
 **Quando NAO simular:**
+
 - Navegacao simples entre paginas (Link -> outra rota) — basta a pagina destino existir como frame proprio
 - Estados identicos a outra tela ja simulada
 
@@ -567,14 +595,15 @@ Quando o usuario encerrar:
 
 > "**Resumo do projeto no Pencil:**
 >
-> | Frame | Rota | Tipo | Dimensao |
-> |-------|------|------|----------|
-> | Design System | — | DS | 1440 x {{altura final}} |
-> | {{pagina}} | {{rota}} | Pagina | 1440 x 900 |
-> | {{pagina}} -> {{acao}} | {{rota}} | Fluxo | 1440 x 900 |
-> | ... | ... | ... | ... |
+> | Frame                  | Rota     | Tipo   | Dimensao                |
+> | ---------------------- | -------- | ------ | ----------------------- |
+> | Design System          | —        | DS     | 1440 x {{altura final}} |
+> | {{pagina}}             | {{rota}} | Pagina | 1440 x 900              |
+> | {{pagina}} -> {{acao}} | {{rota}} | Fluxo  | 1440 x 900              |
+> | ...                    | ...      | ...    | ...                     |
 >
 > **Design System final:**
+>
 > - Tokens: {{N}} cores (light/dark), {{N}} tipografia, {{N}} espacamento, {{N}} breakpoints, {{N}} radius
 > - Componentes: {{N}} primitivos, {{N}} compostos, {{N}} layout, {{N}} feature
 >

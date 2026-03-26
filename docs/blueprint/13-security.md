@@ -8,18 +8,18 @@
 
 > Abordagem baseada no modelo **STRIDE** aplicada aos componentes do Alexandria.
 
-| Ameaça | Categoria | Impacto | Mitigação |
-|--------|-----------|---------|-----------|
-| Atacante se passa por membro do cluster | Spoofing | Alto — acesso não autorizado a fotos/vídeos familiares | Tokens de convite assinados (Ed25519) com expiração; JWT para sessões; autenticação mútua entre nós (mTLS ou Ed25519) |
-| Adulteração de chunks durante transporte ou armazenamento | Tampering | Alto — corrupção silenciosa de dados | SHA-256 hash por chunk (content-addressable); scrubbing periódico recalcula e verifica; chunks criptografados com AES-256-GCM (autenticado — detecta adulteração) |
-| Adulteração de manifests | Tampering | Alto — redirecionamento de chunks, perda de integridade | Assinatura criptográfica de manifests; manifests com assinatura inválida são rejeitados |
-| Provedor cloud lê dados armazenados | Information Disclosure | Alto — fotos de família, dados de localização GPS expostos | Zero-knowledge: criptografia AES-256-GCM no cliente antes do upload; nem provedor, nem orquestrador veem dados em claro |
-| Vazamento de tokens OAuth/credenciais S3/senhas do membro | Information Disclosure | Alto — acesso a buckets cloud e contas do membro | Vault criptografado individual por membro com sua senha; tokens e senhas em texto puro apenas em memória, nunca em disco; vaults replicados criptografados |
-| Comprometimento da master key | Information Disclosure | Crítico — acesso a todos os dados do cluster | Master key derivada da seed em memória; nunca persistida em disco; envelope encryption limita blast radius por file key |
-| Perda/roubo da seed phrase | Information Disclosure | Crítico — acesso total ao cluster | Seed nunca armazenada digitalmente pelo sistema; instruções claras ao admin; recovery guardians em fase futura |
-| DDoS no orquestrador (API pública) | Denial of Service | Médio — uploads e galeria indisponíveis | Rate limiting via NestJS Guard; Caddy com rate limit; nós continuam servindo chunks cached localmente |
-| Nó malicioso enviando chunks corrompidos | Tampering | Médio — dados corrompidos se scrubbing falhar | Verificação de hash na recepção; rejeitar chunks com hash inconsistente; scrubbing periódico como segunda camada |
-| Membro com role "leitura" tenta fazer upload | Elevation of Privilege | Baixo — bypass de permissões | Verificação de role em cada endpoint (middleware NestJS); role stored em JWT e validado server-side |
+| Ameaça                                                    | Categoria              | Impacto                                                    | Mitigação                                                                                                                                                         |
+| --------------------------------------------------------- | ---------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Atacante se passa por membro do cluster                   | Spoofing               | Alto — acesso não autorizado a fotos/vídeos familiares     | Tokens de convite assinados (Ed25519) com expiração; JWT para sessões; autenticação mútua entre nós (mTLS ou Ed25519)                                             |
+| Adulteração de chunks durante transporte ou armazenamento | Tampering              | Alto — corrupção silenciosa de dados                       | SHA-256 hash por chunk (content-addressable); scrubbing periódico recalcula e verifica; chunks criptografados com AES-256-GCM (autenticado — detecta adulteração) |
+| Adulteração de manifests                                  | Tampering              | Alto — redirecionamento de chunks, perda de integridade    | Assinatura criptográfica de manifests; manifests com assinatura inválida são rejeitados                                                                           |
+| Provedor cloud lê dados armazenados                       | Information Disclosure | Alto — fotos de família, dados de localização GPS expostos | Zero-knowledge: criptografia AES-256-GCM no cliente antes do upload; nem provedor, nem orquestrador veem dados em claro                                           |
+| Vazamento de tokens OAuth/credenciais S3/senhas do membro | Information Disclosure | Alto — acesso a buckets cloud e contas do membro           | Vault criptografado individual por membro com sua senha; tokens e senhas em texto puro apenas em memória, nunca em disco; vaults replicados criptografados        |
+| Comprometimento da master key                             | Information Disclosure | Crítico — acesso a todos os dados do cluster               | Master key derivada da seed em memória; nunca persistida em disco; envelope encryption limita blast radius por file key                                           |
+| Perda/roubo da seed phrase                                | Information Disclosure | Crítico — acesso total ao cluster                          | Seed nunca armazenada digitalmente pelo sistema; instruções claras ao admin; recovery guardians em fase futura                                                    |
+| DDoS no orquestrador (API pública)                        | Denial of Service      | Médio — uploads e galeria indisponíveis                    | Rate limiting via NestJS Guard; Caddy com rate limit; nós continuam servindo chunks cached localmente                                                             |
+| Nó malicioso enviando chunks corrompidos                  | Tampering              | Médio — dados corrompidos se scrubbing falhar              | Verificação de hash na recepção; rejeitar chunks com hash inconsistente; scrubbing periódico como segunda camada                                                  |
+| Membro com role "leitura" tenta fazer upload              | Elevation of Privilege | Baixo — bypass de permissões                               | Verificação de role em cada endpoint (middleware NestJS); role stored em JWT e validado server-side                                                               |
 
 ---
 
@@ -68,11 +68,11 @@ O Alexandria usa autenticação em duas camadas: **membros** (pessoas) e **nós*
 
 ### Roles e Permissões
 
-| Role | Descrição | Permissões |
-|------|-----------|------------|
-| admin | Administrador do cluster; criador ou designado | Criar cluster, convidar/remover membros, registrar/remover nós, upload/download, gerenciar configurações, executar recovery, ver alertas, aprovar drains |
-| membro | Membro regular da família | Upload de arquivos, visualizar galeria, download, ver próprios uploads |
-| leitura | Acesso somente leitura (ex.: avós) | Visualizar galeria, download, navegar timeline; NÃO pode fazer upload, gerenciar nós ou membros |
+| Role    | Descrição                                      | Permissões                                                                                                                                               |
+| ------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| admin   | Administrador do cluster; criador ou designado | Criar cluster, convidar/remover membros, registrar/remover nós, upload/download, gerenciar configurações, executar recovery, ver alertas, aprovar drains |
+| membro  | Membro regular da família                      | Upload de arquivos, visualizar galeria, download, ver próprios uploads                                                                                   |
+| leitura | Acesso somente leitura (ex.: avós)             | Visualizar galeria, download, navegar timeline; NÃO pode fazer upload, gerenciar nós ou membros                                                          |
 
 ### Regras de Acesso
 
@@ -100,16 +100,16 @@ O Alexandria usa autenticação em duas camadas: **membros** (pessoas) e **nós*
 
 ### Dados Sensíveis (PII)
 
-| Dado | Classificação | Proteção | Retenção |
-|------|---------------|----------|----------|
-| Fotos e vídeos familiares | Pessoal / Sensível | AES-256-GCM em repouso; TLS 1.3 em trânsito; acesso restrito por cluster_id e role | Indefinida (até exclusão pelo membro) |
-| Metadados EXIF (GPS, data) | PII | Criptografados dentro do manifest; GPS pode revelar localização de casa/escola | Indefinida; excluídos com o arquivo |
-| Tokens OAuth (Google, S3) | Sensível | Vault do membro criptografado; texto puro apenas em memória | Até revogação ou troca de credenciais |
-| Senhas do membro | Sensível | Vault do membro criptografado; texto puro apenas em memória | Até exclusão ou atualização pelo membro |
-| Seed phrase (12 palavras) | Crítico | NUNCA armazenada digitalmente pelo sistema; apenas com o usuário (papel, cofre) | N/A (offline) |
-| Master key | Crítico | Derivada da seed em memória (RAM); nunca persistida em disco | Duração da sessão do orquestrador |
-| E-mail de membros | PII | Armazenado em PostgreSQL; criptografado em trânsito | Até remoção do membro |
-| Nomes de arquivos originais | Pessoal | Armazenados em PostgreSQL; metadata do manifest criptografado | Até exclusão do arquivo |
+| Dado                        | Classificação      | Proteção                                                                           | Retenção                                |
+| --------------------------- | ------------------ | ---------------------------------------------------------------------------------- | --------------------------------------- |
+| Fotos e vídeos familiares   | Pessoal / Sensível | AES-256-GCM em repouso; TLS 1.3 em trânsito; acesso restrito por cluster_id e role | Indefinida (até exclusão pelo membro)   |
+| Metadados EXIF (GPS, data)  | PII                | Criptografados dentro do manifest; GPS pode revelar localização de casa/escola     | Indefinida; excluídos com o arquivo     |
+| Tokens OAuth (Google, S3)   | Sensível           | Vault do membro criptografado; texto puro apenas em memória                        | Até revogação ou troca de credenciais   |
+| Senhas do membro            | Sensível           | Vault do membro criptografado; texto puro apenas em memória                        | Até exclusão ou atualização pelo membro |
+| Seed phrase (12 palavras)   | Crítico            | NUNCA armazenada digitalmente pelo sistema; apenas com o usuário (papel, cofre)    | N/A (offline)                           |
+| Master key                  | Crítico            | Derivada da seed em memória (RAM); nunca persistida em disco                       | Duração da sessão do orquestrador       |
+| E-mail de membros           | PII                | Armazenado em PostgreSQL; criptografado em trânsito                                | Até remoção do membro                   |
+| Nomes de arquivos originais | Pessoal            | Armazenados em PostgreSQL; metadata do manifest criptografado                      | Até exclusão do arquivo                 |
 
 - **Mascaramento:** Não aplicável (dados criptografados end-to-end)
 - **Direito ao esquecimento:** Membro pode deletar seus dados — manifests, chunks e metadata removidos
@@ -121,16 +121,16 @@ O Alexandria usa autenticação em duas camadas: **membros** (pessoas) e **nós*
 
 Checklist baseado no **OWASP Top 10** adaptado para o Alexandria.
 
-| Item | Status | Responsável | Observações |
-|------|--------|-------------|-------------|
-| Prevenção de Injection | Planejado | Douglas | Prisma com type-safe queries elimina SQL injection; validação de input em todos os endpoints NestJS |
-| Autenticação e Sessão | Planejado | Douglas | JWT assinado com chave do cluster; expiração 24h; httpOnly cookies; sem senhas |
-| Exposição de Dados Sensíveis | Planejado | Douglas | Zero-knowledge: tudo criptografado antes do upload; sem dados sensíveis em logs (pino com redaction) |
-| Controle de Acesso | Planejado | Douglas | RBAC com 3 roles; middleware NestJS verifica role em cada endpoint; testes de autorização |
-| Configuração de Segurança | Planejado | Douglas | HSTS via Caddy; CORS restrito à origem do web client; TLS 1.3 only |
-| XSS | Planejado | Douglas | Next.js 16 escapa output por padrão (React); CSP header via Caddy; sem renderização de HTML user-supplied |
-| CSRF | Planejado | Douglas | SameSite=Strict em cookies; JWT em header (não cookie) para API; origin validation |
-| Dependências vulneráveis | Planejado | Douglas | `npm audit` no CI; Dependabot para packages npm; pin de versões major |
+| Item                         | Status    | Responsável | Observações                                                                                               |
+| ---------------------------- | --------- | ----------- | --------------------------------------------------------------------------------------------------------- |
+| Prevenção de Injection       | Planejado | Douglas     | Prisma com type-safe queries elimina SQL injection; validação de input em todos os endpoints NestJS       |
+| Autenticação e Sessão        | Planejado | Douglas     | JWT assinado com chave do cluster; expiração 24h; httpOnly cookies; sem senhas                            |
+| Exposição de Dados Sensíveis | Planejado | Douglas     | Zero-knowledge: tudo criptografado antes do upload; sem dados sensíveis em logs (pino com redaction)      |
+| Controle de Acesso           | Planejado | Douglas     | RBAC com 3 roles; middleware NestJS verifica role em cada endpoint; testes de autorização                 |
+| Configuração de Segurança    | Planejado | Douglas     | HSTS via Caddy; CORS restrito à origem do web client; TLS 1.3 only                                        |
+| XSS                          | Planejado | Douglas     | Next.js 16 escapa output por padrão (React); CSP header via Caddy; sem renderização de HTML user-supplied |
+| CSRF                         | Planejado | Douglas     | SameSite=Strict em cookies; JWT em header (não cookie) para API; origin validation                        |
+| Dependências vulneráveis     | Planejado | Douglas     | `npm audit` no CI; Dependabot para packages npm; pin de versões major                                     |
 
 ---
 
@@ -151,12 +151,12 @@ Checklist baseado no **OWASP Top 10** adaptado para o Alexandria.
 
 ### Retenção
 
-| Tipo de Log | Período de Retenção | Armazenamento | Justificativa |
-|-------------|---------------------|---------------|---------------|
-| Logs de auditoria (operações) | 90 dias | Docker logs + rotação | Troubleshooting e compliance LGPD |
-| Logs de acesso (API requests) | 30 dias | Docker logs + rotação | Debugging e monitoramento |
-| Alertas | Indefinido | PostgreSQL (tabela alerts) | Histórico de saúde do cluster |
-| Scrubbing reports | 90 dias | Logs estruturados | Prova de verificação de integridade |
+| Tipo de Log                   | Período de Retenção | Armazenamento              | Justificativa                       |
+| ----------------------------- | ------------------- | -------------------------- | ----------------------------------- |
+| Logs de auditoria (operações) | 90 dias             | Docker logs + rotação      | Troubleshooting e compliance LGPD   |
+| Logs de acesso (API requests) | 30 dias             | Docker logs + rotação      | Debugging e monitoramento           |
+| Alertas                       | Indefinido          | PostgreSQL (tabela alerts) | Histórico de saúde do cluster       |
+| Scrubbing reports             | 90 dias             | Logs estruturados          | Prova de verificação de integridade |
 
 ### Resposta a Incidentes
 
@@ -168,6 +168,7 @@ Checklist baseado no **OWASP Top 10** adaptado para o Alexandria.
 ---
 
 <!-- added: opensource -->
+
 ## Vulnerability Disclosure Policy
 
 - **Channel**: security@alexandria.app OR [GitHub Security Advisories](https://github.com/douglas-prado/alexandria/security/advisories/new)

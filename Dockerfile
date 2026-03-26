@@ -39,10 +39,11 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 
 ENV NODE_ENV=production
 ENV PORT=3333
 EXPOSE 3333
 
 # Run migrations then start
-CMD ["sh", "-c", "cd apps/api && npx prisma migrate deploy --schema prisma/schema.prisma && node dist/main.js"]
+CMD ["sh", "-c", "cd apps/api && node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma && node dist/main.js"]

@@ -58,13 +58,20 @@ jest.mock('../../src/workers/ffmpeg', () => ({
   }),
 }));
 
-// Mock sharp for photo processing
+// Mock pdf-renderer for PDF page rendering
+jest.mock('../../src/workers/pdf-renderer', () => ({
+  renderPdfPage: jest.fn().mockResolvedValue(Buffer.alloc(5_000, 0xee)), // ~5KB PNG
+  getPdfPageCount: jest.fn().mockResolvedValue(5),
+}));
+
+// Mock sharp for photo and PDF processing
 jest.mock('sharp', () => {
   const mockSharp = jest.fn().mockReturnValue({
     resize: jest.fn().mockReturnThis(),
     webp: jest.fn().mockReturnThis(),
+    png: jest.fn().mockReturnThis(),
     toBuffer: jest.fn().mockResolvedValue(Buffer.alloc(500_000, 0xab)), // ~500KB optimized
-    metadata: jest.fn().mockResolvedValue({ width: 4000, height: 3000, format: 'jpeg' }),
+    metadata: jest.fn().mockResolvedValue({ width: 4000, height: 3000, format: 'jpeg', pages: 5 }),
   });
   return mockSharp;
 });
@@ -240,6 +247,82 @@ describe('MediaProcessor', () => {
             metadata: expect.objectContaining({
               duration: expect.any(Number),
             }),
+          }),
+        }),
+      );
+    });
+
+    it('should generate PDF preview thumbnail from first page (RN-P5)', async () => {
+      setupFileMock({ id: 'file-pdf-1', mediaType: 'document', mimeType: 'application/pdf', originalName: 'contract.pdf', originalSize: BigInt(200_000) });
+
+      await processor.processFile('file-pdf-1', Buffer.alloc(200_000, 0xdd));
+
+      // Should create a pdf_page preview in PNG format
+      expect(mockPrisma.preview.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            fileId: 'file-pdf-1',
+            type: 'pdf_page',
+            format: 'png',
+          }),
+        }),
+      );
+    });
+
+    it('should extract pages metadata from PDF', async () => {
+      setupFileMock({ id: 'file-pdf-2', mediaType: 'document', mimeType: 'application/pdf', originalName: 'report.pdf', originalSize: BigInt(300_000) });
+
+      await processor.processFile('file-pdf-2', Buffer.alloc(300_000, 0xdd));
+
+      expect(mockPrisma.file.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            metadata: expect.objectContaining({
+              pages: expect.any(Number),
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('should bypass optimization for PDF — distribute original buffer', async () => {
+      setupFileMock({ id: 'file-pdf-3', mediaType: 'document', mimeType: 'application/pdf', originalName: 'invoice.pdf', originalSize: BigInt(100_000) });
+      const pdfBuffer = Buffer.alloc(100_000, 0xdd);
+
+      await processor.processFile('file-pdf-3', pdfBuffer);
+
+      // Content distributed is the original (no optimization), but preview IS generated
+      expect(mockStorageService.distributeChunks).toHaveBeenCalledWith(
+        'file-pdf-3',
+        pdfBuffer,
+        expect.any(Buffer),
+      );
+      expect(mockPrisma.preview.create).toHaveBeenCalled();
+    });
+
+    it('should NOT generate preview for non-PDF documents (RN-F3)', async () => {
+      setupFileMock({ id: 'file-doc-1', mediaType: 'document', mimeType: 'application/msword', originalName: 'letter.doc', originalSize: BigInt(50_000) });
+
+      await processor.processFile('file-doc-1', Buffer.alloc(50_000));
+
+      expect(mockPrisma.preview.create).not.toHaveBeenCalled();
+    });
+
+    it('should set status to error when PDF preview generation fails', async () => {
+      setupFileMock({ id: 'file-pdf-err', mediaType: 'document', mimeType: 'application/pdf', originalName: 'corrupt.pdf', originalSize: BigInt(100) });
+
+      // Make pdf-renderer throw on corrupt PDF
+      const { getPdfPageCount } = require('../../src/workers/pdf-renderer');
+      getPdfPageCount.mockRejectedValueOnce(new Error('Invalid PDF'));
+
+      await processor.processFile('file-pdf-err', Buffer.from('not-a-pdf'));
+
+      expect(mockPrisma.file.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'file-pdf-err' },
+          data: expect.objectContaining({
+            status: 'error',
+            errorMessage: expect.stringContaining('Invalid PDF'),
           }),
         }),
       );

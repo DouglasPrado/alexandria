@@ -23,13 +23,13 @@ Infrastructure Layer (API Client, Storage, Analytics)
 Native Module Layer (Camera, Biometrics, Push, Storage Nativo)
 ```
 
-| Camada | Responsabilidade | Pode acessar | NAO pode acessar |
-| --- | --- | --- | --- |
-| UI Layer | Renderizacao, interacao visual, navegacao | Application, Domain | Infrastructure diretamente |
-| Application Layer | Orquestracao, hooks de negocio, estado | Domain, Infrastructure | — |
-| Domain Layer | Modelos, regras de negocio, interfaces | Nenhuma outra camada | UI, Application, Infrastructure |
-| Infrastructure Layer | API client, storage, analytics, SDKs | Domain (implementa interfaces) | UI, Application |
-| Native Module Layer | Bridges para APIs nativas do dispositivo | Infrastructure (expoe para) | UI, Application, Domain |
+| Camada               | Responsabilidade                          | Pode acessar                   | NAO pode acessar                |
+| -------------------- | ----------------------------------------- | ------------------------------ | ------------------------------- |
+| UI Layer             | Renderizacao, interacao visual, navegacao | Application, Domain            | Infrastructure diretamente      |
+| Application Layer    | Orquestracao, hooks de negocio, estado    | Domain, Infrastructure         | —                               |
+| Domain Layer         | Modelos, regras de negocio, interfaces    | Nenhuma outra camada           | UI, Application, Infrastructure |
+| Infrastructure Layer | API client, storage, analytics, SDKs      | Domain (implementa interfaces) | UI, Application                 |
+| Native Module Layer  | Bridges para APIs nativas do dispositivo  | Infrastructure (expoe para)    | UI, Application, Domain         |
 
 <details>
 <summary>Exemplo — Responsabilidade de cada camada</summary>
@@ -64,15 +64,15 @@ Native Module Layer (Camera, Biometrics, Push, Storage Nativo)
 
 <!-- do blueprint: 00-context.md (atores, limites), 01-vision.md (personas), 04-domain-model.md (entidades) -->
 
-| Dominio    | Responsabilidade                                                                                              | Componentes Proprios                                                      | Estado Proprio                     |
-| ---------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------- |
-| auth       | Login com JWT, desbloqueio do vault com senha do membro, recovery via seed phrase de 12 palavras              | LoginScreen, VaultUnlockScreen, SeedRecoveryScreen, AuthGuard             | authStore (token, member, vault)   |
-| gallery    | Galeria de fotos e videos do cluster — timeline cronologica, busca por data/evento, visualizacao em tela cheia | GalleryScreen, TimelineScreen, PhotoDetailScreen, VideoDetailScreen, AlbumGrid, PhotoThumbnail | galleryStore (cursor, filters)  |
-| upload     | Sync Engine automatico (camera roll), upload manual, fila offline persistida, progress tracking, liberacao de espaco | UploadQueueScreen, SyncSettingsScreen, UploadProgressBar, SpaceReleaseModal | uploadStore (queue, progress)   |
-| cluster    | Informacoes do cluster familiar, saude geral, convite de membros, lista de membros e suas roles              | ClusterDashboardScreen, MembersScreen, InviteMemberSheet, MemberCard       | clusterStore (cluster, members)    |
-| nodes      | Lista de nos de armazenamento, saude individual, registro de novo no, drain e remocao (admin only)           | NodesScreen, NodeDetailScreen, RegisterNodeSheet, NodeHealthBadge          | nodesStore (nodes)                 |
-| alerts     | Alertas de saude do cluster — no offline, replicacao baixa, integridade comprometida, token expirado         | AlertsScreen, AlertBadge, AlertDetailSheet                                 | alertsStore (alerts, unreadCount)  |
-| settings   | Configuracoes do app: notificacoes, sync automatico, limiar de liberacao de espaco, perfil do membro, logout | SettingsScreen, ProfileScreen, SyncSettingsScreen, NotificationSettingsScreen | settingsStore (preferences)     |
+| Dominio  | Responsabilidade                                                                                                     | Componentes Proprios                                                                           | Estado Proprio                    |
+| -------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | --------------------------------- |
+| auth     | Login com JWT, desbloqueio do vault com senha do membro, recovery via seed phrase de 12 palavras                     | LoginScreen, VaultUnlockScreen, SeedRecoveryScreen, AuthGuard                                  | authStore (token, member, vault)  |
+| gallery  | Galeria de fotos e videos do cluster — timeline cronologica, busca por data/evento, visualizacao em tela cheia       | GalleryScreen, TimelineScreen, PhotoDetailScreen, VideoDetailScreen, AlbumGrid, PhotoThumbnail | galleryStore (cursor, filters)    |
+| upload   | Sync Engine automatico (camera roll), upload manual, fila offline persistida, progress tracking, liberacao de espaco | UploadQueueScreen, SyncSettingsScreen, UploadProgressBar, SpaceReleaseModal                    | uploadStore (queue, progress)     |
+| cluster  | Informacoes do cluster familiar, saude geral, convite de membros, lista de membros e suas roles                      | ClusterDashboardScreen, MembersScreen, InviteMemberSheet, MemberCard                           | clusterStore (cluster, members)   |
+| nodes    | Lista de nos de armazenamento, saude individual, registro de novo no, drain e remocao (admin only)                   | NodesScreen, NodeDetailScreen, RegisterNodeSheet, NodeHealthBadge                              | nodesStore (nodes)                |
+| alerts   | Alertas de saude do cluster — no offline, replicacao baixa, integridade comprometida, token expirado                 | AlertsScreen, AlertBadge, AlertDetailSheet                                                     | alertsStore (alerts, unreadCount) |
+| settings | Configuracoes do app: notificacoes, sync automatico, limiar de liberacao de espaco, perfil do membro, logout         | SettingsScreen, ProfileScreen, SyncSettingsScreen, NotificationSettingsScreen                  | settingsStore (preferences)       |
 
 <!-- APPEND:dominios -->
 

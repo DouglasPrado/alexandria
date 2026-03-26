@@ -41,16 +41,19 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 ## Contexto por Plataforma
 
 ### Se web:
+
 - Componentes baseados em DOM (div, button, input)
 - Bibliotecas de componentes: shadcn/ui, Radix, Headless UI
 - Padroes: Server Components vs Client Components, portals, modais
 
 ### Se mobile:
+
 - Componentes baseados em React Native Views (View, Text, Pressable, ScrollView)
 - Listas performaticas: FlatList, FlashList, SectionList
 - Padroes: gestos (PanResponder, Reanimated), bottom sheets, navigation headers
 
 ### Se desktop:
+
 - Mesma base web + componentes especificos de desktop
 - Componentes nativos: TitleBar, SystemTray, MenuBar, ContextMenu
 - Padroes: janelas multiplas, dialogs nativos do OS, drag-and-drop de arquivos
@@ -58,11 +61,13 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 ## Geracao
 
 > **Modo de escrita:**
+>
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
 Preencha `docs/frontend/{client}/04-components.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+
 - Informacoes explicitas do blueprint tecnico
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- do blueprint: XX-arquivo.md -->`)

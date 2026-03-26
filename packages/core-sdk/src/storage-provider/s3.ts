@@ -14,7 +14,8 @@ import type { StorageProvider } from './index';
  * Compativel com AWS S3, Cloudflare R2, Backblaze B2 (S3-compatible).
  */
 export interface S3StorageConfig {
-  endpoint: string;
+  /** Custom endpoint for S3-compatible providers (R2, B2, MinIO). Omit for AWS S3. */
+  endpoint?: string;
   region: string;
   bucket: string;
   accessKeyId: string;
@@ -40,13 +41,12 @@ export class S3StorageProvider implements StorageProvider {
     this.prefix = config.prefix ?? '';
 
     this.client = new S3Client({
-      endpoint: config.endpoint,
+      ...(config.endpoint ? { endpoint: config.endpoint, forcePathStyle: true } : {}),
       region: config.region,
       credentials: {
         accessKeyId: config.accessKeyId,
         secretAccessKey: config.secretAccessKey,
       },
-      forcePathStyle: true,
     });
   }
 

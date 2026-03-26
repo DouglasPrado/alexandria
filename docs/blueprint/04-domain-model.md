@@ -11,32 +11,32 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 > Quais termos do domínio precisam de definição clara para evitar ambiguidade?
 > **Fonte unica de termos:** [docs/shared/glossary.md](../shared/glossary.md). Ao preencher esta secao, atualize tambem o glossario compartilhado.
 
-| Termo | Definição |
-|-------|-----------|
-| Cluster | Grupo familiar com identidade criptográfica; unidade raiz que agrupa membros, nós, arquivos e alertas |
-| Member | Pessoa que pertence a um cluster com role específica (admin, member, reader) |
-| Node | Dispositivo físico ou conta cloud que armazena chunks criptografados |
-| File | Arquivo de mídia (foto, vídeo) ou documento enviado ao sistema e processado pelo pipeline |
-| Preview | Representação leve de um arquivo para exibição no cliente; não permite download do conteúdo original |
-| Manifest | Mapa de reconstituição de um arquivo — lista ordenada de chunks + file key criptografada + assinatura |
-| Chunk | Bloco de ~4MB de dados criptografados com AES-256-GCM; endereçado por SHA-256 do conteúdo |
-| Replica | Cópia de um chunk armazenada em um nó específico; mínimo 3 réplicas por chunk |
-| Vault | Cofre criptografado individual por membro; vault do admin contém config do cluster e credenciais de nós |
-| Alert | Notificação de condição anômala no cluster gerada automaticamente pelo Scheduler |
-| Invite | Convite para ingresso no cluster via token assinado com expiração |
-| Seed Phrase | 12 palavras BIP-39 que derivam a master key; única forma de recovery do sistema |
-| Master Key | Chave raiz derivada da seed phrase via PBKDF2/scrypt; nunca armazenada em texto puro |
-| File Key | Chave de criptografia por arquivo, derivada da master key via envelope encryption |
-| Envelope Encryption | Hierarquia criptográfica: seed → master key → file key → chunk encryption (AES-256-GCM) |
-| Content-Addressable Storage | Endereçamento de chunks pelo hash SHA-256 do conteúdo; permite deduplicação |
-| Consistent Hashing | Algoritmo que distribui chunks entre nós proporcionalmente à capacidade; minimiza redistribuição quando nós entram/saem |
-| Scrubbing | Verificação periódica de integridade — recalcula SHA-256 de cada réplica e compara com chunk_id |
-| Auto-Healing | Re-replicação automática de chunks quando um nó é perdido, para restaurar fator 3x |
-| Drain | Migração de todos os chunks de um nó antes da sua remoção; garante que replicação 3x seja mantida |
-| Heartbeat | Sinal periódico enviado por nós ao orquestrador; ausência por 30min → suspect, 1h → lost |
-| Pipeline de Mídia | Fluxo de processamento: upload → análise → otimização → preview → chunk → criptografia → distribuição |
-| Placeholder | Thumbnail local que substitui arquivo completo no dispositivo; download sob demanda quando necessário |
-| StorageProvider | Interface unificada (put/get/exists/delete/list/capacity) para comunicação com qualquer tipo de nó |
+| Termo                       | Definição                                                                                                               |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Cluster                     | Grupo familiar com identidade criptográfica; unidade raiz que agrupa membros, nós, arquivos e alertas                   |
+| Member                      | Pessoa que pertence a um cluster com role específica (admin, member, reader)                                            |
+| Node                        | Dispositivo físico ou conta cloud que armazena chunks criptografados                                                    |
+| File                        | Arquivo de mídia (foto, vídeo) ou documento enviado ao sistema e processado pelo pipeline                               |
+| Preview                     | Representação leve de um arquivo para exibição no cliente; não permite download do conteúdo original                    |
+| Manifest                    | Mapa de reconstituição de um arquivo — lista ordenada de chunks + file key criptografada + assinatura                   |
+| Chunk                       | Bloco de ~4MB de dados criptografados com AES-256-GCM; endereçado por SHA-256 do conteúdo                               |
+| Replica                     | Cópia de um chunk armazenada em um nó específico; mínimo 3 réplicas por chunk                                           |
+| Vault                       | Cofre criptografado individual por membro; vault do admin contém config do cluster e credenciais de nós                 |
+| Alert                       | Notificação de condição anômala no cluster gerada automaticamente pelo Scheduler                                        |
+| Invite                      | Convite para ingresso no cluster via token assinado com expiração                                                       |
+| Seed Phrase                 | 12 palavras BIP-39 que derivam a master key; única forma de recovery do sistema                                         |
+| Master Key                  | Chave raiz derivada da seed phrase via PBKDF2/scrypt; nunca armazenada em texto puro                                    |
+| File Key                    | Chave de criptografia por arquivo, derivada da master key via envelope encryption                                       |
+| Envelope Encryption         | Hierarquia criptográfica: seed → master key → file key → chunk encryption (AES-256-GCM)                                 |
+| Content-Addressable Storage | Endereçamento de chunks pelo hash SHA-256 do conteúdo; permite deduplicação                                             |
+| Consistent Hashing          | Algoritmo que distribui chunks entre nós proporcionalmente à capacidade; minimiza redistribuição quando nós entram/saem |
+| Scrubbing                   | Verificação periódica de integridade — recalcula SHA-256 de cada réplica e compara com chunk_id                         |
+| Auto-Healing                | Re-replicação automática de chunks quando um nó é perdido, para restaurar fator 3x                                      |
+| Drain                       | Migração de todos os chunks de um nó antes da sua remoção; garante que replicação 3x seja mantida                       |
+| Heartbeat                   | Sinal periódico enviado por nós ao orquestrador; ausência por 30min → suspect, 1h → lost                                |
+| Pipeline de Mídia           | Fluxo de processamento: upload → análise → otimização → preview → chunk → criptografia → distribuição                   |
+| Placeholder                 | Thumbnail local que substitui arquivo completo no dispositivo; download sob demanda quando necessário                   |
+| StorageProvider             | Interface unificada (put/get/exists/delete/list/capacity) para comunicação com qualquer tipo de nó                      |
 
 <!-- APPEND:glossary -->
 
@@ -52,14 +52,14 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 **Atributos:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|:-----------:|-----------|
-| cluster_id | String | Sim | SHA-256 da public_key; identificador único e imutável |
-| name | String | Sim | Nome do cluster (ex.: "Família Prado") |
-| public_key | Bytes | Sim | Chave pública do cluster para verificação de assinaturas |
-| encrypted_private_key | Bytes | Sim | Chave privada criptografada com master key |
-| status | Enum | Sim | Estado do cluster: `active`, `suspended` |
-| created_at | DateTime | Sim | Data de criação |
+| Nome                  | Tipo     | Obrigatório | Descrição                                                |
+| --------------------- | -------- | :---------: | -------------------------------------------------------- |
+| cluster_id            | String   |     Sim     | SHA-256 da public_key; identificador único e imutável    |
+| name                  | String   |     Sim     | Nome do cluster (ex.: "Família Prado")                   |
+| public_key            | Bytes    |     Sim     | Chave pública do cluster para verificação de assinaturas |
+| encrypted_private_key | Bytes    |     Sim     | Chave privada criptografada com master key               |
+| status                | Enum     |     Sim     | Estado do cluster: `active`, `suspended`                 |
+| created_at            | DateTime |     Sim     | Data de criação                                          |
 
 **Regras de Negócio:**
 
@@ -81,14 +81,14 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 **Atributos:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|:-----------:|-----------|
-| member_id | UUID | Sim | Identificador único |
-| name | String | Sim | Nome do membro |
-| email | String | Sim | Email para identificação (único dentro do cluster) |
-| role | Enum | Sim | `admin`, `member`, `reader` |
-| invited_by | UUID | Não | Member que convidou (null para o criador do cluster) |
-| joined_at | DateTime | Sim | Data de ingresso no cluster |
+| Nome       | Tipo     | Obrigatório | Descrição                                            |
+| ---------- | -------- | :---------: | ---------------------------------------------------- |
+| member_id  | UUID     |     Sim     | Identificador único                                  |
+| name       | String   |     Sim     | Nome do membro                                       |
+| email      | String   |     Sim     | Email para identificação (único dentro do cluster)   |
+| role       | Enum     |     Sim     | `admin`, `member`, `reader`                          |
+| invited_by | UUID     |     Não     | Member que convidou (null para o criador do cluster) |
+| joined_at  | DateTime |     Sim     | Data de ingresso no cluster                          |
 
 **Regras de Negócio:**
 
@@ -110,18 +110,18 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 **Atributos:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|:-----------:|-----------|
-| node_id | UUID | Sim | Identificador único |
-| type | Enum | Sim | `local`, `s3`, `r2`, `b2`, `vps` |
-| name | String | Sim | Nome descritivo (ex.: "NAS Sala", "R2 Cloudflare") |
-| total_capacity | Long | Sim | Espaço total em bytes |
-| used_capacity | Long | Sim | Espaço usado em bytes |
-| status | Enum | Sim | `online`, `suspect`, `lost`, `draining`, `disconnected` |
-| endpoint | String | Sim | URL ou caminho de conexão |
-| config_encrypted | Bytes | Sim | Credenciais criptografadas (armazenadas no vault do owner) |
-| last_heartbeat | DateTime | Não | Timestamp do último heartbeat recebido |
-| tier | Enum | Não | `hot` (sempre online), `warm` (frequente), `cold` (ocasional) |
+| Nome             | Tipo     | Obrigatório | Descrição                                                     |
+| ---------------- | -------- | :---------: | ------------------------------------------------------------- |
+| node_id          | UUID     |     Sim     | Identificador único                                           |
+| type             | Enum     |     Sim     | `local`, `s3`, `r2`, `b2`, `vps`                              |
+| name             | String   |     Sim     | Nome descritivo (ex.: "NAS Sala", "R2 Cloudflare")            |
+| total_capacity   | Long     |     Sim     | Espaço total em bytes                                         |
+| used_capacity    | Long     |     Sim     | Espaço usado em bytes                                         |
+| status           | Enum     |     Sim     | `online`, `suspect`, `lost`, `draining`, `disconnected`       |
+| endpoint         | String   |     Sim     | URL ou caminho de conexão                                     |
+| config_encrypted | Bytes    |     Sim     | Credenciais criptografadas (armazenadas no vault do owner)    |
+| last_heartbeat   | DateTime |     Não     | Timestamp do último heartbeat recebido                        |
+| tier             | Enum     |     Não     | `hot` (sempre online), `warm` (frequente), `cold` (ocasional) |
 
 **Regras de Negócio:**
 
@@ -130,7 +130,7 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 - **RN-N3:** Remoção de nó exige drain obrigatório — todos os chunks migrados antes da desconexão
 - **RN-N4:** Credenciais de nós cloud são criptografadas e armazenadas no vault do membro que registrou
 - **RN-N5:** Teste de conectividade (PUT/GET de chunk de teste) obrigatório no registro do nó
-- **RN-N6:** Cluster precisa de mínimo 3 nós ativos para aceitar uploads (garantir replicação 3x)
+- **RN-N6:** Cluster precisa de mínimo 1 nó ativo para aceitar uploads (replicação ocorre conforme nós disponíveis, alvo 3x)
 
 **Eventos de Domínio:**
 
@@ -147,23 +147,23 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 **Atributos:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|:-----------:|-----------|
-| file_id | UUID | Sim | Identificador único |
-| original_name | String | Sim | Nome original do arquivo enviado |
-| media_type | Enum | Sim | `photo`, `video`, `document` |
-| original_size | Long | Sim | Tamanho antes da otimização (bytes) |
-| optimized_size | Long | Sim | Tamanho após otimização (bytes); igual ao original para documentos |
-| content_hash | String | Sim | SHA-256 do conteúdo otimizado |
-| metadata | JSON | Não | EXIF (GPS, data, câmera), duração, codec, páginas, encoding |
-| status | Enum | Sim | `processing`, `ready`, `error`, `corrupted` |
-| created_at | DateTime | Sim | Data de criação |
+| Nome           | Tipo     | Obrigatório | Descrição                                                          |
+| -------------- | -------- | :---------: | ------------------------------------------------------------------ |
+| file_id        | UUID     |     Sim     | Identificador único                                                |
+| original_name  | String   |     Sim     | Nome original do arquivo enviado                                   |
+| media_type     | Enum     |     Sim     | `photo`, `video`, `document`                                       |
+| original_size  | Long     |     Sim     | Tamanho antes da otimização (bytes)                                |
+| optimized_size | Long     |     Sim     | Tamanho após otimização (bytes); igual ao original para documentos |
+| content_hash   | String   |     Sim     | SHA-256 do conteúdo otimizado                                      |
+| metadata       | JSON     |     Não     | EXIF (GPS, data, câmera), duração, codec, páginas, encoding        |
+| status         | Enum     |     Sim     | `processing`, `ready`, `error`, `corrupted`                        |
+| created_at     | DateTime |     Sim     | Data de criação                                                    |
 
 **Regras de Negócio:**
 
 - **RN-F1:** Classificação automática via MIME type: `image/*` → photo, `video/*` → video, demais → document
 - **RN-F2:** Otimização obrigatória para mídia: fotos → WebP max 1920px (~300-600KB); vídeos → 1080p H.265/AV1 (~400-600MB)
-- **RN-F3:** Documentos fazem bypass do pipeline de otimização — `optimized_size = original_size`; chunk e distribui diretamente
+- **RN-F3:** Documentos não passam por otimização — `optimized_size = original_size`; chunk e distribui diretamente. PDFs geram preview real da primeira página (PNG via pdfjs-dist + canvas); demais documentos não geram preview
 - **RN-F4:** Limites de tamanho por tipo: fotos 50MB, vídeos 10GB, documentos 2GB, archives 5GB
 - **RN-F5:** Deduplicação: se `content_hash` já existe no cluster, chunks existentes são reutilizados via manifest
 - **RN-F6:** Placeholder substitui arquivo local somente quando replicação 3x está confirmada para todos os chunks
@@ -182,20 +182,21 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 **Atributos:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|:-----------:|-----------|
-| preview_id | UUID | Sim | Identificador único |
-| file_id | UUID | Sim | Arquivo ao qual o preview pertence |
-| type | Enum | Sim | `thumbnail`, `video_preview`, `pdf_page`, `generic_icon` |
-| size | Long | Sim | Tamanho do preview em bytes |
-| format | Enum | Sim | `webp`, `mp4`, `png` |
-| content_hash | String | Sim | SHA-256 do conteúdo do preview |
-| created_at | DateTime | Sim | Data de geração |
+| Nome         | Tipo     | Obrigatório | Descrição                                                |
+| ------------ | -------- | :---------: | -------------------------------------------------------- |
+| preview_id   | UUID     |     Sim     | Identificador único                                      |
+| file_id      | UUID     |     Sim     | Arquivo ao qual o preview pertence                       |
+| type         | Enum     |     Sim     | `thumbnail`, `video_preview`, `pdf_page` |
+| size         | Long     |     Sim     | Tamanho do preview em bytes                              |
+| format       | Enum     |     Sim     | `webp`, `mp4`, `png`                                     |
+| content_hash | String   |     Sim     | SHA-256 do conteúdo do preview                           |
+| created_at   | DateTime |     Sim     | Data de geração                                          |
 
 **Regras de Negócio:**
 
 - **RN-P1:** Preview é somente para exibição no cliente — não oferece download do conteúdo original
-- **RN-P2:** Tamanho alvo por tipo: foto → thumbnail ~50KB WebP; vídeo → 480p ~5MB MP4; PDF → imagem da primeira página ~100KB PNG; documento genérico → ícone por extensão/MIME
+- **RN-P2:** Tamanho alvo por tipo: foto → thumbnail ~50KB WebP; vídeo → 480p ~5MB MP4; PDF → primeira página ~100KB PNG. Demais documentos não geram preview
+- **RN-P5:** PDF preview: pdfjs-dist (Mozilla PDF.js) renderiza primeira página em canvas (node-canvas), exporta como PNG 300px. Extrai contagem de páginas como metadado. Sem dependência de poppler/pdfium
 - **RN-P3:** Preview gerado durante o pipeline de processamento, antes da distribuição dos chunks
 - **RN-P4:** Preview é armazenado como chunk(s) criptografado(s) e distribuído nos nós
 
@@ -211,15 +212,15 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 **Atributos:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|:-----------:|-----------|
-| manifest_id | UUID | Sim | Identificador único |
-| file_id | UUID | Sim | Arquivo que este manifest descreve (1:1) |
-| chunks_json | JSON | Sim | Lista ordenada de chunk_ids com índices |
-| file_key_encrypted | Bytes | Sim | Chave do arquivo criptografada com master key |
-| signature | Bytes | Sim | Assinatura criptográfica do manifest |
-| replicated_to | JSON | Sim | Lista de node_ids onde o manifest foi replicado |
-| created_at | DateTime | Sim | Data de criação |
+| Nome               | Tipo     | Obrigatório | Descrição                                       |
+| ------------------ | -------- | :---------: | ----------------------------------------------- |
+| manifest_id        | UUID     |     Sim     | Identificador único                             |
+| file_id            | UUID     |     Sim     | Arquivo que este manifest descreve (1:1)        |
+| chunks_json        | JSON     |     Sim     | Lista ordenada de chunk_ids com índices         |
+| file_key_encrypted | Bytes    |     Sim     | Chave do arquivo criptografada com master key   |
+| signature          | Bytes    |     Sim     | Assinatura criptográfica do manifest            |
+| replicated_to      | JSON     |     Sim     | Lista de node_ids onde o manifest foi replicado |
+| created_at         | DateTime |     Sim     | Data de criação                                 |
 
 **Regras de Negócio:**
 
@@ -242,12 +243,12 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 **Atributos:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|:-----------:|-----------|
-| chunk_id | String | Sim | SHA-256 do conteúdo criptografado; funciona como endereço CAS |
-| chunk_index | Int | Sim | Posição dentro do arquivo (usado no manifest para reassembly) |
-| size | Int | Sim | Tamanho em bytes |
-| created_at | DateTime | Sim | Data de criação |
+| Nome        | Tipo     | Obrigatório | Descrição                                                     |
+| ----------- | -------- | :---------: | ------------------------------------------------------------- |
+| chunk_id    | String   |     Sim     | SHA-256 do conteúdo criptografado; funciona como endereço CAS |
+| chunk_index | Int      |     Sim     | Posição dentro do arquivo (usado no manifest para reassembly) |
+| size        | Int      |     Sim     | Tamanho em bytes                                              |
+| created_at  | DateTime |     Sim     | Data de criação                                               |
 
 **Regras de Negócio:**
 
@@ -271,13 +272,13 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 **Atributos:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|:-----------:|-----------|
-| chunk_id | String | Sim | Chunk que esta réplica armazena |
-| node_id | UUID | Sim | Nó onde esta réplica está armazenada |
-| verified_at | DateTime | Não | Timestamp do último scrubbing bem-sucedido |
-| status | Enum | Sim | `healthy`, `corrupted`, `pending` |
-| created_at | DateTime | Sim | Data de criação da réplica |
+| Nome        | Tipo     | Obrigatório | Descrição                                  |
+| ----------- | -------- | :---------: | ------------------------------------------ |
+| chunk_id    | String   |     Sim     | Chunk que esta réplica armazena            |
+| node_id     | UUID     |     Sim     | Nó onde esta réplica está armazenada       |
+| verified_at | DateTime |     Não     | Timestamp do último scrubbing bem-sucedido |
+| status      | Enum     |     Sim     | `healthy`, `corrupted`, `pending`          |
+| created_at  | DateTime |     Sim     | Data de criação da réplica                 |
 
 **Regras de Negócio:**
 
@@ -300,14 +301,14 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 **Atributos:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|:-----------:|-----------|
-| member_id | UUID | Sim | Membro dono do vault (relação 1:1) |
-| vault_data | Bytes | Sim | Conteúdo criptografado do cofre |
-| encryption_algorithm | String | Sim | Algoritmo usado (ex.: AES-256-GCM) |
-| replicated_to | JSON | Sim | Lista de node_ids onde o vault foi replicado |
-| is_admin_vault | Boolean | Sim | Indica se é vault de admin (contém config do cluster) |
-| updated_at | DateTime | Sim | Última atualização do conteúdo |
+| Nome                 | Tipo     | Obrigatório | Descrição                                             |
+| -------------------- | -------- | :---------: | ----------------------------------------------------- |
+| member_id            | UUID     |     Sim     | Membro dono do vault (relação 1:1)                    |
+| vault_data           | Bytes    |     Sim     | Conteúdo criptografado do cofre                       |
+| encryption_algorithm | String   |     Sim     | Algoritmo usado (ex.: AES-256-GCM)                    |
+| replicated_to        | JSON     |     Sim     | Lista de node_ids onde o vault foi replicado          |
+| is_admin_vault       | Boolean  |     Sim     | Indica se é vault de admin (contém config do cluster) |
+| updated_at           | DateTime |     Sim     | Última atualização do conteúdo                        |
 
 **Regras de Negócio:**
 
@@ -331,15 +332,15 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 **Atributos:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|:-----------:|-----------|
-| alert_id | UUID | Sim | Identificador único |
-| type | Enum | Sim | `node_offline`, `replication_low`, `token_expired`, `space_low`, `corruption_detected`, `auto_healing_complete` |
-| message | String | Sim | Descrição legível do problema |
-| severity | Enum | Sim | `info`, `warning`, `critical` |
-| resolved | Boolean | Sim | Se foi resolvido (manual ou auto) |
-| created_at | DateTime | Sim | Data de criação |
-| resolved_at | DateTime | Não | Data de resolução |
+| Nome        | Tipo     | Obrigatório | Descrição                                                                                                       |
+| ----------- | -------- | :---------: | --------------------------------------------------------------------------------------------------------------- |
+| alert_id    | UUID     |     Sim     | Identificador único                                                                                             |
+| type        | Enum     |     Sim     | `node_offline`, `replication_low`, `token_expired`, `space_low`, `corruption_detected`, `auto_healing_complete` |
+| message     | String   |     Sim     | Descrição legível do problema                                                                                   |
+| severity    | Enum     |     Sim     | `info`, `warning`, `critical`                                                                                   |
+| resolved    | Boolean  |     Sim     | Se foi resolvido (manual ou auto)                                                                               |
+| created_at  | DateTime |     Sim     | Data de criação                                                                                                 |
+| resolved_at | DateTime |     Não     | Data de resolução                                                                                               |
 
 **Regras de Negócio:**
 
@@ -360,15 +361,15 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 **Atributos:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|:-----------:|-----------|
-| invite_id | UUID | Sim | Identificador único |
-| email | String | Sim | Email do convidado |
-| role | Enum | Sim | Role atribuída ao aceitar: `admin`, `member`, `reader` |
-| token | String | Sim | Token assinado com chave privada do cluster |
-| expires_at | DateTime | Sim | Data de expiração do convite |
-| created_by | UUID | Sim | Member que criou o convite |
-| accepted_at | DateTime | Não | Data de aceite (null se pendente) |
+| Nome        | Tipo     | Obrigatório | Descrição                                              |
+| ----------- | -------- | :---------: | ------------------------------------------------------ |
+| invite_id   | UUID     |     Sim     | Identificador único                                    |
+| email       | String   |     Sim     | Email do convidado                                     |
+| role        | Enum     |     Sim     | Role atribuída ao aceitar: `admin`, `member`, `reader` |
+| token       | String   |     Sim     | Token assinado com chave privada do cluster            |
+| expires_at  | DateTime |     Sim     | Data de expiração do convite                           |
+| created_by  | UUID     |     Sim     | Member que criou o convite                             |
+| accepted_at | DateTime |     Não     | Data de aceite (null se pendente)                      |
 
 **Regras de Negócio:**
 
@@ -391,22 +392,22 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 > Como as entidades se conectam? Quais dependências existem entre elas? Existem relações de composição (parte-todo) ou apenas associação?
 
-| Entidade A | Cardinalidade | Entidade B | Descrição do Relacionamento |
-|------------|:-------------:|------------|----------------------------|
-| Cluster | 1:N | Member | Cluster possui membros; mínimo 1 (admin criador) |
-| Cluster | 1:N | Node | Cluster gerencia nós de armazenamento |
-| Cluster | 1:N | File | Cluster contém arquivos enviados pelos membros |
-| Cluster | 1:N | Alert | Cluster gera alertas de condições anômalas |
-| Cluster | 1:N | Invite | Cluster possui convites pendentes ou aceitos |
-| Member | 1:1 | Vault | Cada membro tem exatamente 1 vault criptografado |
-| Member | 1:N | Node | Membro registra nós (owner do nó) |
-| Member | 1:N | File | Membro faz upload de arquivos |
-| Member | 1:N | Invite | Admin cria convites para novos membros |
-| File | 1:1 | Manifest | Todo arquivo ready tem exatamente 1 manifest |
-| File | 1:1 | Preview | Todo arquivo processado tem 1 preview para exibição no cliente |
-| Manifest | N:M | Chunk | Manifest referencia chunks; chunk pode ser referenciado por múltiplos manifests (deduplicação) |
-| Chunk | 1:N | ChunkReplica | Cada chunk tem 3+ réplicas em nós diferentes |
-| Node | 1:N | ChunkReplica | Nó armazena múltiplas réplicas de chunks |
+| Entidade A | Cardinalidade | Entidade B   | Descrição do Relacionamento                                                                    |
+| ---------- | :-----------: | ------------ | ---------------------------------------------------------------------------------------------- |
+| Cluster    |      1:N      | Member       | Cluster possui membros; mínimo 1 (admin criador)                                               |
+| Cluster    |      1:N      | Node         | Cluster gerencia nós de armazenamento                                                          |
+| Cluster    |      1:N      | File         | Cluster contém arquivos enviados pelos membros                                                 |
+| Cluster    |      1:N      | Alert        | Cluster gera alertas de condições anômalas                                                     |
+| Cluster    |      1:N      | Invite       | Cluster possui convites pendentes ou aceitos                                                   |
+| Member     |      1:1      | Vault        | Cada membro tem exatamente 1 vault criptografado                                               |
+| Member     |      1:N      | Node         | Membro registra nós (owner do nó)                                                              |
+| Member     |      1:N      | File         | Membro faz upload de arquivos                                                                  |
+| Member     |      1:N      | Invite       | Admin cria convites para novos membros                                                         |
+| File       |      1:1      | Manifest     | Todo arquivo ready tem exatamente 1 manifest                                                   |
+| File       |      1:1      | Preview      | Todo arquivo processado tem 1 preview para exibição no cliente                                 |
+| Manifest   |      N:M      | Chunk        | Manifest referencia chunks; chunk pode ser referenciado por múltiplos manifests (deduplicação) |
+| Chunk      |      1:N      | ChunkReplica | Cada chunk tem 3+ réplicas em nós diferentes                                                   |
+| Node       |      1:N      | ChunkReplica | Nó armazena múltiplas réplicas de chunks                                                       |
 
 <!-- APPEND:relationships -->
 

@@ -40,17 +40,20 @@ Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 pergun
 ## Contexto por Plataforma
 
 ### Se web:
+
 - Deploy via Vercel/Netlify
 - PR preview environments automaticos
 - CDN e cache invalidation
 
 ### Se mobile:
+
 - EAS Build para builds na nuvem
 - TestFlight (iOS) e Play Console (Android) para distribuicao
 - OTA updates via EAS Update
 - Code push para hotfixes
 
 ### Se desktop:
+
 - electron-builder ou tauri-action para builds
 - Artefatos: DMG (macOS), NSIS (Windows), AppImage (Linux)
 - Code signing em CI (certificados Apple e Windows)
@@ -59,11 +62,13 @@ Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 pergun
 ## Geracao
 
 > **Modo de escrita:**
+>
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
 Preencha `docs/frontend/{client}/13-cicd-conventions.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+
 - Informacoes do blueprint tecnico (fonte primaria)
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- do blueprint: 06-system-architecture.md -->`)

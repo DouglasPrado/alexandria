@@ -22,14 +22,14 @@
 
 > Alexandria operates in the **personal/family data storage** ecosystem — specifically at the intersection of self-hosted software, privacy-first cloud storage, and long-term digital preservation.
 
-| Dimension | Value |
-| --------- | ----- |
+| Dimension                        | Value                                                                                                                                                                             |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Total Addressable Developers** | ~5–10M globally (self-hosters, data hoarders, privacy-conscious developers — r/selfhosted 1.5M, r/datahoarder 700K, r/degoogle 300K + multiplier 2–3× for non-Reddit communities) |
-| **Active Ecosystem Users (SAM)** | ~500K–2M globally (families with ≥1 technical member, ≥200GB of media, willing to self-host) |
-| **Target Contributors (Year 1)** | 500–1,000 active installations; 10–50 code contributors |
-| Annual growth rate | ~20% per year (personal storage grows with mobile media production) |
-| Ecosystem maturity | Growth — dominated by big tech incumbents, but growing dissatisfaction with cost and privacy |
-| Geographic focus | Global (self-hosted, no geographic restriction); initial community: Brazil (dev's family) + r/selfhosted international |
+| **Active Ecosystem Users (SAM)** | ~500K–2M globally (families with ≥1 technical member, ≥200GB of media, willing to self-host)                                                                                      |
+| **Target Contributors (Year 1)** | 500–1,000 active installations; 10–50 code contributors                                                                                                                           |
+| Annual growth rate               | ~20% per year (personal storage grows with mobile media production)                                                                                                               |
+| Ecosystem maturity               | Growth — dominated by big tech incumbents, but growing dissatisfaction with cost and privacy                                                                                      |
+| Geographic focus                 | Global (self-hosted, no geographic restriction); initial community: Brazil (dev's family) + r/selfhosted international                                                            |
 
 **Evidence (from PRD):**
 
@@ -45,15 +45,15 @@
 
 ## Ecosystem Alternatives
 
-| Project | Positioning | Strengths | Weaknesses | License | GitHub Stars / Downloads |
-| ------- | ----------- | --------- | ---------- | ------- | ------------------------ |
-| Google Photos / Drive | Mainstream consumer cloud storage | 15GB free; excellent UX; AI search; Android integration | Vendor lock-in; privacy concerns; rising prices above 15GB | Proprietary | N/A (closed) |
-| iCloud | Apple ecosystem | Native iOS/macOS integration; seamless for Apple users | Apple-only; 5GB free (insufficient); expensive for families | Proprietary | N/A (closed) |
-| Dropbox | Professional/personal cloud storage | Reliable sync; cross-platform; integrations | 2GB free (smallest on market); B2B focus; high price | Proprietary | N/A (closed) |
-| Syncthing | P2P open-source sync between devices | Free; private; no cloud dependency; open-source | No at-rest encryption; no media optimization; no cloud redundancy; no recovery | MPL-2.0 | ~65K ⭐ |
-| Nextcloud | Self-hosted personal cloud | Self-hosted; open-source; app ecosystem | Complex to operate; no media optimization; no multi-provider distribution; performance | AGPL-3.0 | ~28K ⭐ |
-| Immich | Self-hosted photo/video backup | Excellent mobile apps; active community; Google Photos-like UX | No distributed storage; single-node; no multi-provider redundancy; no seed recovery | AGPL-3.0 | ~55K ⭐ |
-| BorgBackup / Restic | Incremental encrypted backup | Excellent deduplication; strong encryption; open-source | Backup only (no gallery, no sync); CLI-only; not distributed storage | BSD / Apache-2.0 | ~12K ⭐ |
+| Project               | Positioning                          | Strengths                                                      | Weaknesses                                                                             | License          | GitHub Stars / Downloads |
+| --------------------- | ------------------------------------ | -------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ---------------- | ------------------------ |
+| Google Photos / Drive | Mainstream consumer cloud storage    | 15GB free; excellent UX; AI search; Android integration        | Vendor lock-in; privacy concerns; rising prices above 15GB                             | Proprietary      | N/A (closed)             |
+| iCloud                | Apple ecosystem                      | Native iOS/macOS integration; seamless for Apple users         | Apple-only; 5GB free (insufficient); expensive for families                            | Proprietary      | N/A (closed)             |
+| Dropbox               | Professional/personal cloud storage  | Reliable sync; cross-platform; integrations                    | 2GB free (smallest on market); B2B focus; high price                                   | Proprietary      | N/A (closed)             |
+| Syncthing             | P2P open-source sync between devices | Free; private; no cloud dependency; open-source                | No at-rest encryption; no media optimization; no cloud redundancy; no recovery         | MPL-2.0          | ~65K ⭐                  |
+| Nextcloud             | Self-hosted personal cloud           | Self-hosted; open-source; app ecosystem                        | Complex to operate; no media optimization; no multi-provider distribution; performance | AGPL-3.0         | ~28K ⭐                  |
+| Immich                | Self-hosted photo/video backup       | Excellent mobile apps; active community; Google Photos-like UX | No distributed storage; single-node; no multi-provider redundancy; no seed recovery    | AGPL-3.0         | ~55K ⭐                  |
+| BorgBackup / Restic   | Incremental encrypted backup         | Excellent deduplication; strong encryption; open-source        | Backup only (no gallery, no sync); CLI-only; not distributed storage                   | BSD / Apache-2.0 | ~12K ⭐                  |
 
 **Concorrentes indiretos (substitutos):**
 
@@ -66,18 +66,18 @@
 
 ## Ecosystem Trends
 
-| Trend | Type | Impact on Project | Horizon |
-| ----- | ---- | ----------------- | ------- |
-| Elimination of unlimited free cloud storage | Market | Directly positive — families seek alternatives to paid Google/Apple | Short-term (already happening) |
-| Exponential growth of mobile media production | Behavior | Increases urgency — phones produce ~1GB/month of photos/videos per person | Ongoing |
-| Growing concern about digital privacy | Behavior | Strengthens zero-knowledge encryption value proposition | Medium-term |
-| AI-assisted contributions (GitHub Copilot, Claude Code) | OSS trend | Lowers barrier to contribution; accelerates community PRs | Short-term (already available) |
-| Modern codecs (WebP, AVIF, AV1) maturing | Technology | Enables 10–20× reduction in photos and 3–5× in videos without perceptible loss | Short-term (already available) |
-| Decentralization and self-hosting gaining traction | Technology | Growing self-hosting community (Nextcloud, Syncthing, Immich) validates demand | Medium-term |
-| Supply chain security (SBOM, signing, SLSA) | OSS trend | Requires signed releases, SBOM, verified dependencies — community expectation | Short-term |
-| Data protection regulations (LGPD, GDPR) | Regulatory | Reinforces value of encryption and user data control | Long-term |
-| Corporate OSS adoption and sponsorship | OSS trend | Companies adopting self-hosted solutions increasingly sponsor projects they depend on | Medium-term |
-| Falling cloud storage costs (R2 zero egress, B2 cheap) | Market | Enables zero-cost model combining multiple providers' free tiers | Short-term |
+| Trend                                                   | Type       | Impact on Project                                                                     | Horizon                        |
+| ------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------- | ------------------------------ |
+| Elimination of unlimited free cloud storage             | Market     | Directly positive — families seek alternatives to paid Google/Apple                   | Short-term (already happening) |
+| Exponential growth of mobile media production           | Behavior   | Increases urgency — phones produce ~1GB/month of photos/videos per person             | Ongoing                        |
+| Growing concern about digital privacy                   | Behavior   | Strengthens zero-knowledge encryption value proposition                               | Medium-term                    |
+| AI-assisted contributions (GitHub Copilot, Claude Code) | OSS trend  | Lowers barrier to contribution; accelerates community PRs                             | Short-term (already available) |
+| Modern codecs (WebP, AVIF, AV1) maturing                | Technology | Enables 10–20× reduction in photos and 3–5× in videos without perceptible loss        | Short-term (already available) |
+| Decentralization and self-hosting gaining traction      | Technology | Growing self-hosting community (Nextcloud, Syncthing, Immich) validates demand        | Medium-term                    |
+| Supply chain security (SBOM, signing, SLSA)             | OSS trend  | Requires signed releases, SBOM, verified dependencies — community expectation         | Short-term                     |
+| Data protection regulations (LGPD, GDPR)                | Regulatory | Reinforces value of encryption and user data control                                  | Long-term                      |
+| Corporate OSS adoption and sponsorship                  | OSS trend  | Companies adopting self-hosted solutions increasingly sponsor projects they depend on | Medium-term                    |
+| Falling cloud storage costs (R2 zero egress, B2 cheap)  | Market     | Enables zero-cost model combining multiple providers' free tiers                      | Short-term                     |
 
 ---
 
@@ -102,19 +102,19 @@ Não existe solução que combine: (1) distribuição de dados entre múltiplos 
 
 ## SWOT Analysis
 
-|             | **Positive**                                                                                         | **Negative**                                                                                    |
-| ----------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| **Internal** | **Strengths**                                                                                       | **Weaknesses**                                                                                  |
-|             | Tech lead with full-stack experience in distributed systems, cryptography, and media processing | Single-person team — limited development capacity; bus factor = 1 |
-|             | TypeScript/NestJS stack: high productivity, type-safety, mature npm ecosystem | No user base yet; no brand recognition; no marketing budget |
-|             | "Disposable orchestrator" architecture — resilience by design | Learning curve for non-technical family members |
-|             | Permissive MIT license maximizes adoption; active community, full transparency | No funding; no commercial runway in v1; personal project |
-| **External** | **Opportunities**                                                                                  | **Threats**                                                                                     |
-|             | Growing dissatisfaction with Google/Apple/Dropbox prices | Maintainer burnout (high impact; prevention: funding + team growth) |
-|             | Self-hosting community growing (Immich 55K+ stars validates demand) | Hostile fork if project grows (prevention: strong governance + MIT license) |
-|             | Modern codecs enable 10–20× reduction without perceptible loss | Cloud providers eliminate free tiers or change S3 APIs |
-|             | Open-core model: free OSS drives adoption; managed service captures non-technical segment | Competing OSS projects (Immich, PhotoPrism) could add distribution features |
-|             | Corporate OSS sponsorship as project gains production deployments | License compliance issues (prevention: CLA/DCO + SBOM) |
+|              | **Positive**                                                                                    | **Negative**                                                                |
+| ------------ | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| **Internal** | **Strengths**                                                                                   | **Weaknesses**                                                              |
+|              | Tech lead with full-stack experience in distributed systems, cryptography, and media processing | Single-person team — limited development capacity; bus factor = 1           |
+|              | TypeScript/NestJS stack: high productivity, type-safety, mature npm ecosystem                   | No user base yet; no brand recognition; no marketing budget                 |
+|              | "Disposable orchestrator" architecture — resilience by design                                   | Learning curve for non-technical family members                             |
+|              | Permissive MIT license maximizes adoption; active community, full transparency                  | No funding; no commercial runway in v1; personal project                    |
+| **External** | **Opportunities**                                                                               | **Threats**                                                                 |
+|              | Growing dissatisfaction with Google/Apple/Dropbox prices                                        | Maintainer burnout (high impact; prevention: funding + team growth)         |
+|              | Self-hosting community growing (Immich 55K+ stars validates demand)                             | Hostile fork if project grows (prevention: strong governance + MIT license) |
+|              | Modern codecs enable 10–20× reduction without perceptible loss                                  | Cloud providers eliminate free tiers or change S3 APIs                      |
+|              | Open-core model: free OSS drives adoption; managed service captures non-technical segment       | Competing OSS projects (Immich, PhotoPrism) could add distribution features |
+|              | Corporate OSS sponsorship as project gains production deployments                               | License compliance issues (prevention: CLA/DCO + SBOM)                      |
 
 ---
 

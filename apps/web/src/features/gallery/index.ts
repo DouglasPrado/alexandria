@@ -1,1 +1,11 @@
-// gallery — galeria de midias (fotos, videos, documentos) com visualizacao e organizacao
+export { GalleryGrid } from './components/GalleryGrid';
+export { FileLightbox } from './components/FileLightbox';
+export { UploadDropzone } from './components/UploadDropzone';
+export { UploadQueue } from './components/UploadQueue';
+export { SearchBar } from './components/SearchBar';
+export { useFiles } from './hooks/useFiles';
+export { useFileDetail } from './hooks/useFileDetail';
+export { useUploadFiles } from './hooks/useUploadFiles';
+export { useDeleteFile } from './hooks/useDeleteFile';
+export { filesApi } from './api/files-api';
+export type * from './types/file.types';

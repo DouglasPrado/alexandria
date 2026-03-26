@@ -31,13 +31,16 @@ Aguarde a resposta.
 ## Passo 2: Selecionar Verificacoes por Escopo
 
 ### Para Feature Especifica:
+
 Carregue apenas os docs relevantes para a feature (mesmo mapeamento do `/codegen-feature`). Consulte `docs/shared/MAPPING.md` para rastreabilidade.
 
 ### Para Conjunto de Entregas:
+
 1. Leia `docs/blueprint/11-build_plan.md` — identifique as entregas selecionadas
 2. Carregue os docs relevantes para cada entrega
 
 ### Para Verificacao Completa:
+
 Execute cada verificacao abaixo carregando os docs um par de cada vez (doc + codigo correspondente) para nao estourar o contexto.
 
 ## Passo 3: Identificar Clientes Frontend
@@ -53,6 +56,7 @@ Execute V7 para cada cliente ativo.
 **Codigo:** `src/contracts/entities/`
 
 Para cada entidade no domain model:
+
 - [ ] Existe um tipo correspondente em `src/contracts/entities/`?
 - [ ] Todos os atributos documentados estao presentes no tipo?
 - [ ] Os tipos dos atributos estao corretos?
@@ -66,6 +70,7 @@ Para cada entidade no domain model:
 **Codigo:** Arquivo de schema (prisma, drizzle, etc.)
 
 Para cada tabela no data model:
+
 - [ ] Existe no schema?
 - [ ] Todos os campos estao presentes com tipos corretos?
 - [ ] Constraints (unique, not null, default) estao aplicadas?
@@ -79,6 +84,7 @@ Para cada tabela no data model:
 **Codigo:** Rotas/controllers do projeto
 
 Para cada endpoint documentado:
+
 - [ ] A rota existe no codigo?
 - [ ] Request/response types correspondem ao documentado?
 - [ ] Validacao de input conforme `backend/10-validation.md`?
@@ -91,6 +97,7 @@ Para cada endpoint documentado:
 **Codigo:** Arquivos de teste
 
 Para cada use case:
+
 - [ ] Existe pelo menos um teste que cobre o cenario principal?
 - [ ] Pre-condicoes sao verificadas nos testes?
 - [ ] Excecoes documentadas tem testes?
@@ -102,6 +109,7 @@ Para cada use case:
 **Codigo:** Services/entities com logica de estado
 
 Para cada state machine:
+
 - [ ] Todos os estados documentados existem no enum/tipo?
 - [ ] Todas as transicoes documentadas estao implementadas?
 - [ ] Transicoes invalidas sao bloqueadas?
@@ -125,6 +133,7 @@ Para cada cliente frontend ativo (web, mobile, desktop):
 **Codigo:** Componentes do frontend
 
 Para cada componente documentado:
+
 - [ ] Existe no codigo?
 - [ ] Props/interface correspondem ao documentado?
 - [ ] Estados locais conforme documentado?
@@ -149,23 +158,23 @@ Para cada componente documentado:
 >
 > ### Resumo
 >
-> | Verificacao | Total | OK | Divergencias |
-> |------------|-------|-----|-------------|
-> | V1: Entidades vs Tipos | {{N}} | {{N}} | {{N}} |
-> | V2: Tabelas vs Schema | {{N}} | {{N}} | {{N}} |
-> | V3: API Contracts vs Endpoints | {{N}} | {{N}} | {{N}} |
-> | V4: Use Cases vs Testes | {{N}} | {{N}} | {{N}} |
-> | V5: State Machines | {{N}} | {{N}} | {{N}} |
-> | V6: Seguranca | {{N}} | {{N}} | {{N}} |
-> | V7: Frontend ({{client}}) | {{N}} | {{N}} | {{N}} |
-> | V8: Cross-Layer Mappings | {{N}} | {{N}} | {{N}} |
+> | Verificacao                    | Total | OK    | Divergencias |
+> | ------------------------------ | ----- | ----- | ------------ |
+> | V1: Entidades vs Tipos         | {{N}} | {{N}} | {{N}}        |
+> | V2: Tabelas vs Schema          | {{N}} | {{N}} | {{N}}        |
+> | V3: API Contracts vs Endpoints | {{N}} | {{N}} | {{N}}        |
+> | V4: Use Cases vs Testes        | {{N}} | {{N}} | {{N}}        |
+> | V5: State Machines             | {{N}} | {{N}} | {{N}}        |
+> | V6: Seguranca                  | {{N}} | {{N}} | {{N}}        |
+> | V7: Frontend ({{client}})      | {{N}} | {{N}} | {{N}}        |
+> | V8: Cross-Layer Mappings       | {{N}} | {{N}} | {{N}}        |
 >
 > ### Divergencias Encontradas
 >
-> | # | Tipo | Blueprint/Doc | Codigo | Acao Sugerida |
-> |---|------|--------------|--------|--------------|
-> | 1 | {{V1/V2/...}} | {{o que diz o doc}} | {{o que existe no codigo}} | {{corrigir codigo / atualizar doc}} |
-> | 2 | ... | ... | ... | ... |
+> | #   | Tipo          | Blueprint/Doc       | Codigo                     | Acao Sugerida                       |
+> | --- | ------------- | ------------------- | -------------------------- | ----------------------------------- |
+> | 1   | {{V1/V2/...}} | {{o que diz o doc}} | {{o que existe no codigo}} | {{corrigir codigo / atualizar doc}} |
+> | 2   | ...           | ...                 | ...                        | ...                                 |
 >
 > **Score de aderencia:** {{N}}% ({{ok}}/{{total}} verificacoes passaram)"
 
@@ -182,6 +191,7 @@ Para cada divergencia, sugira:
 > "Verificacao concluida. Score: {{N}}%.
 >
 > Para corrigir divergencias:
+>
 > - No codigo: `/codegen-feature [feature]`
 > - No blueprint: `/blueprint-increment`
 > - No frontend: `/frontend-increment`

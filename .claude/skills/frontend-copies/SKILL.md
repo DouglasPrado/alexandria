@@ -43,16 +43,19 @@ Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 pergun
 ## Contexto por Plataforma
 
 ### Se web:
+
 - Bibliotecas de i18n: i18next, next-intl, react-intl
 - SEO copies: meta titles, descriptions, OpenGraph
 - Acessibilidade: aria-labels, alt texts, screen reader announcements
 
 ### Se mobile:
+
 - Bibliotecas de i18n: expo-localization, react-native-localize
 - Copies especificos: push notifications, app store listing, onboarding
 - Adaptacao de tamanho: textos mais curtos para telas menores
 
 ### Se desktop:
+
 - Mesmas bibliotecas web (i18next, next-intl) + copies especificos
 - Strings de menu bar, system tray, dialogs nativos do OS
 - Tooltips de acoes do sistema, mensagens de auto-update
@@ -60,11 +63,13 @@ Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 pergun
 ## Geracao
 
 > **Modo de escrita:**
+>
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar copies de uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
 Preencha `docs/frontend/{client}/14-copies.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+
 - Informacoes do blueprint tecnico (use cases, comunicacao)
 - Rotas de `07-routes.md` para gerar uma subsecao por tela
 - Fluxos de `08-flows.md` para garantir que mensagens de feedback estejam cobertas

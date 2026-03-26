@@ -40,16 +40,19 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 ## Contexto por Plataforma
 
 ### Se web:
+
 - Playwright para testes E2E
 - Testing Library para testes de componentes
 - Jest/Vitest para testes unitarios
 
 ### Se mobile:
+
 - Detox ou Maestro para testes E2E
 - React Native Testing Library para testes de componentes
 - Testes de integracao com APIs nativas
 
 ### Se desktop:
+
 - Playwright + Electron para testes E2E
 - Testes de IPC handlers (main <-> renderer)
 - Testes de integracao com APIs do sistema operacional
@@ -57,11 +60,13 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 ## Geracao
 
 > **Modo de escrita:**
+>
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
 Preencha `docs/frontend/{client}/09-tests.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+
 - Informacoes explicitas do blueprint tecnico
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- do blueprint: XX-arquivo.md -->`)

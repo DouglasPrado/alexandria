@@ -40,18 +40,21 @@ Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 pergun
 ## Contexto por Plataforma
 
 ### Se web:
+
 - Content Security Policy (CSP) headers
 - Protecao contra XSS, CSRF
 - Cookies httpOnly e secure
 - Sanitizacao de inputs
 
 ### Se mobile:
+
 - Keychain (iOS) e Keystore (Android) para armazenamento seguro
 - Certificate pinning para comunicacao com API
 - Deteccao de root/jailbreak
 - ProGuard/R8 para ofuscacao de codigo
 
 ### Se desktop:
+
 - Code signing do aplicativo
 - Verificacao de integridade de auto-updates
 - IPC sandboxing entre processos
@@ -60,11 +63,13 @@ Se houver lacunas criticas que NAO podem ser inferidas do PRD, faca ate 3 pergun
 ## Geracao
 
 > **Modo de escrita:**
+>
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
 Preencha `docs/frontend/{client}/11-security.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+
 - Informacoes do blueprint tecnico (fonte primaria)
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- do blueprint: 13-security.md -->`)

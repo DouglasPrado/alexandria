@@ -8,16 +8,16 @@ Esta seção estabelece a visão de alto nível do sistema: quem o utiliza, com 
 
 > Quem interage com o sistema? Liste pessoas, sistemas e dispositivos.
 
-| Ator | Tipo | Descrição |
-| --- | --- | --- |
-| Administrador Familiar | Pessoa | Membro técnico da família que cria o cluster, convida membros, adiciona/remove nós, configura provedores cloud, monitora saúde do sistema e executa recovery via seed phrase |
-| Membro Familiar | Pessoa | Pai/mãe, tios, avós que usam o sistema no dia-a-dia para salvar e visualizar fotos, vídeos e documentos sem necessidade de conhecimento técnico |
-| Fotógrafo Amador | Pessoa | Membro da família que produz alto volume de fotos/vídeos; precisa de upload automático e liberação de espaço no celular |
-| Guardião de Memórias | Pessoa | Membro mais velho da família, curador do acervo; acessa fotos antigas, navega por timeline e organiza por eventos |
-| Sync Engine | Sistema | Componente que roda nos dispositivos dos membros, detecta novos arquivos automaticamente e os envia ao cluster |
-| Agente de Nó | Sistema | Processo que roda em cada dispositivo/nó local; armazena chunks, envia heartbeats e executa scrubbing |
-| Scheduler | Sistema | Componente interno do orquestrador que executa tarefas periódicas: scrubbing, garbage collection, rebalanceamento, auto-healing |
-| Dispositivos da família | Dispositivo | Computadores, celulares, NAS e VPS que atuam como nós de armazenamento no cluster |
+| Ator                    | Tipo        | Descrição                                                                                                                                                                    |
+| ----------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Administrador Familiar  | Pessoa      | Membro técnico da família que cria o cluster, convida membros, adiciona/remove nós, configura provedores cloud, monitora saúde do sistema e executa recovery via seed phrase |
+| Membro Familiar         | Pessoa      | Pai/mãe, tios, avós que usam o sistema no dia-a-dia para salvar e visualizar fotos, vídeos e documentos sem necessidade de conhecimento técnico                              |
+| Fotógrafo Amador        | Pessoa      | Membro da família que produz alto volume de fotos/vídeos; precisa de upload automático e liberação de espaço no celular                                                      |
+| Guardião de Memórias    | Pessoa      | Membro mais velho da família, curador do acervo; acessa fotos antigas, navega por timeline e organiza por eventos                                                            |
+| Sync Engine             | Sistema     | Componente que roda nos dispositivos dos membros, detecta novos arquivos automaticamente e os envia ao cluster                                                               |
+| Agente de Nó            | Sistema     | Processo que roda em cada dispositivo/nó local; armazena chunks, envia heartbeats e executa scrubbing                                                                        |
+| Scheduler               | Sistema     | Componente interno do orquestrador que executa tarefas periódicas: scrubbing, garbage collection, rebalanceamento, auto-healing                                              |
+| Dispositivos da família | Dispositivo | Computadores, celulares, NAS e VPS que atuam como nós de armazenamento no cluster                                                                                            |
 
 ---
 
@@ -25,17 +25,17 @@ Esta seção estabelece a visão de alto nível do sistema: quem o utiliza, com 
 
 > Com quais sistemas, serviços ou APIs externas o sistema precisa se integrar? Qual o propósito de cada integração?
 
-| Sistema | Protocolo / Tipo de Integração | Função | Observações |
-| --- | --- | --- | --- |
-| AWS S3 | S3-compatible API (HTTPS) | Armazenamento de chunks criptografados em buckets | SLA 99.99%; custo por GB; alternativa primária de cloud storage |
-| Cloudflare R2 | S3-compatible API (HTTPS) | Armazenamento de chunks sem egress fees | Sem custo de saída de dados; S3-compatible nativo |
-| Backblaze B2 | S3-compatible API (HTTPS) | Armazenamento de chunks como alternativa econômica | Custo ~$5/TB/mês; S3-compatible |
-| FFmpeg | CLI local | Transcodificação de vídeo (H.265/AV1) e processamento de imagens | Dependência crítica do pipeline de mídia; open source; roda no servidor do orquestrador |
-| libvips | Biblioteca nativa | Redimensionamento e conversão de imagens para WebP | Alternativa a ImageMagick; mais performante para operações batch |
-| PostgreSQL | Driver nativo (TCP) | Banco de metadados do orquestrador: clusters, membros, nós, arquivos, chunks, manifests | Crítico; sem PostgreSQL o orquestrador não funciona |
-| Redis | Driver nativo (TCP) | Fila de processamento do pipeline de mídia e pub/sub para eventos internos | Crítico para pipeline; sem Redis, processamento de mídia para |
-| DNS Provider | DNS (UDP/TCP) | Descoberta do orquestrador pelos nós via domínio fixo; reconexão após troca de VPS | Essencial para recovery; nós usam DNS para encontrar novo orquestrador |
-| BIP-39 Wordlist | Biblioteca embarcada | Geração e validação de seed phrase de 12 palavras | Padrão criptográfico; wordlist embutida no app NestJS |
+| Sistema         | Protocolo / Tipo de Integração | Função                                                                                  | Observações                                                                             |
+| --------------- | ------------------------------ | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| AWS S3          | S3-compatible API (HTTPS)      | Armazenamento de chunks criptografados em buckets                                       | SLA 99.99%; custo por GB; alternativa primária de cloud storage                         |
+| Cloudflare R2   | S3-compatible API (HTTPS)      | Armazenamento de chunks sem egress fees                                                 | Sem custo de saída de dados; S3-compatible nativo                                       |
+| Backblaze B2    | S3-compatible API (HTTPS)      | Armazenamento de chunks como alternativa econômica                                      | Custo ~$5/TB/mês; S3-compatible                                                         |
+| FFmpeg          | CLI local                      | Transcodificação de vídeo (H.265/AV1) e processamento de imagens                        | Dependência crítica do pipeline de mídia; open source; roda no servidor do orquestrador |
+| libvips         | Biblioteca nativa              | Redimensionamento e conversão de imagens para WebP                                      | Alternativa a ImageMagick; mais performante para operações batch                        |
+| PostgreSQL      | Driver nativo (TCP)            | Banco de metadados do orquestrador: clusters, membros, nós, arquivos, chunks, manifests | Crítico; sem PostgreSQL o orquestrador não funciona                                     |
+| Redis           | Driver nativo (TCP)            | Fila de processamento do pipeline de mídia e pub/sub para eventos internos              | Crítico para pipeline; sem Redis, processamento de mídia para                           |
+| DNS Provider    | DNS (UDP/TCP)                  | Descoberta do orquestrador pelos nós via domínio fixo; reconexão após troca de VPS      | Essencial para recovery; nós usam DNS para encontrar novo orquestrador                  |
+| BIP-39 Wordlist | Biblioteca embarcada           | Geração e validação de seed phrase de 12 palavras                                       | Padrão criptográfico; wordlist embutida no app NestJS                                   |
 
 ---
 
@@ -82,18 +82,18 @@ Esta seção estabelece a visão de alto nível do sistema: quem o utiliza, com 
 
 **Restrições:**
 
-| Tipo | Descrição |
-| --- | --- |
-| Técnica | Backend em TypeScript/NestJS para produtividade alta, ecossistema npm maduro e deploy via container Docker |
-| Técnica | Frontend web em Next.js para SSR, galeria responsiva e deploy simples |
-| Técnica | PostgreSQL para metadados do orquestrador; Redis para filas de processamento |
-| Técnica | Monorepo com core-sdk compartilhado entre orquestrador, agentes de nó e clientes |
-| Técnica | Sem armazenamento de originais — somente versões otimizadas (WebP/H.265) + preview |
-| Técnica | Criptografia obrigatória em repouso (AES-256-GCM) e em trânsito (TLS 1.3) |
-| Escala | Cluster máximo: 10 usuários, 50 nós, 100TB de armazenamento total |
-| Negócio | Custo mínimo — priorizar free tiers de cloud e VPS barata (Contabo) |
-| Negócio | Sistema self-hosted — usuário é responsável pela operação do orquestrador |
-| Operacional | Time de 1 pessoa (Douglas Prado) como owner, tech lead e desenvolvedor |
+| Tipo        | Descrição                                                                                                  |
+| ----------- | ---------------------------------------------------------------------------------------------------------- |
+| Técnica     | Backend em TypeScript/NestJS para produtividade alta, ecossistema npm maduro e deploy via container Docker |
+| Técnica     | Frontend web em Next.js para SSR, galeria responsiva e deploy simples                                      |
+| Técnica     | PostgreSQL para metadados do orquestrador; Redis para filas de processamento                               |
+| Técnica     | Monorepo com core-sdk compartilhado entre orquestrador, agentes de nó e clientes                           |
+| Técnica     | Sem armazenamento de originais — somente versões otimizadas (WebP/H.265) + preview                         |
+| Técnica     | Criptografia obrigatória em repouso (AES-256-GCM) e em trânsito (TLS 1.3)                                  |
+| Escala      | Cluster máximo: 10 usuários, 50 nós, 100TB de armazenamento total                                          |
+| Negócio     | Custo mínimo — priorizar free tiers de cloud e VPS barata (Contabo)                                        |
+| Negócio     | Sistema self-hosted — usuário é responsável pela operação do orquestrador                                  |
+| Operacional | Time de 1 pessoa (Douglas Prado) como owner, tech lead e desenvolvedor                                     |
 
 **Premissas:**
 

@@ -40,16 +40,19 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 ## Contexto por Plataforma
 
 ### Se web:
+
 - Estrutura app/ router (Next.js) ou routes/ (Remix)
 - Diretorio public/, middleware, API routes
 - Organizacao de layouts, loading states, error boundaries
 
 ### Se mobile:
+
 - Expo Router com app/ ou estrutura screens/ tradicional
 - Diretorio assets/, navegacao, componentes nativos
 - Configuracao de plataformas (ios/, android/)
 
 ### Se desktop:
+
 - Separacao main/ (processo principal) e renderer/ (UI)
 - Diretorio ipc/ para comunicacao entre processos
 - Configuracao de build e empacotamento (electron-builder, tauri.conf.json)
@@ -57,11 +60,13 @@ Se houver lacunas criticas que NAO podem ser inferidas do blueprint tecnico, fac
 ## Geracao
 
 > **Modo de escrita:**
+>
 > - Se o documento contem apenas `{{placeholders}}` (primeira vez): use Write para preencher tudo.
 > - Se o documento ja tem conteudo real (reexecucao): use **Edit** para atualizar APENAS o que mudou. Preserve conteudo existente. Insira novo conteudo antes dos marcadores `<!-- APPEND:... -->`.
 > - Para adicionar uma feature especifica sem reescrever, prefira `/frontend-increment`.
 
 Preencha `docs/frontend/{client}/02-project-structure.md` substituindo TODOS os `{{placeholders}}`. Mantenha a estrutura. Use:
+
 - Informacoes explicitas do blueprint tecnico
 - Respostas do usuario (se houve perguntas)
 - Inferencias logicas quando seguro (marque com `<!-- do blueprint: XX-arquivo.md -->`)
