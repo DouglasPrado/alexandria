@@ -3,6 +3,7 @@ import { NotFoundException, PayloadTooLargeException } from '@nestjs/common';
 import { FileService } from '../../src/modules/file/file.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { StorageService } from '../../src/modules/storage/storage.service';
+import { encrypt, generateKey } from '@alexandria/core-sdk';
 
 /**
  * Testes do FileService — upload, listagem, detalhes.
@@ -20,15 +21,26 @@ const mockPrisma = {
     findUnique: jest.fn(),
     findMany: jest.fn(),
     count: jest.fn(),
+    delete: jest.fn(),
   },
   node: {
     count: jest.fn(),
+    update: jest.fn(),
   },
   manifest: {
     findUnique: jest.fn(),
   },
   manifestChunk: {
     count: jest.fn(),
+  },
+  chunk: {
+    findMany: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
+  chunkReplica: {
+    findMany: jest.fn(),
+    deleteMany: jest.fn(),
   },
   preview: {
     findUnique: jest.fn(),
@@ -43,6 +55,7 @@ const mockStorageService = {
   getFromNode: jest.fn().mockResolvedValue(Buffer.from('preview-binary')),
   storeInNode: jest.fn(),
   distributeChunks: jest.fn(),
+  deleteFromNode: jest.fn().mockResolvedValue(undefined),
 };
 
 const QUEUE_TOKEN = 'BullQueue_media-pipeline';
@@ -264,6 +277,154 @@ describe('FileService', () => {
     });
   });
 
+  describe('remove()', () => {
+    const mockFile = {
+      id: 'file-1',
+      clusterId: 'cluster-1',
+      status: 'ready',
+    };
+
+    const mockPreview = {
+      fileId: 'file-1',
+      storagePath: 'node-1:preview:file-1.webp',
+      format: 'webp',
+      size: BigInt(5000),
+    };
+
+    const mockReplicas = [
+      { chunkId: 'chunk-a', nodeId: 'node-1', chunk: { size: 4000000 } },
+      { chunkId: 'chunk-a', nodeId: 'node-2', chunk: { size: 4000000 } },
+      { chunkId: 'chunk-b', nodeId: 'node-1', chunk: { size: 3000000 } },
+    ];
+
+    it('should delete chunks from storage nodes', async () => {
+      mockPrisma.file.findUnique.mockResolvedValue(mockFile);
+      mockPrisma.preview.findUnique.mockResolvedValue(mockPreview);
+      mockPrisma.chunkReplica.findMany.mockResolvedValue(mockReplicas);
+      mockPrisma.chunk.update.mockResolvedValue({});
+      mockPrisma.chunk.delete.mockResolvedValue({});
+      mockPrisma.chunkReplica.deleteMany.mockResolvedValue({});
+      mockPrisma.node.update.mockResolvedValue({});
+      mockPrisma.file.delete.mockResolvedValue({});
+
+      await fileService.remove('file-1', 'cluster-1');
+
+      // Should delete each replica's chunk from storage
+      expect(mockStorageService.deleteFromNode).toHaveBeenCalledWith('node-1', 'chunk-a');
+      expect(mockStorageService.deleteFromNode).toHaveBeenCalledWith('node-2', 'chunk-a');
+      expect(mockStorageService.deleteFromNode).toHaveBeenCalledWith('node-1', 'chunk-b');
+    });
+
+    it('should delete preview from storage node', async () => {
+      mockPrisma.file.findUnique.mockResolvedValue(mockFile);
+      mockPrisma.preview.findUnique.mockResolvedValue(mockPreview);
+      mockPrisma.chunkReplica.findMany.mockResolvedValue([]);
+      mockPrisma.file.delete.mockResolvedValue({});
+
+      await fileService.remove('file-1', 'cluster-1');
+
+      expect(mockStorageService.deleteFromNode).toHaveBeenCalledWith('node-1', 'preview:file-1.webp');
+    });
+
+    it('should update usedCapacity on affected nodes', async () => {
+      mockPrisma.file.findUnique.mockResolvedValue(mockFile);
+      mockPrisma.preview.findUnique.mockResolvedValue(null);
+      mockPrisma.chunkReplica.findMany.mockResolvedValue(mockReplicas);
+      mockPrisma.chunk.update.mockResolvedValue({});
+      mockPrisma.chunk.delete.mockResolvedValue({});
+      mockPrisma.chunkReplica.deleteMany.mockResolvedValue({});
+      mockPrisma.node.update.mockResolvedValue({});
+      mockPrisma.file.delete.mockResolvedValue({});
+
+      await fileService.remove('file-1', 'cluster-1');
+
+      // node-1 has replicas r1 (4MB) + r3 (3MB) = 7MB freed
+      expect(mockPrisma.node.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'node-1' },
+          data: { usedCapacity: { decrement: BigInt(7000000) } },
+        }),
+      );
+      // node-2 has replica r2 (4MB) freed
+      expect(mockPrisma.node.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'node-2' },
+          data: { usedCapacity: { decrement: BigInt(4000000) } },
+        }),
+      );
+    });
+
+    it('should throw NotFoundException for non-existent file', async () => {
+      mockPrisma.file.findUnique.mockResolvedValue(null);
+      await expect(fileService.remove('no-file', 'cluster-1')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw NotFoundException if file belongs to another cluster', async () => {
+      mockPrisma.file.findUnique.mockResolvedValue({ ...mockFile, clusterId: 'other-cluster' });
+      await expect(fileService.remove('file-1', 'cluster-1')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('download()', () => {
+    // Build real encrypted data for test
+    const masterKey = Buffer.alloc(32, 0xab);
+    const fileKey = generateKey();
+    const originalContent = Buffer.from('family photo binary content here');
+
+    // Encrypt file key with master key (same as distributeChunks)
+    const fkEnc = encrypt(fileKey, masterKey);
+    const fileKeyEncrypted = Buffer.concat([fkEnc.iv, fkEnc.authTag, fkEnc.ciphertext]);
+
+    // Encrypt chunk with file key
+    const chunkEnc = encrypt(originalContent, fileKey);
+    const encryptedChunk = Buffer.concat([chunkEnc.iv, chunkEnc.authTag, chunkEnc.ciphertext]);
+
+    it('should reassemble and decrypt file from chunks', async () => {
+      mockPrisma.file.findUnique.mockResolvedValue({
+        id: 'file-1',
+        clusterId: 'cluster-1',
+        originalName: 'foto.webp',
+        mimeType: 'image/webp',
+        status: 'ready',
+      });
+
+      mockPrisma.manifest.findUnique.mockResolvedValue({
+        id: 'manifest-1',
+        fileId: 'file-1',
+        fileKeyEncrypted,
+        chunksJson: [
+          { chunkId: 'chunk-a', chunkIndex: 0, size: originalContent.length },
+        ],
+      });
+
+      mockPrisma.chunkReplica.findFirst = jest.fn().mockResolvedValue({ nodeId: 'node-1' });
+      mockStorageService.getFromNode.mockResolvedValue(encryptedChunk);
+
+      const result = await fileService.download('file-1');
+
+      expect(result.filename).toBe('foto.webp');
+      expect(result.mimeType).toBe('image/webp');
+      expect(result.data).toBeInstanceOf(Buffer);
+      expect(result.data.equals(originalContent)).toBe(true);
+    });
+
+    it('should throw NotFoundException for non-existent file', async () => {
+      mockPrisma.file.findUnique.mockResolvedValue(null);
+      await expect(fileService.download('no-file')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw NotFoundException if file has no manifest', async () => {
+      mockPrisma.file.findUnique.mockResolvedValue({
+        id: 'file-1',
+        clusterId: 'c1',
+        status: 'processing',
+      });
+      mockPrisma.manifest.findUnique.mockResolvedValue(null);
+
+      await expect(fileService.download('file-1')).rejects.toThrow(NotFoundException);
+    });
+  });
+
   describe('getPreview()', () => {
     it('should fetch preview binary from storage node', async () => {
       mockPrisma.preview.findUnique.mockResolvedValue({
@@ -285,6 +446,145 @@ describe('FileService', () => {
       mockPrisma.preview.findUnique.mockResolvedValue(null);
 
       await expect(fileService.getPreview('no-preview')).rejects.toThrow();
+    });
+  });
+
+  describe('download() — UC-005: reassembly', () => {
+    /**
+     * Testes de Download/Reassembly.
+     * Fonte: docs/backend/05-api-contracts.md (GET /api/files/:id/download)
+     * Fonte: docs/blueprint/07-critical_flows.md (Upload e Distribuicao)
+     *
+     * Fluxo: manifest → file key decrypt → chunks fetch → chunk decrypt → reassemble
+     */
+
+    it('should reassemble file from encrypted chunks (UC-005 happy path)', async () => {
+      // Prepare: encrypt a small file the same way distributeChunks does
+      const masterKey = Buffer.alloc(32, 0xab); // matches placeholder in service
+      const fileKey = generateKey();
+      const originalData = Buffer.from('familia prado natal 2025');
+
+      // Encrypt file key with master key (envelope encryption)
+      const fkEnc = encrypt(fileKey, masterKey);
+      const fileKeyEncrypted = Buffer.concat([fkEnc.iv, fkEnc.authTag, fkEnc.ciphertext]);
+
+      // Encrypt chunk data with file key
+      const chunkEnc = encrypt(originalData, fileKey);
+      const encryptedChunk = Buffer.concat([chunkEnc.iv, chunkEnc.authTag, chunkEnc.ciphertext]);
+
+      const chunkHash = require('crypto').createHash('sha256').update(originalData).digest('hex');
+
+      mockPrisma.file.findUnique.mockResolvedValueOnce({
+        id: 'file-1',
+        originalName: 'natal.webp',
+        mimeType: 'image/webp',
+      });
+
+      mockPrisma.manifest.findUnique.mockResolvedValueOnce({
+        fileId: 'file-1',
+        fileKeyEncrypted: Buffer.from(fileKeyEncrypted),
+        chunksJson: [{ chunkId: chunkHash, chunkIndex: 0, size: originalData.length }],
+      });
+
+      (mockPrisma as any).chunkReplica = {
+        ...mockPrisma.chunkReplica,
+        findFirst: jest.fn().mockResolvedValueOnce({ nodeId: 'node-1' }),
+      };
+
+      mockStorageService.getFromNode.mockResolvedValueOnce(encryptedChunk);
+
+      const result = await fileService.download('file-1');
+
+      expect(result.data.equals(originalData)).toBe(true);
+      expect(result.filename).toBe('natal.webp');
+      expect(result.mimeType).toBe('image/webp');
+    });
+
+    it('should throw NotFoundException for non-existent file', async () => {
+      mockPrisma.file.findUnique.mockResolvedValueOnce(null);
+
+      await expect(fileService.download('ghost')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw NotFoundException if manifest not found (still processing)', async () => {
+      mockPrisma.file.findUnique.mockResolvedValueOnce({ id: 'file-1' });
+      mockPrisma.manifest.findUnique.mockResolvedValueOnce(null);
+
+      await expect(fileService.download('file-1')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw NotFoundException if no healthy replica available', async () => {
+      const masterKey = Buffer.alloc(32, 0xab);
+      const fileKey = generateKey();
+      const fkEnc = encrypt(fileKey, masterKey);
+      const fileKeyEncrypted = Buffer.concat([fkEnc.iv, fkEnc.authTag, fkEnc.ciphertext]);
+
+      mockPrisma.file.findUnique.mockResolvedValueOnce({
+        id: 'file-1',
+        originalName: 'foto.webp',
+        mimeType: 'image/webp',
+      });
+
+      mockPrisma.manifest.findUnique.mockResolvedValueOnce({
+        fileId: 'file-1',
+        fileKeyEncrypted: Buffer.from(fileKeyEncrypted),
+        chunksJson: [{ chunkId: 'chunk-aaa', chunkIndex: 0, size: 100 }],
+      });
+
+      (mockPrisma as any).chunkReplica = {
+        ...mockPrisma.chunkReplica,
+        findFirst: jest.fn().mockResolvedValueOnce(null), // no healthy replica
+      };
+
+      await expect(fileService.download('file-1')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should reassemble multi-chunk file in correct order', async () => {
+      const masterKey = Buffer.alloc(32, 0xab);
+      const fileKey = generateKey();
+      const fkEnc = encrypt(fileKey, masterKey);
+      const fileKeyEncrypted = Buffer.concat([fkEnc.iv, fkEnc.authTag, fkEnc.ciphertext]);
+
+      const chunk0Data = Buffer.from('CHUNK-ZERO-');
+      const chunk1Data = Buffer.from('CHUNK-ONE');
+      const hash0 = require('crypto').createHash('sha256').update(chunk0Data).digest('hex');
+      const hash1 = require('crypto').createHash('sha256').update(chunk1Data).digest('hex');
+
+      const enc0 = encrypt(chunk0Data, fileKey);
+      const encBuf0 = Buffer.concat([enc0.iv, enc0.authTag, enc0.ciphertext]);
+      const enc1 = encrypt(chunk1Data, fileKey);
+      const encBuf1 = Buffer.concat([enc1.iv, enc1.authTag, enc1.ciphertext]);
+
+      mockPrisma.file.findUnique.mockResolvedValueOnce({
+        id: 'file-multi',
+        originalName: 'video.mp4',
+        mimeType: 'video/mp4',
+      });
+
+      mockPrisma.manifest.findUnique.mockResolvedValueOnce({
+        fileId: 'file-multi',
+        fileKeyEncrypted: Buffer.from(fileKeyEncrypted),
+        chunksJson: [
+          { chunkId: hash0, chunkIndex: 0, size: chunk0Data.length },
+          { chunkId: hash1, chunkIndex: 1, size: chunk1Data.length },
+        ],
+      });
+
+      (mockPrisma as any).chunkReplica = {
+        ...mockPrisma.chunkReplica,
+        findFirst: jest.fn()
+          .mockResolvedValueOnce({ nodeId: 'node-1' })
+          .mockResolvedValueOnce({ nodeId: 'node-2' }),
+      };
+
+      mockStorageService.getFromNode
+        .mockResolvedValueOnce(encBuf0)
+        .mockResolvedValueOnce(encBuf1);
+
+      const result = await fileService.download('file-multi');
+
+      const expected = Buffer.concat([chunk0Data, chunk1Data]);
+      expect(result.data.equals(expected)).toBe(true);
     });
   });
 });
