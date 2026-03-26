@@ -115,13 +115,34 @@ export class NodeService {
 
     this.storageService.registerNode(node.id, 100, provider);
 
+    // Query real capacity from provider and update DB
+    let totalCapacity = Number(node.totalCapacity);
+    let usedCapacity = Number(node.usedCapacity);
+    try {
+      const registeredProvider = this.storageService.getProvider(node.id);
+      if (registeredProvider) {
+        const cap = await registeredProvider.capacity();
+        totalCapacity = Number(cap.total);
+        usedCapacity = Number(cap.used);
+        await this.prisma.node.update({
+          where: { id: node.id },
+          data: {
+            totalCapacity: cap.total,
+            usedCapacity: cap.used,
+          },
+        });
+      }
+    } catch {
+      // Capacity query failed — keep defaults, will update on next heartbeat
+    }
+
     return {
       id: node.id,
       name: node.name,
       type: node.type,
       status: node.status,
-      totalCapacity: Number(node.totalCapacity),
-      usedCapacity: Number(node.usedCapacity),
+      totalCapacity,
+      usedCapacity,
       chunksStored: 0,
       lastHeartbeat: node.lastHeartbeat?.toISOString() ?? null,
       createdAt: node.createdAt.toISOString(),
@@ -138,12 +159,26 @@ export class NodeService {
       throw new NotFoundException('No nao encontrado');
     }
 
+    const updateData: Record<string, unknown> = {
+      status: 'online',
+      lastHeartbeat: new Date(),
+    };
+
+    // Update capacity from storage provider if available
+    try {
+      const provider = this.storageService.getProvider(nodeId);
+      if (provider) {
+        const cap = await provider.capacity();
+        updateData.totalCapacity = cap.total;
+        updateData.usedCapacity = cap.used;
+      }
+    } catch {
+      // Capacity query failed — update heartbeat without capacity
+    }
+
     await this.prisma.node.update({
       where: { id: nodeId },
-      data: {
-        status: 'online',
-        lastHeartbeat: new Date(),
-      },
+      data: updateData,
     });
   }
 

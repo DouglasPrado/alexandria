@@ -189,6 +189,13 @@ export class StorageService implements OnModuleInit {
   }
 
   /**
+   * Retorna o StorageProvider associado a um no, ou undefined se nao registrado.
+   */
+  getProvider(nodeId: string): import('@alexandria/core-sdk').StorageProvider | undefined {
+    return this.providers.get(nodeId);
+  }
+
+  /**
    * Remove no do hash ring.
    * Chamado pelo NodeService ao remover no apos drain.
    */

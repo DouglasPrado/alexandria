@@ -40,6 +40,7 @@ const mockStorageService = {
   unregisterNode: jest.fn(),
   distributeChunks: jest.fn(),
   reReplicateChunk: jest.fn().mockResolvedValue({ targetNodeId: 'node-2', success: true }),
+  getProvider: jest.fn(),
 };
 
 describe('NodeService', () => {
@@ -256,6 +257,45 @@ describe('NodeService', () => {
       expect(mockStorageService.registerNode).toHaveBeenCalled();
     });
 
+    it('should query provider capacity and update totalCapacity after registration', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.node.create.mockImplementation((args: any) => ({
+        id: 'node-cap',
+        name: args.data.name,
+        type: args.data.type,
+        status: 'online',
+        totalCapacity: BigInt(0),
+        usedCapacity: BigInt(0),
+        lastHeartbeat: new Date(),
+        createdAt: new Date(),
+      }));
+      mockPrisma.node.update.mockResolvedValue({});
+      mockStorageService.getProvider.mockReturnValue({
+        capacity: jest.fn().mockResolvedValue({
+          total: BigInt(200e9),
+          used: BigInt(50e9),
+        }),
+      });
+
+      const result = await nodeService.register('cluster-1', 'admin-1', {
+        name: 'NAS com capacidade',
+        type: 'local',
+        endpoint: '/mnt/data',
+      });
+
+      expect(mockPrisma.node.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'node-cap' },
+          data: {
+            totalCapacity: BigInt(200e9),
+            usedCapacity: BigInt(50e9),
+          },
+        }),
+      );
+      expect(result.totalCapacity).toBe(Number(BigInt(200e9)));
+      expect(result.usedCapacity).toBe(Number(BigInt(50e9)));
+    });
+
     it('should throw UnprocessableEntityException if cluster has 50 nodes (RN-C4)', async () => {
       mockPrisma.node.count.mockResolvedValue(50);
 
@@ -330,6 +370,61 @@ describe('NodeService', () => {
       mockPrisma.node.findUnique.mockResolvedValue(null);
 
       await expect(nodeService.heartbeat('non-existent')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should update capacity from storage provider when available', async () => {
+      mockPrisma.node.findUnique.mockResolvedValue({
+        id: 'node-1',
+        status: 'online',
+      });
+      mockPrisma.node.update.mockResolvedValue({
+        id: 'node-1',
+        status: 'online',
+        lastHeartbeat: new Date(),
+      });
+      mockStorageService.getProvider.mockReturnValue({
+        capacity: jest.fn().mockResolvedValue({
+          total: BigInt(500e9),
+          used: BigInt(120e9),
+        }),
+      });
+
+      await nodeService.heartbeat('node-1');
+
+      expect(mockPrisma.node.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'node-1' },
+          data: expect.objectContaining({
+            status: 'online',
+            totalCapacity: BigInt(500e9),
+            usedCapacity: BigInt(120e9),
+          }),
+        }),
+      );
+    });
+
+    it('should still update heartbeat when provider is not available', async () => {
+      mockPrisma.node.findUnique.mockResolvedValue({
+        id: 'node-1',
+        status: 'suspect',
+      });
+      mockPrisma.node.update.mockResolvedValue({
+        id: 'node-1',
+        status: 'online',
+        lastHeartbeat: new Date(),
+      });
+      mockStorageService.getProvider.mockReturnValue(undefined);
+
+      await nodeService.heartbeat('node-1');
+
+      expect(mockPrisma.node.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'node-1' },
+          data: expect.objectContaining({
+            status: 'online',
+          }),
+        }),
+      );
     });
   });
 
