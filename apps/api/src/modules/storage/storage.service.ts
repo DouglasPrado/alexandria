@@ -24,10 +24,19 @@ const LOCAL_CHUNKS_DIR = process.env.LOCAL_STORAGE_PATH
  * Fluxo: split → dedup → generateFileKey → encrypt → distribute (3x) → chunks + replicas → manifest
  * OnModuleInit: recarrega nos do banco no boot para reconstruir o hash ring.
  */
+/** Ordem de preferencia de tier por tipo de midia */
+const TIER_PREFERENCE: Record<string, string[]> = {
+  photo:    ['hot', 'warm', 'cold'],
+  video:    ['hot', 'warm', 'cold'],
+  document: ['warm', 'hot', 'cold'],
+  archive:  ['cold', 'warm', 'hot'],
+};
+
 @Injectable()
 export class StorageService implements OnModuleInit {
   private ring = new ConsistentHashRing();
   private providers = new Map<string, StorageProvider>();
+  private nodeTiers = new Map<string, string>();
 
   constructor(private readonly prisma: PrismaService) {}
 
@@ -181,11 +190,21 @@ export class StorageService implements OnModuleInit {
   /**
    * Registra no no hash ring e associa um StorageProvider.
    * Chamado pelo NodeService ao registrar/reconectar no.
+   * @param tier - Tier do no: 'hot' | 'warm' | 'cold' (padrao 'warm')
    */
-  registerNode(nodeId: string, capacity: number, provider: StorageProvider): void {
+  registerNode(nodeId: string, capacity: number, provider: StorageProvider, tier = 'warm'): void {
     if (this.providers.has(nodeId)) return;
     this.ring.addNode(nodeId, capacity);
     this.providers.set(nodeId, provider);
+    this.nodeTiers.set(nodeId, tier);
+  }
+
+  /**
+   * Atualiza o tier de um no em memoria.
+   * Chamado pelo NodeService apos persistir a mudanca no banco.
+   */
+  setNodeTier(nodeId: string, tier: string): void {
+    this.nodeTiers.set(nodeId, tier);
   }
 
   /**
@@ -203,6 +222,20 @@ export class StorageService implements OnModuleInit {
     if (!this.providers.has(nodeId)) return;
     this.ring.removeNode(nodeId);
     this.providers.delete(nodeId);
+    this.nodeTiers.delete(nodeId);
+  }
+
+  /**
+   * Retorna nodeIds ordenados por preferencia de tier para o mediaType dado.
+   * Nos do tier preferido aparecem primeiro; em caso de empate, ordem estavel.
+   */
+  private getPreferredNodes(mediaType?: string): string[] {
+    const priority = TIER_PREFERENCE[mediaType ?? ''] ?? TIER_PREFERENCE['document']!;
+    return [...this.providers.keys()].sort((a, b) => {
+      const ta = priority.indexOf(this.nodeTiers.get(a) ?? 'warm');
+      const tb = priority.indexOf(this.nodeTiers.get(b) ?? 'warm');
+      return ta - tb;
+    });
   }
 
   /**
@@ -218,6 +251,7 @@ export class StorageService implements OnModuleInit {
     fileId: string,
     content: Buffer,
     masterKey: Buffer,
+    mediaType?: string,
   ): Promise<{ chunksCount: number; replicasCount: number }> {
     // 2-3. Split content into ~4MB chunks with SHA-256 hash
     const chunks = split(content);
@@ -278,11 +312,14 @@ export class StorageService implements OnModuleInit {
       console.warn('[StorageService] No nodes in ring — chunks stored in DB only, not distributed');
     }
 
+    // Tier-aware node order: preferred tier first, fallback to others
+    const preferredNodes = this.getPreferredNodes(mediaType);
+
     for (const chunk of processedChunks) {
       if (!chunk.isNew || replicationFactor === 0) continue;
 
       try {
-        const targetNodes = this.ring.getNodes(chunk.chunkId, replicationFactor);
+        const targetNodes = preferredNodes.slice(0, replicationFactor);
 
         for (const nodeId of targetNodes) {
           const provider = this.providers.get(nodeId);

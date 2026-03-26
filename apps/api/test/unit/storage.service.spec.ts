@@ -628,4 +628,108 @@ describe('StorageService', () => {
       ).rejects.toThrow();
     });
   });
+
+  describe('tier-aware distributeChunks()', () => {
+    /**
+     * Tiered storage — Fase 2.
+     * Tiers: hot (rapido/caro), warm (padrao), cold (lento/barato).
+     * distributeChunks prefere nos de tier compativel com o mediaType do arquivo.
+     * Fonte: docs/blueprint/11-build_plan.md (Fase 2 — Tiered storage)
+     *
+     * - photo/video → preferir hot → warm → cold
+     * - archive     → preferir cold → warm → hot
+     * - document    → preferir warm → hot → cold
+     */
+
+    const makeProvider = () => ({
+      put: jest.fn().mockResolvedValue(undefined),
+      get: jest.fn(),
+      exists: jest.fn(),
+      delete: jest.fn(),
+      list: jest.fn(),
+      capacity: jest.fn(),
+    });
+
+    function setupTierMocks() {
+      mockPrisma.chunk.findUnique.mockResolvedValue(null);
+      mockPrisma.chunk.create.mockResolvedValue({ id: 'ck', size: 100, referenceCount: 1 });
+      mockPrisma.chunkReplica.create.mockResolvedValue({});
+      mockPrisma.manifest.create.mockResolvedValue({ id: 'mf-1' });
+      mockPrisma.manifestChunk.create.mockResolvedValue({});
+      mockPrisma.file.update.mockResolvedValue({});
+    }
+
+    it('should prefer hot-tier nodes for photo uploads (TIER-5)', async () => {
+      // 4 nodes: 2 hot + 1 warm + 1 cold → replication 3 → hot1, hot2, warm; cold NOT used
+      const hot1 = makeProvider();
+      const hot2 = makeProvider();
+      const warm = makeProvider();
+      const cold = makeProvider();
+
+      const module = await Test.createTestingModule({
+        providers: [StorageService, { provide: PrismaService, useValue: mockPrisma }],
+      }).compile();
+      const svc = module.get<StorageService>(StorageService);
+
+      svc.registerNode('node-hot1', 100, hot1, 'hot');
+      svc.registerNode('node-hot2', 100, hot2, 'hot');
+      svc.registerNode('node-warm', 100, warm, 'warm');
+      svc.registerNode('node-cold', 100, cold, 'cold');
+
+      setupTierMocks();
+
+      await svc.distributeChunks('file-1', Buffer.alloc(100, 0xab), Buffer.alloc(32, 0xcd), 'photo');
+
+      expect(hot1.put).toHaveBeenCalled();
+      expect(hot2.put).toHaveBeenCalled();
+      expect(cold.put).not.toHaveBeenCalled();
+    });
+
+    it('should prefer cold-tier nodes for archive uploads (TIER-6)', async () => {
+      // 4 nodes: 1 hot + 1 warm + 2 cold → replication 3 → cold1, cold2, warm; hot NOT used
+      const hot = makeProvider();
+      const warm = makeProvider();
+      const cold1 = makeProvider();
+      const cold2 = makeProvider();
+
+      const module = await Test.createTestingModule({
+        providers: [StorageService, { provide: PrismaService, useValue: mockPrisma }],
+      }).compile();
+      const svc = module.get<StorageService>(StorageService);
+
+      svc.registerNode('node-hot', 100, hot, 'hot');
+      svc.registerNode('node-warm', 100, warm, 'warm');
+      svc.registerNode('node-cold1', 100, cold1, 'cold');
+      svc.registerNode('node-cold2', 100, cold2, 'cold');
+
+      setupTierMocks();
+
+      await svc.distributeChunks('file-2', Buffer.alloc(100, 0xab), Buffer.alloc(32, 0xcd), 'archive');
+
+      expect(cold1.put).toHaveBeenCalled();
+      expect(cold2.put).toHaveBeenCalled();
+      expect(hot.put).not.toHaveBeenCalled();
+    });
+
+    it('should fall back to warm when preferred tier unavailable (TIER-7)', async () => {
+      const warm = makeProvider();
+      const cold = makeProvider();
+
+      const module = await Test.createTestingModule({
+        providers: [StorageService, { provide: PrismaService, useValue: mockPrisma }],
+      }).compile();
+      const svc = module.get<StorageService>(StorageService);
+
+      // No hot nodes — only warm and cold
+      svc.registerNode('node-warm', 100, warm, 'warm');
+      svc.registerNode('node-cold', 100, cold, 'cold');
+
+      setupTierMocks();
+
+      // photo upload with no hot nodes — falls back to warm first
+      await svc.distributeChunks('file-3', Buffer.alloc(100, 0xab), Buffer.alloc(32, 0xcd), 'photo');
+
+      expect(warm.put).toHaveBeenCalled();
+    });
+  });
 });

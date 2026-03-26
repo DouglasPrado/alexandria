@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Patch,
   Get,
   Delete,
   Body,
@@ -70,6 +71,17 @@ export class NodeController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string) {
     return this.nodeService.remove(id);
+  }
+
+  /** PATCH /api/nodes/:id/tier — Alterar tier do no (JWT+admin) */
+  @Patch(':id/tier')
+  @Roles('admin')
+  async setTier(
+    @Param('id') id: string,
+    @Body('tier') tier: string,
+    @CurrentMember() member: CurrentMemberPayload,
+  ) {
+    return this.nodeService.setTier(id, member.clusterId, tier);
   }
 
   /** POST /api/nodes/rebalance — Rebalancear chunks entre nos (JWT+admin) */

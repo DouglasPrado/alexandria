@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing';
 import {
+  BadRequestException,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -41,6 +42,7 @@ const mockStorageService = {
   distributeChunks: jest.fn(),
   reReplicateChunk: jest.fn().mockResolvedValue({ targetNodeId: 'node-2', success: true }),
   getProvider: jest.fn(),
+  setNodeTier: jest.fn(),
 };
 
 describe('NodeService', () => {
@@ -564,6 +566,62 @@ describe('NodeService', () => {
       });
 
       await expect(nodeService.remove('node-1')).rejects.toThrow(UnprocessableEntityException);
+    });
+  });
+
+  describe('setTier()', () => {
+    /**
+     * Tiered storage — Fase 2.
+     * Tiers validos: hot | warm | cold.
+     * setTier atualiza o tier do no no banco e no StorageService.
+     * Fonte: docs/blueprint/11-build_plan.md (Fase 2 — Tiered storage)
+     */
+
+    it('should update node tier to hot (TIER-1)', async () => {
+      mockPrisma.node.findUnique.mockResolvedValue({
+        id: 'node-1',
+        clusterId: 'cluster-1',
+        tier: 'warm',
+      });
+      mockPrisma.node.update.mockResolvedValue({ id: 'node-1', tier: 'hot' });
+
+      const result = await nodeService.setTier('node-1', 'cluster-1', 'hot');
+
+      expect(result.tier).toBe('hot');
+      expect(mockPrisma.node.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ tier: 'hot' }),
+        }),
+      );
+      expect(mockStorageService.setNodeTier).toHaveBeenCalledWith('node-1', 'hot');
+    });
+
+    it('should update node tier to cold (TIER-2)', async () => {
+      mockPrisma.node.findUnique.mockResolvedValue({
+        id: 'node-1',
+        clusterId: 'cluster-1',
+        tier: 'warm',
+      });
+      mockPrisma.node.update.mockResolvedValue({ id: 'node-1', tier: 'cold' });
+
+      const result = await nodeService.setTier('node-1', 'cluster-1', 'cold');
+
+      expect(result.tier).toBe('cold');
+    });
+
+    it('should throw BadRequestException for invalid tier (TIER-3)', async () => {
+      await expect(
+        nodeService.setTier('node-1', 'cluster-1', 'turbo'),
+      ).rejects.toThrow(BadRequestException);
+      expect(mockPrisma.node.update).not.toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException if node not found or belongs to different cluster (TIER-4)', async () => {
+      mockPrisma.node.findUnique.mockResolvedValue(null);
+
+      await expect(
+        nodeService.setTier('non-existent', 'cluster-1', 'hot'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });

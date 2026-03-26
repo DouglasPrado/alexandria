@@ -27,6 +27,10 @@ export const nodesApi = {
   /** DELETE /api/nodes/:id — remover nó após drain */
   remove: (id: string): Promise<void> => apiClient.delete<void>(`/nodes/${id}`),
 
+  /** PATCH /api/nodes/:id/tier — alterar tier do nó */
+  setTier: (id: string, tier: string): Promise<{ id: string; tier: string }> =>
+    apiClient.patch(`/nodes/${id}/tier`, { tier }),
+
   /** POST /api/nodes/rebalance — rebalancear chunks entre nós */
   rebalance: (): Promise<{ chunksRelocated: number; chunksSkipped: number; chunksFailed: number }> =>
     apiClient.post('/nodes/rebalance'),

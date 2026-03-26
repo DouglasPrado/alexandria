@@ -45,3 +45,14 @@ export function useRebalance() {
     mutationFn: () => nodesApi.rebalance(),
   });
 }
+
+export function useSetNodeTier() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ nodeId, tier }: { nodeId: string; tier: string }) =>
+      nodesApi.setTier(nodeId, tier),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['nodes'] });
+    },
+  });
+}

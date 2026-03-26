@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
@@ -336,6 +337,32 @@ export class NodeService {
     }
 
     await this.prisma.node.delete({ where: { id: nodeId } });
+  }
+
+  /**
+   * Atualiza o tier de um no (hot | warm | cold).
+   * Persiste no banco e atualiza o StorageService em memoria.
+   * Fonte: docs/blueprint/11-build_plan.md (Fase 2 — Tiered storage)
+   */
+  async setTier(nodeId: string, clusterId: string, tier: string) {
+    const validTiers = ['hot', 'warm', 'cold'];
+    if (!validTiers.includes(tier)) {
+      throw new BadRequestException(`Tier invalido: ${tier}. Use hot, warm ou cold.`);
+    }
+
+    const node = await this.prisma.node.findUnique({ where: { id: nodeId } });
+    if (!node || node.clusterId !== clusterId) {
+      throw new NotFoundException('No nao encontrado');
+    }
+
+    const updated = await this.prisma.node.update({
+      where: { id: nodeId },
+      data: { tier },
+    });
+
+    this.storageService.setNodeTier(nodeId, tier);
+
+    return { id: updated.id, tier: updated.tier };
   }
 
   /**

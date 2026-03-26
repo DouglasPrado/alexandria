@@ -6,7 +6,9 @@
 
 import { HardDrive, Loader2 } from 'lucide-react';
 import { NodeStatusBadge } from './NodeStatusBadge';
-import type { NodeDTO } from '../types/node.types';
+import { TierBadge } from './TierBadge';
+import { useSetNodeTier } from '../hooks/useNodeMutations';
+import type { NodeDTO, NodeTier } from '../types/node.types';
 import { formatBytes } from '@/lib/format';
 
 interface NodeListProps {
@@ -35,7 +37,10 @@ const NODE_TYPE_LABELS: Record<string, string> = {
   vps: 'VPS',
 };
 
+const TIER_OPTIONS: NodeTier[] = ['hot', 'warm', 'cold'];
+
 export function NodeList({ nodes, isLoading, onNodeClick }: NodeListProps) {
+  const setTier = useSetNodeTier();
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -78,6 +83,7 @@ export function NodeList({ nodes, isLoading, onNodeClick }: NodeListProps) {
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-[var(--foreground)]">{node.name}</span>
                     <NodeStatusBadge status={node.status} />
+                    <TierBadge tier={node.tier ?? 'warm'} />
                   </div>
                   <div className="flex items-center gap-3 text-xs text-[var(--muted-foreground)] mt-0.5">
                     <span>{NODE_TYPE_LABELS[node.type] ?? node.type}</span>
@@ -86,11 +92,27 @@ export function NodeList({ nodes, isLoading, onNodeClick }: NodeListProps) {
                   </div>
                 </div>
               </div>
-              <div className="text-right text-sm">
-                <div className="text-[var(--foreground)] font-medium">
-                  {formatBytes(node.usedCapacity)} / {formatBytes(node.totalCapacity)}
+              <div className="flex items-center gap-3">
+                {/* Tier selector — stop propagation to avoid triggering row click */}
+                <select
+                  value={node.tier ?? 'warm'}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    setTier.mutate({ nodeId: node.id, tier: e.target.value });
+                  }}
+                  className="text-xs border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)] text-[var(--foreground)] cursor-pointer"
+                >
+                  {TIER_OPTIONS.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+                <div className="text-right text-sm">
+                  <div className="text-[var(--foreground)] font-medium">
+                    {formatBytes(node.usedCapacity)} / {formatBytes(node.totalCapacity)}
+                  </div>
+                  <div className="text-xs text-[var(--muted-foreground)]">{usagePercent}% usado</div>
                 </div>
-                <div className="text-xs text-[var(--muted-foreground)]">{usagePercent}% usado</div>
               </div>
             </div>
 

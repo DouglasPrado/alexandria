@@ -5,12 +5,14 @@
 
 export type NodeStatus = 'online' | 'suspect' | 'lost' | 'draining' | 'disconnected';
 export type NodeType = 'local' | 's3' | 'r2' | 'b2' | 'vps';
+export type NodeTier = 'hot' | 'warm' | 'cold';
 
 export interface NodeDTO {
   id: string;
   name: string;
   type: NodeType;
   status: NodeStatus;
+  tier: NodeTier;
   totalCapacity: number;
   usedCapacity: number;
   chunksStored: number;
