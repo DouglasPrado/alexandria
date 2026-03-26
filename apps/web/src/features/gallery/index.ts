@@ -1,4 +1,5 @@
 export { GalleryGrid } from './components/GalleryGrid';
+export { TimelineView } from './components/TimelineView';
 export { FileLightbox } from './components/FileLightbox';
 export { UploadDropzone } from './components/UploadDropzone';
 export { UploadQueue } from './components/UploadQueue';

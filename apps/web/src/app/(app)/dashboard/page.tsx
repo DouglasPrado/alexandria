@@ -11,10 +11,11 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Upload } from 'lucide-react';
+import { Upload, LayoutGrid, Clock } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 import {
   GalleryGrid,
+  TimelineView,
   FileLightbox,
   UploadDropzone,
   UploadQueue,
@@ -22,6 +23,7 @@ import {
   useFiles,
   useUploadFiles,
   type FileDTO,
+  type GalleryView,
   type MediaType,
 } from '@/features/gallery';
 
@@ -31,11 +33,12 @@ export default function DashboardPage() {
   const role = useAuthStore((s) => s.member?.role);
   const canUpload = role === 'admin' || role === 'member';
 
-  // URL state for filters
+  // URL state for filters + view mode
   const query = searchParams.get('q') ?? '';
   const mediaType = (searchParams.get('type') as MediaType) || undefined;
   const from = searchParams.get('from') || undefined;
   const to = searchParams.get('to') || undefined;
+  const view: GalleryView = (searchParams.get('view') as GalleryView) || 'grid';
 
   // Files query with infinite scroll
   const {
@@ -92,27 +95,42 @@ export default function DashboardPage() {
     [updateSearchParams],
   );
 
+  const toggleView = useCallback(
+    () => updateSearchParams({ view: view === 'grid' ? 'timeline' : 'grid' }),
+    [view, updateSearchParams],
+  );
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-[var(--foreground)]">Galeria</h1>
-        {canUpload && (
-          <label className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-[var(--radius)] font-medium hover:opacity-90 transition-opacity text-sm cursor-pointer">
-            <Upload size={16} />
-            Upload
-            <input
-              type="file"
-              multiple
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                const f = Array.from(e.target.files ?? []) as File[];
-                if (f.length > 0) upload(f);
-                (e.target as HTMLInputElement).value = '';
-              }}
-              className="hidden"
-            />
-          </label>
-        )}
+        <div className="flex items-center gap-2">
+          {/* View toggle */}
+          <button
+            onClick={toggleView}
+            aria-label={view === 'grid' ? 'Alternar para visualização de linha do tempo' : 'Alternar para visualização em grade'}
+            className="p-2 rounded-[var(--radius)] border border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors"
+          >
+            {view === 'grid' ? <Clock size={16} /> : <LayoutGrid size={16} />}
+          </button>
+          {canUpload && (
+            <label className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-[var(--radius)] font-medium hover:opacity-90 transition-opacity text-sm cursor-pointer">
+              <Upload size={16} />
+              Upload
+              <input
+                type="file"
+                multiple
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const f = Array.from(e.target.files ?? []) as File[];
+                  if (f.length > 0) upload(f);
+                  (e.target as HTMLInputElement).value = '';
+                }}
+                className="hidden"
+              />
+            </label>
+          )}
+        </div>
       </div>
 
       {/* Search + Filters */}
@@ -132,15 +150,26 @@ export default function DashboardPage() {
         <UploadDropzone onFiles={upload} />
       )}
 
-      {/* Gallery Grid */}
-      <GalleryGrid
-        files={files}
-        hasMore={!!hasNextPage}
-        isLoading={isLoading}
-        isFetchingNext={isFetchingNextPage}
-        onLoadMore={() => fetchNextPage()}
-        onFileClick={setLightboxFile}
-      />
+      {/* Gallery — Grid ou Timeline */}
+      {view === 'timeline' ? (
+        <TimelineView
+          files={files}
+          hasMore={!!hasNextPage}
+          isLoading={isLoading}
+          isFetchingNext={isFetchingNextPage}
+          onLoadMore={() => fetchNextPage()}
+          onFileClick={setLightboxFile}
+        />
+      ) : (
+        <GalleryGrid
+          files={files}
+          hasMore={!!hasNextPage}
+          isLoading={isLoading}
+          isFetchingNext={isFetchingNextPage}
+          onLoadMore={() => fetchNextPage()}
+          onFileClick={setLightboxFile}
+        />
+      )}
 
       {/* Lightbox */}
       {lightboxFile && (
