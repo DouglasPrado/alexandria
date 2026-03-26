@@ -18,7 +18,7 @@ export default function AcceptInvitePage() {
   const params = useParams<{ token: string }>();
   const router = useRouter();
   const acceptInvite = useAcceptInvite();
-  const setAuth = useAuthStore((s) => s.setAuth);
+  const setMember = useAuthStore((s) => s.setMember);
 
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
@@ -47,7 +47,7 @@ export default function AcceptInvitePage() {
       });
 
       // Save auth state and redirect to dashboard
-      setAuth(result.member, result.accessToken);
+      setMember(result.member);
       router.push('/dashboard');
     } catch (err: any) {
       const message = err?.body?.message || err?.message || 'Erro ao aceitar convite';
