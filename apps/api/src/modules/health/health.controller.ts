@@ -48,4 +48,11 @@ export class HealthController {
   async resolveAlert(@Param('id') id: string) {
     return this.healthService.resolveAlert(id);
   }
+
+  /** GET /health/metrics — Metricas operacionais JSON (publica) */
+  @Public()
+  @Get('health/metrics')
+  async metrics() {
+    return this.healthService.getMetrics();
+  }
 }

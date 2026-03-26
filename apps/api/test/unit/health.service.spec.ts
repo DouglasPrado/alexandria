@@ -31,6 +31,17 @@ const mockPrisma = {
   node: {
     findMany: jest.fn(),
     update: jest.fn(),
+    count: jest.fn(),
+    aggregate: jest.fn(),
+  },
+  file: {
+    count: jest.fn(),
+  },
+  chunk: {
+    count: jest.fn(),
+  },
+  chunkReplica: {
+    groupBy: jest.fn(),
   },
   $queryRaw: jest.fn().mockResolvedValue([{ '?column?': 1 }]),
 };
@@ -241,6 +252,97 @@ describe('HealthService', () => {
       expect(result.status).toBeDefined();
       expect(result.checks).toBeDefined();
       expect(result.checks.database).toBeDefined();
+    });
+
+    it('should return enriched response with uptime and version (OBS-R1)', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.file.count.mockResolvedValue(42);
+      mockPrisma.chunkReplica.groupBy.mockResolvedValue([]);
+
+      const result = await healthService.ready();
+
+      expect(result.uptime_seconds).toBeGreaterThanOrEqual(0);
+      expect(result.version).toBeDefined();
+      expect(typeof result.version).toBe('string');
+    });
+
+    it('should return cluster info in enriched ready (OBS-R2)', async () => {
+      mockPrisma.node.count.mockResolvedValue(2);
+      mockPrisma.file.count.mockResolvedValue(10);
+      mockPrisma.chunkReplica.groupBy.mockResolvedValue([]);
+
+      const result = await healthService.ready();
+
+      expect(result.cluster).toBeDefined();
+      expect(result.cluster.nodes_online).toBe(2);
+      expect(result.cluster.files_total).toBe(10);
+      expect(result.cluster.replication_health).toBeDefined();
+    });
+
+    it('should return degraded status when db is down (OBS-R3)', async () => {
+      mockPrisma.$queryRaw.mockRejectedValueOnce(new Error('Connection refused'));
+
+      const result = await healthService.ready();
+
+      expect(result.status).toBe('degraded');
+      expect(result.checks.database).toBe('error');
+    });
+  });
+
+  describe('getMetrics()', () => {
+    it('should return nodes_online and nodes_suspect counts (OBS-M1)', async () => {
+      mockPrisma.node.count
+        .mockResolvedValueOnce(5)  // online
+        .mockResolvedValueOnce(2); // suspect
+      mockPrisma.file.count.mockResolvedValue(0);
+      mockPrisma.node.aggregate.mockResolvedValue({ _sum: { totalCapacity: BigInt(0), usedCapacity: BigInt(0) } });
+      mockPrisma.chunkReplica.groupBy.mockResolvedValue([]);
+
+      const result = await healthService.getMetrics();
+
+      expect(result.nodes_online).toBe(5);
+      expect(result.nodes_suspect).toBe(2);
+    });
+
+    it('should return files_total count (OBS-M2)', async () => {
+      mockPrisma.node.count.mockResolvedValue(0);
+      mockPrisma.file.count.mockResolvedValue(100);
+      mockPrisma.node.aggregate.mockResolvedValue({ _sum: { totalCapacity: BigInt(1000), usedCapacity: BigInt(400) } });
+      mockPrisma.chunk.count.mockResolvedValue(0);
+      mockPrisma.chunkReplica.groupBy.mockResolvedValue([]);
+
+      const result = await healthService.getMetrics();
+
+      expect(result.files_total).toBe(100);
+    });
+
+    it('should calculate storage_usage_percent (OBS-M3)', async () => {
+      mockPrisma.node.count.mockResolvedValue(0);
+      mockPrisma.file.count.mockResolvedValue(0);
+      mockPrisma.node.aggregate.mockResolvedValue({
+        _sum: { totalCapacity: BigInt(1000), usedCapacity: BigInt(400) },
+      });
+      mockPrisma.chunk.count.mockResolvedValue(0);
+      mockPrisma.chunkReplica.groupBy.mockResolvedValue([]);
+
+      const result = await healthService.getMetrics();
+
+      expect(result.storage_usage_percent).toBe(40);
+    });
+
+    it('should count sub-replicated chunks (OBS-M4)', async () => {
+      mockPrisma.node.count.mockResolvedValue(0);
+      mockPrisma.file.count.mockResolvedValue(0);
+      mockPrisma.node.aggregate.mockResolvedValue({ _sum: { totalCapacity: BigInt(0), usedCapacity: BigInt(0) } });
+      // 2 chunks with fewer than 3 replicas
+      mockPrisma.chunkReplica.groupBy.mockResolvedValue([
+        { chunkId: 'c1', _count: { chunkId: 1 } },
+        { chunkId: 'c2', _count: { chunkId: 2 } },
+      ]);
+
+      const result = await healthService.getMetrics();
+
+      expect(result.chunks_sub_replicated).toBe(2);
     });
   });
 });

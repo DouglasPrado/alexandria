@@ -466,7 +466,7 @@ export class HealthService {
     return { status: 'ok' as const };
   }
 
-  /** Readiness probe — verifica dependencias */
+  /** Readiness probe enriquecida — verifica dependencias + info do cluster (OBS-R1, OBS-R2, OBS-R3) */
   async ready() {
     const checks: Record<string, string> = {};
 
@@ -474,7 +474,7 @@ export class HealthService {
       await this.prisma.$queryRaw`SELECT 1`;
       checks.database = 'up';
     } catch {
-      checks.database = 'down';
+      checks.database = 'error';
     }
 
     // Redis check would go here when ioredis is wired
@@ -482,9 +482,77 @@ export class HealthService {
 
     const allUp = Object.values(checks).every((v) => v === 'up');
 
+    // Cluster info — best-effort (falhas nao afetam status)
+    let cluster: {
+      nodes_online: number;
+      files_total: number;
+      replication_health: 'healthy' | 'degraded' | 'unknown';
+    } = { nodes_online: 0, files_total: 0, replication_health: 'unknown' };
+
+    try {
+      const [nodesOnline, filesTotal, subReplicated] = await Promise.all([
+        this.prisma.node.count({ where: { status: 'online' } }),
+        this.prisma.file.count(),
+        this.prisma.chunkReplica.groupBy({
+          by: ['chunkId'],
+          having: { chunkId: { _count: { lt: 3 } } },
+        }),
+      ]);
+
+      cluster = {
+        nodes_online: nodesOnline,
+        files_total: filesTotal,
+        replication_health: subReplicated.length === 0 ? 'healthy' : 'degraded',
+      };
+    } catch {
+      // cluster info unavailable — nao altera status geral
+    }
+
+    const packageVersion = process.env.npm_package_version ?? '0.0.0';
+
     return {
       status: allUp ? ('ok' as const) : ('degraded' as const),
       checks,
+      uptime_seconds: Math.floor(process.uptime()),
+      version: packageVersion,
+      cluster,
+    };
+  }
+
+  /**
+   * Metricas operacionais do cluster — endpoint JSON para observabilidade.
+   * Fonte: docs/blueprint/15-observability.md
+   */
+  async getMetrics(): Promise<{
+    nodes_online: number;
+    nodes_suspect: number;
+    files_total: number;
+    storage_usage_percent: number;
+    chunks_sub_replicated: number;
+  }> {
+    const [nodesOnline, nodesSuspect, filesTotal, storageAgg, subReplicated] = await Promise.all([
+      this.prisma.node.count({ where: { status: 'online' } }),
+      this.prisma.node.count({ where: { status: 'suspect' } }),
+      this.prisma.file.count(),
+      this.prisma.node.aggregate({
+        _sum: { totalCapacity: true, usedCapacity: true },
+      }),
+      this.prisma.chunkReplica.groupBy({
+        by: ['chunkId'],
+        having: { chunkId: { _count: { lt: 3 } } },
+      }),
+    ]);
+
+    const capacity = Number(storageAgg._sum?.totalCapacity ?? 0);
+    const used = Number(storageAgg._sum?.usedCapacity ?? 0);
+    const storageUsagePercent = capacity > 0 ? Math.round((used / capacity) * 100) : 0;
+
+    return {
+      nodes_online: nodesOnline,
+      nodes_suspect: nodesSuspect,
+      files_total: filesTotal,
+      storage_usage_percent: storageUsagePercent,
+      chunks_sub_replicated: subReplicated.length,
     };
   }
 }

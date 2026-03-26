@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { BullModule } from '@nestjs/bullmq';
+import { LoggerModule } from 'nestjs-pino';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ClusterModule } from './modules/cluster/cluster.module';
@@ -14,6 +15,36 @@ import { RolesGuard } from './common/guards/roles.guard';
 
 @Module({
   imports: [
+    LoggerModule.forRoot({
+      pinoHttp: {
+        level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? { target: 'pino-pretty', options: { colorize: true, singleLine: true } }
+            : undefined,
+        redact: {
+          paths: [
+            'req.headers.authorization',
+            'req.headers.cookie',
+            'req.body.password',
+            'req.body.currentPassword',
+            'req.body.newPassword',
+            'req.body.seedPhrase',
+          ],
+          censor: '[REDACTED]',
+        },
+        serializers: {
+          req(req: Record<string, unknown>) {
+            return {
+              id: req['id'],
+              method: req['method'],
+              url: req['url'],
+              remoteAddress: req['remoteAddress'],
+            };
+          },
+        },
+      },
+    }),
     BullModule.forRoot({
       connection: {
         host: process.env.REDIS_HOST || 'localhost',
