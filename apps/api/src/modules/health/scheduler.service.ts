@@ -13,7 +13,7 @@ import { HealthService } from './health.service';
 export class SchedulerService {
   constructor(private readonly healthService: HealthService) {}
 
-  /** Verifica heartbeats a cada 5 minutos */
+  /** Verifica heartbeats a cada 5 minutos e dispara auto-healing para nos lost */
   @Cron(CronExpression.EVERY_5_MINUTES)
   async handleHeartbeatCheck() {
     const result = await this.healthService.checkHeartbeats();
@@ -21,6 +21,22 @@ export class SchedulerService {
       console.warn(
         `[Scheduler] Heartbeat check: ${result.suspect} suspect, ${result.lost} lost`,
       );
+    }
+
+    // Auto-healing: re-replicar chunks de nos que acabaram de ficar lost
+    for (const node of result.lostNodes) {
+      try {
+        console.log(`[Scheduler] Starting auto-healing for node ${node.id} (${node.name})`);
+        const healResult = await this.healthService.autoHeal(node.id, node.clusterId);
+        console.log(
+          `[Scheduler] Auto-healing for ${node.name}: ${healResult.chunksHealed} healed, ${healResult.chunksSkipped} skipped, ${healResult.chunksFailed} failed`,
+        );
+      } catch (err) {
+        console.error(
+          `[Scheduler] Auto-healing failed for node ${node.id}:`,
+          err instanceof Error ? err.message : err,
+        );
+      }
     }
   }
 

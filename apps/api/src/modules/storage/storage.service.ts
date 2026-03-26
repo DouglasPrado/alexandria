@@ -1,4 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
+import { resolve } from 'node:path';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   split,
@@ -10,6 +11,10 @@ import {
   LocalStorageProvider,
   type StorageProvider,
 } from '@alexandria/core-sdk';
+
+/** Path absoluto para chunks locais — configuravel via env ou default na raiz do monorepo */
+const LOCAL_CHUNKS_DIR = process.env.LOCAL_STORAGE_PATH
+  || resolve(process.cwd(), '../..', 'apps', 'data', 'chunks');
 
 /**
  * StorageService — orquestra distribuicao de chunks para nos de storage.
@@ -49,17 +54,30 @@ export class StorageService implements OnModuleInit {
           let provider: StorageProvider;
 
           if (node.type === 'local') {
-            provider = new LocalStorageProvider(node.endpoint || '/tmp/alexandria/chunks');
+            const localPath = node.endpoint
+              ? (node.endpoint.startsWith('/') ? node.endpoint : resolve(process.cwd(), '../..', node.endpoint))
+              : LOCAL_CHUNKS_DIR;
+            provider = new LocalStorageProvider(localPath);
           } else {
             // Para S3/R2/B2: credenciais estao encriptadas no configEncrypted
             // No MVP, usamos endpoint do banco + credenciais placeholder
             // Em producao, descriptografar config do vault do owner
+            const endpoint = node.endpoint || '';
+            const accessKeyId = process.env.AWS_ACCESS_KEY_ID || '';
+            const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || '';
+
+            // Skip S3 nodes with missing endpoint or credentials — they can't serve requests
+            if (!endpoint || !accessKeyId || !secretAccessKey) {
+              console.log(`[StorageService] Skipping node ${node.id} (${node.type}) — missing endpoint or credentials`);
+              continue;
+            }
+
             provider = new S3StorageProvider({
-              endpoint: node.endpoint || '',
+              endpoint,
               region: 'us-east-1',
               bucket: 'alexandria',
-              accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-              secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+              accessKeyId,
+              secretAccessKey,
             });
           }
 
@@ -70,10 +88,80 @@ export class StorageService implements OnModuleInit {
         }
       }
 
+      // In dev, if no valid nodes were loaded, ensure a local node exists
+      // so the pipeline doesn't crash on an empty ring
+      if (this.providers.size === 0 && process.env.NODE_ENV !== 'production') {
+        await this.ensureLocalDevNode();
+      }
+
       console.log(`[StorageService] Loaded ${this.providers.size} nodes into hash ring`);
     } catch {
       // Database may not be ready yet — nodes will be registered via NodeService
     }
+  }
+
+  /**
+   * Garante que um no local existe no banco e no ring para dev.
+   * Busca cluster/member existente para associar o no.
+   * Reusa no existente se ja foi criado em boot anterior.
+   */
+  private async ensureLocalDevNode(): Promise<void> {
+    const fallbackDir = LOCAL_CHUNKS_DIR;
+
+    // Check if any local node already exists in DB (e.g. from previous boot or user-created)
+    let localNode = await this.prisma.node.findFirst({
+      where: { type: 'local' },
+    });
+
+    if (!localNode) {
+      // Need a cluster + admin member to own the node
+      const cluster = await this.prisma.cluster.findFirst();
+      const admin = cluster
+        ? await this.prisma.member.findFirst({
+            where: { clusterId: cluster.id, role: 'admin' },
+          })
+        : null;
+
+      if (!cluster || !admin) {
+        console.log('[StorageService] No cluster/admin found — cannot create local dev node');
+        return;
+      }
+
+      localNode = await this.prisma.node.create({
+        data: {
+          clusterId: cluster.id,
+          ownerId: admin.id,
+          type: 'local',
+          name: 'Dev Local Node',
+          endpoint: fallbackDir,
+          status: 'online',
+          totalCapacity: BigInt(0), // synced from filesystem on boot
+          usedCapacity: BigInt(0),
+          configEncrypted: Buffer.from('dev-local'),
+          lastHeartbeat: new Date(),
+          tier: 'warm',
+        },
+      });
+      console.log(`[StorageService] Created local dev node ${localNode.id} at ${fallbackDir}`);
+    }
+
+    const localPath = localNode.endpoint.startsWith('/')
+      ? localNode.endpoint
+      : resolve(process.cwd(), '../..', localNode.endpoint);
+    const provider = new LocalStorageProvider(localPath);
+    this.ring.addNode(localNode.id, 100);
+    this.providers.set(localNode.id, provider);
+
+    // Sync totalCapacity from real filesystem
+    try {
+      const { total } = await provider.capacity();
+      await this.prisma.node.update({
+        where: { id: localNode.id },
+        data: { totalCapacity: total },
+      });
+    } catch { /* ignore — capacity will be 0 until first write */ }
+
+    console.log(`[StorageService] Registered local dev node ${localNode.id} at ${localPath}`);
   }
 
   /**
@@ -268,6 +356,20 @@ export class StorageService implements OnModuleInit {
       });
     });
 
+    // Update usedCapacity on nodes that received replicas
+    const sizeByChunk = new Map(processedChunks.map((c) => [c.chunkId, c.encrypted.length]));
+    const capacityByNode = new Map<string, bigint>();
+    for (const r of replicaRecords) {
+      const current = capacityByNode.get(r.nodeId) ?? 0n;
+      capacityByNode.set(r.nodeId, current + BigInt(sizeByChunk.get(r.chunkId) ?? 0));
+    }
+    for (const [nodeId, added] of capacityByNode) {
+      await this.prisma.node.update({
+        where: { id: nodeId },
+        data: { usedCapacity: { increment: added } },
+      });
+    }
+
     return {
       chunksCount: processedChunks.length,
       replicasCount,
@@ -308,5 +410,81 @@ export class StorageService implements OnModuleInit {
       throw new Error(`Node ${nodeId} not found in ring`);
     }
     return provider.get(key);
+  }
+
+  /**
+   * Re-replica um chunk de uma replica saudavel para um novo no.
+   * Usado pelo auto-healing quando um no e perdido.
+   * Fonte: docs/backend/06-services.md (HealthService.autoHeal — passo 3c)
+   *
+   * @param chunkId - SHA-256 do chunk a re-replicar
+   * @param excludeNodeIds - Nos a excluir (no perdido + nos que ja tem replica)
+   * @returns { targetNodeId, success }
+   * @throws Error se nenhuma replica saudavel encontrada ou nenhum no disponivel
+   */
+  async reReplicateChunk(
+    chunkId: string,
+    excludeNodeIds: string[],
+  ): Promise<{ targetNodeId: string; success: boolean }> {
+    // 1. Encontrar replica saudavel para ler
+    const healthyReplicas = await this.prisma.chunkReplica.findMany({
+      where: {
+        chunkId,
+        status: 'healthy',
+        nodeId: { notIn: excludeNodeIds },
+      },
+    });
+
+    if (healthyReplicas.length === 0) {
+      throw new Error(`No healthy replica found for chunk ${chunkId}`);
+    }
+
+    // 2. Ler chunk de uma replica saudavel
+    const sourceReplica = healthyReplicas[0]!;
+    const chunkData = await this.getFromNode(sourceReplica.nodeId, chunkId);
+
+    // 3. Selecionar novo no destino via ConsistentHashRing (excluindo nos que ja tem replica)
+    const allReplicaNodeIds = await this.prisma.chunkReplica.findMany({
+      where: { chunkId, status: 'healthy' },
+      select: { nodeId: true },
+    });
+    const excludeAll = [
+      ...new Set([...excludeNodeIds, ...allReplicaNodeIds.map((r) => r.nodeId)]),
+    ];
+
+    const candidates = this.ring.getNodes(chunkId, 1, excludeAll);
+    if (candidates.length === 0) {
+      throw new Error(`No available node for re-replication of chunk ${chunkId}`);
+    }
+
+    const targetNodeId = candidates[0]!;
+    const provider = this.providers.get(targetNodeId);
+    if (!provider) {
+      throw new Error(`Provider not found for target node ${targetNodeId}`);
+    }
+
+    // 4. Escrever chunk no novo no
+    await provider.put(chunkId, chunkData);
+
+    // 5. Criar registro de replica
+    await this.prisma.chunkReplica.create({
+      data: {
+        chunkId,
+        nodeId: targetNodeId,
+        status: 'healthy',
+      },
+    });
+
+    return { targetNodeId, success: true };
+  }
+
+  /**
+   * Remove dados de um no especifico.
+   * Idempotente — nao lanca erro se chave nao existe.
+   */
+  async deleteFromNode(nodeId: string, key: string): Promise<void> {
+    const provider = this.providers.get(nodeId);
+    if (!provider) return; // node may have been removed — skip silently
+    await provider.delete(key);
   }
 }

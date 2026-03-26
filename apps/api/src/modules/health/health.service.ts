@@ -1,20 +1,27 @@
 import {
+  Inject,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
+  forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { StorageService } from '../storage/storage.service';
 
 const SUSPECT_THRESHOLD_MS = 30 * 60 * 1000; // 30 min (RN-N1)
 const LOST_THRESHOLD_MS = 60 * 60 * 1000; // 1h (RN-N2)
 
 /**
- * HealthService — alertas, heartbeat monitoring, liveness/readiness.
+ * HealthService — alertas, heartbeat monitoring, auto-healing, liveness/readiness.
  * Fonte: docs/backend/06-services.md (HealthService)
  */
 @Injectable()
 export class HealthService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => StorageService))
+    private readonly storageService: StorageService,
+  ) {}
 
   /**
    * Cria alerta de condicao anomala (RN-A1).
@@ -107,10 +114,15 @@ export class HealthService {
    * RN-N1: 30min sem heartbeat → suspect + alerta warning
    * RN-N2: 1h sem heartbeat → lost + alerta critical
    */
-  async checkHeartbeats(): Promise<{ suspect: number; lost: number }> {
+  async checkHeartbeats(): Promise<{
+    suspect: number;
+    lost: number;
+    lostNodes: Array<{ id: string; clusterId: string; name: string }>;
+  }> {
     const now = Date.now();
     let suspect = 0;
     let lost = 0;
+    const lostNodes: Array<{ id: string; clusterId: string; name: string }> = [];
 
     // Find online nodes overdue for suspect
     const suspectCandidates = await this.prisma.node.findMany({
@@ -155,10 +167,98 @@ export class HealthService {
         message: `No "${node.name}" perdido — sem heartbeat ha 1 hora. Auto-healing necessario.`,
         relatedEntityId: node.id,
       });
+      lostNodes.push({ id: node.id, clusterId: node.clusterId, name: node.name });
       lost++;
     }
 
-    return { suspect, lost };
+    return { suspect, lost, lostNodes };
+  }
+
+  /**
+   * Auto-healing: re-replica chunks sub-replicados de um no perdido.
+   * Fonte: docs/backend/06-services.md (HealthService.autoHeal)
+   * Fonte: docs/blueprint/07-critical_flows.md (Auto-Healing — No Perdido)
+   *
+   * Fluxo:
+   * 1. Lista replicas do no perdido
+   * 2. Para cada chunk: conta replicas ativas restantes
+   * 3. Se < 3: re-replica via StorageService.reReplicateChunk
+   * 4. Remove replicas do no perdido
+   * 5. Resolve alerta do no e cria alerta de conclusao
+   *
+   * Idempotente: chunks ja com 3+ replicas sao ignorados.
+   */
+  async autoHeal(
+    nodeId: string,
+    clusterId: string,
+  ): Promise<{ chunksHealed: number; chunksSkipped: number; chunksFailed: number }> {
+    let chunksHealed = 0;
+    let chunksSkipped = 0;
+    let chunksFailed = 0;
+
+    // 1. Lista todas as replicas do no perdido
+    const lostReplicas = await this.prisma.chunkReplica.findMany({
+      where: { nodeId },
+    });
+
+    // 2-3. Para cada chunk, verificar e re-replicar se necessario
+    for (const replica of lostReplicas) {
+      // Conta replicas saudaveis excluindo o no perdido
+      const activeCount = await this.prisma.chunkReplica.count({
+        where: {
+          chunkId: replica.chunkId,
+          status: 'healthy',
+          nodeId: { not: nodeId },
+        },
+      });
+
+      if (activeCount >= 3) {
+        chunksSkipped++;
+        continue;
+      }
+
+      // Re-replicar
+      try {
+        await this.storageService.reReplicateChunk(replica.chunkId, [nodeId]);
+        chunksHealed++;
+      } catch (err) {
+        console.error(
+          `[AutoHeal] Failed to re-replicate chunk ${replica.chunkId}:`,
+          err instanceof Error ? err.message : err,
+        );
+        chunksFailed++;
+      }
+    }
+
+    // 4. Remove replicas do no perdido
+    await this.prisma.chunkReplica.deleteMany({ where: { nodeId } });
+
+    // 5. Resolve alerta node_offline existente (RN-A3)
+    const existingAlert = await this.prisma.alert.findFirst({
+      where: {
+        relatedEntityId: nodeId,
+        resolved: false,
+        type: 'node_offline',
+      },
+    });
+
+    if (existingAlert) {
+      await this.prisma.alert.update({
+        where: { id: existingAlert.id },
+        data: { resolved: true, resolvedAt: new Date() },
+      });
+    }
+
+    // 6. Cria alerta de conclusao
+    await this.createAlert({
+      clusterId,
+      type: 'auto_healing_complete',
+      severity: 'info',
+      message: `Auto-healing concluido para no ${nodeId}: ${chunksHealed} chunks re-replicados, ${chunksSkipped} ja replicados, ${chunksFailed} falhas.`,
+      relatedEntityId: nodeId,
+    });
+
+    return { chunksHealed, chunksSkipped, chunksFailed };
   }
 
   /** Liveness probe — processo ativo */

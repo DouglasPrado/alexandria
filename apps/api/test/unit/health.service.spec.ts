@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { HealthService } from '../../src/modules/health/health.service';
+import { StorageService } from '../../src/modules/storage/storage.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
 
 /**
@@ -34,6 +35,10 @@ const mockPrisma = {
   $queryRaw: jest.fn().mockResolvedValue([{ '?column?': 1 }]),
 };
 
+const mockStorageService = {
+  reReplicateChunk: jest.fn(),
+};
+
 describe('HealthService', () => {
   let healthService: HealthService;
 
@@ -44,6 +49,7 @@ describe('HealthService', () => {
       providers: [
         HealthService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: StorageService, useValue: mockStorageService },
       ],
     }).compile();
 

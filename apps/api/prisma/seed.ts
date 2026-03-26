@@ -10,109 +10,189 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import { randomUUID } from 'node:crypto';
+import {
+  randomUUID,
+  createHash,
+  randomBytes,
+  pbkdf2Sync,
+  hkdfSync,
+  createPrivateKey,
+  createPublicKey,
+  createCipheriv,
+} from 'node:crypto';
 
 const prisma = new PrismaClient();
+
+// --- Helpers crypto (inline para evitar dependencia de build do core-sdk) ---
+
+const PBKDF2_ITERATIONS = 600_000;
+const PBKDF2_SALT = 'alexandria-mnemonic-to-master-key';
+const KEYPAIR_HKDF_INFO = 'alexandria-ed25519-seed';
+
+function deriveMasterKey(mnemonic: string): Buffer {
+  return pbkdf2Sync(mnemonic, PBKDF2_SALT, PBKDF2_ITERATIONS, 32, 'sha256');
+}
+
+function generateKeypair(masterKey: Buffer): { publicKey: Buffer; privateKey: Buffer } {
+  const ed25519Seed = Buffer.from(
+    hkdfSync('sha256', masterKey, Buffer.alloc(0), KEYPAIR_HKDF_INFO, 32),
+  );
+  const privateKeyObject = createPrivateKey({
+    key: Buffer.concat([
+      Buffer.from('302e020100300506032b657004220420', 'hex'),
+      ed25519Seed,
+    ]),
+    format: 'der',
+    type: 'pkcs8',
+  });
+  const publicKeyObject = createPublicKey(privateKeyObject);
+  const publicKeyDer = publicKeyObject.export({ type: 'spki', format: 'der' });
+  const privateKeyDer = privateKeyObject.export({ type: 'pkcs8', format: 'der' });
+  const publicKey = publicKeyDer.subarray(publicKeyDer.length - 32);
+  return { publicKey: Buffer.from(publicKey), privateKey: Buffer.from(privateKeyDer) };
+}
+
+function hashPassword(password: string): string {
+  // Seed usa SHA-256 simples — em producao usa Argon2 via AuthService
+  return createHash('sha256').update(password).digest('hex');
+}
+
+// Seed phrase fixa para dev (NUNCA usar em producao)
+const DEV_SEED_PHRASE =
+  'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
 
 async function main() {
   console.log('🌱 Seeding database...');
 
-  // --- Cluster ---
+  // 1. Derivar identidade criptografica do cluster
+  const masterKey = deriveMasterKey(DEV_SEED_PHRASE);
+  const keypair = generateKeypair(masterKey);
+  const clusterId = createHash('sha256').update(keypair.publicKey).digest('hex');
+
+  // Encriptar private key com master key (AES-256-GCM)
+  const iv = randomBytes(12);
+  const cipher = createCipheriv('aes-256-gcm', masterKey, iv);
+  const encryptedPk = Buffer.concat([
+    iv,
+    cipher.update(keypair.privateKey),
+    cipher.final(),
+    cipher.getAuthTag(),
+  ]);
+
+  // 2. Criar cluster
+  const clusterUuid = randomUUID();
   const cluster = await prisma.cluster.create({
     data: {
-      id: randomUUID(),
-      clusterId: 'a'.repeat(64), // Placeholder SHA-256
-      name: 'Familia Prado (Dev)',
-      publicKey: Buffer.from('dev-public-key-placeholder'),
-      encryptedPrivateKey: Buffer.from('dev-encrypted-private-key-placeholder'),
+      id: clusterUuid,
+      clusterId,
+      name: 'Família Prado (Dev)',
+      publicKey: Uint8Array.from(keypair.publicKey),
+      encryptedPrivateKey: Uint8Array.from(encryptedPk),
       status: 'active',
     },
   });
-  console.log(`  ✓ Cluster: ${cluster.name} (${cluster.id})`);
+  console.log(`  ✓ Cluster: ${cluster.name} (${cluster.clusterId.slice(0, 12)}...)`);
 
-  // --- Admin Member ---
+  // 3. Criar admin
+  const adminUuid = randomUUID();
   const admin = await prisma.member.create({
     data: {
-      id: randomUUID(),
+      id: adminUuid,
       clusterId: cluster.id,
       name: 'Douglas Prado',
-      email: 'douglas@dev.local',
-      passwordHash: '$argon2id$v=19$m=65536,t=3,p=4$placeholder', // Placeholder — not a real hash
+      email: 'douglas@alexandria.dev',
+      passwordHash: hashPassword('dev-password-123'),
       role: 'admin',
-      invitedBy: null,
     },
   });
-  console.log(`  ✓ Admin: ${admin.name} (${admin.email})`);
+  console.log(`  ✓ Admin: ${admin.name} <${admin.email}>`);
 
-  // --- Regular Member ---
+  // 4. Criar membro
+  const memberUuid = randomUUID();
   const member = await prisma.member.create({
     data: {
-      id: randomUUID(),
+      id: memberUuid,
       clusterId: cluster.id,
-      name: 'Maria Prado',
-      email: 'maria@dev.local',
-      passwordHash: '$argon2id$v=19$m=65536,t=3,p=4$placeholder',
+      name: 'Ana Prado',
+      email: 'ana@alexandria.dev',
+      passwordHash: hashPassword('dev-password-456'),
       role: 'member',
       invitedBy: admin.id,
     },
   });
-  console.log(`  ✓ Member: ${member.name} (${member.email})`);
+  console.log(`  ✓ Member: ${member.name} <${member.email}>`);
 
-  // --- Admin Vault ---
-  await prisma.vault.create({
-    data: {
-      id: randomUUID(),
-      memberId: admin.id,
-      vaultData: Buffer.from('dev-vault-data-placeholder'),
-      encryptionAlgorithm: 'AES-256-GCM',
-      replicatedTo: [],
-      isAdminVault: true,
-    },
+  // 5. Criar vaults (admin e membro)
+  const dummyVaultData = Buffer.from(JSON.stringify({ credentials: {}, nodeConfigs: [] }));
+  await prisma.vault.createMany({
+    data: [
+      {
+        id: randomUUID(),
+        memberId: admin.id,
+        vaultData: dummyVaultData,
+        isAdminVault: true,
+      },
+      {
+        id: randomUUID(),
+        memberId: member.id,
+        vaultData: dummyVaultData,
+        isAdminVault: false,
+      },
+    ],
   });
-  console.log('  ✓ Admin vault created');
+  console.log('  ✓ Vaults: admin + member');
 
-  // --- Member Vault ---
-  await prisma.vault.create({
-    data: {
-      id: randomUUID(),
-      memberId: member.id,
-      vaultData: Buffer.from('dev-vault-data-placeholder'),
-      encryptionAlgorithm: 'AES-256-GCM',
-      replicatedTo: [],
-      isAdminVault: false,
+  // 6. Criar 3 nos de storage
+  const GB = 1024n * 1024n * 1024n;
+  const nodeConfigs = [
+    {
+      name: 'VPS Contabo (Local)',
+      type: 'LOCAL',
+      capacity: 500n * GB,
+      endpoint: '/data/storage/node-1',
+      tier: 'hot',
     },
-  });
-  console.log('  ✓ Member vault created');
-
-  // --- Storage Nodes ---
-  const nodeTypes = [
-    { name: 'NAS Escritorio', type: 'local', endpoint: '/mnt/alexandria/chunks' },
-    { name: 'AWS S3 Bucket', type: 's3', endpoint: 'https://s3.us-east-1.amazonaws.com' },
-    { name: 'Cloudflare R2', type: 'r2', endpoint: 'https://r2.cloudflarestorage.com' },
+    {
+      name: 'Cloudflare R2',
+      type: 'R2',
+      capacity: 1000n * GB,
+      endpoint: 'https://r2.alexandria.dev',
+      tier: 'warm',
+    },
+    {
+      name: 'Backblaze B2',
+      type: 'B2',
+      capacity: 2000n * GB,
+      endpoint: 'https://b2.alexandria.dev',
+      tier: 'cold',
+    },
   ];
 
-  for (const nodeData of nodeTypes) {
+  for (const cfg of nodeConfigs) {
     const node = await prisma.node.create({
       data: {
         id: randomUUID(),
         clusterId: cluster.id,
         ownerId: admin.id,
-        type: nodeData.type,
-        name: nodeData.name,
-        totalCapacity: BigInt(100 * 1024 * 1024 * 1024), // 100GB
-        usedCapacity: BigInt(0),
+        type: cfg.type,
+        name: cfg.name,
+        totalCapacity: cfg.capacity,
+        usedCapacity: 0n,
         status: 'online',
-        endpoint: nodeData.endpoint,
-        configEncrypted: Buffer.from('dev-config-placeholder'),
+        endpoint: cfg.endpoint,
+        configEncrypted: Buffer.from('dev-placeholder-encrypted-config'),
         lastHeartbeat: new Date(),
-        tier: 'warm',
+        tier: cfg.tier,
       },
     });
-    console.log(`  ✓ Node: ${node.name} (${node.type})`);
+    console.log(`  ✓ Node: ${node.name} (${cfg.type}, ${cfg.tier})`);
   }
 
-  console.log('\n✅ Seed complete!');
-  console.log('   1 cluster, 2 members, 2 vaults, 3 nodes');
+  console.log('\n✅ Seed completed successfully!');
+  console.log('\n📋 Dev credentials:');
+  console.log(`   Seed phrase: ${DEV_SEED_PHRASE}`);
+  console.log('   Admin: douglas@alexandria.dev / dev-password-123');
+  console.log('   Member: ana@alexandria.dev / dev-password-456');
 }
 
 main()
