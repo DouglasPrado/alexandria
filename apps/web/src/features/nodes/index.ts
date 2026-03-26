@@ -5,6 +5,6 @@ export { DisconnectConfirmDialog } from './components/DisconnectConfirmDialog';
 export { ClusterHealthSummary } from './components/ClusterHealthSummary';
 export { useNodes } from './hooks/useNodes';
 export { useNodeDetail } from './hooks/useNodeDetail';
-export { useRegisterNode, useDrainNode, useRemoveNode } from './hooks/useNodeMutations';
+export { useRegisterNode, useDrainNode, useRemoveNode, useRebalance } from './hooks/useNodeMutations';
 export { nodesApi } from './api/nodes-api';
 export type * from './types/node.types';

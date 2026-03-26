@@ -9,6 +9,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { NodeService } from './node.service';
+import { StorageService } from '../storage/storage.service';
 import { RegisterNodeDto } from './dto/register-node.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -16,7 +17,10 @@ import { CurrentMember, type CurrentMemberPayload } from '../../common/decorator
 
 @Controller('nodes')
 export class NodeController {
-  constructor(private readonly nodeService: NodeService) {}
+  constructor(
+    private readonly nodeService: NodeService,
+    private readonly storageService: StorageService,
+  ) {}
 
   /** POST /api/nodes — Registrar no (JWT+admin, UC-003) */
   @Post()
@@ -66,5 +70,13 @@ export class NodeController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string) {
     return this.nodeService.remove(id);
+  }
+
+  /** POST /api/nodes/rebalance — Rebalancear chunks entre nos (JWT+admin) */
+  @Post('rebalance')
+  @Roles('admin')
+  @HttpCode(HttpStatus.OK)
+  async rebalance() {
+    return this.storageService.rebalance();
   }
 }

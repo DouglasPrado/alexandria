@@ -26,4 +26,8 @@ export const nodesApi = {
 
   /** DELETE /api/nodes/:id — remover nó após drain */
   remove: (id: string): Promise<void> => apiClient.delete<void>(`/nodes/${id}`),
+
+  /** POST /api/nodes/rebalance — rebalancear chunks entre nós */
+  rebalance: (): Promise<{ chunksRelocated: number; chunksSkipped: number; chunksFailed: number }> =>
+    apiClient.post('/nodes/rebalance'),
 };

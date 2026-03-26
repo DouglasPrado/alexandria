@@ -1,17 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { HealthService } from './health.service';
+import { StorageService } from '../storage/storage.service';
 
 /**
  * SchedulerService — tarefas periodicas via @nestjs/schedule.
  * Fonte: docs/blueprint/06-system-architecture.md (Scheduler)
  *
  * - Heartbeat check: a cada 5 minutos
- * - Scrubbing, GC: stubs para proximas iteracoes
+ * - Scrubbing: diario as 03:00
+ * - GC: diario as 04:00
+ * - Rebalanceamento: diario as 02:00
  */
 @Injectable()
 export class SchedulerService {
-  constructor(private readonly healthService: HealthService) {}
+  constructor(
+    private readonly healthService: HealthService,
+    private readonly storageService: StorageService,
+  ) {}
 
   /** Verifica heartbeats a cada 5 minutos e dispara auto-healing para nos lost */
   @Cron(CronExpression.EVERY_5_MINUTES)
@@ -52,6 +58,25 @@ export class SchedulerService {
     } catch (err) {
       console.error(
         '[Scheduler] Scrubbing failed:',
+        err instanceof Error ? err.message : err,
+      );
+    }
+  }
+
+  /** Rebalanceamento diario as 02:00 — redistribui chunks para nos ideais (ADR-006) */
+  @Cron('0 2 * * *')
+  async handleRebalance() {
+    console.log('[Scheduler] Starting rebalance');
+    try {
+      const result = await this.storageService.rebalance();
+      if (result.chunksRelocated > 0 || result.chunksFailed > 0) {
+        console.log(
+          `[Scheduler] Rebalance complete: ${result.chunksRelocated} relocated, ${result.chunksSkipped} skipped, ${result.chunksFailed} failed`,
+        );
+      }
+    } catch (err) {
+      console.error(
+        '[Scheduler] Rebalance failed:',
         err instanceof Error ? err.message : err,
       );
     }

@@ -12,11 +12,14 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 const mockPrisma = {
   chunk: {
     findUnique: jest.fn(),
+    findMany: jest.fn().mockResolvedValue([]),
     create: jest.fn(),
     update: jest.fn(),
   },
   chunkReplica: {
     create: jest.fn(),
+    findMany: jest.fn().mockResolvedValue([]),
+    delete: jest.fn().mockResolvedValue({}),
   },
   manifest: {
     create: jest.fn(),
@@ -431,6 +434,100 @@ describe('StorageService', () => {
       expect(prisma.node.findFirst).not.toHaveBeenCalled();
 
       process.env.NODE_ENV = originalEnv;
+    });
+  });
+
+  describe('rebalance()', () => {
+    /**
+     * Rebalanceamento automatico — ADR-006 (Consistent Hashing)
+     * Para cada chunk, compara replicas atuais com nos ideais do anel.
+     * Adiciona replicas em nos que devem ter o chunk; remove excesso (>3).
+     */
+
+    it('should copy chunk to missing ideal node (REB-1: under-replicated)', async () => {
+      // chunk-1 esta em node-1 e node-2; ring diz que deve estar tambem em node-3
+      mockPrisma.chunk.findMany.mockResolvedValue([{ id: 'chunk-1', size: 100 }]);
+      mockPrisma.chunkReplica.findMany.mockResolvedValue([
+        { id: 'r1', chunkId: 'chunk-1', nodeId: 'node-1', status: 'healthy' },
+        { id: 'r2', chunkId: 'chunk-1', nodeId: 'node-2', status: 'healthy' },
+      ]);
+      mockPrisma.chunkReplica.create.mockResolvedValue({});
+
+      // Provide data so getFromNode works for node-1
+      const node1Provider = (storageService as any).providers.get('node-1');
+      node1Provider.get.mockResolvedValue(Buffer.from('chunk-data'));
+
+      const result = await storageService.rebalance();
+
+      expect(result.chunksRelocated).toBeGreaterThanOrEqual(1);
+      expect(mockPrisma.chunkReplica.create).toHaveBeenCalled();
+    });
+
+    it('should skip chunk already on 3 correct nodes (REB-2: already balanced)', async () => {
+      // Descobre quais 3 nos o ring seleciona para 'chunk-abc' — registramos so 3 nos entao vai ser todos
+      mockPrisma.chunk.findMany.mockResolvedValue([{ id: 'chunk-abc', size: 200 }]);
+      mockPrisma.chunkReplica.findMany.mockResolvedValue([
+        { id: 'r1', chunkId: 'chunk-abc', nodeId: 'node-1', status: 'healthy' },
+        { id: 'r2', chunkId: 'chunk-abc', nodeId: 'node-2', status: 'healthy' },
+        { id: 'r3', chunkId: 'chunk-abc', nodeId: 'node-3', status: 'healthy' },
+      ]);
+
+      const result = await storageService.rebalance();
+
+      expect(result.chunksSkipped).toBe(1);
+      expect(result.chunksRelocated).toBe(0);
+      expect(mockPrisma.chunkReplica.create).not.toHaveBeenCalled();
+    });
+
+    it('should remove excess replica when chunk has more than 3 replicas (REB-3: over-replicated)', async () => {
+      // 4 nos registrados: adiciona node-4 temporariamente
+      storageService.registerNode('node-4', 100, { ...mockProvider });
+
+      // chunk-xyz esta em 4 nos mas so deveria estar em 3
+      mockPrisma.chunk.findMany.mockResolvedValue([{ id: 'chunk-xyz', size: 50 }]);
+      mockPrisma.chunkReplica.findMany.mockResolvedValue([
+        { id: 'r1', chunkId: 'chunk-xyz', nodeId: 'node-1', status: 'healthy' },
+        { id: 'r2', chunkId: 'chunk-xyz', nodeId: 'node-2', status: 'healthy' },
+        { id: 'r3', chunkId: 'chunk-xyz', nodeId: 'node-3', status: 'healthy' },
+        { id: 'r4', chunkId: 'chunk-xyz', nodeId: 'node-4', status: 'healthy' },
+      ]);
+      mockPrisma.chunkReplica.delete.mockResolvedValue({});
+
+      const result = await storageService.rebalance();
+
+      // Deve remover a replica excedente
+      expect(mockPrisma.chunkReplica.delete).toHaveBeenCalled();
+      expect(result.chunksRelocated).toBeGreaterThanOrEqual(0);
+
+      storageService.unregisterNode('node-4');
+    });
+
+    it('should count as failed when provider.put throws (REB-4: copy error)', async () => {
+      mockPrisma.chunk.findMany.mockResolvedValue([{ id: 'chunk-fail', size: 100 }]);
+      mockPrisma.chunkReplica.findMany.mockResolvedValue([
+        { id: 'r1', chunkId: 'chunk-fail', nodeId: 'node-1', status: 'healthy' },
+        { id: 'r2', chunkId: 'chunk-fail', nodeId: 'node-2', status: 'healthy' },
+      ]);
+
+      // node-1 returns data but node-3 (missing) provider.put throws
+      const node1Provider = (storageService as any).providers.get('node-1');
+      node1Provider.get.mockResolvedValue(Buffer.from('chunk-data'));
+      const node3Provider = (storageService as any).providers.get('node-3');
+      node3Provider.put.mockRejectedValueOnce(new Error('disk full'));
+
+      const result = await storageService.rebalance();
+
+      expect(result.chunksFailed).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should return zeros when no chunks exist (REB-5: empty)', async () => {
+      mockPrisma.chunk.findMany.mockResolvedValue([]);
+
+      const result = await storageService.rebalance();
+
+      expect(result.chunksRelocated).toBe(0);
+      expect(result.chunksSkipped).toBe(0);
+      expect(result.chunksFailed).toBe(0);
     });
   });
 

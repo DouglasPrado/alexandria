@@ -39,3 +39,9 @@ export function useRemoveNode() {
     },
   });
 }
+
+export function useRebalance() {
+  return useMutation({
+    mutationFn: () => nodesApi.rebalance(),
+  });
+}

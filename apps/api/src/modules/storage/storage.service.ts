@@ -507,6 +507,119 @@ export class StorageService implements OnModuleInit {
   }
 
   /**
+   * Rebalanceia chunks entre os nos do anel consistente.
+   * ADR-006: quando nos entram/saem, redireciona replicas para os nos ideais.
+   *
+   * Para cada chunk:
+   * 1. Calcula nos ideais via ConsistentHashRing.getNodes(chunkId, 3)
+   * 2. Compara com replicas atuais no banco
+   * 3. Adiciona replicas em nos que devem ter o chunk mas nao tem
+   * 4. Remove replicas de nos que nao devem ter o chunk (excesso >3)
+   *
+   * @returns { chunksRelocated, chunksSkipped, chunksFailed }
+   */
+  async rebalance(): Promise<{
+    chunksRelocated: number;
+    chunksSkipped: number;
+    chunksFailed: number;
+  }> {
+    const nodeCount = this.ring.getNodeCount();
+    if (nodeCount === 0) {
+      return { chunksRelocated: 0, chunksSkipped: 0, chunksFailed: 0 };
+    }
+
+    const replicationFactor = Math.min(3, nodeCount);
+    const chunks = await this.prisma.chunk.findMany();
+
+    let chunksRelocated = 0;
+    let chunksSkipped = 0;
+    let chunksFailed = 0;
+
+    for (const chunk of chunks) {
+      try {
+        // 1. Nos ideais para este chunk segundo o anel atual
+        let idealNodes: string[];
+        try {
+          idealNodes = this.ring.getNodes(chunk.id, replicationFactor);
+        } catch {
+          chunksFailed++;
+          continue;
+        }
+
+        // 2. Replicas atuais no banco
+        const currentReplicas = await this.prisma.chunkReplica.findMany({
+          where: { chunkId: chunk.id, status: 'healthy' },
+        });
+        const currentNodeIds = new Set(currentReplicas.map((r: any) => r.nodeId));
+        const idealSet = new Set(idealNodes);
+
+        const missingNodes = idealNodes.filter((n) => !currentNodeIds.has(n));
+        const excessReplicas = currentReplicas.filter((r: any) => !idealSet.has(r.nodeId));
+
+        if (missingNodes.length === 0 && excessReplicas.length === 0) {
+          chunksSkipped++;
+          continue;
+        }
+
+        // 3. Adiciona replicas nos nos que deveriam ter o chunk
+        if (missingNodes.length > 0) {
+          // Encontra uma replica saudavel para ler
+          const source = currentReplicas.find(
+            (r: any) => r.status === 'healthy' && this.providers.has(r.nodeId),
+          );
+
+          if (!source) {
+            chunksFailed++;
+            continue;
+          }
+
+          const chunkData = await this.getFromNode(source.nodeId, chunk.id);
+
+          for (const targetNodeId of missingNodes) {
+            const provider = this.providers.get(targetNodeId);
+            if (!provider) continue;
+
+            try {
+              await provider.put(chunk.id, chunkData);
+              await this.prisma.chunkReplica.create({
+                data: { chunkId: chunk.id, nodeId: targetNodeId, status: 'healthy' },
+              });
+              chunksRelocated++;
+            } catch (err) {
+              console.error(
+                `[Rebalance] Failed to copy chunk ${chunk.id.slice(0, 16)} to node ${targetNodeId}:`,
+                err instanceof Error ? err.message : err,
+              );
+              chunksFailed++;
+            }
+          }
+        }
+
+        // 4. Remove replicas de nos que nao deveriam ter o chunk (excesso)
+        for (const replica of excessReplicas) {
+          try {
+            await this.deleteFromNode(replica.nodeId, chunk.id);
+            await this.prisma.chunkReplica.delete({ where: { id: replica.id } });
+          } catch (err) {
+            console.warn(
+              `[Rebalance] Failed to remove excess replica ${replica.id}:`,
+              err instanceof Error ? err.message : err,
+            );
+          }
+        }
+      } catch (err) {
+        console.error(
+          `[Rebalance] Error processing chunk ${chunk.id.slice(0, 16)}:`,
+          err instanceof Error ? err.message : err,
+        );
+        chunksFailed++;
+      }
+    }
+
+    return { chunksRelocated, chunksSkipped, chunksFailed };
+  }
+
+  /**
    * Remove dados de um no especifico.
    * Idempotente — nao lanca erro se chave nao existe.
    */
