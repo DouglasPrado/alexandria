@@ -17,6 +17,12 @@ export interface ScrubResult {
   irrecoverable: number;
 }
 
+export interface GCResult {
+  chunksRemoved: number;
+  replicasRemoved: number;
+  spaceFreed: number;
+}
+
 const SUSPECT_THRESHOLD_MS = 30 * 60 * 1000; // 30 min (RN-N1)
 const LOST_THRESHOLD_MS = 60 * 60 * 1000; // 1h (RN-N2)
 
@@ -389,6 +395,61 @@ export class HealthService {
     }
 
     return { verified, corrupted, repaired, skipped, irrecoverable };
+  }
+
+  /**
+   * Garbage Collection: remove chunks orfaos (referenceCount = 0).
+   * Fonte: docs/backend/06-services.md (HealthService.garbageCollect)
+   * Fonte: docs/backend/12-events.md (GarbageCollection — diario as 04:00)
+   *
+   * Chunk orfao: nenhum manifest referencia (referenceCount decrementado ao deletar arquivo).
+   * Fluxo:
+   * 1. Query chunks WHERE reference_count = 0
+   * 2. Para cada: deletar dados dos nos via StorageProvider
+   * 3. Deletar registros de chunk_replicas e chunks do banco
+   */
+  async garbageCollect(): Promise<GCResult> {
+    // 1. Encontrar chunks orfaos
+    const orphanChunks = await this.prisma.chunk.findMany({
+      where: { referenceCount: 0 },
+    });
+
+    if (orphanChunks.length === 0) {
+      return { chunksRemoved: 0, replicasRemoved: 0, spaceFreed: 0 };
+    }
+
+    const orphanIds = orphanChunks.map((c) => c.id);
+
+    // 2. Encontrar todas as replicas dos chunks orfaos
+    const replicas = await this.prisma.chunkReplica.findMany({
+      where: { chunkId: { in: orphanIds } },
+    });
+
+    // 3. Deletar dados dos nos via StorageProvider (best-effort)
+    for (const replica of replicas) {
+      try {
+        await this.storageService.deleteFromNode(replica.nodeId, replica.chunkId);
+      } catch {
+        // No pode estar offline — GC continua, dados serao limpos eventualmente
+      }
+    }
+
+    // 4. Deletar registros do banco
+    const replicaResult = await this.prisma.chunkReplica.deleteMany({
+      where: { chunkId: { in: orphanIds } },
+    });
+
+    const chunkResult = await this.prisma.chunk.deleteMany({
+      where: { id: { in: orphanIds } },
+    });
+
+    const spaceFreed = orphanChunks.reduce((acc, c) => acc + c.size, 0);
+
+    return {
+      chunksRemoved: chunkResult.count,
+      replicasRemoved: replicaResult.count,
+      spaceFreed,
+    };
   }
 
   /** Helper: encontra clusterId a partir de um chunkId via manifest → file → cluster */

@@ -57,7 +57,22 @@ export class SchedulerService {
     }
   }
 
-  // TODO: Garbage collection — remover chunks orfaos
-  // @Cron(CronExpression.EVERY_DAY_AT_4AM)
-  // async handleGarbageCollect() { ... }
+  /** GC diario as 04:00 — remove chunks orfaos (referenceCount = 0) */
+  @Cron('0 4 * * *')
+  async handleGarbageCollect() {
+    console.log('[Scheduler] Starting garbage collection');
+    try {
+      const result = await this.healthService.garbageCollect();
+      if (result.chunksRemoved > 0) {
+        console.log(
+          `[Scheduler] GC complete: ${result.chunksRemoved} chunks removed, ${result.replicasRemoved} replicas cleaned, ${result.spaceFreed} bytes freed`,
+        );
+      }
+    } catch (err) {
+      console.error(
+        '[Scheduler] Garbage collection failed:',
+        err instanceof Error ? err.message : err,
+      );
+    }
+  }
 }
