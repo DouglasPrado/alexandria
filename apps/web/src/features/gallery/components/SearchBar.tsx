@@ -8,6 +8,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
+import { startOfDay, endOfDay, parseISO } from 'date-fns';
+import { DatePicker } from '@/components/ui/date-picker';
 import type { MediaType } from '../types/file.types';
 
 interface SearchBarProps {
@@ -28,17 +30,14 @@ const FILTER_CHIPS: { label: string; value: MediaType }[] = [
   { label: 'Arquivos', value: 'archive' },
 ];
 
-/** Converte yyyy-MM-dd para ISO string início do dia */
 function dateToISOStart(dateStr: string): string {
   return new Date(`${dateStr}T00:00:00.000Z`).toISOString();
 }
 
-/** Converte yyyy-MM-dd para ISO string fim do dia */
 function dateToISOEnd(dateStr: string): string {
   return new Date(`${dateStr}T23:59:59.999Z`).toISOString();
 }
 
-/** Extrai yyyy-MM-dd de uma ISO string */
 function isoToDateInput(iso: string | undefined): string {
   if (!iso) return '';
   return iso.slice(0, 10);
@@ -56,13 +55,11 @@ export function SearchBar({
 }: SearchBarProps) {
   const [localQuery, setLocalQuery] = useState(query);
 
-  // Debounce 300ms
   useEffect(() => {
     const timer = setTimeout(() => onQueryChange(localQuery), 300);
     return () => clearTimeout(timer);
   }, [localQuery, onQueryChange]);
 
-  // Sync external query changes
   useEffect(() => {
     setLocalQuery(query);
   }, [query]);
@@ -86,7 +83,6 @@ export function SearchBar({
 
   return (
     <div className="space-y-3">
-      {/* Input de busca por nome */}
       <div className="relative">
         <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" />
         <input
@@ -98,7 +94,6 @@ export function SearchBar({
         />
       </div>
 
-      {/* Filter chips de tipo */}
       <div className="flex flex-wrap gap-2 items-center">
         {FILTER_CHIPS.map((chip) => (
           <button
@@ -123,7 +118,6 @@ export function SearchBar({
         )}
       </div>
 
-      {/* Filtro de período — UC-010 RF-064 */}
       <div className="flex gap-4 items-center">
         <div className="flex items-center gap-2">
           <label htmlFor="search-from" className="text-xs text-[var(--muted-foreground)] whitespace-nowrap">De</label>

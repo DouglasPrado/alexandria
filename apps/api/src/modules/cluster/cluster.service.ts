@@ -69,13 +69,13 @@ export class ClusterService {
     const vaultBundle = createVault(vaultContents, dto.admin.password, masterKey);
 
     // 9-11. Transaction: cluster + admin member + vault
-    const result = await this.prisma.$transaction(async (tx: PrismaService) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const cluster = await tx.cluster.create({
         data: {
           clusterId,
           name: dto.name,
-          publicKey: Buffer.from(publicKey),
-          encryptedPrivateKey: encryptedPrivateKeyBuffer,
+          publicKey: new Uint8Array(publicKey) as Uint8Array<ArrayBuffer>,
+          encryptedPrivateKey: new Uint8Array(encryptedPrivateKeyBuffer) as Uint8Array<ArrayBuffer>,
           status: 'active',
         },
       });
@@ -93,7 +93,7 @@ export class ClusterService {
       await tx.vault.create({
         data: {
           memberId: member.id,
-          vaultData: vaultBundle.encryptedData,
+          vaultData: new Uint8Array(vaultBundle.encryptedData) as Uint8Array<ArrayBuffer>,
           encryptionAlgorithm: 'AES-256-GCM',
           replicatedTo: [],
           isAdminVault: true,
@@ -132,10 +132,17 @@ export class ClusterService {
       throw new NotFoundException('Cluster nao encontrado');
     }
 
-    const [totalNodes, totalFiles] = await Promise.all([
+    const [totalNodes, totalFiles, nodeAgg] = await Promise.all([
       this.prisma.node.count({ where: { clusterId: id } }),
       this.prisma.file.count({ where: { clusterId: id } }),
+      this.prisma.node.aggregate({
+        where: { clusterId: id },
+        _sum: { totalCapacity: true, usedCapacity: true },
+      }),
     ]);
+
+    const totalStorage = Number(nodeAgg._sum.totalCapacity ?? 0);
+    const usedStorage = Number(nodeAgg._sum.usedCapacity ?? 0);
 
     return {
       id: cluster.id,
@@ -143,8 +150,8 @@ export class ClusterService {
       status: cluster.status,
       totalNodes,
       totalFiles,
-      totalStorage: 0,
-      usedStorage: 0,
+      totalStorage,
+      usedStorage,
       replicationFactor: 3,
       createdAt: cluster.createdAt.toISOString(),
     };

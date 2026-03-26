@@ -30,6 +30,7 @@ const mockPrisma = {
   },
   node: {
     count: jest.fn(),
+    aggregate: jest.fn().mockResolvedValue({ _sum: { totalCapacity: null, usedCapacity: null } }),
   },
   file: {
     count: jest.fn(),
@@ -251,6 +252,50 @@ describe('ClusterService', () => {
       mockPrisma.cluster.findUnique.mockResolvedValue(null);
 
       await expect(clusterService.findById('non-existent')).rejects.toThrow(NotFoundException);
+    });
+
+    /**
+     * Testes de capacidade agregada — Fase 2 cluster-health-dashboard
+     * Fonte: docs/backend/05-api-contracts.md (GET /api/clusters/:id — totalStorage, usedStorage)
+     */
+    it('should compute totalStorage by aggregating node totalCapacity', async () => {
+      mockPrisma.cluster.findUnique.mockResolvedValue({
+        id: 'uuid-1',
+        clusterId: 'a'.repeat(64),
+        name: 'Familia',
+        status: 'active',
+        createdAt: new Date(),
+      });
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.file.count.mockResolvedValue(50);
+      mockPrisma.node.aggregate = jest.fn().mockResolvedValue({
+        _sum: { totalCapacity: BigInt(300_000_000_000), usedCapacity: BigInt(90_000_000_000) },
+      });
+
+      const result = await clusterService.findById('uuid-1');
+
+      expect(result.totalStorage).toBe(300_000_000_000);
+      expect(result.usedStorage).toBe(90_000_000_000);
+    });
+
+    it('should return totalStorage=0 when cluster has no nodes', async () => {
+      mockPrisma.cluster.findUnique.mockResolvedValue({
+        id: 'uuid-1',
+        clusterId: 'a'.repeat(64),
+        name: 'Familia',
+        status: 'active',
+        createdAt: new Date(),
+      });
+      mockPrisma.node.count.mockResolvedValue(0);
+      mockPrisma.file.count.mockResolvedValue(0);
+      mockPrisma.node.aggregate = jest.fn().mockResolvedValue({
+        _sum: { totalCapacity: null, usedCapacity: null },
+      });
+
+      const result = await clusterService.findById('uuid-1');
+
+      expect(result.totalStorage).toBe(0);
+      expect(result.usedStorage).toBe(0);
     });
   });
 });
