@@ -5,8 +5,17 @@ import {
   UnprocessableEntityException,
   forwardRef,
 } from '@nestjs/common';
+import { createHash } from 'node:crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
+
+export interface ScrubResult {
+  verified: number;
+  corrupted: number;
+  repaired: number;
+  skipped: number;
+  irrecoverable: number;
+}
 
 const SUSPECT_THRESHOLD_MS = 30 * 60 * 1000; // 30 min (RN-N1)
 const LOST_THRESHOLD_MS = 60 * 60 * 1000; // 1h (RN-N2)
@@ -259,6 +268,136 @@ export class HealthService {
     });
 
     return { chunksHealed, chunksSkipped, chunksFailed };
+  }
+
+  /**
+   * Scrubbing: verificacao periodica de integridade de chunks via SHA-256.
+   * Fonte: docs/blueprint/07-critical_flows.md (Scrubbing e Verificacao de Integridade)
+   * Fonte: docs/backend/06-services.md (HealthService.scrub)
+   *
+   * Fluxo:
+   * 1. Seleciona batch de replicas ordenado por verified_at ASC NULLS FIRST
+   * 2. Para cada: le chunk do no, recalcula SHA-256, compara com chunk_id
+   * 3. Se match: atualiza verified_at (RN-CR3)
+   * 4. Se mismatch: marca corrompida, tenta reparar com replica saudavel (RN-CR4)
+   * 5. Se irrecuperavel: cria alerta critico
+   */
+  async scrub(batchSize: number): Promise<ScrubResult> {
+    let verified = 0;
+    let corrupted = 0;
+    let repaired = 0;
+    let skipped = 0;
+    let irrecoverable = 0;
+
+    // 1. Seleciona batch priorizando replicas nunca verificadas
+    const replicas = await this.prisma.chunkReplica.findMany({
+      where: { status: 'healthy' },
+      orderBy: { verifiedAt: { sort: 'asc', nulls: 'first' } },
+      take: batchSize,
+    });
+
+    for (const replica of replicas) {
+      // 2. Le chunk do no
+      let chunkData: Buffer;
+      try {
+        chunkData = await this.storageService.getFromNode(replica.nodeId, replica.chunkId);
+      } catch {
+        // No offline — skip, sera verificada no proximo ciclo
+        skipped++;
+        continue;
+      }
+
+      // 3. Recalcula SHA-256 e compara com chunk_id
+      const computedHash = createHash('sha256').update(chunkData).digest('hex');
+
+      if (computedHash === replica.chunkId) {
+        // Hash confere — atualiza verified_at
+        await this.prisma.chunkReplica.update({
+          where: { id: replica.id },
+          data: { verifiedAt: new Date() },
+        });
+        verified++;
+        continue;
+      }
+
+      // 4. Hash NAO confere — replica corrompida
+      corrupted++;
+      await this.prisma.chunkReplica.update({
+        where: { id: replica.id },
+        data: { status: 'corrupted' },
+      });
+
+      // Tentar reparar com replica saudavel de outro no
+      const healthyReplicas = await this.prisma.chunkReplica.findMany({
+        where: {
+          chunkId: replica.chunkId,
+          status: 'healthy',
+          id: { not: replica.id },
+        },
+      });
+
+      if (healthyReplicas.length === 0) {
+        // Nenhuma replica saudavel — chunk irrecuperavel
+        irrecoverable++;
+        await this.createAlert({
+          clusterId: await this.getClusterIdForChunk(replica.chunkId),
+          type: 'corruption_detected',
+          severity: 'critical',
+          message: `Chunk ${replica.chunkId.slice(0, 16)}... irrecuperavel — todas as replicas corrompidas.`,
+          relatedEntityId: replica.chunkId,
+        });
+        continue;
+      }
+
+      // Reparar: ler de replica saudavel e sobrescrever
+      try {
+        const sourceReplica = healthyReplicas[0]!;
+        const goodData = await this.storageService.getFromNode(
+          sourceReplica.nodeId,
+          replica.chunkId,
+        );
+
+        // Verificar que a replica fonte esta de fato saudavel
+        const sourceHash = createHash('sha256').update(goodData).digest('hex');
+        if (sourceHash !== replica.chunkId) {
+          // Replica fonte tambem corrompida — marcar e pular
+          irrecoverable++;
+          continue;
+        }
+
+        // Sobrescrever replica corrompida
+        await this.storageService.storeInNode(replica.chunkId, goodData);
+
+        // Restaurar status
+        await this.prisma.chunkReplica.update({
+          where: { id: replica.id },
+          data: { status: 'healthy', verifiedAt: new Date() },
+        });
+
+        repaired++;
+
+        await this.createAlert({
+          clusterId: await this.getClusterIdForChunk(replica.chunkId),
+          type: 'corruption_detected',
+          severity: 'warning',
+          message: `Chunk ${replica.chunkId.slice(0, 16)}... corrompido no no ${replica.nodeId.slice(0, 8)}... — reparado automaticamente.`,
+          relatedEntityId: replica.chunkId,
+        });
+      } catch {
+        irrecoverable++;
+      }
+    }
+
+    return { verified, corrupted, repaired, skipped, irrecoverable };
+  }
+
+  /** Helper: encontra clusterId a partir de um chunkId via manifest → file → cluster */
+  private async getClusterIdForChunk(chunkId: string): Promise<string> {
+    const manifestChunk = await this.prisma.manifestChunk?.findFirst?.({
+      where: { chunkId },
+      include: { manifest: { include: { file: true } } },
+    });
+    return manifestChunk?.manifest?.file?.clusterId ?? 'unknown';
   }
 
   /** Liveness probe — processo ativo */

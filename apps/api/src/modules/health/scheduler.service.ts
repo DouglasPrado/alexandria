@@ -40,9 +40,22 @@ export class SchedulerService {
     }
   }
 
-  // TODO: Scrubbing periodico — verificar integridade de chunks via SHA-256
-  // @Cron(CronExpression.EVERY_DAY_AT_3AM)
-  // async handleScrubbing() { ... }
+  /** Scrubbing diario as 03:00 — verifica integridade de chunks via SHA-256 (RN-CR3) */
+  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  async handleScrubbing() {
+    console.log('[Scheduler] Starting scrubbing cycle (batch: 1000)');
+    try {
+      const result = await this.healthService.scrub(1000);
+      console.log(
+        `[Scheduler] Scrubbing complete: ${result.verified} verified, ${result.corrupted} corrupted, ${result.repaired} repaired, ${result.skipped} skipped, ${result.irrecoverable} irrecoverable`,
+      );
+    } catch (err) {
+      console.error(
+        '[Scheduler] Scrubbing failed:',
+        err instanceof Error ? err.message : err,
+      );
+    }
+  }
 
   // TODO: Garbage collection — remover chunks orfaos
   // @Cron(CronExpression.EVERY_DAY_AT_4AM)
