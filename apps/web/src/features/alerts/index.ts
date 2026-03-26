@@ -1,1 +1,3 @@
-// alerts — notificacoes e alertas do sistema (falhas de replicacao, nos offline, etc.)
+export { alertsApi } from './api/alerts-api';
+export { useAlerts, useResolveAlert } from './hooks/useAlerts';
+export type { AlertDTO, AlertFilter } from './types/alert.types';
