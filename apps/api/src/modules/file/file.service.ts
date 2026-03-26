@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   PayloadTooLargeException,
@@ -8,13 +9,26 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
+import { decrypt, reassemble, type ChunkData } from '@alexandria/core-sdk';
 
 /** Limites de tamanho por tipo de midia (RN-F4) */
 const SIZE_LIMITS: Record<string, number> = {
   photo: 50 * 1024 * 1024, // 50MB
   video: 10 * 1024 * 1024 * 1024, // 10GB
   document: 2 * 1024 * 1024 * 1024, // 2GB
+  archive: 5 * 1024 * 1024 * 1024, // 5GB
 };
+
+/** MIME types classificados como archive */
+const ARCHIVE_MIME_TYPES = new Set([
+  'application/zip',
+  'application/gzip',
+  'application/x-tar',
+  'application/x-apple-diskimage',
+  'application/x-7z-compressed',
+  'application/x-rar-compressed',
+  'application/vnd.rar',
+]);
 
 const MIN_NODES_FOR_UPLOAD = parseInt(process.env.MIN_NODES_FOR_REPLICATION || '1', 10);
 const DEFAULT_PAGE_SIZE = 20;
@@ -38,13 +52,43 @@ export class FileService {
     @InjectQueue('media-pipeline') private readonly mediaQueue: Queue,
   ) {}
 
+  /** Whitelist de MIME types aceitos — docs/backend/10-validation.md */
+  private static readonly ALLOWED_MIME_TYPES: ReadonlySet<string> = new Set([
+    // photo
+    'image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'image/gif',
+    // video
+    'video/mp4', 'video/quicktime', 'video/webm', 'video/x-msvideo',
+    // document
+    'application/pdf', 'application/msword',
+    // archive (also in ARCHIVE_MIME_TYPES)
+    ...ARCHIVE_MIME_TYPES,
+  ]);
+
+  /** Prefixos de MIME types aceitos via wildcard — text/*, application/vnd.openxmlformats-* */
+  private static readonly ALLOWED_MIME_PREFIXES: readonly string[] = [
+    'text/',
+    'application/vnd.openxmlformats-',
+  ];
+
+  /**
+   * Valida se MIME type esta na whitelist.
+   * Rejeita tipos nao permitidos com 400.
+   * Fonte: docs/backend/10-validation.md
+   */
+  private validateMimeType(mimeType: string): void {
+    if (FileService.ALLOWED_MIME_TYPES.has(mimeType)) return;
+    if (FileService.ALLOWED_MIME_PREFIXES.some((p) => mimeType.startsWith(p))) return;
+    throw new BadRequestException(`MIME type nao permitido: ${mimeType}`);
+  }
+
   /**
    * Classifica MIME type para media type (RN-F1).
-   * image/* → photo, video/* → video, demais → document
+   * image/* → photo, video/* → video, archive set → archive, demais → document
    */
   private classifyMediaType(mimeType: string): string {
     if (mimeType.startsWith('image/')) return 'photo';
     if (mimeType.startsWith('video/')) return 'video';
+    if (ARCHIVE_MIME_TYPES.has(mimeType)) return 'archive';
     return 'document';
   }
 
@@ -66,6 +110,9 @@ export class FileService {
         `Nos insuficientes para replicacao minima. Minimo ${MIN_NODES_FOR_UPLOAD} no(s) ativo(s) necessario(s).`,
       );
     }
+
+    // Validate MIME type against whitelist (10-validation.md)
+    this.validateMimeType(file.mimetype);
 
     // RN-F1: Classify media type
     const mediaType = this.classifyMediaType(file.mimetype);
@@ -202,6 +249,133 @@ export class FileService {
         cursor: data.length > 0 ? data[data.length - 1]!.id : null,
         hasMore,
       },
+    };
+  }
+
+  /**
+   * Remove arquivo completo: chunks do storage, preview, registros no banco, atualiza capacidade dos nós.
+   * Preview e Manifest cascadeiam via onDelete: Cascade no schema.
+   *
+   * Fluxo: load replicas → delete chunks from nodes → update node capacity → delete DB records
+   */
+  async remove(fileId: string, clusterId: string) {
+    const file = await this.prisma.file.findUnique({ where: { id: fileId } });
+    if (!file) {
+      throw new NotFoundException('Arquivo nao encontrado');
+    }
+    if (file.clusterId !== clusterId) {
+      throw new NotFoundException('Arquivo nao encontrado');
+    }
+
+    // 1. Delete preview from storage node
+    const preview = await this.prisma.preview.findUnique({ where: { fileId } });
+    if (preview) {
+      const colonIndex = preview.storagePath.indexOf(':');
+      if (colonIndex > 0 && !preview.storagePath.startsWith('/')) {
+        const nodeId = preview.storagePath.substring(0, colonIndex);
+        const key = preview.storagePath.substring(colonIndex + 1);
+        await this.storageService.deleteFromNode(nodeId, key);
+      }
+    }
+
+    // 2. Load all chunk replicas for this file's manifest (with chunk size)
+    const replicas = await this.prisma.chunkReplica.findMany({
+      where: { chunk: { manifestChunks: { some: { manifest: { fileId } } } } },
+      select: { chunkId: true, nodeId: true, chunk: { select: { size: true } } },
+    });
+
+    // 3. Delete chunks from storage nodes
+    for (const replica of replicas) {
+      await this.storageService.deleteFromNode(replica.nodeId, replica.chunkId);
+    }
+
+    // 4. Update usedCapacity on affected nodes
+    const capacityByNode = new Map<string, bigint>();
+    for (const replica of replicas) {
+      const current = capacityByNode.get(replica.nodeId) ?? 0n;
+      capacityByNode.set(replica.nodeId, current + BigInt(replica.chunk.size));
+    }
+    for (const [nodeId, freed] of capacityByNode) {
+      await this.prisma.node.update({
+        where: { id: nodeId },
+        data: { usedCapacity: { decrement: freed } },
+      });
+    }
+
+    // 5. Delete file (cascades to preview, manifest, manifest_chunks)
+    await this.prisma.file.delete({ where: { id: fileId } });
+  }
+
+  /**
+   * Download: busca manifest → carrega chunks dos nós → descriptografa → reassembla.
+   * Retorna buffer completo + metadata para o controller enviar como resposta binária.
+   */
+  async download(fileId: string): Promise<{ data: Buffer; filename: string; mimeType: string }> {
+    const file = await this.prisma.file.findUnique({ where: { id: fileId } });
+    if (!file) {
+      throw new NotFoundException('Arquivo nao encontrado');
+    }
+
+    const manifest = await this.prisma.manifest.findUnique({ where: { fileId } });
+    if (!manifest) {
+      throw new NotFoundException('Manifest nao encontrado — arquivo ainda em processamento');
+    }
+
+    // Decrypt file key from manifest (envelope encryption)
+    const masterKey = Buffer.alloc(32, 0xab); // TODO: get real master key from cluster vault
+    const fkBuf = manifest.fileKeyEncrypted as Buffer;
+    const fileKey = decrypt(
+      {
+        iv: fkBuf.subarray(0, 12),
+        authTag: fkBuf.subarray(12, 28),
+        ciphertext: fkBuf.subarray(28),
+      },
+      masterKey,
+    );
+
+    // Load chunks in order from manifest
+    const chunksJson = manifest.chunksJson as Array<{ chunkId: string; chunkIndex: number; size: number }>;
+    const decryptedChunks: ChunkData[] = [];
+
+    for (const entry of chunksJson) {
+      // Find a replica node that has this chunk
+      const replica = await this.prisma.chunkReplica.findFirst({
+        where: { chunkId: entry.chunkId, status: 'healthy' },
+        select: { nodeId: true },
+      });
+
+      if (!replica) {
+        throw new NotFoundException(`Chunk ${entry.chunkId.substring(0, 16)} nao encontrado em nenhum no`);
+      }
+
+      // Fetch encrypted chunk from storage node
+      const encryptedBuf = await this.storageService.getFromNode(replica.nodeId, entry.chunkId);
+
+      // Decrypt chunk (iv:12 + authTag:16 + ciphertext)
+      const chunkData = decrypt(
+        {
+          iv: encryptedBuf.subarray(0, 12),
+          authTag: encryptedBuf.subarray(12, 28),
+          ciphertext: encryptedBuf.subarray(28),
+        },
+        fileKey,
+      );
+
+      decryptedChunks.push({
+        hash: entry.chunkId,
+        chunkIndex: entry.chunkIndex,
+        size: chunkData.length,
+        data: chunkData,
+      });
+    }
+
+    // Reassemble chunks into original file
+    const data = reassemble(decryptedChunks);
+
+    return {
+      data,
+      filename: file.originalName,
+      mimeType: file.mimeType,
     };
   }
 

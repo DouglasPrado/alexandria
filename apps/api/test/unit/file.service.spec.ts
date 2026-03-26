@@ -139,6 +139,73 @@ describe('FileService', () => {
       expect(capturedMediaType).toBe('document');
     });
 
+    it('should classify application/zip as archive (RN-F1)', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      let capturedMediaType = '';
+      mockPrisma.file.create.mockImplementation((args: any) => {
+        capturedMediaType = args.data.mediaType;
+        return { id: 'f1', originalName: 'backup.zip', mimeType: 'application/zip', mediaType: capturedMediaType, originalSize: BigInt(1000), status: 'processing', createdAt: new Date() };
+      });
+
+      await fileService.upload('c1', 'm1', { originalname: 'backup.zip', mimetype: 'application/zip', size: 1000, buffer: Buffer.alloc(10) });
+      expect(capturedMediaType).toBe('archive');
+    });
+
+    it('should classify application/x-apple-diskimage as archive (RN-F1)', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      let capturedMediaType = '';
+      mockPrisma.file.create.mockImplementation((args: any) => {
+        capturedMediaType = args.data.mediaType;
+        return { id: 'f1', originalName: 'app.dmg', mimeType: 'application/x-apple-diskimage', mediaType: capturedMediaType, originalSize: BigInt(1000), status: 'processing', createdAt: new Date() };
+      });
+
+      await fileService.upload('c1', 'm1', { originalname: 'app.dmg', mimetype: 'application/x-apple-diskimage', size: 1000, buffer: Buffer.alloc(10) });
+      expect(capturedMediaType).toBe('archive');
+    });
+
+    it('should classify application/gzip as archive (RN-F1)', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      let capturedMediaType = '';
+      mockPrisma.file.create.mockImplementation((args: any) => {
+        capturedMediaType = args.data.mediaType;
+        return { id: 'f1', originalName: 'data.tar.gz', mimeType: 'application/gzip', mediaType: capturedMediaType, originalSize: BigInt(1000), status: 'processing', createdAt: new Date() };
+      });
+
+      await fileService.upload('c1', 'm1', { originalname: 'data.tar.gz', mimetype: 'application/gzip', size: 1000, buffer: Buffer.alloc(10) });
+      expect(capturedMediaType).toBe('archive');
+    });
+
+    it('should enforce 5GB limit for archive files (RN-F4)', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+
+      await expect(
+        fileService.upload('c1', 'm1', {
+          originalname: 'huge.zip',
+          mimetype: 'application/zip',
+          size: 6 * 1024 * 1024 * 1024, // 6GB > 5GB limit
+          buffer: Buffer.alloc(10),
+        }),
+      ).rejects.toThrow(PayloadTooLargeException);
+    });
+
+    it('should allow archive files under 5GB limit (RN-F4)', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.file.create.mockImplementation((args: any) => ({
+        id: 'f1', originalName: args.data.originalName, mimeType: args.data.mimeType,
+        mediaType: args.data.mediaType, originalSize: args.data.originalSize,
+        status: 'processing', createdAt: new Date(),
+      }));
+
+      const result = await fileService.upload('c1', 'm1', {
+        originalname: 'backup.dmg',
+        mimetype: 'application/x-apple-diskimage',
+        size: 4 * 1024 * 1024 * 1024, // 4GB < 5GB limit
+        buffer: Buffer.alloc(10),
+      });
+
+      expect(result.status).toBe('processing');
+    });
+
     it('should throw PayloadTooLargeException for photo > 50MB (RN-F4)', async () => {
       mockPrisma.node.count.mockResolvedValue(3);
 
@@ -163,6 +230,66 @@ describe('FileService', () => {
           buffer: Buffer.alloc(10),
         }),
       ).rejects.toThrow(PayloadTooLargeException);
+    });
+
+    it('should reject image/svg+xml (not in whitelist)', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+
+      await expect(
+        fileService.upload('c1', 'm1', {
+          originalname: 'icon.svg', mimetype: 'image/svg+xml', size: 1000, buffer: Buffer.alloc(10),
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('should reject application/octet-stream (not in whitelist)', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+
+      await expect(
+        fileService.upload('c1', 'm1', {
+          originalname: 'unknown.bin', mimetype: 'application/octet-stream', size: 1000, buffer: Buffer.alloc(10),
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('should reject image/bmp (not in whitelist)', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+
+      await expect(
+        fileService.upload('c1', 'm1', {
+          originalname: 'old.bmp', mimetype: 'image/bmp', size: 1000, buffer: Buffer.alloc(10),
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('should accept application/vnd.openxmlformats-officedocument (docx)', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.file.create.mockImplementation((args: any) => ({
+        id: 'f1', originalName: args.data.originalName, mimeType: args.data.mimeType,
+        mediaType: args.data.mediaType, originalSize: args.data.originalSize,
+        status: 'processing', createdAt: new Date(),
+      }));
+
+      const result = await fileService.upload('c1', 'm1', {
+        originalname: 'relatorio.docx',
+        mimetype: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        size: 1000, buffer: Buffer.alloc(10),
+      });
+      expect(result.mimeType).toBe('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    });
+
+    it('should accept application/msword (doc)', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.file.create.mockImplementation((args: any) => ({
+        id: 'f1', originalName: args.data.originalName, mimeType: args.data.mimeType,
+        mediaType: args.data.mediaType, originalSize: args.data.originalSize,
+        status: 'processing', createdAt: new Date(),
+      }));
+
+      const result = await fileService.upload('c1', 'm1', {
+        originalname: 'letter.doc', mimetype: 'application/msword', size: 1000, buffer: Buffer.alloc(10),
+      });
+      expect(result.mimeType).toBe('application/msword');
     });
 
     it('should throw ServiceUnavailableException if < MIN_NODES active (RN-N6)', async () => {
