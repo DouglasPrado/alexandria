@@ -3,6 +3,7 @@ import { NotFoundException, UnprocessableEntityException } from '@nestjs/common'
 import { HealthService } from '../../src/modules/health/health.service';
 import { StorageService } from '../../src/modules/storage/storage.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
+import { NotificationService } from '../../src/modules/notification/notification.service';
 
 /**
  * Testes do HealthService — alertas, heartbeat check, liveness/readiness.
@@ -50,6 +51,13 @@ const mockStorageService = {
   reReplicateChunk: jest.fn(),
 };
 
+const mockNotifications = {
+  sendInviteEmail: jest.fn().mockResolvedValue(undefined),
+  sendWelcomeEmail: jest.fn().mockResolvedValue(undefined),
+  sendNodeLostAlert: jest.fn().mockResolvedValue(undefined),
+  sendFileErrorEmail: jest.fn().mockResolvedValue(undefined),
+};
+
 describe('HealthService', () => {
   let healthService: HealthService;
 
@@ -61,6 +69,7 @@ describe('HealthService', () => {
         HealthService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: StorageService, useValue: mockStorageService },
+        { provide: NotificationService, useValue: mockNotifications },
       ],
     }).compile();
 

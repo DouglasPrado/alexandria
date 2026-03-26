@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { HealthService } from '../../src/modules/health/health.service';
 import { StorageService } from '../../src/modules/storage/storage.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
+import { NotificationService } from '../../src/modules/notification/notification.service';
 
 /**
  * Testes de Garbage Collection — remocao de chunks orfaos.
@@ -55,6 +56,13 @@ const mockStorageService = {
   unregisterNode: jest.fn(),
 };
 
+const mockNotifications = {
+  sendInviteEmail: jest.fn().mockResolvedValue(undefined),
+  sendWelcomeEmail: jest.fn().mockResolvedValue(undefined),
+  sendNodeLostAlert: jest.fn().mockResolvedValue(undefined),
+  sendFileErrorEmail: jest.fn().mockResolvedValue(undefined),
+};
+
 describe('Garbage Collection', () => {
   let healthService: HealthService;
 
@@ -66,6 +74,7 @@ describe('Garbage Collection', () => {
         HealthService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: StorageService, useValue: mockStorageService },
+        { provide: NotificationService, useValue: mockNotifications },
       ],
     }).compile();
 

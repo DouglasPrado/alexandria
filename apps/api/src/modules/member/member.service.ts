@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../prisma/prisma.service';
+import { NotificationService } from '../notification/notification.service';
 import { randomBytes } from 'node:crypto';
 import * as argon2 from 'argon2';
 
@@ -24,6 +25,7 @@ export class MemberService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly notifications: NotificationService,
   ) {}
 
   /**
@@ -57,16 +59,22 @@ export class MemberService {
     const token = randomBytes(32).toString('base64url');
     const expiresAt = new Date(Date.now() + INVITE_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
 
-    const invite = await this.prisma.invite.create({
-      data: {
-        clusterId,
-        email: dto.email,
-        role: dto.role,
-        token,
-        expiresAt,
-        createdBy,
-      },
-    });
+    const [invite, cluster, inviter] = await Promise.all([
+      this.prisma.invite.create({
+        data: { clusterId, email: dto.email, role: dto.role, token, expiresAt, createdBy },
+      }),
+      this.prisma.cluster.findUnique({ where: { id: clusterId } }),
+      this.prisma.member.findUnique({ where: { id: createdBy } }),
+    ]);
+
+    // Dispara email de convite (fire-and-forget, graceful degradation)
+    this.notifications.sendInviteEmail({
+      to: dto.email,
+      name: dto.email.split('@')[0] ?? dto.email,
+      inviterName: inviter?.name ?? 'Alexandria',
+      clusterName: cluster?.name ?? 'Cluster',
+      inviteToken: token,
+    }).catch(() => {});
 
     return {
       id: invite.id,
@@ -156,6 +164,17 @@ export class MemberService {
       clusterId: member.clusterId,
       role: member.role,
     });
+
+    // Dispara email de boas-vindas (fire-and-forget)
+    (async () => {
+      const c = await this.prisma.cluster.findUnique({ where: { id: member.clusterId } });
+      await this.notifications.sendWelcomeEmail({
+        to: member.email,
+        name: member.name,
+        clusterName: c?.name ?? 'Cluster',
+        role: member.role,
+      });
+    })().catch(() => {});
 
     return {
       member: {

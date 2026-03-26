@@ -10,6 +10,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { MemberService } from '../../src/modules/member/member.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
+import { NotificationService } from '../../src/modules/notification/notification.service';
 
 /**
  * Testes do MemberService — convites, aceite, listagem, remocao.
@@ -53,6 +54,13 @@ const mockJwtService = {
   sign: jest.fn().mockReturnValue('mock-jwt-token'),
 };
 
+const mockNotifications = {
+  sendInviteEmail: jest.fn().mockResolvedValue(undefined),
+  sendWelcomeEmail: jest.fn().mockResolvedValue(undefined),
+  sendNodeLostAlert: jest.fn().mockResolvedValue(undefined),
+  sendFileErrorEmail: jest.fn().mockResolvedValue(undefined),
+};
+
 describe('MemberService', () => {
   let memberService: MemberService;
 
@@ -64,6 +72,7 @@ describe('MemberService', () => {
         MemberService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: JwtService, useValue: mockJwtService },
+        { provide: NotificationService, useValue: mockNotifications },
       ],
     }).compile();
 

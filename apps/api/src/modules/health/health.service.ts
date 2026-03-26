@@ -8,6 +8,7 @@ import {
 import { createHash } from 'node:crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
+import { NotificationService } from '../notification/notification.service';
 
 export interface ScrubResult {
   verified: number;
@@ -36,6 +37,7 @@ export class HealthService {
     private readonly prisma: PrismaService,
     @Inject(forwardRef(() => StorageService))
     private readonly storageService: StorageService,
+    private readonly notifications: NotificationService,
   ) {}
 
   /**
@@ -182,6 +184,26 @@ export class HealthService {
         message: `No "${node.name}" perdido — sem heartbeat ha 1 hora. Auto-healing necessario.`,
         relatedEntityId: node.id,
       });
+
+      // Notifica admin(s) do cluster por email (fire-and-forget)
+      (async () => {
+        const [admins, c] = await Promise.all([
+          this.prisma.member.findMany({ where: { clusterId: node.clusterId, role: 'admin' } }),
+          this.prisma.cluster.findUnique({ where: { id: node.clusterId } }),
+        ]);
+        const clusterName = c?.name ?? 'Cluster';
+        for (const admin of admins) {
+          await this.notifications.sendNodeLostAlert({
+            to: admin.email,
+            adminName: admin.name,
+            nodeName: node.name,
+            nodeType: (node as any).type ?? 'local',
+            chunksAffected: 0,
+            clusterName,
+          });
+        }
+      })().catch(() => {});
+
       lostNodes.push({ id: node.id, clusterId: node.clusterId, name: node.name });
       lost++;
     }
