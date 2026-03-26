@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { Plus, RefreshCw } from 'lucide-react';
 import {
   ClusterHealthSummary,
+  DedupStatsCard,
   NodeList,
   AddNodeDialog,
   useNodes,
@@ -71,6 +72,9 @@ export default function NodesPage() {
 
       {/* Health Summary */}
       {nodes && nodes.length > 0 && <ClusterHealthSummary nodes={nodes} />}
+
+      {/* Dedup Stats */}
+      <DedupStatsCard />
 
       {/* Node List */}
       <NodeList

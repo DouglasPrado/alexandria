@@ -507,6 +507,40 @@ export class StorageService implements OnModuleInit {
   }
 
   /**
+   * Estatisticas de deduplicacao global (content-addressable chunks).
+   * Fonte: docs/blueprint/11-build_plan.md (Fase 2 — Deduplicacao global)
+   *
+   * bytesLogical = soma(size × referenceCount) — o que seria armazenado sem dedup
+   * bytesSaved   = bytesLogical - bytesStored
+   * dedupRatio   = Math.round(bytesSaved / bytesLogical × 100)
+   */
+  async getDedupStats(): Promise<{
+    totalChunks: number;
+    totalReferences: number;
+    bytesStored: number;
+    bytesLogical: number;
+    bytesSaved: number;
+    dedupRatio: number;
+  }> {
+    const [totalChunks, sizeAgg, refAgg, logicalResult] = await Promise.all([
+      this.prisma.chunk.count(),
+      this.prisma.chunk.aggregate({ _sum: { size: true } }),
+      this.prisma.chunk.aggregate({ _sum: { referenceCount: true } }),
+      this.prisma.$queryRaw<[{ bytes_logical: bigint }]>`
+        SELECT COALESCE(SUM(size * reference_count), 0)::bigint AS bytes_logical FROM chunks
+      `,
+    ]);
+
+    const bytesStored = Number(sizeAgg._sum?.size ?? 0);
+    const totalReferences = Number(refAgg._sum?.referenceCount ?? 0);
+    const bytesLogical = Number((logicalResult as any)[0]?.bytes_logical ?? 0);
+    const bytesSaved = Math.max(0, bytesLogical - bytesStored);
+    const dedupRatio = bytesLogical > 0 ? Math.round((bytesSaved / bytesLogical) * 100) : 0;
+
+    return { totalChunks, totalReferences, bytesStored, bytesLogical, bytesSaved, dedupRatio };
+  }
+
+  /**
    * Rebalanceia chunks entre os nos do anel consistente.
    * ADR-006: quando nos entram/saem, redireciona replicas para os nos ideais.
    *

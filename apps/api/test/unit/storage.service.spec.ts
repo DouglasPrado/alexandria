@@ -13,6 +13,8 @@ const mockPrisma = {
   chunk: {
     findUnique: jest.fn(),
     findMany: jest.fn().mockResolvedValue([]),
+    count: jest.fn().mockResolvedValue(0),
+    aggregate: jest.fn().mockResolvedValue({ _sum: { size: 0, referenceCount: 0 } }),
     create: jest.fn(),
     update: jest.fn(),
   },
@@ -39,6 +41,7 @@ const mockPrisma = {
     updateMany: jest.fn().mockResolvedValue({}),
   },
   $transaction: jest.fn((fn: Function) => fn(mockPrisma)),
+  $queryRaw: jest.fn().mockResolvedValue([{ bytes_logical: BigInt(0) }]),
 };
 
 // Mock StorageProvider
@@ -528,6 +531,79 @@ describe('StorageService', () => {
       expect(result.chunksRelocated).toBe(0);
       expect(result.chunksSkipped).toBe(0);
       expect(result.chunksFailed).toBe(0);
+    });
+  });
+
+  describe('getDedupStats()', () => {
+    /**
+     * Metricas de deduplicacao — Fase 2 (content-addressable chunks).
+     * bytesLogical = o que seria armazenado sem dedup (size × referenceCount por chunk)
+     * bytesSaved   = bytesLogical - bytesStored (economizado pela dedup)
+     * dedupRatio   = bytesSaved / bytesLogical × 100
+     */
+
+    it('should return zeros when no chunks exist (DEDUP-1)', async () => {
+      mockPrisma.chunk.count.mockResolvedValue(0);
+      mockPrisma.chunk.aggregate
+        .mockResolvedValueOnce({ _sum: { size: 0 } })
+        .mockResolvedValueOnce({ _sum: { referenceCount: 0 } });
+      mockPrisma.$queryRaw.mockResolvedValue([{ bytes_logical: BigInt(0) }]);
+
+      const result = await storageService.getDedupStats();
+
+      expect(result.totalChunks).toBe(0);
+      expect(result.totalReferences).toBe(0);
+      expect(result.bytesStored).toBe(0);
+      expect(result.bytesSaved).toBe(0);
+      expect(result.dedupRatio).toBe(0);
+    });
+
+    it('should report zero savings when all chunks are referenced once (DEDUP-2)', async () => {
+      mockPrisma.chunk.count.mockResolvedValue(3);
+      mockPrisma.chunk.aggregate
+        .mockResolvedValueOnce({ _sum: { size: 3000 } })
+        .mockResolvedValueOnce({ _sum: { referenceCount: 3 } });
+      mockPrisma.$queryRaw.mockResolvedValue([{ bytes_logical: BigInt(3000) }]);
+
+      const result = await storageService.getDedupStats();
+
+      expect(result.totalChunks).toBe(3);
+      expect(result.totalReferences).toBe(3);
+      expect(result.bytesStored).toBe(3000);
+      expect(result.bytesSaved).toBe(0);
+      expect(result.dedupRatio).toBe(0);
+    });
+
+    it('should calculate savings when a chunk is referenced multiple times (DEDUP-3)', async () => {
+      // 1 chunk de 1000 bytes referenciado 3 vezes = 2000 bytes economizados
+      mockPrisma.chunk.count.mockResolvedValue(1);
+      mockPrisma.chunk.aggregate
+        .mockResolvedValueOnce({ _sum: { size: 1000 } })
+        .mockResolvedValueOnce({ _sum: { referenceCount: 3 } });
+      mockPrisma.$queryRaw.mockResolvedValue([{ bytes_logical: BigInt(3000) }]);
+
+      const result = await storageService.getDedupStats();
+
+      expect(result.totalChunks).toBe(1);
+      expect(result.totalReferences).toBe(3);
+      expect(result.bytesStored).toBe(1000);
+      expect(result.bytesLogical).toBe(3000);
+      expect(result.bytesSaved).toBe(2000);
+      expect(result.dedupRatio).toBe(67); // Math.round(2000/3000*100)
+    });
+
+    it('should handle mixed chunks — some shared, some unique (DEDUP-4)', async () => {
+      // 2 chunks unicos (2000 bytes), mas logicamente 5000 bytes referenciados
+      mockPrisma.chunk.count.mockResolvedValue(2);
+      mockPrisma.chunk.aggregate
+        .mockResolvedValueOnce({ _sum: { size: 2000 } })
+        .mockResolvedValueOnce({ _sum: { referenceCount: 5 } });
+      mockPrisma.$queryRaw.mockResolvedValue([{ bytes_logical: BigInt(5000) }]);
+
+      const result = await storageService.getDedupStats();
+
+      expect(result.bytesSaved).toBe(3000);
+      expect(result.dedupRatio).toBe(60);
     });
   });
 
