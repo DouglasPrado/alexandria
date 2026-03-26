@@ -102,6 +102,8 @@ model File {
   metadata      Json?
   status        String   @default("processing") @db.VarChar(20)
   errorMessage  String?  @map("error_message") @db.Text
+  versionOf     String?  @map("version_of") @db.Uuid
+  versionNumber Int      @default(1) @map("version_number")
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -109,6 +111,8 @@ model File {
   uploader Member    @relation(fields: [uploadedBy], references: [id])
   preview  Preview?
   manifest Manifest?
+  parent   File?     @relation("FileVersions", fields: [versionOf], references: [id])
+  versions File[]    @relation("FileVersions")
 
   @@index([clusterId])
   @@index([clusterId, status])
@@ -116,6 +120,7 @@ model File {
   @@index([uploadedBy])
   @@index([createdAt])
   @@index([clusterId, mediaType])
+  @@index([versionOf])
   @@map("files")
 }
 

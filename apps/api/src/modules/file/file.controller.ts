@@ -93,6 +93,28 @@ export class FileController {
     return this.fileService.remove(id, member.clusterId);
   }
 
+  /** GET /api/files/:id/versions — Lista versoes do arquivo (JWT) */
+  @Get(':id/versions')
+  async listVersions(
+    @Param('id') id: string,
+    @CurrentMember() member: CurrentMemberPayload,
+  ) {
+    return this.fileService.listVersions(id, member.clusterId);
+  }
+
+  /** POST /api/files/:id/versions — Cria nova versao (JWT, admin/member) */
+  @Post(':id/versions')
+  @Roles('admin', 'member')
+  @HttpCode(HttpStatus.ACCEPTED)
+  @UseInterceptors(FileInterceptor('file'))
+  async createVersion(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentMember() member: CurrentMemberPayload,
+  ) {
+    return this.fileService.createVersion(id, member.clusterId, member.memberId, file);
+  }
+
   /** GET /api/files/:id/download — Download arquivo reassemblado (JWT, UC-005) */
   @Get(':id/download')
   async download(@Param('id') id: string, @Res() res: Response) {

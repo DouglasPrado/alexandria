@@ -442,6 +442,107 @@ export class FileService {
   }
 
   /**
+   * Lista todas as versoes de um arquivo ordenadas por versionNumber.
+   * Funciona para root (versionOf=null) e revisoes (versionOf=<rootId>).
+   * Fonte: docs/blueprint/11-build_plan.md (Fase 2 — Versionamento)
+   */
+  async listVersions(fileId: string, clusterId: string) {
+    const file = await this.prisma.file.findUnique({ where: { id: fileId } });
+    if (!file || file.clusterId !== clusterId) {
+      throw new NotFoundException('Arquivo nao encontrado');
+    }
+
+    // Determine the root ID: if this file is a revision, use its parent; otherwise use itself
+    const rootId = file.versionOf ?? file.id;
+
+    const versions = await this.prisma.file.findMany({
+      where: { OR: [{ id: rootId }, { versionOf: rootId }] },
+      orderBy: { versionNumber: 'asc' },
+      select: {
+        id: true,
+        versionNumber: true,
+        versionOf: true,
+        originalName: true,
+        status: true,
+        originalSize: true,
+        createdAt: true,
+      },
+    });
+
+    return versions.map((v: any) => ({
+      id: v.id,
+      versionNumber: v.versionNumber,
+      versionOf: v.versionOf,
+      originalName: v.originalName,
+      status: v.status,
+      originalSize: Number(v.originalSize),
+      createdAt: v.createdAt.toISOString(),
+    }));
+  }
+
+  /**
+   * Cria nova versao de um arquivo existente.
+   * Herda clusterId do pai, incrementa versionNumber, enfileira processamento.
+   * Fonte: docs/blueprint/11-build_plan.md (Fase 2 — Versionamento)
+   */
+  async createVersion(fileId: string, clusterId: string, memberId: string, file: UploadedFile) {
+    const parent = await this.prisma.file.findUnique({ where: { id: fileId } });
+    if (!parent) {
+      throw new NotFoundException('Arquivo nao encontrado');
+    }
+    if (parent.clusterId !== clusterId) {
+      throw new NotFoundException('Arquivo nao encontrado');
+    }
+
+    // Always link to the root of the version chain
+    const rootId = (parent as any).versionOf ?? parent.id;
+
+    // Count existing versions to determine next versionNumber
+    const existingCount = await this.prisma.file.count({
+      where: { OR: [{ id: rootId }, { versionOf: rootId }] },
+    });
+    const nextVersion = existingCount + 1;
+
+    const mediaType = this.classifyMediaType(file.mimetype);
+
+    const record = await this.prisma.file.create({
+      data: {
+        clusterId,
+        uploadedBy: memberId,
+        originalName: file.originalname,
+        mediaType,
+        mimeType: file.mimetype,
+        originalSize: BigInt(file.size),
+        status: 'processing',
+        versionOf: rootId,
+        versionNumber: nextVersion,
+      },
+    });
+
+    await this.mediaQueue.add(
+      'process-file',
+      { fileId: record.id, buffer: file.buffer.toString('base64') },
+      {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 5000 },
+        removeOnComplete: true,
+        removeOnFail: false,
+      },
+    );
+
+    return {
+      id: record.id,
+      versionNumber: (record as any).versionNumber,
+      versionOf: (record as any).versionOf,
+      originalName: record.originalName,
+      mimeType: record.mimeType,
+      originalSize: Number(record.originalSize),
+      status: record.status,
+      createdAt: record.createdAt.toISOString(),
+    };
+  }
+
+  /**
    * Retorna preview binario de um arquivo, buscado do no de storage.
    * storagePath format: "nodeId:key"
    */

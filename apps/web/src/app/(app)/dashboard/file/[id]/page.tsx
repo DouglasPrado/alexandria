@@ -11,7 +11,7 @@ import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Download, Trash2, Loader2, ImageIcon, Film, FileText, Archive } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
-import { useFileDetail, useDeleteFile, filesApi } from '@/features/gallery';
+import { useFileDetail, useDeleteFile, filesApi, VersionHistoryPanel } from '@/features/gallery';
 import { formatBytes } from '@/lib/format';
 
 function formatDate(iso: string): string {
@@ -185,6 +185,9 @@ export default function FileDetailPage({ params }: { params: Promise<{ id: strin
           )}
         </div>
       </div>
+
+      {/* Version History */}
+      <VersionHistoryPanel fileId={id} canUpload={canDelete} />
     </div>
   );
 }

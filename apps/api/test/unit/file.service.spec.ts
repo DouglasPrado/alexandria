@@ -942,4 +942,123 @@ describe('FileService', () => {
       expect(result.data.equals(expected)).toBe(true);
     });
   });
+
+  describe('listVersions()', () => {
+    /**
+     * Versionamento de arquivos — Fase 2.
+     * Um arquivo original tem versionNumber=1, versionOf=null.
+     * Revisoes tem versionOf=<originalId>, versionNumber=2,3,...
+     * listVersions retorna todas as versoes do arquivo ordenadas por versionNumber.
+     */
+
+    it('should return all versions ordered by versionNumber (VER-1)', async () => {
+      mockPrisma.file.findUnique.mockResolvedValue({
+        id: 'file-root',
+        clusterId: 'cluster-1',
+        versionOf: null,
+        versionNumber: 1,
+        originalName: 'foto.jpg',
+      });
+      mockPrisma.file.findMany.mockResolvedValue([
+        { id: 'file-root', versionNumber: 1, originalName: 'foto.jpg', status: 'ready', originalSize: BigInt(1000), createdAt: new Date('2025-01-01'), versionOf: null },
+        { id: 'file-v2', versionNumber: 2, originalName: 'foto.jpg', status: 'ready', originalSize: BigInt(900), createdAt: new Date('2025-02-01'), versionOf: 'file-root' },
+      ]);
+
+      const result = await fileService.listVersions('file-root', 'cluster-1');
+
+      expect(result).toHaveLength(2);
+      expect(result[0]!.versionNumber).toBe(1);
+      expect(result[1]!.versionNumber).toBe(2);
+    });
+
+    it('should throw NotFoundException for unknown file (VER-2)', async () => {
+      mockPrisma.file.findUnique.mockResolvedValue(null);
+
+      await expect(fileService.listVersions('non-existent', 'cluster-1')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should find root and list from a revision (VER-3)', async () => {
+      // Called with file-v2 (revision) — should find root file-root and list all
+      mockPrisma.file.findUnique.mockResolvedValue({
+        id: 'file-v2',
+        clusterId: 'cluster-1',
+        versionOf: 'file-root',
+        versionNumber: 2,
+      });
+      mockPrisma.file.findMany.mockResolvedValue([
+        { id: 'file-root', versionNumber: 1, originalName: 'foto.jpg', status: 'ready', originalSize: BigInt(1000), createdAt: new Date(), versionOf: null },
+        { id: 'file-v2', versionNumber: 2, originalName: 'foto.jpg', status: 'ready', originalSize: BigInt(900), createdAt: new Date(), versionOf: 'file-root' },
+      ]);
+
+      const result = await fileService.listVersions('file-v2', 'cluster-1');
+
+      expect(result.some((v) => v.id === 'file-root')).toBe(true);
+      expect(result.some((v) => v.id === 'file-v2')).toBe(true);
+    });
+  });
+
+  describe('createVersion()', () => {
+    const versionFile: { originalname: string; mimetype: string; size: number; buffer: Buffer } = {
+      originalname: 'foto-v2.jpg',
+      mimetype: 'image/jpeg',
+      size: 500_000,
+      buffer: Buffer.alloc(500_000, 0xab),
+    };
+
+    it('should create new version with incremented versionNumber (VER-4)', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.member.findUnique.mockResolvedValue({ storageQuotaBytes: null });
+      mockPrisma.file.findUnique.mockResolvedValue({
+        id: 'file-root',
+        clusterId: 'cluster-1',
+        versionOf: null,
+        versionNumber: 1,
+        originalName: 'foto.jpg',
+        mediaType: 'photo',
+        mimeType: 'image/jpeg',
+      });
+      mockPrisma.file.count.mockResolvedValue(1); // 1 versao ja existe
+      mockPrisma.file.create.mockResolvedValue({
+        id: 'file-v2',
+        originalName: 'foto-v2.jpg',
+        mimeType: 'image/jpeg',
+        originalSize: BigInt(500_000),
+        status: 'processing',
+        versionOf: 'file-root',
+        versionNumber: 2,
+        createdAt: new Date(),
+      });
+
+      const result = await fileService.createVersion('file-root', 'cluster-1', 'member-1', versionFile);
+
+      expect(result.versionNumber).toBe(2);
+      expect(result.versionOf).toBe('file-root');
+      expect(mockPrisma.file.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ versionOf: 'file-root', versionNumber: 2 }),
+        }),
+      );
+      expect(mockQueue.add).toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException if parent file does not exist (VER-5)', async () => {
+      mockPrisma.file.findUnique.mockResolvedValue(null);
+
+      await expect(
+        fileService.createVersion('non-existent', 'cluster-1', 'member-1', versionFile),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw NotFoundException if parent belongs to different cluster (VER-6)', async () => {
+      mockPrisma.file.findUnique.mockResolvedValue({
+        id: 'file-root',
+        clusterId: 'other-cluster',
+        versionNumber: 1,
+      });
+
+      await expect(
+        fileService.createVersion('file-root', 'cluster-1', 'member-1', versionFile),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
 });

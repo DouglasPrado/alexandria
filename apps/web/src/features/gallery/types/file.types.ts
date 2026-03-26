@@ -49,6 +49,16 @@ export interface FilesResponse {
   };
 }
 
+export interface FileVersionDTO {
+  id: string;
+  versionNumber: number;
+  versionOf: string | null;
+  originalName: string;
+  status: FileStatus;
+  originalSize: number;
+  createdAt: string;
+}
+
 export interface FileFilters {
   q?: string;
   mediaType?: MediaType;

@@ -4,7 +4,7 @@
  *        docs/backend/05-api-contracts.md (Files endpoints)
  */
 import { apiClient } from '@/lib/api-client';
-import type { FileDetailDTO, FileFilters, FilesResponse } from '../types/file.types';
+import type { FileDetailDTO, FileFilters, FilesResponse, FileVersionDTO } from '../types/file.types';
 
 export const filesApi = {
   /** GET /api/files — listagem paginada com filtros */
@@ -36,4 +36,12 @@ export const filesApi = {
   /** GET /api/files/:id/preview — retorna URL do preview */
   previewUrl: (id: string): string =>
     `${process.env.NEXT_PUBLIC_API_URL ?? '/api'}/files/${id}/preview`,
+
+  /** GET /api/files/:id/versions — lista versoes do arquivo */
+  versions: (id: string): Promise<FileVersionDTO[]> =>
+    apiClient.get<FileVersionDTO[]>(`/files/${id}/versions`),
+
+  /** POST /api/files/:id/versions — cria nova versao */
+  createVersion: (id: string, file: File): Promise<FileVersionDTO> =>
+    apiClient.upload<FileVersionDTO>(`/files/${id}/versions`, file),
 };

@@ -8,5 +8,7 @@ export { useFiles } from './hooks/useFiles';
 export { useFileDetail } from './hooks/useFileDetail';
 export { useUploadFiles } from './hooks/useUploadFiles';
 export { useDeleteFile } from './hooks/useDeleteFile';
+export { VersionHistoryPanel } from './components/VersionHistoryPanel';
+export { useFileVersions, useCreateVersion } from './hooks/useFileVersions';
 export { filesApi } from './api/files-api';
 export type * from './types/file.types';
