@@ -11,38 +11,37 @@ import {
   hash,
   unlockVaultWithMasterKey,
 } from '@alexandria/core-sdk';
+import type { VaultContents, VaultBundle } from '@alexandria/core-sdk';
 
 /**
- * RecoveryService — recovery do orquestrador via seed phrase.
+ * RecoveryService — recovery completo do orquestrador via seed phrase (UC-007).
  * Fonte: docs/blueprint/07-critical_flows.md (Recovery do Orquestrador via Seed Phrase)
+ * Fonte: docs/blueprint/08-use_cases.md (UC-007)
  *
- * Fluxo: validate seed → derive master key → generate keypair → compute cluster_id
- *        → find cluster → decrypt vaults → report integrity
+ * Fluxo:
+ *   3-5:  validate seed → derive master key → compute cluster_id → find cluster
+ *   6:    decrypt admin vaults → extract node configs + cluster config
+ *   7:    reconnect storage providers com credenciais extraidas
+ *   8-9:  scan manifests dos nos → rebuild metadados (futuro)
+ *   12:   integrity check — chunks, replicas, under-replication
  */
 @Injectable()
 export class RecoveryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Recovery completo via seed phrase (UC-007).
-   * Passos 3-15 do fluxo critico conforme blueprint.
-   */
   async recover(dto: { seedPhrase: string }) {
-    // 3. Validate seed phrase against BIP-39 wordlist
+    // --- Passos 3-5: Validate → derive → find cluster ---
+
     if (!validateMnemonic(dto.seedPhrase)) {
       throw new BadRequestException(
         'Seed phrase invalida. Deve conter 12 palavras do dicionario BIP-39.',
       );
     }
 
-    // 4. Derive master key from seed
     const masterKey = deriveMasterKey(dto.seedPhrase);
-
-    // 5. Generate keypair and compute cluster_id
     const { publicKey } = generateKeypair(masterKey);
     const clusterId = hash(Buffer.from(publicKey));
 
-    // 6. Find cluster by cryptographic identity
     const cluster = await this.prisma.cluster.findFirst({
       where: { clusterId },
     });
@@ -53,30 +52,57 @@ export class RecoveryService {
       );
     }
 
-    // 7. Decrypt vaults with master key
+    // --- Passo 6: Decrypt vaults → extract node configs ---
+
     const vaults = await this.prisma.vault.findMany({
       where: { member: { clusterId: cluster.id } },
       include: { member: { select: { id: true, name: true, email: true } } },
     });
 
     let recoveredVaults = 0;
+    let failedVaults = 0;
+    const allNodeConfigs: VaultContents['nodeConfigs'] = [];
+
     for (const vault of vaults) {
       try {
-        // Attempt to decrypt with master key
-        const bundle = {
+        const bundle: VaultBundle = {
           encryptedData: Buffer.from(vault.vaultData),
           algorithm: vault.encryptionAlgorithm,
-          passwordSalt: (vault as any).passwordSalt ?? Buffer.alloc(16),
-          masterKeySalt: (vault as any).masterKeySalt ?? Buffer.alloc(16),
+          passwordSalt: Buffer.from(vault.passwordSalt),
+          masterKeySalt: Buffer.from(vault.masterKeySalt),
         };
-        unlockVaultWithMasterKey(bundle, masterKey);
+
+        const contents = unlockVaultWithMasterKey(bundle, masterKey);
         recoveredVaults++;
+
+        // Extract node configs from admin vaults (RN-V1)
+        if (contents.nodeConfigs?.length) {
+          for (const nc of contents.nodeConfigs) {
+            // Deduplicate by nodeId
+            if (!allNodeConfigs.some((c) => c.nodeId === nc.nodeId)) {
+              allNodeConfigs.push(nc);
+            }
+          }
+        }
       } catch {
-        // Vault could not be decrypted — may have different encryption
+        failedVaults++;
       }
     }
 
-    // 8-12. Check node connectivity
+    // --- Passo 7: Reconnect storage providers ---
+    // Node configs from vaults contain credentials for S3/R2/B2 nodes.
+    // If StorageService is available, re-register each node in the hash ring.
+    // (Actual node re-registration happens on next boot or via explicit API call)
+
+    // --- Passos 8-9: Scan manifests → rebuild (placeholder) ---
+    // Full manifest scanning from cloud nodes requires active storage connections.
+    // For now, report what exists in the current DB.
+    const recoveredManifests = await this.prisma.manifest.count({
+      where: { file: { clusterId: cluster.id } },
+    });
+
+    // --- Passo 12: Integrity check ---
+
     const totalNodes = await this.prisma.node.count({
       where: { clusterId: cluster.id },
     });
@@ -84,26 +110,27 @@ export class RecoveryService {
       where: { clusterId: cluster.id, status: 'online' },
     });
 
-    // 13. Integrity check
     const totalChunks = await this.prisma.chunk.count();
     const totalReplicas = await this.prisma.chunkReplica.count({
       where: { status: 'healthy' },
     });
 
-    // Estimate: healthy chunks are those with >= 1 healthy replica
-    const healthyChunks = Math.min(totalChunks, Math.floor(totalReplicas / 1));
-    const pendingHealing = totalChunks - healthyChunks;
+    // Chunks with at least 1 healthy replica are considered recoverable
+    const healthyChunks = Math.min(totalChunks, totalReplicas);
+    const pendingHealing = Math.max(0, totalChunks - healthyChunks);
 
     return {
-      status: 'recovered',
+      status: 'recovered' as const,
       recoveredVaults,
-      recoveredManifests: 0, // Full manifest scan in future iteration
+      failedVaults,
+      recoveredManifests,
+      nodeConfigs: allNodeConfigs,
       nodesReconnected: onlineNodes,
       nodesOffline: totalNodes - onlineNodes,
       integrityCheck: {
         totalChunks,
         healthyChunks,
-        pendingHealing: Math.max(0, pendingHealing),
+        pendingHealing,
       },
     };
   }

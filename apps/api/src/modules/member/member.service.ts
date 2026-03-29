@@ -144,6 +144,8 @@ export class MemberService {
         data: {
           memberId: newMember.id,
           vaultData: new Uint8Array(Buffer.from('{}')) as Uint8Array<ArrayBuffer>,
+          passwordSalt: new Uint8Array(Buffer.alloc(16)) as Uint8Array<ArrayBuffer>,
+          masterKeySalt: new Uint8Array(Buffer.alloc(16)) as Uint8Array<ArrayBuffer>,
           encryptionAlgorithm: 'AES-256-GCM',
           replicatedTo: [],
           isAdminVault: false,

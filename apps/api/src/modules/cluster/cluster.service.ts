@@ -98,6 +98,8 @@ export class ClusterService {
         data: {
           memberId: member.id,
           vaultData: new Uint8Array(vaultBundle.encryptedData) as Uint8Array<ArrayBuffer>,
+          passwordSalt: new Uint8Array(vaultBundle.passwordSalt) as Uint8Array<ArrayBuffer>,
+          masterKeySalt: new Uint8Array(vaultBundle.masterKeySalt) as Uint8Array<ArrayBuffer>,
           encryptionAlgorithm: 'AES-256-GCM',
           replicatedTo: [],
           isAdminVault: true,

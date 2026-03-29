@@ -217,6 +217,8 @@ model Vault {
   id                  String   @id @default(uuid()) @db.Uuid
   memberId            String   @unique @map("member_id") @db.Uuid
   vaultData           Bytes    @map("vault_data")
+  passwordSalt        Bytes    @map("password_salt")
+  masterKeySalt       Bytes    @map("master_key_salt")
   encryptionAlgorithm String   @default("AES-256-GCM") @map("encryption_algorithm") @db.VarChar(30)
   replicatedTo        Json     @default("[]") @map("replicated_to")
   isAdminVault        Boolean  @default(false) @map("is_admin_vault")

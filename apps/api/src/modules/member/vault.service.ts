@@ -22,6 +22,8 @@ export class VaultService {
       data: {
         memberId,
         vaultData: new Uint8Array(bundle.encryptedData) as Uint8Array<ArrayBuffer>,
+        passwordSalt: new Uint8Array(bundle.passwordSalt) as Uint8Array<ArrayBuffer>,
+        masterKeySalt: new Uint8Array(bundle.masterKeySalt) as Uint8Array<ArrayBuffer>,
         encryptionAlgorithm: 'AES-256-GCM',
         replicatedTo: [],
         isAdminVault: isAdmin,
@@ -32,13 +34,25 @@ export class VaultService {
   async unlock(memberId: string, password: string) {
     const vault = await this.prisma.vault.findUnique({ where: { memberId } });
     if (!vault) throw new NotFoundException('Vault nao encontrado');
-    return unlockVault(JSON.parse(Buffer.from(vault.vaultData).toString()) as VaultBundle, password);
+    const bundle: VaultBundle = {
+      encryptedData: Buffer.from(vault.vaultData),
+      algorithm: vault.encryptionAlgorithm,
+      passwordSalt: Buffer.from(vault.passwordSalt),
+      masterKeySalt: Buffer.from(vault.masterKeySalt),
+    };
+    return unlockVault(bundle, password);
   }
 
   async unlockWithMasterKey(memberId: string, masterKey: Buffer) {
     const vault = await this.prisma.vault.findUnique({ where: { memberId } });
     if (!vault) throw new NotFoundException('Vault nao encontrado');
-    return unlockVaultWithMasterKey(JSON.parse(Buffer.from(vault.vaultData).toString()) as VaultBundle, masterKey);
+    const bundle: VaultBundle = {
+      encryptedData: Buffer.from(vault.vaultData),
+      algorithm: vault.encryptionAlgorithm,
+      passwordSalt: Buffer.from(vault.passwordSalt),
+      masterKeySalt: Buffer.from(vault.masterKeySalt),
+    };
+    return unlockVaultWithMasterKey(bundle, masterKey);
   }
 
   async replicate(memberId: string, nodeId: string) {
