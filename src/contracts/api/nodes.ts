@@ -28,6 +28,24 @@ export interface NodeResponse {
 export interface DrainNodeResponse {
   id: string;
   status: NodeStatus;
-  chunksToMigrate: number;
-  estimatedTime: string;
+  chunksRelocated: number;
+  chunksSkipped: number;
+  chunksFailed: number;
+}
+
+/** PATCH /api/nodes/:id/tier */
+export interface SetTierRequest {
+  tier: 'hot' | 'warm' | 'cold';
+}
+
+export interface SetTierResponse {
+  id: string;
+  tier: string;
+}
+
+/** POST /api/nodes/rebalance */
+export interface RebalanceResponse {
+  chunksRelocated: number;
+  chunksSkipped: number;
+  chunksFailed: number;
 }

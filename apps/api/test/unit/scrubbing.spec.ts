@@ -219,6 +219,39 @@ describe('Scrubbing', () => {
       );
     });
 
+    it('should mark parent File as corrupted when chunk is irrecoverable', async () => {
+      const { createHash } = await import('node:crypto');
+      const correctHash = createHash('sha256').update(Buffer.from('original')).digest('hex');
+      const corruptData = Buffer.from('BAD-DATA');
+
+      mockPrisma.chunkReplica.findMany
+        .mockResolvedValueOnce([
+          { id: 'r1', chunkId: correctHash, nodeId: 'node-1', status: 'healthy', verifiedAt: null },
+        ])
+        .mockResolvedValueOnce([]); // no healthy replicas
+
+      mockStorageService.getFromNode.mockResolvedValueOnce(corruptData);
+      mockPrisma.chunkReplica.update.mockResolvedValue({});
+
+      // manifestChunk → manifest → file chain
+      mockPrisma.manifestChunk.findFirst.mockResolvedValue({
+        manifest: {
+          file: { id: 'file-1', clusterId: 'cluster-1', status: 'ready' },
+        },
+      });
+      mockPrisma.file.update.mockResolvedValue({});
+
+      await healthService.scrub(1000);
+
+      // Should update file status to corrupted
+      expect(mockPrisma.file.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'file-1' },
+          data: expect.objectContaining({ status: 'corrupted' }),
+        }),
+      );
+    });
+
     it('should respect batchSize limit', async () => {
       mockPrisma.chunkReplica.findMany.mockResolvedValueOnce([]);
 

@@ -163,8 +163,8 @@ describe('HealthService', () => {
       ]);
 
       const result = await healthService.listAlerts('cluster-1');
-      expect(result).toHaveLength(2);
-      expect(result[0].type).toBe('node_offline');
+      expect(result.data).toHaveLength(2);
+      expect(result.data[0].type).toBe('node_offline');
     });
 
     it('should filter by resolved status', async () => {

@@ -14,6 +14,7 @@ export interface Member {
   passwordHash: string;
   role: MemberRole;
   invitedBy: string | null;
+  storageQuotaBytes: bigint | null;
   joinedAt: Date;
   createdAt: Date;
   updatedAt: Date;

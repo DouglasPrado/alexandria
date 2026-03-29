@@ -10,9 +10,11 @@ import {
   HttpStatus,
   UseInterceptors,
   UploadedFile,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileService } from './file.service';
+import { ListFilesQueryDto } from './dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import {
   CurrentMember,
@@ -40,34 +42,28 @@ export class FileController {
   @Get()
   async list(
     @CurrentMember() member: CurrentMemberPayload,
-    @Query('cursor') cursor?: string,
-    @Query('limit') limit?: string,
-    @Query('mediaType') mediaType?: string,
-    @Query('status') status?: string,
-    @Query('search') search?: string,
-    @Query('from') from?: string,
-    @Query('to') to?: string,
+    @Query() query: ListFilesQueryDto,
   ) {
     return this.fileService.list(member.clusterId, {
-      cursor,
-      limit: limit ? parseInt(limit, 10) : undefined,
-      mediaType,
-      status,
-      search,
-      from,
-      to,
+      cursor: query.cursor,
+      limit: query.limit,
+      mediaType: query.mediaType,
+      status: query.status,
+      search: query.search,
+      from: query.from,
+      to: query.to,
     });
   }
 
   /** GET /api/files/:id — Detalhes do arquivo (JWT, UC-005) */
   @Get(':id')
-  async findById(@Param('id') id: string) {
+  async findById(@Param('id', ParseUUIDPipe) id: string) {
     return this.fileService.findById(id);
   }
 
   /** GET /api/files/:id/preview — Serve preview binary from storage node (JWT) */
   @Get(':id/preview')
-  async preview(@Param('id') id: string, @Res() res: Response) {
+  async preview(@Param('id', ParseUUIDPipe) id: string, @Res() res: Response) {
     const preview = await this.fileService.getPreview(id);
 
     const mimeTypes: Record<string, string> = {
@@ -87,7 +83,7 @@ export class FileController {
   @Roles('admin', 'member')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @CurrentMember() member: CurrentMemberPayload,
   ) {
     return this.fileService.remove(id, member.clusterId);
@@ -96,7 +92,7 @@ export class FileController {
   /** GET /api/files/:id/versions — Lista versoes do arquivo (JWT) */
   @Get(':id/versions')
   async listVersions(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @CurrentMember() member: CurrentMemberPayload,
   ) {
     return this.fileService.listVersions(id, member.clusterId);
@@ -108,7 +104,7 @@ export class FileController {
   @HttpCode(HttpStatus.ACCEPTED)
   @UseInterceptors(FileInterceptor('file'))
   async createVersion(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @UploadedFile() file: Express.Multer.File,
     @CurrentMember() member: CurrentMemberPayload,
   ) {
@@ -117,7 +113,7 @@ export class FileController {
 
   /** GET /api/files/:id/download — Download arquivo reassemblado (JWT, UC-005) */
   @Get(':id/download')
-  async download(@Param('id') id: string, @Res() res: Response) {
+  async download(@Param('id', ParseUUIDPipe) id: string, @Res() res: Response) {
     const file = await this.fileService.download(id);
 
     res.setHeader('Content-Type', file.mimeType);

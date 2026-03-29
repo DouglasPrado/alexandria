@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { ImageIcon, Loader2 } from 'lucide-react';
 import type { FileDTO } from '../types/file.types';
+import { FileIcon } from './FileIcon';
 
 interface TimelineViewProps {
   files: FileDTO[];
@@ -153,9 +154,7 @@ export function TimelineView({
                       <Loader2 size={24} className="text-[var(--muted-foreground)] animate-spin" />
                     </div>
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-[var(--muted)]">
-                      <ImageIcon size={24} className="text-[var(--muted-foreground)]" />
-                    </div>
+                    <FileIcon mediaType={file.mediaType} mimeType={file.mimeType} name={file.name} />
                   )}
 
                   <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity truncate">

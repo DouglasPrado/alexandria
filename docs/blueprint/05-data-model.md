@@ -69,6 +69,7 @@ Enquanto o [Modelo de Domínio](./04-domain-model.md) descreve entidades e regra
 | password_hash | VARCHAR(255) | NOT NULL                      | Hash da senha (Argon2id) para desbloquear vault |
 | role          | VARCHAR(20)  | NOT NULL, DEFAULT 'member'    | admin, member, reader                           |
 | invited_by    | UUID         | FK → members(id), NULL        | Membro que convidou; null para o criador        |
+| storage_quota_bytes | BIGINT       | NULL                          | Cota de armazenamento individual (bytes); null = sem limite |
 | joined_at     | TIMESTAMPTZ  | NOT NULL, DEFAULT NOW()       | Data de ingresso no cluster                     |
 | created_at    | TIMESTAMPTZ  | NOT NULL, DEFAULT NOW()       | Data de criação                                 |
 | updated_at    | TIMESTAMPTZ  | NOT NULL, DEFAULT NOW()       | Última atualização                              |
@@ -136,6 +137,8 @@ Enquanto o [Modelo de Domínio](./04-domain-model.md) descreve entidades e regra
 | metadata       | JSONB        | NULL                           | EXIF, duração, codec, páginas, encoding                 |
 | status         | VARCHAR(20)  | NOT NULL, DEFAULT 'processing' | processing, ready, error, corrupted                     |
 | error_message  | TEXT         | NULL                           | Mensagem de erro do pipeline (quando status = error)    |
+| version_of     | UUID         | FK → files(id), NULL           | Referência ao arquivo original (versionamento)          |
+| version_number | INTEGER      | NOT NULL, DEFAULT 1            | Número da versão do arquivo                             |
 | created_at     | TIMESTAMPTZ  | NOT NULL, DEFAULT NOW()        | Data de criação                                         |
 | updated_at     | TIMESTAMPTZ  | NOT NULL, DEFAULT NOW()        | Última atualização                                      |
 
@@ -150,6 +153,7 @@ Enquanto o [Modelo de Domínio](./04-domain-model.md) descreve entidades e regra
 | idx_files_created_at         | created_at               | BTREE | Timeline cronológica; paginação por cursor           |
 | idx_files_metadata           | metadata                 | GIN   | Busca em metadados EXIF (data, GPS, câmera) — fase 2 |
 | idx_files_cluster_media_type | (cluster_id, media_type) | BTREE | Filtro por tipo (fotos, vídeos, documentos)          |
+| idx_files_version_of         | version_of               | BTREE | Listar versões de um arquivo                         |
 
 ---
 
@@ -193,6 +197,9 @@ Enquanto o [Modelo de Domínio](./04-domain-model.md) descreve entidades e regra
 | signature          | BYTEA       | NOT NULL                                           | Assinatura criptográfica do manifest                |
 | replicated_to      | JSONB       | NOT NULL, DEFAULT '[]'                             | Lista de node_ids onde o manifest foi replicado     |
 | version            | INTEGER     | NOT NULL, DEFAULT 1                                | Versão do manifest (para versionamento de arquivos) |
+| coding_scheme      | VARCHAR(20) | NOT NULL, DEFAULT 'replication'                    | Esquema de codificação: replication ou erasure      |
+| data_shards        | INTEGER     | NOT NULL, DEFAULT 10                               | Número de shards de dados (erasure-coding RS)       |
+| parity_shards      | INTEGER     | NOT NULL, DEFAULT 4                                | Número de shards de paridade (erasure-coding RS)    |
 | created_at         | TIMESTAMPTZ | NOT NULL, DEFAULT NOW()                            | Data de criação                                     |
 | updated_at         | TIMESTAMPTZ | NOT NULL, DEFAULT NOW()                            | Última atualização                                  |
 

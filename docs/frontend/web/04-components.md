@@ -129,6 +129,21 @@ Define a hierarquia de componentes, padrões de composição e o template de doc
 | MemberList         | useMembers (TanStack Query) | Lista de membros com role e ações            |
 | RoleSelector       | — (select)                  | Dropdown de roles: admin, member, reader     |
 
+**Feature: gallery (componentes adicionais)**
+
+| Componente           | Dados que Consome               | Descrição                                                              |
+| -------------------- | ------------------------------- | ---------------------------------------------------------------------- |
+| FileIcon             | File (mediaType)                | Mapeia media types para ícones e cores; usado em GalleryGrid e Timeline |
+| CodingSchemeBadge    | Manifest (codingScheme, shards) | Badge mostrando "Replication 3x" ou "Erasure RS(10,4)"                 |
+| VersionHistoryPanel  | useFileVersions (TanStack Query) | Painel lateral com histórico de versões e upload de nova versão        |
+
+**Feature: nodes (componentes adicionais)**
+
+| Componente    | Dados que Consome                | Descrição                                         |
+| ------------- | -------------------------------- | ------------------------------------------------- |
+| DedupStatsCard | useDedupStats (TanStack Query)  | Card com estatísticas de deduplicação e economia  |
+| TierBadge     | Node (tier)                      | Badge visual para tier: hot (vermelho), warm (amarelo), cold (azul) |
+
 <!-- APPEND:feature-components -->
 
 ---

@@ -1,9 +1,11 @@
 import { Test } from '@nestjs/testing';
+import { BadRequestException } from '@nestjs/common';
 import {
-  BadRequestException,
-  NotFoundException,
-  UnprocessableEntityException,
-} from '@nestjs/common';
+  NodeNotFoundError,
+  ClusterFullError,
+  InsufficientNodesError,
+  InvalidStateTransitionError,
+} from '../../src/common/errors';
 import { NodeService } from '../../src/modules/node/node.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { StorageService } from '../../src/modules/storage/storage.service';
@@ -19,7 +21,15 @@ import { StorageService } from '../../src/modules/storage/storage.service';
  * - RN-C4: Max 50 nos por cluster
  */
 
+const FAKE_ENCRYPTED_PRIVATE_KEY = Buffer.from('a'.repeat(64), 'hex');
+
 const mockPrisma = {
+  cluster: {
+    findUnique: jest.fn().mockResolvedValue({
+      id: 'cluster-1',
+      encryptedPrivateKey: FAKE_ENCRYPTED_PRIVATE_KEY,
+    }),
+  },
   node: {
     create: jest.fn(),
     findUnique: jest.fn(),
@@ -194,7 +204,7 @@ describe('NodeService', () => {
           accessKey: 'AKIA...',
           secretKey: 'secret...',
         }),
-      ).rejects.toThrow(UnprocessableEntityException);
+      ).rejects.toThrow(InvalidStateTransitionError);
     });
 
     it('should throw UnprocessableEntityException for S3-compatible node without accessKey', async () => {
@@ -208,7 +218,7 @@ describe('NodeService', () => {
           accessKey: '',
           secretKey: '',
         }),
-      ).rejects.toThrow(UnprocessableEntityException);
+      ).rejects.toThrow(InvalidStateTransitionError);
     });
 
     it('should throw UnprocessableEntityException for S3 node without accessKey', async () => {
@@ -233,7 +243,7 @@ describe('NodeService', () => {
           accessKey: '',
           secretKey: '',
         }),
-      ).rejects.toThrow(UnprocessableEntityException);
+      ).rejects.toThrow(InvalidStateTransitionError);
     });
 
     it('should allow local node without S3 credentials', async () => {
@@ -298,7 +308,7 @@ describe('NodeService', () => {
       expect(result.usedCapacity).toBe(Number(BigInt(50e9)));
     });
 
-    it('should throw UnprocessableEntityException if cluster has 50 nodes (RN-C4)', async () => {
+    it('should throw ClusterFullError if cluster has 50 nodes (RN-C4)', async () => {
       mockPrisma.node.count.mockResolvedValue(50);
 
       await expect(
@@ -307,7 +317,7 @@ describe('NodeService', () => {
           type: 'local',
           endpoint: '/mnt/data',
         }),
-      ).rejects.toThrow(UnprocessableEntityException);
+      ).rejects.toThrow(ClusterFullError);
     });
 
     it('should encrypt node credentials before storing (RN-N4)', async () => {
@@ -371,7 +381,16 @@ describe('NodeService', () => {
     it('should throw NotFoundException for non-existent node', async () => {
       mockPrisma.node.findUnique.mockResolvedValue(null);
 
-      await expect(nodeService.heartbeat('non-existent')).rejects.toThrow(NotFoundException);
+      await expect(nodeService.heartbeat('non-existent')).rejects.toThrow(NodeNotFoundError);
+    });
+
+    it('should throw InvalidStateTransitionError for draining node', async () => {
+      mockPrisma.node.findUnique.mockResolvedValue({
+        id: 'node-1',
+        status: 'draining',
+      });
+
+      await expect(nodeService.heartbeat('node-1')).rejects.toThrow(InvalidStateTransitionError);
     });
 
     it('should update capacity from storage provider when available', async () => {
@@ -401,6 +420,50 @@ describe('NodeService', () => {
             totalCapacity: BigInt(500e9),
             usedCapacity: BigInt(120e9),
           }),
+        }),
+      );
+    });
+
+    it('should reject heartbeat for draining node (state machine guard)', async () => {
+      mockPrisma.node.findUnique.mockResolvedValue({
+        id: 'node-1',
+        status: 'draining',
+      });
+
+      await expect(nodeService.heartbeat('node-1')).rejects.toThrow(
+        InvalidStateTransitionError,
+      );
+      expect(mockPrisma.node.update).not.toHaveBeenCalled();
+    });
+
+    it('should reject heartbeat for disconnected node (state machine guard)', async () => {
+      mockPrisma.node.findUnique.mockResolvedValue({
+        id: 'node-1',
+        status: 'disconnected',
+      });
+
+      await expect(nodeService.heartbeat('node-1')).rejects.toThrow(
+        InvalidStateTransitionError,
+      );
+      expect(mockPrisma.node.update).not.toHaveBeenCalled();
+    });
+
+    it('should accept heartbeat for lost node and set status to online', async () => {
+      mockPrisma.node.findUnique.mockResolvedValue({
+        id: 'node-1',
+        status: 'lost',
+      });
+      mockPrisma.node.update.mockResolvedValue({
+        id: 'node-1',
+        status: 'online',
+        lastHeartbeat: new Date(),
+      });
+
+      await nodeService.heartbeat('node-1');
+
+      expect(mockPrisma.node.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ status: 'online' }),
         }),
       );
     });
@@ -447,8 +510,8 @@ describe('NodeService', () => {
       ]);
 
       const result = await nodeService.listByCluster('cluster-1');
-      expect(result).toHaveLength(1);
-      expect(result[0].name).toBe('NAS');
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].name).toBe('NAS');
     });
   });
 
@@ -500,6 +563,26 @@ describe('NodeService', () => {
       expect(result.chunksRelocated).toBe(2);
     });
 
+    it('should throw UnprocessableEntityException if node is not online (state machine guard)', async () => {
+      mockPrisma.node.findUnique.mockResolvedValue({
+        id: 'node-1',
+        clusterId: 'cluster-1',
+        status: 'suspect',
+      });
+
+      await expect(nodeService.drain('node-1')).rejects.toThrow(InvalidStateTransitionError);
+    });
+
+    it('should throw UnprocessableEntityException if node is already draining', async () => {
+      mockPrisma.node.findUnique.mockResolvedValue({
+        id: 'node-1',
+        clusterId: 'cluster-1',
+        status: 'draining',
+      });
+
+      await expect(nodeService.drain('node-1')).rejects.toThrow(InvalidStateTransitionError);
+    });
+
     it('should skip re-replication for chunks already with 3+ replicas', async () => {
       mockPrisma.node.findUnique.mockResolvedValue({
         id: 'node-1',
@@ -526,19 +609,18 @@ describe('NodeService', () => {
     it('should throw NotFoundException for non-existent node', async () => {
       mockPrisma.node.findUnique.mockResolvedValue(null);
 
-      await expect(nodeService.drain('non-existent')).rejects.toThrow(NotFoundException);
+      await expect(nodeService.drain('non-existent')).rejects.toThrow(NodeNotFoundError);
     });
 
-    it('should throw UnprocessableEntityException if drain would leave < MIN_NODES nodes (RN-N6)', async () => {
+    it('should throw InsufficientNodesError if drain would leave < MIN_NODES nodes (RN-N6)', async () => {
       mockPrisma.node.findUnique.mockResolvedValue({
         id: 'node-1',
         clusterId: 'cluster-1',
         status: 'online',
       });
-      // Default MIN_NODES_FOR_REPLICATION=1, so 1 active node = cannot drain
       mockPrisma.node.count.mockResolvedValue(1);
 
-      await expect(nodeService.drain('node-1')).rejects.toThrow(UnprocessableEntityException);
+      await expect(nodeService.drain('node-1')).rejects.toThrow(InsufficientNodesError);
     });
   });
 
@@ -556,7 +638,7 @@ describe('NodeService', () => {
     it('should throw NotFoundException for non-existent node', async () => {
       mockPrisma.node.findUnique.mockResolvedValue(null);
 
-      await expect(nodeService.remove('non-existent')).rejects.toThrow(NotFoundException);
+      await expect(nodeService.remove('non-existent')).rejects.toThrow(NodeNotFoundError);
     });
 
     it('should throw UnprocessableEntityException if node is not drained (RN-N3)', async () => {
@@ -565,7 +647,60 @@ describe('NodeService', () => {
         status: 'online', // not drained
       });
 
-      await expect(nodeService.remove('node-1')).rejects.toThrow(UnprocessableEntityException);
+      await expect(nodeService.remove('node-1')).rejects.toThrow(InvalidStateTransitionError);
+    });
+  });
+
+  describe('encryptConfig() — cluster-derived key (RN-N4)', () => {
+    it('should derive encryption key from cluster encrypted_private_key, not env var', async () => {
+      // Ensure no env var is set
+      delete process.env.NODE_CONFIG_ENCRYPTION_KEY;
+
+      mockPrisma.node.count.mockResolvedValue(3);
+      let capturedConfigEncrypted: Buffer | null = null;
+      mockPrisma.node.create.mockImplementation((args: any) => {
+        capturedConfigEncrypted = args.data.configEncrypted;
+        return {
+          id: 'node-enc',
+          name: args.data.name,
+          type: args.data.type,
+          status: 'online',
+          totalCapacity: BigInt(0),
+          usedCapacity: BigInt(0),
+          lastHeartbeat: new Date(),
+          createdAt: new Date(),
+        };
+      });
+
+      await nodeService.register('cluster-1', 'admin-1', {
+        name: 'Encrypted Node',
+        type: 'local',
+        endpoint: '/mnt/data',
+      });
+
+      // Should have fetched cluster to derive key
+      expect(mockPrisma.cluster.findUnique).toHaveBeenCalledWith({
+        where: { id: 'cluster-1' },
+        select: { encryptedPrivateKey: true },
+      });
+      expect(capturedConfigEncrypted).toBeDefined();
+      expect(capturedConfigEncrypted instanceof Uint8Array).toBe(true);
+      // Ciphertext should not contain plaintext
+      const raw = Buffer.from(capturedConfigEncrypted!).toString('utf-8');
+      expect(raw).not.toContain('endpoint');
+    });
+
+    it('should throw if cluster not found when encrypting config', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.cluster.findUnique.mockResolvedValueOnce(null);
+
+      await expect(
+        nodeService.register('missing-cluster', 'admin-1', {
+          name: 'Node',
+          type: 'local',
+          endpoint: '/mnt/data',
+        }),
+      ).rejects.toThrow();
     });
   });
 
@@ -621,7 +756,7 @@ describe('NodeService', () => {
 
       await expect(
         nodeService.setTier('non-existent', 'cluster-1', 'hot'),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(NodeNotFoundError);
     });
   });
 });

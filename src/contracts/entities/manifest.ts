@@ -13,6 +13,9 @@ export interface Manifest {
   signature: Uint8Array;
   replicatedTo: string[];
   version: number;
+  codingScheme: string;
+  dataShards: number;
+  parityShards: number;
   createdAt: Date;
   updatedAt: Date;
 }

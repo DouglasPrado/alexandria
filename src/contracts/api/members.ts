@@ -34,3 +34,26 @@ export interface MemberResponse {
   clusterId: string;
   joinedAt: string;
 }
+
+/** PATCH /api/members/me */
+export interface UpdateProfileRequest {
+  name?: string;
+  currentPassword?: string;
+  newPassword?: string;
+}
+
+export interface UpdateProfileResponse {
+  id: string;
+  name: string;
+  email: string;
+}
+
+/** PATCH /api/clusters/:id/members/:memberId/quota */
+export interface SetQuotaRequest {
+  bytes: number | null;
+}
+
+export interface SetQuotaResponse {
+  id: string;
+  storageQuotaBytes: number | null;
+}

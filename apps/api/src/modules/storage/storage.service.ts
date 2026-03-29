@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { resolve } from 'node:path';
-import { createDecipheriv } from 'node:crypto';
+import { createDecipheriv, createHash } from 'node:crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   split,
@@ -71,7 +71,7 @@ export class StorageService implements OnModuleInit {
             provider = new LocalStorageProvider(localPath);
           } else {
             // Decrypt config from configEncrypted (RN-N4)
-            const config = this.decryptNodeConfig(node.configEncrypted);
+            const config = await this.decryptNodeConfig(node.configEncrypted, node.clusterId);
             if (!config) {
               console.log(`[StorageService] Skipping node ${node.id} (${node.type}) — failed to decrypt config`);
               continue;
@@ -801,16 +801,17 @@ export class StorageService implements OnModuleInit {
 
   /**
    * Descriptografa configEncrypted de um no (AES-256-GCM).
-   * Contraparte de NodeService.encryptConfig.
+   * Chave derivada de SHA-256(encrypted_private_key) do cluster.
    * Formato: iv(12) + authTag(16) + ciphertext
    */
-  private decryptNodeConfig(
+  private async decryptNodeConfig(
     configEncrypted: Buffer | Uint8Array | null | undefined,
-  ): { endpoint?: string; bucket?: string; accessKey?: string; secretKey?: string; region?: string } | null {
+    clusterId: string,
+  ): Promise<{ endpoint?: string; bucket?: string; accessKey?: string; secretKey?: string; region?: string } | null> {
     if (!configEncrypted || configEncrypted.length < 29) return null;
     try {
       const buf = Buffer.from(configEncrypted);
-      const key = Buffer.alloc(32, 0); // Same placeholder key as NodeService.encryptConfig
+      const key = await this.getEncryptionKey(clusterId);
       const iv = buf.subarray(0, 12);
       const authTag = buf.subarray(12, 28);
       const ciphertext = buf.subarray(28);
@@ -821,5 +822,20 @@ export class StorageService implements OnModuleInit {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Deriva chave AES-256 a partir do encrypted_private_key do cluster.
+   * seed phrase → master key → encrypted_private_key (DB) → SHA-256 → node config key.
+   */
+  private async getEncryptionKey(clusterId: string): Promise<Buffer> {
+    const cluster = await this.prisma.cluster.findUnique({
+      where: { id: clusterId },
+      select: { encryptedPrivateKey: true },
+    });
+    if (!cluster?.encryptedPrivateKey) {
+      throw new Error(`Cluster ${clusterId} not found or missing encrypted_private_key`);
+    }
+    return createHash('sha256').update(Buffer.from(cluster.encryptedPrivateKey)).digest();
   }
 }

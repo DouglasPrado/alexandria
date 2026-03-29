@@ -14,13 +14,28 @@ export type {
   AcceptInviteResponse,
   MemberResponse,
 } from './members';
-export type { RegisterNodeRequest, NodeResponse, DrainNodeResponse } from './nodes';
+export type {
+  RegisterNodeRequest,
+  NodeResponse,
+  DrainNodeResponse,
+  SetTierRequest,
+  SetTierResponse,
+  RebalanceResponse,
+} from './nodes';
 export type {
   ListFilesQuery,
   FileResponse,
   FileDetailResponse,
   UploadFileResponse,
+  FileVersionResponse,
+  CreateVersionResponse,
   FileMetadata,
 } from './files';
+export type {
+  UpdateProfileRequest,
+  UpdateProfileResponse,
+  SetQuotaRequest,
+  SetQuotaResponse,
+} from './members';
 export type { AlertResponse, ResolveAlertResponse } from './alerts';
-export type { LivenessResponse, ReadinessResponse } from './health';
+export type { LivenessResponse, ReadinessResponse, MetricsResponse, StorageStatsResponse } from './health';

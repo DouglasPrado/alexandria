@@ -83,3 +83,67 @@ describe('TimelineView', () => {
     expect(screen.getByText(/nenhum arquivo/i)).toBeInTheDocument();
   });
 });
+
+describe('TimelineView — file icons devem ser idênticos ao GalleryGrid', () => {
+  it('exibe label PDF para application/pdf sem previewUrl', () => {
+    const file = makeFile({ id: '1', mimeType: 'application/pdf', name: 'relatorio.pdf', mediaType: 'document' });
+    render(<TimelineView {...defaultProps} files={[file]} />);
+    expect(screen.getByText('PDF')).toBeInTheDocument();
+  });
+
+  it('exibe label DOC para application/msword', () => {
+    const file = makeFile({ id: '1', mimeType: 'application/msword', name: 'contrato.doc', mediaType: 'document' });
+    render(<TimelineView {...defaultProps} files={[file]} />);
+    expect(screen.getByText('DOC')).toBeInTheDocument();
+  });
+
+  it('exibe label XLS para text/csv', () => {
+    const file = makeFile({ id: '1', mimeType: 'text/csv', name: 'export.csv', mediaType: 'document' });
+    render(<TimelineView {...defaultProps} files={[file]} />);
+    expect(screen.getByText('XLS')).toBeInTheDocument();
+  });
+
+  it('exibe label AUDIO para audio/mpeg', () => {
+    const file = makeFile({ id: '1', mimeType: 'audio/mpeg', name: 'musica.mp3', mediaType: 'document' });
+    render(<TimelineView {...defaultProps} files={[file]} />);
+    expect(screen.getByText('AUDIO')).toBeInTheDocument();
+  });
+
+  it('exibe label ZIP para mediaType archive', () => {
+    const file = makeFile({ id: '1', mimeType: 'application/zip', name: 'backup.zip', mediaType: 'archive' });
+    render(<TimelineView {...defaultProps} files={[file]} />);
+    expect(screen.getByText('ZIP')).toBeInTheDocument();
+  });
+
+  it('exibe ícone ZIP mesmo quando previewUrl está presente (archive nunca tem preview)', () => {
+    const file = makeFile({
+      id: '1',
+      mimeType: 'application/zip',
+      name: 'backup.zip',
+      mediaType: 'archive',
+      status: 'ready',
+      previewUrl: 'https://cdn.test/broken-thumb.webp',
+    });
+    render(<TimelineView {...defaultProps} files={[file]} />);
+    expect(screen.getByText('ZIP')).toBeInTheDocument();
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  });
+
+  it('exibe label VIDEO para mediaType video sem previewUrl', () => {
+    const file = makeFile({ id: '1', mimeType: 'video/mp4', name: 'filme.mp4', mediaType: 'video', previewUrl: '' });
+    render(<TimelineView {...defaultProps} files={[file]} />);
+    expect(screen.getByText('VIDEO')).toBeInTheDocument();
+  });
+
+  it('exibe label IMG para mediaType photo sem previewUrl', () => {
+    const file = makeFile({ id: '1', mimeType: 'image/jpeg', name: 'foto.jpg', mediaType: 'photo', previewUrl: '' });
+    render(<TimelineView {...defaultProps} files={[file]} />);
+    expect(screen.getByText('IMG')).toBeInTheDocument();
+  });
+
+  it('exibe extensão do arquivo para tipos não mapeados', () => {
+    const file = makeFile({ id: '1', mimeType: 'application/octet-stream', name: 'dump.bin', mediaType: 'document' });
+    render(<TimelineView {...defaultProps} files={[file]} />);
+    expect(screen.getByText('BIN')).toBeInTheDocument();
+  });
+});

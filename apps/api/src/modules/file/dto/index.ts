@@ -1,1 +1,1 @@
-// file DTOs barrel
+export { ListFilesQueryDto } from './list-files-query.dto';

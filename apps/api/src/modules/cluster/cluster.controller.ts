@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, HttpCode, HttpStatus, ParseUUIDPipe } from '@nestjs/common';
 import { ClusterService } from './cluster.service';
 import { RecoveryService } from './recovery.service';
 import { CreateClusterDto } from './dto/create-cluster.dto';
@@ -22,7 +22,7 @@ export class ClusterController {
 
   /** GET /api/clusters/:id — Obter detalhes do cluster (JWT) */
   @Get(':id')
-  async findById(@Param('id') id: string) {
+  async findById(@Param('id', ParseUUIDPipe) id: string) {
     return this.clusterService.findById(id);
   }
 

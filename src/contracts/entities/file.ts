@@ -21,6 +21,8 @@ export interface File {
   metadata: Record<string, unknown> | null;
   status: FileStatus;
   errorMessage: string | null;
+  versionOf: string | null;
+  versionNumber: number;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { DomainEventService } from '../../common/events';
 import {
   generateMnemonic,
   deriveMasterKey,
@@ -27,7 +28,10 @@ interface CreateClusterInput {
  */
 @Injectable()
 export class ClusterService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly events?: DomainEventService,
+  ) {}
 
   /**
    * Cria cluster familiar com identidade criptografica derivada de BIP-39.
@@ -103,7 +107,15 @@ export class ClusterService {
       return { cluster, member };
     });
 
-    // 12-13. Return cluster + member + seed phrase (shown ONCE)
+    // 12. Emit domain event
+    this.events?.emit({
+      type: 'ClusterCreated',
+      clusterId: result.cluster.id,
+      adminMemberId: result.member.id,
+      timestamp: new Date(),
+    });
+
+    // 13. Return cluster + member + seed phrase (shown ONCE)
     return {
       cluster: {
         id: result.cluster.id,
@@ -155,5 +167,33 @@ export class ClusterService {
       replicationFactor: 3,
       createdAt: cluster.createdAt.toISOString(),
     };
+  }
+
+  /**
+   * Suspende um cluster (active → suspended).
+   * Fonte: docs/blueprint/09-state-models.md, docs/backend/03-domain.md
+   */
+  async suspend(id: string) {
+    const cluster = await this.prisma.cluster.findUnique({ where: { id } });
+    if (!cluster) throw new NotFoundException('Cluster nao encontrado');
+    if (cluster.status !== 'active') {
+      throw new NotFoundException('Cluster precisa estar ativo para suspender');
+    }
+    await this.prisma.cluster.update({ where: { id }, data: { status: 'suspended' } });
+    return { id, status: 'suspended' };
+  }
+
+  /**
+   * Reativa um cluster (suspended → active).
+   * Fonte: docs/blueprint/09-state-models.md, docs/backend/03-domain.md
+   */
+  async activate(id: string) {
+    const cluster = await this.prisma.cluster.findUnique({ where: { id } });
+    if (!cluster) throw new NotFoundException('Cluster nao encontrado');
+    if (cluster.status !== 'suspended') {
+      throw new NotFoundException('Cluster precisa estar suspenso para ativar');
+    }
+    await this.prisma.cluster.update({ where: { id }, data: { status: 'active' } });
+    return { id, status: 'active' };
   }
 }

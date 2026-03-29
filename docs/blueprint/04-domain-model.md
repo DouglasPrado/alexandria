@@ -151,10 +151,12 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 | -------------- | -------- | :---------: | ------------------------------------------------------------------ |
 | file_id        | UUID     |     Sim     | Identificador único                                                |
 | original_name  | String   |     Sim     | Nome original do arquivo enviado                                   |
-| media_type     | Enum     |     Sim     | `photo`, `video`, `document`                                       |
+| media_type     | Enum     |     Sim     | `photo`, `video`, `document`, `archive`                            |
 | original_size  | Long     |     Sim     | Tamanho antes da otimização (bytes)                                |
-| optimized_size | Long     |     Sim     | Tamanho após otimização (bytes); igual ao original para documentos |
-| content_hash   | String   |     Sim     | SHA-256 do conteúdo otimizado                                      |
+| mime_type      | String   |     Sim     | MIME type original (image/jpeg, video/mp4, etc.)                   |
+| optimized_size | Long     |     Não     | Tamanho após otimização (bytes); null enquanto processing          |
+| content_hash   | String   |     Não     | SHA-256 do conteúdo otimizado; null enquanto processing            |
+| error_message  | String   |     Não     | Mensagem de erro do pipeline (quando status = error)               |
 | metadata       | JSON     |     Não     | EXIF (GPS, data, câmera), duração, codec, páginas, encoding        |
 | status         | Enum     |     Sim     | `processing`, `ready`, `error`, `corrupted`                        |
 | created_at     | DateTime |     Sim     | Data de criação                                                    |
@@ -186,7 +188,8 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 | ------------ | -------- | :---------: | -------------------------------------------------------- |
 | preview_id   | UUID     |     Sim     | Identificador único                                      |
 | file_id      | UUID     |     Sim     | Arquivo ao qual o preview pertence                       |
-| type         | Enum     |     Sim     | `thumbnail`, `video_preview`, `pdf_page` |
+| type         | Enum     |     Sim     | `thumbnail`, `video_preview`, `pdf_page`, `generic_icon` |
+| storage_path | String   |     Sim     | Caminho ou chunk_id onde o preview está armazenado       |
 | size         | Long     |     Sim     | Tamanho do preview em bytes                              |
 | format       | Enum     |     Sim     | `webp`, `mp4`, `png`                                     |
 | content_hash | String   |     Sim     | SHA-256 do conteúdo do preview                           |
@@ -219,8 +222,12 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 | chunks_json        | JSON     |     Sim     | Lista ordenada de chunk_ids com índices         |
 | file_key_encrypted | Bytes    |     Sim     | Chave do arquivo criptografada com master key   |
 | signature          | Bytes    |     Sim     | Assinatura criptográfica do manifest            |
-| replicated_to      | JSON     |     Sim     | Lista de node_ids onde o manifest foi replicado |
-| created_at         | DateTime |     Sim     | Data de criação                                 |
+| replicated_to      | JSON     |     Sim     | Lista de node_ids onde o manifest foi replicado              |
+| version            | Int      |     Sim     | Versão do manifest (para versionamento de arquivos, default 1) |
+| coding_scheme      | String   |     Sim     | Esquema de codificação: `replication` ou `erasure` (default replication) |
+| data_shards        | Int      |     Sim     | Número de shards de dados para erasure-coding RS (default 10) |
+| parity_shards      | Int      |     Sim     | Número de shards de paridade para erasure-coding RS (default 4) |
+| created_at         | DateTime |     Sim     | Data de criação                                              |
 
 **Regras de Negócio:**
 
@@ -245,10 +252,12 @@ O modelo de domínio representa as entidades centrais do sistema, suas responsab
 
 | Nome        | Tipo     | Obrigatório | Descrição                                                     |
 | ----------- | -------- | :---------: | ------------------------------------------------------------- |
-| chunk_id    | String   |     Sim     | SHA-256 do conteúdo criptografado; funciona como endereço CAS |
-| chunk_index | Int      |     Sim     | Posição dentro do arquivo (usado no manifest para reassembly) |
-| size        | Int      |     Sim     | Tamanho em bytes                                              |
-| created_at  | DateTime |     Sim     | Data de criação                                               |
+| chunk_id        | String   |     Sim     | SHA-256 do conteúdo criptografado; funciona como endereço CAS                    |
+| size            | Int      |     Sim     | Tamanho em bytes                                                                 |
+| reference_count | Int      |     Sim     | Contador de manifests que referenciam este chunk (para GC, default 1)            |
+| created_at      | DateTime |     Sim     | Data de criação                                                                  |
+
+> **Nota:** `chunk_index` não é atributo de Chunk — pertence à relação Manifest↔Chunk (tabela `manifest_chunks`), pois a posição de um chunk varia conforme o arquivo/manifest que o referencia.
 
 **Regras de Negócio:**
 

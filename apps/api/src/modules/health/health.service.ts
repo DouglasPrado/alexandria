@@ -2,6 +2,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  Optional,
   UnprocessableEntityException,
   forwardRef,
 } from '@nestjs/common';
@@ -9,6 +10,7 @@ import { createHash } from 'node:crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
 import { NotificationService } from '../notification/notification.service';
+import { DomainEventService } from '../../common/events';
 
 export interface ScrubResult {
   verified: number;
@@ -38,6 +40,7 @@ export class HealthService {
     @Inject(forwardRef(() => StorageService))
     private readonly storageService: StorageService,
     private readonly notifications: NotificationService,
+    @Optional() private readonly events?: DomainEventService,
   ) {}
 
   /**
@@ -59,6 +62,15 @@ export class HealthService {
         relatedEntityId: data.relatedEntityId ?? null,
         resolved: false,
       },
+    });
+
+    this.events?.emit({
+      type: 'AlertCreated',
+      clusterId: data.clusterId,
+      alertId: alert.id,
+      alertType: alert.type,
+      severity: alert.severity,
+      timestamp: new Date(),
     });
 
     return {
@@ -93,6 +105,13 @@ export class HealthService {
       },
     });
 
+    this.events?.emit({
+      type: 'AlertResolved',
+      clusterId: alert.clusterId,
+      alertId: updated.id,
+      timestamp: new Date(),
+    });
+
     return {
       id: updated.id,
       resolved: updated.resolved,
@@ -103,18 +122,26 @@ export class HealthService {
   /**
    * Lista alertas de um cluster com filtro opcional.
    */
-  async listAlerts(clusterId: string, filter?: { resolved?: boolean }) {
+  async listAlerts(clusterId: string, filter?: { resolved?: boolean; cursor?: string; limit?: number }) {
+    const limit = filter?.limit ?? 20;
     const where: Record<string, unknown> = { clusterId };
     if (filter?.resolved !== undefined) {
       where.resolved = filter.resolved;
     }
 
-    const alerts = await this.prisma.alert.findMany({
+    const query: any = {
       where,
       orderBy: { createdAt: 'desc' },
-    });
+      take: limit + 1,
+    };
+    if (filter?.cursor) {
+      query.cursor = { id: filter.cursor };
+      query.skip = 1;
+    }
 
-    return alerts.map((a: any) => ({
+    const alerts = await this.prisma.alert.findMany(query);
+    const hasMore = alerts.length > limit;
+    const data = (hasMore ? alerts.slice(0, limit) : alerts).map((a: any) => ({
       id: a.id,
       type: a.type,
       severity: a.severity,
@@ -124,6 +151,14 @@ export class HealthService {
       createdAt: a.createdAt.toISOString(),
       resolvedAt: a.resolvedAt?.toISOString() ?? null,
     }));
+
+    return {
+      data,
+      meta: {
+        cursor: data.length > 0 ? data[data.length - 1]!.id : null,
+        hasMore,
+      },
+    };
   }
 
   /**
@@ -374,6 +409,19 @@ export class HealthService {
           message: `Chunk ${replica.chunkId.slice(0, 16)}... irrecuperavel — todas as replicas corrompidas.`,
           relatedEntityId: replica.chunkId,
         });
+
+        // Marcar arquivo pai como corrupted
+        const manifestChunk = await this.prisma.manifestChunk.findFirst({
+          where: { chunkId: replica.chunkId },
+          include: { manifest: { include: { file: true } } },
+        });
+        if (manifestChunk?.manifest?.file) {
+          await this.prisma.file.update({
+            where: { id: manifestChunk.manifest.file.id },
+            data: { status: 'corrupted' },
+          });
+        }
+
         continue;
       }
 

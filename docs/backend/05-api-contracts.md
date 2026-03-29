@@ -44,7 +44,7 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 | ------ | ---------------------------- | ---------------------------- | ------------------------- | ------- | --------------------------------- |
 | POST   | `/api/clusters`              | `ClusterController.create`   | `ClusterService.create`   | Publica | Criar cluster familiar (UC-001)   |
 | GET    | `/api/clusters/:id`          | `ClusterController.findById` | `ClusterService.findById` | JWT     | Obter detalhes do cluster         |
-| POST   | `/api/clusters/:id/recovery` | `ClusterController.recover`  | `ClusterService.recover`  | Publica | Recovery via seed phrase (UC-007) |
+| POST   | `/api/clusters/recovery`     | `ClusterController.recover`  | `RecoveryService.recover` | Publica | Recovery via seed phrase (UC-007) — seed identifica o cluster |
 
 ### Invites & Members (`/api/clusters/:id/invites`, `/api/clusters/:id/members`)
 
@@ -100,6 +100,45 @@ Define todos os endpoints, DTOs de request/response, status codes e erros por ro
 - **OpenAPI spec**: `src/openapi.yaml` must be updated with every endpoint change; CI validates the spec compiles; Swagger UI served at `GET /api/docs`
 - **Backwards compatibility policy**: deprecated fields marked with `@deprecated` in OpenAPI spec and kept for minimum 2 minor versions before removal
 - **Rate limiting defaults**: 100 req/min per IP for public endpoints; 1000 req/min for authenticated. Self-hosted operators can override via `RATE_LIMIT_*` env vars.
+
+### Members — Self (`/api/members`)
+
+| Metodo | Rota               | Controller.metodo              | Service.metodo              | Auth | Descricao                           |
+| ------ | ------------------ | ------------------------------ | --------------------------- | ---- | ----------------------------------- |
+| PATCH  | `/api/members/me`  | `MemberController.updateProfile` | `MemberService.updateProfile` | JWT  | Atualizar perfil do membro logado  |
+
+### Members — Quota (`/api/clusters/:id/members/:memberId/quota`)
+
+| Metodo | Rota                                          | Controller.metodo          | Service.metodo          | Auth      | Descricao                             |
+| ------ | --------------------------------------------- | -------------------------- | ----------------------- | --------- | ------------------------------------- |
+| PATCH  | `/api/clusters/:id/members/:memberId/quota`   | `MemberController.setQuota` | `MemberService.setQuota` | JWT+admin | Definir cota de armazenamento do membro |
+
+### Files — Versioning (`/api/files/:id/versions`)
+
+| Metodo | Rota                        | Controller.metodo              | Service.metodo                | Auth               | Descricao                          |
+| ------ | --------------------------- | ------------------------------ | ----------------------------- | ------------------ | ---------------------------------- |
+| GET    | `/api/files/:id/versions`   | `FileController.listVersions`  | `FileService.listVersions`    | JWT                | Listar versoes de um arquivo       |
+| POST   | `/api/files/:id/versions`   | `FileController.createVersion` | `FileService.createVersion`   | JWT (admin/member) | Criar nova versao de um arquivo    |
+| DELETE | `/api/files/:id`            | `FileController.remove`        | `FileService.remove`          | JWT (admin/member) | Remover arquivo do cluster         |
+
+### Nodes — Tier & Rebalance
+
+| Metodo | Rota                      | Controller.metodo           | Service.metodo           | Auth      | Descricao                              |
+| ------ | ------------------------- | --------------------------- | ------------------------ | --------- | -------------------------------------- |
+| PATCH  | `/api/nodes/:id/tier`     | `NodeController.setTier`    | `NodeService.setTier`    | JWT+admin | Definir tier do no (hot/warm/cold)     |
+| POST   | `/api/nodes/rebalance`    | `NodeController.rebalance`  | `NodeService.rebalance`  | JWT+admin | Rebalancear chunks via consistent hash |
+
+### Storage (`/api/storage`)
+
+| Metodo | Rota                | Controller.metodo        | Service.metodo         | Auth | Descricao                          |
+| ------ | ------------------- | ------------------------ | ---------------------- | ---- | ---------------------------------- |
+| GET    | `/api/storage/stats` | `StorageController.stats` | `StorageService.stats` | JWT  | Estatisticas de deduplicacao       |
+
+### Health — Metrics
+
+| Metodo | Rota              | Controller.metodo          | Service.metodo          | Auth    | Descricao                      |
+| ------ | ----------------- | -------------------------- | ----------------------- | ------- | ------------------------------ |
+| GET    | `/health/metrics` | `HealthController.metrics` | `HealthService.metrics` | Publica | Metricas operacionais do cluster |
 
 <!-- APPEND:endpoints -->
 

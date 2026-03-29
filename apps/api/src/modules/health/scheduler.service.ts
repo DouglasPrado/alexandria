@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { HealthService } from './health.service';
 import { StorageService } from '../storage/storage.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 /**
  * SchedulerService — tarefas periodicas via @nestjs/schedule.
@@ -17,6 +18,7 @@ export class SchedulerService {
   constructor(
     private readonly healthService: HealthService,
     private readonly storageService: StorageService,
+    private readonly prisma: PrismaService,
   ) {}
 
   /** Verifica heartbeats a cada 5 minutos e dispara auto-healing para nos lost */
@@ -77,6 +79,49 @@ export class SchedulerService {
     } catch (err) {
       console.error(
         '[Scheduler] Rebalance failed:',
+        err instanceof Error ? err.message : err,
+      );
+    }
+  }
+
+  /** Cleanup de convites expirados — diario as 05:00 (docs/backend/12-events.md) */
+  @Cron('0 5 * * *')
+  async handleCleanExpiredInvites() {
+    try {
+      const result = await this.prisma.invite.deleteMany({
+        where: {
+          expiresAt: { lt: new Date() },
+          acceptedAt: null,
+        },
+      });
+      if (result.count > 0) {
+        console.log(`[Scheduler] Cleaned ${result.count} expired invites`);
+      }
+    } catch (err) {
+      console.error(
+        '[Scheduler] Clean expired invites failed:',
+        err instanceof Error ? err.message : err,
+      );
+    }
+  }
+
+  /** Cleanup de alertas resolvidos > 90 dias — semanal domingo 06:00 (docs/backend/12-events.md) */
+  @Cron('0 6 * * 0')
+  async handleAlertCleanup() {
+    try {
+      const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+      const result = await this.prisma.alert.deleteMany({
+        where: {
+          resolved: true,
+          resolvedAt: { lt: ninetyDaysAgo },
+        },
+      });
+      if (result.count > 0) {
+        console.log(`[Scheduler] Cleaned ${result.count} old resolved alerts`);
+      }
+    } catch (err) {
+      console.error(
+        '[Scheduler] Alert cleanup failed:',
         err instanceof Error ? err.message : err,
       );
     }

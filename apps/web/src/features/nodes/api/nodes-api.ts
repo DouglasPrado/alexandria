@@ -6,12 +6,16 @@ import { apiClient } from '@/lib/api-client';
 import type {
   DrainNodeResponse,
   NodeDTO,
+  NodesResponse,
   RegisterNodeRequest,
 } from '../types/node.types';
 
 export const nodesApi = {
-  /** GET /api/nodes — listar nós do cluster (backend retorna array direto) */
-  list: (): Promise<NodeDTO[]> => apiClient.get<NodeDTO[]>('/nodes'),
+  /** GET /api/nodes — listar nós do cluster (backend retorna { data, meta }) */
+  list: async (): Promise<NodeDTO[]> => {
+    const res = await apiClient.get<NodesResponse>('/nodes');
+    return res.data;
+  },
 
   /** GET /api/nodes/:id — detalhe do nó */
   detail: (id: string): Promise<NodeDTO> => apiClient.get<NodeDTO>(`/nodes/${id}`),

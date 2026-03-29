@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { MemberService } from './member.service';
 import { MemberController } from './member.controller';
+import { MemberRepository } from './member.repository';
+import { InviteRepository } from './invite.repository';
+import { VaultRepository } from './vault.repository';
 import { NotificationModule } from '../notification/notification.module';
 
 @Module({
@@ -13,7 +16,7 @@ import { NotificationModule } from '../notification/notification.module';
     NotificationModule,
   ],
   controllers: [MemberController],
-  providers: [MemberService],
-  exports: [MemberService],
+  providers: [MemberService, MemberRepository, InviteRepository, VaultRepository],
+  exports: [MemberService, MemberRepository, InviteRepository, VaultRepository],
 })
 export class MemberModule {}

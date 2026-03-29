@@ -242,13 +242,14 @@ describe('StorageService', () => {
   });
 
   describe('onModuleInit() — node loading', () => {
-    const mockCluster = { id: 'cluster-dev' };
+    const FAKE_ENCRYPTED_PRIVATE_KEY = Buffer.from('b'.repeat(64), 'hex');
+    const mockCluster = { id: 'cluster-dev', encryptedPrivateKey: FAKE_ENCRYPTED_PRIVATE_KEY };
     const mockAdmin = { id: 'admin-dev', clusterId: 'cluster-dev', role: 'admin' };
 
-    /** Helper: encrypt config the same way NodeService does (AES-256-GCM, key=0x00*32) */
+    /** Helper: encrypt config using cluster-derived key (same as NodeService) */
     function encryptConfig(config: Record<string, unknown>): Buffer {
-      const { randomBytes, createCipheriv } = require('node:crypto');
-      const key = Buffer.alloc(32, 0);
+      const { randomBytes, createCipheriv, createHash } = require('node:crypto');
+      const key = createHash('sha256').update(FAKE_ENCRYPTED_PRIVATE_KEY).digest();
       const iv = randomBytes(12);
       const cipher = createCipheriv('aes-256-gcm', key, iv);
       const encrypted = Buffer.concat([cipher.update(JSON.stringify(config), 'utf-8'), cipher.final()]);
@@ -270,7 +271,10 @@ describe('StorageService', () => {
           updateMany: jest.fn().mockResolvedValue({}),
           ...overrides,
         },
-        cluster: { findFirst: jest.fn().mockResolvedValue(mockCluster) },
+        cluster: {
+          findFirst: jest.fn().mockResolvedValue(mockCluster),
+          findUnique: jest.fn().mockResolvedValue(mockCluster),
+        },
         member: { findFirst: jest.fn().mockResolvedValue(mockAdmin) },
       };
     }
@@ -296,7 +300,7 @@ describe('StorageService', () => {
 
       const prisma = buildFreshPrisma({
         findMany: jest.fn().mockResolvedValue([
-          { id: 'node-s3', type: 's3', endpoint: '', status: 'online', configEncrypted: config },
+          { id: 'node-s3', type: 's3', endpoint: '', status: 'online', clusterId: 'cluster-dev', configEncrypted: config },
         ]),
       });
 
@@ -318,7 +322,7 @@ describe('StorageService', () => {
 
       const prisma = buildFreshPrisma({
         findMany: jest.fn().mockResolvedValue([
-          { id: 'node-aws', type: 's3', endpoint: '', status: 'online', configEncrypted: config },
+          { id: 'node-aws', type: 's3', endpoint: '', status: 'online', clusterId: 'cluster-dev', configEncrypted: config },
         ]),
       });
 
@@ -340,7 +344,7 @@ describe('StorageService', () => {
 
       const prisma = buildFreshPrisma({
         findMany: jest.fn().mockResolvedValue([
-          { id: 'node-bad', type: 'r2', endpoint: 'https://r2.example.com', status: 'online', configEncrypted: config },
+          { id: 'node-bad', type: 'r2', endpoint: 'https://r2.example.com', status: 'online', clusterId: 'cluster-dev', configEncrypted: config },
         ]),
       });
 
@@ -354,7 +358,7 @@ describe('StorageService', () => {
     it('should load local nodes without configEncrypted', async () => {
       const prisma = buildFreshPrisma({
         findMany: jest.fn().mockResolvedValue([
-          { id: 'node-local', type: 'local', endpoint: '/tmp/test-chunks', status: 'online' },
+          { id: 'node-local', type: 'local', endpoint: '/tmp/test-chunks', status: 'online', clusterId: 'cluster-dev' },
         ]),
       });
 

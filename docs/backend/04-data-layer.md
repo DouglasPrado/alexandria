@@ -216,6 +216,7 @@ model Member {
   passwordHash String   @map("password_hash") @db.VarChar(255)
   role         String   @default("member") @db.VarChar(20)
   invitedBy    String?  @map("invited_by") @db.Uuid
+  storageQuotaBytes BigInt?  @map("storage_quota_bytes")
   joinedAt     DateTime @default(now()) @map("joined_at") @db.Timestamptz
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
@@ -273,11 +274,15 @@ model File {
   metadata      Json?
   status        String   @default("processing") @db.VarChar(20)
   errorMessage  String?  @map("error_message") @db.Text
+  versionOf     String?  @map("version_of") @db.Uuid
+  versionNumber Int      @default(1) @map("version_number")
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
   cluster  Cluster  @relation(fields: [clusterId], references: [id])
   uploader Member   @relation(fields: [uploadedBy], references: [id])
+  parent   File?    @relation("FileVersions", fields: [versionOf], references: [id])
+  versions File[]   @relation("FileVersions")
   preview  Preview?
   manifest Manifest?
 
@@ -287,6 +292,7 @@ model File {
   @@index([uploadedBy])
   @@index([createdAt])
   @@index([clusterId, mediaType])
+  @@index([versionOf])
   @@map("files")
 }
 
@@ -313,6 +319,9 @@ model Manifest {
   signature        Bytes
   replicatedTo     Json     @default("[]") @map("replicated_to")
   version          Int      @default(1)
+  codingScheme     String   @default("replication") @map("coding_scheme") @db.VarChar(20)
+  dataShards       Int      @default(10) @map("data_shards")
+  parityShards     Int      @default(4) @map("parity_shards")
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 

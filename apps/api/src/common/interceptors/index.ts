@@ -1,1 +1,1 @@
-// interceptors barrel
+export { LoggingInterceptor } from './logging.interceptor';

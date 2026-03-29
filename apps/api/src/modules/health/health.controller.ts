@@ -6,6 +6,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { HealthService } from './health.service';
 import { Public } from '../../common/decorators/public.decorator';
@@ -36,16 +37,21 @@ export class HealthController {
   async listAlerts(
     @CurrentMember() member: CurrentMemberPayload,
     @Query('resolved') resolved?: string,
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
   ) {
-    const filter = resolved !== undefined ? { resolved: resolved === 'true' } : undefined;
-    return this.healthService.listAlerts(member.clusterId, filter);
+    return this.healthService.listAlerts(member.clusterId, {
+      resolved: resolved !== undefined ? resolved === 'true' : undefined,
+      cursor,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    });
   }
 
   /** PATCH /api/alerts/:id/resolve — Resolver alerta (JWT+admin) */
   @Patch('alerts/:id/resolve')
   @Roles('admin')
   @HttpCode(HttpStatus.OK)
-  async resolveAlert(@Param('id') id: string) {
+  async resolveAlert(@Param('id', ParseUUIDPipe) id: string) {
     return this.healthService.resolveAlert(id);
   }
 

@@ -190,13 +190,21 @@ export class MemberService {
   }
 
   /** Lista membros de um cluster */
-  async listByCluster(clusterId: string) {
-    const members = await this.prisma.member.findMany({
+  async listByCluster(clusterId: string, opts?: { cursor?: string; limit?: number }) {
+    const limit = opts?.limit ?? 20;
+    const query: any = {
       where: { clusterId },
       orderBy: { joinedAt: 'asc' },
-    });
+      take: limit + 1,
+    };
+    if (opts?.cursor) {
+      query.cursor = { id: opts.cursor };
+      query.skip = 1;
+    }
 
-    return members.map((m: any) => ({
+    const members = await this.prisma.member.findMany(query);
+    const hasMore = members.length > limit;
+    const data = (hasMore ? members.slice(0, limit) : members).map((m: any) => ({
       id: m.id,
       name: m.name,
       email: m.email,
@@ -204,6 +212,14 @@ export class MemberService {
       clusterId: m.clusterId,
       joinedAt: m.joinedAt.toISOString(),
     }));
+
+    return {
+      data,
+      meta: {
+        cursor: data.length > 0 ? data[data.length - 1]!.id : null,
+        hasMore,
+      },
+    };
   }
 
   /**

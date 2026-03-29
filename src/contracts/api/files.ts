@@ -45,6 +45,24 @@ export interface UploadFileResponse {
   createdAt: string;
 }
 
+/** DELETE /api/files/:id — 204 No Content */
+
+/** GET /api/files/:id/versions */
+export interface FileVersionResponse {
+  id: string;
+  name: string;
+  versionNumber: number;
+  originalSize: number;
+  status: FileStatus;
+  createdAt: string;
+}
+
+/** POST /api/files/:id/versions — 202 Accepted */
+export interface CreateVersionResponse extends UploadFileResponse {
+  versionOf: string;
+  versionNumber: number;
+}
+
 /** Metadata EXIF extraida durante o pipeline */
 export interface FileMetadata {
   width?: number;

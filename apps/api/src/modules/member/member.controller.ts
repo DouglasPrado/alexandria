@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -22,12 +23,12 @@ import { CurrentMember, type CurrentMemberPayload } from '../../common/decorator
 export class MemberController {
   constructor(private readonly memberService: MemberService) {}
 
-  /** POST /api/clusters/:id/invites — Gerar convite (JWT+admin, UC-002) */
-  @Post('clusters/:id/invites')
+  /** POST /api/clusters/:clusterId/invites — Gerar convite (JWT+admin, UC-002) */
+  @Post('clusters/:clusterId/invites')
   @Roles('admin')
   @HttpCode(HttpStatus.CREATED)
   async createInvite(
-    @Param('id') clusterId: string,
+    @Param('clusterId') clusterId: string,
     @Body() dto: CreateInviteDto,
     @CurrentMember() member: CurrentMemberPayload,
   ) {
@@ -54,29 +55,36 @@ export class MemberController {
     return this.memberService.updateProfile(member.memberId, dto);
   }
 
-  /** GET /api/clusters/:id/members — Listar membros (JWT) */
-  @Get('clusters/:id/members')
-  async list(@Param('id') clusterId: string) {
-    return this.memberService.listByCluster(clusterId);
+  /** GET /api/clusters/:clusterId/members — Listar membros com cursor pagination (JWT) */
+  @Get('clusters/:clusterId/members')
+  async list(
+    @Param('clusterId') clusterId: string,
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.memberService.listByCluster(clusterId, {
+      cursor,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    });
   }
 
-  /** PATCH /api/clusters/:id/members/:memberId/quota — Definir quota (JWT+admin) */
-  @Patch('clusters/:id/members/:memberId/quota')
+  /** PATCH /api/clusters/:clusterId/members/:memberId/quota — Definir quota (JWT+admin) */
+  @Patch('clusters/:clusterId/members/:memberId/quota')
   @Roles('admin')
   async setQuota(
-    @Param('id') clusterId: string,
+    @Param('clusterId') clusterId: string,
     @Param('memberId') memberId: string,
     @Body() dto: SetQuotaDto,
   ) {
     return this.memberService.setQuota(memberId, clusterId, dto.bytes);
   }
 
-  /** DELETE /api/clusters/:id/members/:memberId — Remover membro (JWT+admin) */
-  @Delete('clusters/:id/members/:memberId')
+  /** DELETE /api/clusters/:clusterId/members/:memberId — Remover membro (JWT+admin) */
+  @Delete('clusters/:clusterId/members/:memberId')
   @Roles('admin')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(
-    @Param('id') clusterId: string,
+    @Param('clusterId') clusterId: string,
     @Param('memberId') memberId: string,
   ) {
     return this.memberService.remove(memberId, clusterId);

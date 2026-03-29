@@ -3,9 +3,9 @@
 import type { NodeTier } from '../types/node.types';
 
 const TIER_STYLES: Record<NodeTier, string> = {
-  hot:  'bg-red-100 text-red-700 border-red-200',
-  warm: 'bg-blue-100 text-blue-700 border-blue-200',
-  cold: 'bg-slate-100 text-slate-600 border-slate-200',
+  hot:  'bg-destructive/10 text-destructive border-destructive/20',
+  warm: 'bg-warning/10 text-warning border-warning/20',
+  cold: 'bg-info/10 text-info border-info/20',
 };
 
 const TIER_LABELS: Record<NodeTier, string> = {

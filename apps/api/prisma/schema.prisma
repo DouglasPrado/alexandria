@@ -74,6 +74,7 @@ model Node {
   configEncrypted Bytes     @map("config_encrypted")
   lastHeartbeat   DateTime? @map("last_heartbeat") @db.Timestamptz
   tier            String?   @default("warm") @db.VarChar(10)
+  nodeToken       String?   @map("node_token") @db.VarChar(64)
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 

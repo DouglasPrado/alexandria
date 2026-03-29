@@ -252,9 +252,9 @@ describe('MemberService', () => {
       ]);
 
       const result = await memberService.listByCluster('c1');
-      expect(result).toHaveLength(2);
-      expect(result[0].name).toBe('Douglas');
-      expect(result[1].name).toBe('Maria');
+      expect(result.data).toHaveLength(2);
+      expect(result.data[0].name).toBe('Douglas');
+      expect(result.data[1].name).toBe('Maria');
     });
   });
 

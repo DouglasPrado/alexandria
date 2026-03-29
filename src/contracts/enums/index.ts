@@ -10,3 +10,5 @@ export { PreviewFormat } from './preview-format';
 export { ChunkReplicaStatus } from './chunk-replica-status';
 export { AlertType } from './alert-type';
 export { AlertSeverity } from './alert-severity';
+export { CodingScheme } from './coding-scheme';
+export { ErrorCode } from './error-code';

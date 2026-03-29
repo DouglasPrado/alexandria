@@ -1,13 +1,19 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
-  UnprocessableEntityException,
+  Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
+import { DomainEventService } from '../../common/events';
+import {
+  NodeNotFoundError,
+  ClusterFullError,
+  InsufficientNodesError,
+  InvalidStateTransitionError,
+} from '../../common/errors';
 import { S3StorageProvider, LocalStorageProvider } from '@alexandria/core-sdk';
-import { randomBytes, createCipheriv } from 'node:crypto';
+import { randomBytes, createCipheriv, createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 
 const LOCAL_CHUNKS_DIR = process.env.LOCAL_STORAGE_PATH
@@ -24,6 +30,7 @@ export class NodeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly storageService: StorageService,
+    @Optional() private readonly events?: DomainEventService,
   ) {}
 
   /**
@@ -46,7 +53,7 @@ export class NodeService {
     // RN-C4: Max 50 nos
     const nodeCount = await this.prisma.node.count({ where: { clusterId } });
     if (nodeCount >= MAX_NODES_PER_CLUSTER) {
-      throw new UnprocessableEntityException('Cluster atingiu o limite de 50 nos');
+      throw new ClusterFullError('Cluster atingiu o limite de 50 nos');
     }
 
     // RN-N4: Encrypt credentials before storing
@@ -57,7 +64,9 @@ export class NodeService {
       secretKey: dto.secretKey,
       region: dto.region,
     });
-    const configEncrypted = this.encryptConfig(config);
+    const configEncrypted = await this.encryptConfig(config, clusterId);
+
+    const nodeToken = randomBytes(32).toString('hex');
 
     const node = await this.prisma.node.create({
       data: {
@@ -67,6 +76,7 @@ export class NodeService {
         type: dto.type,
         endpoint: dto.endpoint || (dto.type === 'local' ? LOCAL_CHUNKS_DIR : ''),
         configEncrypted,
+        nodeToken,
         status: 'online',
         totalCapacity: BigInt(0),
         usedCapacity: BigInt(0),
@@ -90,13 +100,13 @@ export class NodeService {
       // R2/B2/VPS always need a custom endpoint; AWS S3 derives from region
       const needsEndpoint = dto.type !== 's3';
       if (needsEndpoint && !endpoint) {
-        throw new UnprocessableEntityException(
+        throw new InvalidStateTransitionError(
           `${dto.type.toUpperCase()} nodes require an explicit endpoint`,
         );
       }
 
       if (!accessKeyId || !secretAccessKey) {
-        throw new UnprocessableEntityException(
+        throw new InvalidStateTransitionError(
           'S3-compatible nodes require accessKey and secretKey',
         );
       }
@@ -137,11 +147,20 @@ export class NodeService {
       // Capacity query failed — keep defaults, will update on next heartbeat
     }
 
+    this.events?.emit({
+      type: 'NodeRegistered',
+      clusterId,
+      nodeId: node.id,
+      nodeType: dto.type,
+      timestamp: new Date(),
+    });
+
     return {
       id: node.id,
       name: node.name,
       type: node.type,
       status: node.status,
+      nodeToken,
       totalCapacity,
       usedCapacity,
       chunksStored: 0,
@@ -157,7 +176,15 @@ export class NodeService {
   async heartbeat(nodeId: string) {
     const node = await this.prisma.node.findUnique({ where: { id: nodeId } });
     if (!node) {
-      throw new NotFoundException('No nao encontrado');
+      throw new NodeNotFoundError();
+    }
+
+    // State machine guard: only online, suspect, lost nodes can send heartbeat
+    const HEARTBEAT_ALLOWED_STATES = ['online', 'suspect', 'lost'];
+    if (!HEARTBEAT_ALLOWED_STATES.includes(node.status)) {
+      throw new InvalidStateTransitionError(
+        `No em estado '${node.status}' nao pode enviar heartbeat`,
+      );
     }
 
     const updateData: Record<string, unknown> = {
@@ -191,7 +218,7 @@ export class NodeService {
     });
 
     if (!node || node.clusterId !== clusterId) {
-      throw new NotFoundException('No nao encontrado');
+      throw new NodeNotFoundError();
     }
 
     return {
@@ -199,6 +226,7 @@ export class NodeService {
       name: node.name,
       type: node.type,
       status: node.status,
+      tier: node.tier ?? 'warm',
       totalCapacity: Number(node.totalCapacity),
       usedCapacity: Number(node.usedCapacity),
       chunksStored: (node as any)._count?.chunkReplicas ?? 0,
@@ -207,25 +235,45 @@ export class NodeService {
     };
   }
 
-  /** Lista nos de um cluster */
-  async listByCluster(clusterId: string) {
-    const nodes = await this.prisma.node.findMany({
-      where: { clusterId },
+  /** Lista nos de um cluster com cursor pagination */
+  async listByCluster(clusterId: string, opts?: { cursor?: string; limit?: number; status?: string }) {
+    const limit = opts?.limit ?? 20;
+    const where: any = { clusterId };
+    if (opts?.status) where.status = opts.status;
+
+    const query: any = {
+      where,
       include: { _count: { select: { chunkReplicas: true } } },
       orderBy: { createdAt: 'asc' },
-    });
+      take: limit + 1,
+    };
+    if (opts?.cursor) {
+      query.cursor = { id: opts.cursor };
+      query.skip = 1;
+    }
 
-    return nodes.map((n: any) => ({
+    const nodes = await this.prisma.node.findMany(query);
+    const hasMore = nodes.length > limit;
+    const data = (hasMore ? nodes.slice(0, limit) : nodes).map((n: any) => ({
       id: n.id,
       name: n.name,
       type: n.type,
       status: n.status,
+      tier: n.tier ?? 'warm',
       totalCapacity: Number(n.totalCapacity),
       usedCapacity: Number(n.usedCapacity),
       chunksStored: n._count?.chunkReplicas ?? 0,
       lastHeartbeat: n.lastHeartbeat?.toISOString() ?? null,
       createdAt: n.createdAt.toISOString(),
     }));
+
+    return {
+      data,
+      meta: {
+        cursor: data.length > 0 ? data[data.length - 1]!.id : null,
+        hasMore,
+      },
+    };
   }
 
   /**
@@ -244,7 +292,14 @@ export class NodeService {
   async drain(nodeId: string) {
     const node = await this.prisma.node.findUnique({ where: { id: nodeId } });
     if (!node) {
-      throw new NotFoundException('No nao encontrado');
+      throw new NodeNotFoundError();
+    }
+
+    // State machine guard: only online nodes can be drained
+    if (node.status !== 'online') {
+      throw new InvalidStateTransitionError(
+        `No em estado '${node.status}' nao pode ser drenado — apenas nos online`,
+      );
     }
 
     // RN-N6: after drain, must still have MIN_NODES_FOR_REPLICATION active nodes
@@ -252,7 +307,7 @@ export class NodeService {
       where: { clusterId: node.clusterId, status: 'online' },
     });
     if (activeNodeCount - 1 < MIN_NODES_FOR_REPLICATION) {
-      throw new UnprocessableEntityException(
+      throw new InsufficientNodesError(
         `Nao e possivel drenar — apos remocao restam ${activeNodeCount - 1} nos, minimo necessario: ${MIN_NODES_FOR_REPLICATION}`,
       );
     }
@@ -311,6 +366,14 @@ export class NodeService {
       data: { status: 'disconnected' },
     });
 
+    this.events?.emit({
+      type: 'NodeDrained',
+      clusterId: node.clusterId,
+      nodeId,
+      chunksMigrated: chunksRelocated,
+      timestamp: new Date(),
+    });
+
     return {
       id: nodeId,
       status: 'disconnected' as const,
@@ -327,11 +390,11 @@ export class NodeService {
   async remove(nodeId: string) {
     const node = await this.prisma.node.findUnique({ where: { id: nodeId } });
     if (!node) {
-      throw new NotFoundException('No nao encontrado');
+      throw new NodeNotFoundError();
     }
 
     if (node.status !== 'disconnected') {
-      throw new UnprocessableEntityException(
+      throw new InvalidStateTransitionError(
         'No precisa ser drenado antes de remover. Status atual: ' + node.status,
       );
     }
@@ -352,7 +415,7 @@ export class NodeService {
 
     const node = await this.prisma.node.findUnique({ where: { id: nodeId } });
     if (!node || node.clusterId !== clusterId) {
-      throw new NotFoundException('No nao encontrado');
+      throw new NodeNotFoundError();
     }
 
     const updated = await this.prisma.node.update({
@@ -367,15 +430,31 @@ export class NodeService {
 
   /**
    * Criptografa config do no com AES-256-GCM (RN-N4).
-   * Em producao, a chave viria do vault do admin.
-   * Para simplificar no MVP, usa chave derivada do env.
+   * Chave derivada de SHA-256(encrypted_private_key) do cluster.
+   * Alinhado com envelope encryption: seed → master key → encrypted_private_key → node config key.
    */
-  private encryptConfig(config: string): Uint8Array<ArrayBuffer> {
-    const key = Buffer.alloc(32, 0); // Placeholder — will use vault key in production
+  private async encryptConfig(config: string, clusterId: string): Promise<Uint8Array<ArrayBuffer>> {
+    const key = await this.getEncryptionKey(clusterId);
     const iv = randomBytes(12);
     const cipher = createCipheriv('aes-256-gcm', key, iv);
     const encrypted = Buffer.concat([cipher.update(config, 'utf-8'), cipher.final()]);
     const authTag = cipher.getAuthTag();
     return new Uint8Array(Buffer.concat([iv, authTag, encrypted])) as Uint8Array<ArrayBuffer>;
+  }
+
+  /**
+   * Deriva chave AES-256 a partir do encrypted_private_key do cluster.
+   * seed phrase → master key → encrypted_private_key (DB) → SHA-256 → node config key.
+   * Sem env vars, sem fallbacks — a chave e deterministica e atrelada a seed.
+   */
+  private async getEncryptionKey(clusterId: string): Promise<Buffer> {
+    const cluster = await this.prisma.cluster.findUnique({
+      where: { id: clusterId },
+      select: { encryptedPrivateKey: true },
+    });
+    if (!cluster?.encryptedPrivateKey) {
+      throw new Error(`Cluster ${clusterId} not found or missing encrypted_private_key`);
+    }
+    return createHash('sha256').update(Buffer.from(cluster.encryptedPrivateKey)).digest();
   }
 }
