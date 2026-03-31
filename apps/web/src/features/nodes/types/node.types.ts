@@ -4,8 +4,17 @@
  */
 
 export type NodeStatus = 'online' | 'suspect' | 'lost' | 'draining' | 'disconnected';
-export type NodeType = 'local' | 's3' | 'r2' | 'b2' | 'vps';
+export type NodeType =
+  | 'local'
+  | 's3'
+  | 'r2'
+  | 'b2'
+  | 'vps'
+  | 'google_drive'
+  | 'onedrive'
+  | 'dropbox';
 export type NodeTier = 'hot' | 'warm' | 'cold';
+export type OAuthNodeProvider = 'google_drive' | 'onedrive' | 'dropbox';
 
 export interface NodeDTO {
   id: string;
@@ -28,6 +37,12 @@ export interface RegisterNodeRequest {
   accessKey?: string;
   secretKey?: string;
   region?: string;
+}
+
+export interface StartNodeOAuthResponse {
+  provider: OAuthNodeProvider;
+  state: string;
+  authorizationUrl: string;
 }
 
 export interface DrainNodeResponse {

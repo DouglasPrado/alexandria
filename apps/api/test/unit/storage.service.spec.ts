@@ -1,6 +1,8 @@
 import { Test } from '@nestjs/testing';
 import { StorageService } from '../../src/modules/storage/storage.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
+import { VaultService } from '../../src/modules/member/vault.service';
+import { SessionKeyService } from '../../src/common/services/session-key.service';
 
 /**
  * Testes do StorageService — distribuicao de chunks criptografados.
@@ -64,6 +66,8 @@ describe('StorageService', () => {
       providers: [
         StorageService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: VaultService, useValue: { update: jest.fn() } },
+        { provide: SessionKeyService, useValue: { get: jest.fn(), store: jest.fn(), clear: jest.fn() } },
       ],
     }).compile();
 
@@ -284,6 +288,8 @@ describe('StorageService', () => {
         providers: [
           StorageService,
           { provide: PrismaService, useValue: prisma },
+          { provide: VaultService, useValue: { update: jest.fn() } },
+          { provide: SessionKeyService, useValue: { get: jest.fn(), store: jest.fn(), clear: jest.fn() } },
         ],
       }).compile();
       return module.get<StorageService>(StorageService);
@@ -671,7 +677,7 @@ describe('StorageService', () => {
       const cold = makeProvider();
 
       const module = await Test.createTestingModule({
-        providers: [StorageService, { provide: PrismaService, useValue: mockPrisma }],
+        providers: [StorageService, { provide: PrismaService, useValue: mockPrisma }, { provide: VaultService, useValue: { update: jest.fn() } }, { provide: SessionKeyService, useValue: { get: jest.fn(), store: jest.fn(), clear: jest.fn() } }],
       }).compile();
       const svc = module.get<StorageService>(StorageService);
 
@@ -697,7 +703,7 @@ describe('StorageService', () => {
       const cold2 = makeProvider();
 
       const module = await Test.createTestingModule({
-        providers: [StorageService, { provide: PrismaService, useValue: mockPrisma }],
+        providers: [StorageService, { provide: PrismaService, useValue: mockPrisma }, { provide: VaultService, useValue: { update: jest.fn() } }, { provide: SessionKeyService, useValue: { get: jest.fn(), store: jest.fn(), clear: jest.fn() } }],
       }).compile();
       const svc = module.get<StorageService>(StorageService);
 
@@ -720,7 +726,7 @@ describe('StorageService', () => {
       const cold = makeProvider();
 
       const module = await Test.createTestingModule({
-        providers: [StorageService, { provide: PrismaService, useValue: mockPrisma }],
+        providers: [StorageService, { provide: PrismaService, useValue: mockPrisma }, { provide: VaultService, useValue: { update: jest.fn() } }, { provide: SessionKeyService, useValue: { get: jest.fn(), store: jest.fn(), clear: jest.fn() } }],
       }).compile();
       const svc = module.get<StorageService>(StorageService);
 
@@ -762,7 +768,7 @@ describe('StorageService', () => {
       }));
 
       const module = await Test.createTestingModule({
-        providers: [StorageService, { provide: PrismaService, useValue: mockPrisma }],
+        providers: [StorageService, { provide: PrismaService, useValue: mockPrisma }, { provide: VaultService, useValue: { update: jest.fn() } }, { provide: SessionKeyService, useValue: { get: jest.fn(), store: jest.fn(), clear: jest.fn() } }],
       }).compile();
       const svc = module.get<StorageService>(StorageService);
 
@@ -786,7 +792,7 @@ describe('StorageService', () => {
       }));
 
       const module = await Test.createTestingModule({
-        providers: [StorageService, { provide: PrismaService, useValue: mockPrisma }],
+        providers: [StorageService, { provide: PrismaService, useValue: mockPrisma }, { provide: VaultService, useValue: { update: jest.fn() } }, { provide: SessionKeyService, useValue: { get: jest.fn(), store: jest.fn(), clear: jest.fn() } }],
       }).compile();
       const svc = module.get<StorageService>(StorageService);
 
@@ -804,7 +810,7 @@ describe('StorageService', () => {
 
     it('should record codingScheme=erasure in manifest (EC-7)', async () => {
       const module = await Test.createTestingModule({
-        providers: [StorageService, { provide: PrismaService, useValue: mockPrisma }],
+        providers: [StorageService, { provide: PrismaService, useValue: mockPrisma }, { provide: VaultService, useValue: { update: jest.fn() } }, { provide: SessionKeyService, useValue: { get: jest.fn(), store: jest.fn(), clear: jest.fn() } }],
       }).compile();
       const svc = module.get<StorageService>(StorageService);
       svc.registerNode('node-1', 100, { ...mockProvider });

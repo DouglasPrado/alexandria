@@ -8,6 +8,8 @@ import type {
   NodeDTO,
   NodesResponse,
   RegisterNodeRequest,
+  OAuthNodeProvider,
+  StartNodeOAuthResponse,
 } from '../types/node.types';
 
 export const nodesApi = {
@@ -24,6 +26,10 @@ export const nodesApi = {
   register: (data: RegisterNodeRequest): Promise<NodeDTO> =>
     apiClient.post<NodeDTO>('/nodes', data),
 
+  /** GET /api/nodes/oauth/:provider/start — iniciar OAuth para nó cloud */
+  startOAuth: (provider: OAuthNodeProvider, nodeName: string): Promise<StartNodeOAuthResponse> =>
+    apiClient.get<StartNodeOAuthResponse>(`/nodes/oauth/${provider}/start`, { name: nodeName }),
+
   /** POST /api/nodes/:id/drain — iniciar drain */
   drain: (id: string): Promise<DrainNodeResponse> =>
     apiClient.post<DrainNodeResponse>(`/nodes/${id}/drain`),
@@ -36,6 +42,9 @@ export const nodesApi = {
     apiClient.patch(`/nodes/${id}/tier`, { tier }),
 
   /** POST /api/nodes/rebalance — rebalancear chunks entre nós */
-  rebalance: (): Promise<{ chunksRelocated: number; chunksSkipped: number; chunksFailed: number }> =>
-    apiClient.post('/nodes/rebalance'),
+  rebalance: (): Promise<{
+    chunksRelocated: number;
+    chunksSkipped: number;
+    chunksFailed: number;
+  }> => apiClient.post('/nodes/rebalance'),
 };

@@ -5,4 +5,7 @@ export enum NodeType {
   R2 = 'r2',
   B2 = 'b2',
   VPS = 'vps',
+  GOOGLE_DRIVE = 'google_drive',
+  ONEDRIVE = 'onedrive',
+  DROPBOX = 'dropbox',
 }

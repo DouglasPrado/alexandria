@@ -3,6 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { BullModule } from '@nestjs/bullmq';
 import { LoggerModule } from 'nestjs-pino';
+import { CommonModule } from './common/common.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ClusterModule } from './modules/cluster/cluster.module';
@@ -62,6 +63,7 @@ import { ClusterMemberGuard } from './common/guards/cluster-member.guard';
       { name: 'upload', ttl: 60000, limit: process.env.NODE_ENV === 'production' ? 10 : 100 },
       { name: 'recovery', ttl: 3600000, limit: 3 },
     ]),
+    CommonModule,
     PrismaModule,
     AuthModule,
     ClusterModule,

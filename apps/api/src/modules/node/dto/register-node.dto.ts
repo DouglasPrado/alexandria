@@ -9,7 +9,7 @@ export class RegisterNodeDto {
 
   @IsString()
   @Transform(({ value }) => (typeof value === 'string' ? value.toLowerCase() : value))
-  @IsIn(['local', 's3', 'r2', 'b2', 'vps'])
+  @IsIn(['local', 's3', 'r2', 'b2', 'vps', 'google_drive', 'onedrive', 'dropbox'])
   type!: string;
 
   @IsOptional()
@@ -31,4 +31,28 @@ export class RegisterNodeDto {
   @IsOptional()
   @IsString()
   region?: string;
+
+  @IsOptional()
+  @IsString()
+  accessToken?: string;
+
+  @IsOptional()
+  @IsString()
+  refreshToken?: string;
+
+  @IsOptional()
+  @IsString()
+  expiresAt?: string;
+
+  @IsOptional()
+  @IsString()
+  accountEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  accountId?: string;
+
+  @IsOptional()
+  @IsString()
+  adminPassword?: string;
 }

@@ -5,6 +5,7 @@ import { CreateClusterDto } from '../../src/modules/cluster/dto/create-cluster.d
 import { CreateInviteDto } from '../../src/modules/member/dto/create-invite.dto';
 import { AcceptInviteDto } from '../../src/modules/member/dto/accept-invite.dto';
 import { RecoverClusterDto } from '../../src/modules/cluster/dto/recover-cluster.dto';
+import { RegisterNodeDto } from '../../src/modules/node/dto/register-node.dto';
 
 /**
  * Testes de validacao de DTOs.
@@ -150,7 +151,8 @@ describe('DTO Validation', () => {
 
     it('should accept seed phrase with exactly 12 words', async () => {
       const dto = plainToInstance(RecoverClusterDto, {
-        seedPhrase: 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
+        seedPhrase:
+          'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
       });
       const errors = await validate(dto);
       expect(errors.some((e) => e.property === 'seedPhrase')).toBe(false);
@@ -158,9 +160,32 @@ describe('DTO Validation', () => {
 
     it('should trim seed phrase', () => {
       const dto = plainToInstance(RecoverClusterDto, {
-        seedPhrase: '  abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about  ',
+        seedPhrase:
+          '  abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about  ',
       });
       expect(dto.seedPhrase).not.toMatch(/^\s/);
+    });
+  });
+
+  describe('RegisterNodeDto', () => {
+    it('should accept oauth node providers from phase 2', async () => {
+      const dto = plainToInstance(RegisterNodeDto, {
+        name: 'Drive da Familia',
+        type: 'google_drive',
+      });
+
+      const errors = await validate(dto);
+
+      expect(errors.some((e) => e.property === 'type')).toBe(false);
+    });
+
+    it('should normalize provider type to lowercase', () => {
+      const dto = plainToInstance(RegisterNodeDto, {
+        name: 'Conta Principal',
+        type: 'ONEDRIVE',
+      });
+
+      expect(dto.type).toBe('onedrive');
     });
   });
 });

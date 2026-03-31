@@ -35,6 +35,9 @@ const NODE_TYPE_LABELS: Record<string, string> = {
   r2: 'Cloudflare R2',
   b2: 'Backblaze B2',
   vps: 'VPS',
+  google_drive: 'Google Drive',
+  onedrive: 'OneDrive',
+  dropbox: 'Dropbox',
 };
 
 const TIER_OPTIONS: NodeTier[] = ['hot', 'warm', 'cold'];
@@ -66,9 +69,8 @@ export function NodeList({ nodes, isLoading, onNodeClick }: NodeListProps) {
   return (
     <div className="space-y-3">
       {nodes.map((node) => {
-        const usagePercent = node.totalCapacity > 0
-          ? Math.round((node.usedCapacity / node.totalCapacity) * 100)
-          : 0;
+        const usagePercent =
+          node.totalCapacity > 0 ? Math.round((node.usedCapacity / node.totalCapacity) * 100) : 0;
 
         return (
           <div
@@ -104,14 +106,18 @@ export function NodeList({ nodes, isLoading, onNodeClick }: NodeListProps) {
                   className="text-xs border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)] text-[var(--foreground)] cursor-pointer"
                 >
                   {TIER_OPTIONS.map((t) => (
-                    <option key={t} value={t}>{t}</option>
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
                   ))}
                 </select>
                 <div className="text-right text-sm">
                   <div className="text-[var(--foreground)] font-medium">
                     {formatBytes(node.usedCapacity)} / {formatBytes(node.totalCapacity)}
                   </div>
-                  <div className="text-xs text-[var(--muted-foreground)]">{usagePercent}% usado</div>
+                  <div className="text-xs text-[var(--muted-foreground)]">
+                    {usagePercent}% usado
+                  </div>
                 </div>
               </div>
             </div>

@@ -5,6 +5,7 @@ import { MemberController } from './member.controller';
 import { MemberRepository } from './member.repository';
 import { InviteRepository } from './invite.repository';
 import { VaultRepository } from './vault.repository';
+import { VaultService } from './vault.service';
 import { NotificationModule } from '../notification/notification.module';
 
 @Module({
@@ -16,7 +17,7 @@ import { NotificationModule } from '../notification/notification.module';
     NotificationModule,
   ],
   controllers: [MemberController],
-  providers: [MemberService, MemberRepository, InviteRepository, VaultRepository],
-  exports: [MemberService, MemberRepository, InviteRepository, VaultRepository],
+  providers: [MemberService, MemberRepository, InviteRepository, VaultRepository, VaultService],
+  exports: [MemberService, MemberRepository, InviteRepository, VaultRepository, VaultService],
 })
 export class MemberModule {}

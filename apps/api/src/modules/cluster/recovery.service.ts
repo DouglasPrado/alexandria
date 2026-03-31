@@ -1,17 +1,18 @@
+import type { VaultBundle, VaultContents } from '@alexandria/core-sdk';
 import {
-  Injectable,
-  BadRequestException,
-  UnprocessableEntityException,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import {
-  validateMnemonic,
+  S3StorageProvider,
   deriveMasterKey,
+  deserializeManifest,
   generateKeypair,
   hash,
   unlockVaultWithMasterKey,
+  validateMnemonic,
 } from '@alexandria/core-sdk';
-import type { VaultContents, VaultBundle } from '@alexandria/core-sdk';
+import { BadRequestException, Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { SessionKeyService } from '../../common/services/session-key.service';
+import { PrismaService } from '../../prisma/prisma.service';
+import { createOAuthStorageProvider, isOAuthNodeType } from '../node/oauth-storage-provider';
+import { StorageService } from '../storage/storage.service';
 
 /**
  * RecoveryService — recovery completo do orquestrador via seed phrase (UC-007).
@@ -27,7 +28,11 @@ import type { VaultContents, VaultBundle } from '@alexandria/core-sdk';
  */
 @Injectable()
 export class RecoveryService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storageService: StorageService,
+    private readonly sessionKeyService: SessionKeyService,
+  ) {}
 
   async recover(dto: { seedPhrase: string }) {
     // --- Passos 3-5: Validate → derive → find cluster ---
@@ -62,6 +67,7 @@ export class RecoveryService {
     let recoveredVaults = 0;
     let failedVaults = 0;
     const allNodeConfigs: VaultContents['nodeConfigs'] = [];
+    let firstAdminMemberId: string | null = null;
 
     for (const vault of vaults) {
       try {
@@ -74,6 +80,11 @@ export class RecoveryService {
 
         const contents = unlockVaultWithMasterKey(bundle, masterKey);
         recoveredVaults++;
+
+        // Track first admin for session key caching
+        if (vault.isAdminVault && !firstAdminMemberId) {
+          firstAdminMemberId = vault.memberId;
+        }
 
         // Extract node configs from admin vaults (RN-V1)
         if (contents.nodeConfigs?.length) {
@@ -89,14 +100,118 @@ export class RecoveryService {
       }
     }
 
-    // --- Passo 7: Reconnect storage providers ---
-    // Node configs from vaults contain credentials for S3/R2/B2 nodes.
-    // If StorageService is available, re-register each node in the hash ring.
-    // (Actual node re-registration happens on next boot or via explicit API call)
+    // Cache masterKey for admin so subsequent operations (vault sync, node registration) work
+    if (firstAdminMemberId) {
+      // Use a placeholder password — admin will need to re-authenticate for vault updates
+      this.sessionKeyService.store(firstAdminMemberId, masterKey, '__recovery__');
+    }
 
-    // --- Passos 8-9: Scan manifests → rebuild (placeholder) ---
-    // Full manifest scanning from cloud nodes requires active storage connections.
-    // For now, report what exists in the current DB.
+    // --- Passo 7: Reconnect storage providers ---
+
+    let nodesReconnected = 0;
+    let nodesFailedReconnect = 0;
+
+    for (const nc of allNodeConfigs) {
+      try {
+        const provider = this.createProviderFromConfig(nc);
+
+        // Upsert node in DB
+        await this.prisma.node.upsert({
+          where: { id: nc.nodeId },
+          create: {
+            id: nc.nodeId,
+            clusterId: cluster.id,
+            ownerId: firstAdminMemberId || '',
+            name: `${nc.type}-${nc.nodeId.substring(0, 8)}`,
+            type: nc.type,
+            endpoint:
+              nc.endpoint || `oauth://${nc.type}/${nc.accountEmail || nc.accountId || 'account'}`,
+            configEncrypted: await this.storageService.encryptNodeConfig(
+              JSON.stringify(nc),
+              cluster.id,
+            ),
+            nodeToken: '',
+            status: 'online',
+            totalCapacity: BigInt(0),
+            usedCapacity: BigInt(0),
+            lastHeartbeat: new Date(),
+            tier: 'warm',
+          },
+          update: {
+            status: 'online',
+            lastHeartbeat: new Date(),
+          },
+        });
+
+        // Register in hash ring
+        this.storageService.registerNode(nc.nodeId, 100, provider);
+        nodesReconnected++;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Unknown error';
+        console.warn(`[Recovery] Failed to reconnect node ${nc.nodeId}: ${msg}`);
+        nodesFailedReconnect++;
+      }
+    }
+
+    // --- Passos 8-9: Scan chunks e manifests dos providers ---
+
+    let discoveredManifests = 0;
+    let discoveredChunks = 0;
+
+    const allProviders = this.storageService.getAllProviders();
+    for (const [nodeId, provider] of allProviders) {
+      try {
+        const keys = await provider.list();
+
+        for (const key of keys) {
+          try {
+            if (key.startsWith('manifest:')) {
+              // Manifest — deserialize and upsert in DB
+              const data = await provider.get(key);
+              if (data) {
+                const manifest = deserializeManifest(data);
+                // Upsert chunks from manifest
+                for (const chunk of manifest.chunks) {
+                  await this.prisma.chunk.upsert({
+                    where: { id: chunk.chunkId },
+                    create: { id: chunk.chunkId, size: chunk.size, referenceCount: 1 },
+                    update: {},
+                  });
+                  await this.prisma.chunkReplica.upsert({
+                    where: { chunkId_nodeId: { chunkId: chunk.chunkId, nodeId } },
+                    create: { chunkId: chunk.chunkId, nodeId, status: 'healthy' },
+                    update: {},
+                  });
+                }
+                discoveredManifests++;
+              }
+            } else if (key.startsWith('preview:')) {
+              // Skip previews — they are regenerable
+            } else {
+              // Regular chunk (SHA-256 hash)
+              await this.prisma.chunk.upsert({
+                where: { id: key },
+                create: { id: key, size: 0, referenceCount: 1 },
+                update: {},
+              });
+              await this.prisma.chunkReplica.upsert({
+                where: { chunkId_nodeId: { chunkId: key, nodeId } },
+                create: { chunkId: key, nodeId, status: 'healthy' },
+                update: {},
+              });
+              discoveredChunks++;
+            }
+          } catch {
+            // Skip individual key failures
+          }
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Unknown error';
+        console.warn(`[Recovery] Failed to scan node ${nodeId}: ${msg}`);
+      }
+    }
+
+    // Also count existing manifests in DB
     const recoveredManifests = await this.prisma.manifest.count({
       where: { file: { clusterId: cluster.id } },
     });
@@ -124,8 +239,11 @@ export class RecoveryService {
       recoveredVaults,
       failedVaults,
       recoveredManifests,
+      discoveredManifests,
+      discoveredChunks,
       nodeConfigs: allNodeConfigs,
-      nodesReconnected: onlineNodes,
+      nodesReconnected,
+      nodesFailedReconnect,
       nodesOffline: totalNodes - onlineNodes,
       integrityCheck: {
         totalChunks,
@@ -133,5 +251,29 @@ export class RecoveryService {
         pendingHealing,
       },
     };
+  }
+
+  /**
+   * Creates a StorageProvider from a vault nodeConfig entry.
+   */
+  private createProviderFromConfig(nc: VaultContents['nodeConfigs'][number]) {
+    if (isOAuthNodeType(nc.type)) {
+      return createOAuthStorageProvider(nc.type as 'google_drive' | 'onedrive' | 'dropbox', {
+        accessToken: (nc as any).accessToken || '',
+        refreshToken: (nc as any).refreshToken,
+        expiresAt: (nc as any).expiresAt,
+        accountEmail: (nc as any).accountEmail,
+        accountId: (nc as any).accountId,
+      });
+    }
+
+    // S3-compatible providers
+    return new S3StorageProvider({
+      region: (nc as any).region || 'us-east-1',
+      bucket: nc.bucket || '',
+      accessKeyId: nc.accessKey || '',
+      secretAccessKey: nc.secretKey || '',
+      endpoint: nc.endpoint,
+    });
   }
 }

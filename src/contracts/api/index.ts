@@ -16,6 +16,10 @@ export type {
 } from './members';
 export type {
   RegisterNodeRequest,
+  StartNodeOAuthRequest,
+  StartNodeOAuthResponse,
+  CompleteNodeOAuthResponse,
+  OAuthNodeProvider,
   NodeResponse,
   DrainNodeResponse,
   SetTierRequest,
@@ -38,4 +42,9 @@ export type {
   SetQuotaResponse,
 } from './members';
 export type { AlertResponse, ResolveAlertResponse } from './alerts';
-export type { LivenessResponse, ReadinessResponse, MetricsResponse, StorageStatsResponse } from './health';
+export type {
+  LivenessResponse,
+  ReadinessResponse,
+  MetricsResponse,
+  StorageStatsResponse,
+} from './health';

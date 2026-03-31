@@ -5,6 +5,8 @@ import {
 } from '@nestjs/common';
 import { RecoveryService } from '../../src/modules/cluster/recovery.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
+import { StorageService } from '../../src/modules/storage/storage.service';
+import { SessionKeyService } from '../../src/common/services/session-key.service';
 import {
   generateMnemonic,
   deriveMasterKey,
@@ -121,6 +123,19 @@ function mockCluster() {
   };
 }
 
+const mockStorageService = {
+  registerNode: jest.fn(),
+  getProvider: jest.fn(),
+  encryptNodeConfig: jest.fn().mockResolvedValue(new Uint8Array(64)),
+  getAllProviders: jest.fn().mockReturnValue(new Map()),
+};
+
+const mockSessionKeyService = {
+  store: jest.fn(),
+  get: jest.fn().mockReturnValue(null),
+  clear: jest.fn(),
+};
+
 describe('RecoveryService', () => {
   let service: RecoveryService;
   let mockPrisma: ReturnType<typeof buildMockPrisma>;
@@ -133,6 +148,8 @@ describe('RecoveryService', () => {
       providers: [
         RecoveryService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: StorageService, useValue: mockStorageService },
+        { provide: SessionKeyService, useValue: mockSessionKeyService },
       ],
     }).compile();
 
@@ -234,21 +251,76 @@ describe('RecoveryService', () => {
   // --- Passo 7: Reconnect storage providers ---
 
   describe('storage provider reconnection (step 7)', () => {
-    it('should re-register nodes in StorageService from extracted configs', async () => {
+    it('should upsert nodes and register providers from vault nodeConfigs', async () => {
       mockPrisma.cluster.findFirst.mockResolvedValue(mockCluster());
       mockPrisma.vault.findMany.mockResolvedValue([
         mockVaultRow(adminVault, { isAdminVault: true }),
       ]);
       mockPrisma.node.upsert.mockImplementation((args: any) => ({
         id: args.where.id ?? args.create.id ?? 'new-id',
+        clusterId: 'cluster-uuid-1',
         ...args.create,
+        status: 'online',
+        lastHeartbeat: new Date(),
       }));
 
       const result = await service.recover({ seedPhrase: mnemonic });
 
-      // Should have created/upserted nodes from vault nodeConfigs
-      expect(result.nodesReconnected).toBeGreaterThanOrEqual(0);
-      expect(result.nodeConfigs).toHaveLength(2);
+      // Should upsert both S3 and R2 nodes
+      expect(mockPrisma.node.upsert).toHaveBeenCalledTimes(2);
+      expect(mockPrisma.node.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'node-s3' },
+        }),
+      );
+      expect(mockPrisma.node.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'node-r2' },
+        }),
+      );
+
+      // Should register providers in StorageService
+      expect(mockStorageService.registerNode).toHaveBeenCalledTimes(2);
+      expect(result.nodesReconnected).toBe(2);
+    });
+
+    it('should handle partial failures when upsert throws for some nodes', async () => {
+      mockPrisma.cluster.findFirst.mockResolvedValue(mockCluster());
+      mockPrisma.vault.findMany.mockResolvedValue([
+        mockVaultRow(adminVault, { isAdminVault: true }),
+      ]);
+      // First upsert succeeds, second throws
+      mockPrisma.node.upsert
+        .mockResolvedValueOnce({
+          id: 'node-s3',
+          clusterId: 'cluster-uuid-1',
+          status: 'online',
+        })
+        .mockRejectedValueOnce(new Error('DB connection lost'));
+
+      const result = await service.recover({ seedPhrase: mnemonic });
+
+      expect(result.nodesReconnected).toBe(1);
+      expect(result.nodesFailedReconnect).toBe(1);
+    });
+
+    it('should cache masterKey in SessionKeyService after recovery', async () => {
+      mockPrisma.cluster.findFirst.mockResolvedValue(mockCluster());
+      mockPrisma.vault.findMany.mockResolvedValue([
+        mockVaultRow(adminVault, {
+          isAdminVault: true,
+          memberId: 'admin-member-1',
+          member: { id: 'admin-member-1', name: 'Admin', email: 'admin@familia.com' },
+        }),
+      ]);
+
+      await service.recover({ seedPhrase: mnemonic });
+
+      expect(mockSessionKeyService.store).toHaveBeenCalledWith(
+        'admin-member-1',
+        expect.any(Buffer),
+        expect.any(String),
+      );
     });
   });
 

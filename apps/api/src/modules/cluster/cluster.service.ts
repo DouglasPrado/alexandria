@@ -10,6 +10,7 @@ import {
   createVault,
 } from '@alexandria/core-sdk';
 import * as argon2 from 'argon2';
+import { SessionKeyService } from '../../common/services/session-key.service';
 
 interface CreateClusterInput {
   name: string;
@@ -30,6 +31,7 @@ interface CreateClusterInput {
 export class ClusterService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly sessionKeyService: SessionKeyService,
     @Optional() private readonly events?: DomainEventService,
   ) {}
 
@@ -109,7 +111,10 @@ export class ClusterService {
       return { cluster, member };
     });
 
-    // 12. Emit domain event
+    // 12. Cache master key for vault updates during this session
+    this.sessionKeyService.store(result.member.id, masterKey, dto.admin.password);
+
+    // 13. Emit domain event
     this.events?.emit({
       type: 'ClusterCreated',
       clusterId: result.cluster.id,

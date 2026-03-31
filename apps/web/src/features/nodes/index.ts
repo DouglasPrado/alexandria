@@ -7,7 +7,14 @@ export { ClusterHealthSummary } from './components/ClusterHealthSummary';
 export { DedupStatsCard } from './components/DedupStatsCard';
 export { useNodes } from './hooks/useNodes';
 export { useNodeDetail } from './hooks/useNodeDetail';
-export { useRegisterNode, useDrainNode, useRemoveNode, useRebalance, useSetNodeTier } from './hooks/useNodeMutations';
+export {
+  useRegisterNode,
+  useDrainNode,
+  useRemoveNode,
+  useRebalance,
+  useSetNodeTier,
+  useStartNodeOAuth,
+} from './hooks/useNodeMutations';
 export { useDedupStats } from './hooks/useDedupStats';
 export { nodesApi } from './api/nodes-api';
 export { storageApi } from './api/storage-api';

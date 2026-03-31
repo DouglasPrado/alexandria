@@ -1,6 +1,8 @@
 import type { NodeType } from '../enums/node-type';
 import type { NodeStatus } from '../enums/node-status';
 
+export type OAuthNodeProvider = 'google_drive' | 'onedrive' | 'dropbox';
+
 /** POST /api/nodes */
 export interface RegisterNodeRequest {
   name: string;
@@ -10,6 +12,27 @@ export interface RegisterNodeRequest {
   accessKey?: string;
   secretKey?: string;
   region?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  expiresAt?: string;
+  accountEmail?: string;
+  accountId?: string;
+}
+
+export interface StartNodeOAuthRequest {
+  provider: OAuthNodeProvider;
+  nodeName: string;
+}
+
+export interface StartNodeOAuthResponse {
+  provider: OAuthNodeProvider;
+  state: string;
+  authorizationUrl: string;
+}
+
+export interface CompleteNodeOAuthResponse {
+  node: NodeResponse;
+  provider: OAuthNodeProvider;
 }
 
 export interface NodeResponse {

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { createVault, unlockVault, unlockVaultWithMasterKey, type VaultContents, type VaultBundle } from '@alexandria/core-sdk';
+import { createVault, unlockVault, unlockVaultWithMasterKey, updateVault, type VaultContents, type VaultBundle } from '@alexandria/core-sdk';
 
 /**
  * VaultService — operacoes dedicadas de vault.
@@ -53,6 +53,37 @@ export class VaultService {
       masterKeySalt: Buffer.from(vault.masterKeySalt),
     };
     return unlockVaultWithMasterKey(bundle, masterKey);
+  }
+
+  async update(
+    memberId: string,
+    password: string,
+    masterKey: Buffer,
+    updater: (current: VaultContents) => VaultContents,
+  ): Promise<void> {
+    const vault = await this.prisma.vault.findUnique({ where: { memberId } });
+    if (!vault) throw new NotFoundException('Vault nao encontrado');
+
+    const bundle: VaultBundle = {
+      encryptedData: Buffer.from(vault.vaultData),
+      algorithm: vault.encryptionAlgorithm,
+      passwordSalt: Buffer.from(vault.passwordSalt),
+      masterKeySalt: Buffer.from(vault.masterKeySalt),
+    };
+
+    // Unlock to get current contents (also verifies password)
+    const current = unlockVault(bundle, password);
+    const newContents = updater(current);
+
+    // Re-encrypt with both layers using updateVault from core-sdk
+    const updatedBundle = updateVault(bundle, password, masterKey, newContents);
+
+    await this.prisma.vault.update({
+      where: { memberId },
+      data: {
+        vaultData: new Uint8Array(updatedBundle.encryptedData) as Uint8Array<ArrayBuffer>,
+      },
+    });
   }
 
   async replicate(memberId: string, nodeId: string) {

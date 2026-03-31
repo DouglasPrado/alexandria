@@ -14,6 +14,14 @@ export interface MemberDTO {
   usedStorageBytes: number;
 }
 
+export interface MembersResponseDTO {
+  data: MemberDTO[];
+  meta: {
+    cursor: string | null;
+    hasMore: boolean;
+  };
+}
+
 export interface InviteResultDTO {
   id: string;
   token: string;

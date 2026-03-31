@@ -6,7 +6,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { nodesApi } from '../api/nodes-api';
-import type { RegisterNodeRequest } from '../types/node.types';
+import type { OAuthNodeProvider, RegisterNodeRequest } from '../types/node.types';
 
 export function useRegisterNode() {
   const queryClient = useQueryClient();
@@ -27,6 +27,13 @@ export function useDrainNode() {
       queryClient.invalidateQueries({ queryKey: ['nodes'] });
       queryClient.invalidateQueries({ queryKey: ['node', nodeId] });
     },
+  });
+}
+
+export function useStartNodeOAuth() {
+  return useMutation({
+    mutationFn: ({ provider, nodeName }: { provider: OAuthNodeProvider; nodeName: string }) =>
+      nodesApi.startOAuth(provider, nodeName),
   });
 }
 

@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { ClusterService } from '../../src/modules/cluster/cluster.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
+import { SessionKeyService } from '../../src/common/services/session-key.service';
 import * as coreSdk from '@alexandria/core-sdk';
 
 /**
@@ -48,6 +49,7 @@ describe('ClusterService', () => {
       providers: [
         ClusterService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: SessionKeyService, useValue: { store: jest.fn(), get: jest.fn(), clear: jest.fn() } },
       ],
     }).compile();
 

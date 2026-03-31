@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { resolve } from 'node:path';
-import { createDecipheriv, createHash } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   split,
@@ -8,15 +8,22 @@ import {
   encrypt,
   generateFileKey,
   encodeErasure,
+  serializeManifest,
   ConsistentHashRing,
-  S3StorageProvider,
   LocalStorageProvider,
   type StorageProvider,
+  type ManifestData,
 } from '@alexandria/core-sdk';
+import {
+  createStorageProviderFromNodeConfig,
+  isOAuthNodeType,
+} from '../node/oauth-storage-provider';
+import { VaultService } from '../member/vault.service';
+import { SessionKeyService } from '../../common/services/session-key.service';
 
 /** Path absoluto para chunks locais — configuravel via env ou default na raiz do monorepo */
-const LOCAL_CHUNKS_DIR = process.env.LOCAL_STORAGE_PATH
-  || resolve(process.cwd(), '../..', 'apps', 'data', 'chunks');
+const LOCAL_CHUNKS_DIR =
+  process.env.LOCAL_STORAGE_PATH || resolve(process.cwd(), '../..', 'apps', 'data', 'chunks');
 
 /**
  * StorageService — orquestra distribuicao de chunks para nos de storage.
@@ -27,10 +34,10 @@ const LOCAL_CHUNKS_DIR = process.env.LOCAL_STORAGE_PATH
  */
 /** Ordem de preferencia de tier por tipo de midia */
 const TIER_PREFERENCE: Record<string, string[]> = {
-  photo:    ['hot', 'warm', 'cold'],
-  video:    ['hot', 'warm', 'cold'],
+  photo: ['hot', 'warm', 'cold'],
+  video: ['hot', 'warm', 'cold'],
   document: ['warm', 'hot', 'cold'],
-  archive:  ['cold', 'warm', 'hot'],
+  archive: ['cold', 'warm', 'hot'],
 };
 
 @Injectable()
@@ -39,7 +46,11 @@ export class StorageService implements OnModuleInit {
   private providers = new Map<string, StorageProvider>();
   private nodeTiers = new Map<string, string>();
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly vaultService: VaultService,
+    private readonly sessionKeyService: SessionKeyService,
+  ) {}
 
   /**
    * Ao iniciar o modulo, carrega todos os nos online do banco
@@ -66,43 +77,64 @@ export class StorageService implements OnModuleInit {
 
           if (node.type === 'local') {
             const localPath = node.endpoint
-              ? (node.endpoint.startsWith('/') ? node.endpoint : resolve(process.cwd(), '../..', node.endpoint))
+              ? node.endpoint.startsWith('/')
+                ? node.endpoint
+                : resolve(process.cwd(), '../..', node.endpoint)
               : LOCAL_CHUNKS_DIR;
             provider = new LocalStorageProvider(localPath);
           } else {
             // Decrypt config from configEncrypted (RN-N4)
             const config = await this.decryptNodeConfig(node.configEncrypted, node.clusterId);
             if (!config) {
-              console.log(`[StorageService] Skipping node ${node.id} (${node.type}) — failed to decrypt config`);
+              console.log(
+                `[StorageService] Skipping node ${node.id} (${node.type}) — failed to decrypt config`,
+              );
               continue;
             }
 
-            const accessKeyId = config.accessKey || '';
-            const secretAccessKey = config.secretKey || '';
-            if (!accessKeyId || !secretAccessKey) {
-              console.log(`[StorageService] Skipping node ${node.id} (${node.type}) — missing credentials`);
+            if (isOAuthNodeType(node.type) && !config.accessToken) {
+              console.log(
+                `[StorageService] Skipping node ${node.id} (${node.type}) — missing oauth token`,
+              );
               continue;
             }
 
-            // R2/B2/VPS need endpoint; AWS S3 derives from region
-            const endpoint = config.endpoint || '';
-            const needsEndpoint = node.type !== 's3';
-            if (needsEndpoint && !endpoint) {
-              console.log(`[StorageService] Skipping node ${node.id} (${node.type}) — missing endpoint`);
-              continue;
+            if (!isOAuthNodeType(node.type)) {
+              const accessKeyId = config.accessKey || '';
+              const secretAccessKey = config.secretKey || '';
+              if (!accessKeyId || !secretAccessKey) {
+                console.log(
+                  `[StorageService] Skipping node ${node.id} (${node.type}) — missing credentials`,
+                );
+                continue;
+              }
+
+              const endpoint = config.endpoint || '';
+              const needsEndpoint = node.type !== 's3';
+              if (needsEndpoint && !endpoint) {
+                console.log(
+                  `[StorageService] Skipping node ${node.id} (${node.type}) — missing endpoint`,
+                );
+                continue;
+              }
             }
 
-            const s3Config: ConstructorParameters<typeof S3StorageProvider>[0] = {
-              region: config.region || 'us-east-1',
-              bucket: config.bucket || '',
-              accessKeyId,
-              secretAccessKey,
-            };
-            if (endpoint) {
-              s3Config.endpoint = endpoint;
-            }
+            provider = createStorageProviderFromNodeConfig(node.type, config, {
+              onTokenRefresh: async (next) => {
+                const mergedConfig = { ...config, ...next };
+                const configEncrypted = await this.encryptNodeConfig(
+                  JSON.stringify(mergedConfig),
+                  node.clusterId,
+                );
+                await this.prisma.node.update({
+                  where: { id: node.id },
+                  data: { configEncrypted },
+                });
 
-            provider = new S3StorageProvider(s3Config);
+                // Auto-sync vault if session key is cached
+                await this.syncNodeConfigToVault(node.ownerId, node.id, next);
+              },
+            });
           }
 
           this.ring.addNode(node.id, 100);
@@ -183,7 +215,9 @@ export class StorageService implements OnModuleInit {
         where: { id: localNode.id },
         data: { totalCapacity: total },
       });
-    } catch { /* ignore — capacity will be 0 until first write */ }
+    } catch {
+      /* ignore — capacity will be 0 until first write */
+    }
 
     console.log(`[StorageService] Registered local dev node ${localNode.id} at ${localPath}`);
   }
@@ -331,7 +365,10 @@ export class StorageService implements OnModuleInit {
           }
         }
       } catch (err) {
-        console.error(`[StorageService] Failed to distribute chunk ${chunk.chunkId.substring(0, 16)}:`, err instanceof Error ? err.message : err);
+        console.error(
+          `[StorageService] Failed to distribute chunk ${chunk.chunkId.substring(0, 16)}:`,
+          err instanceof Error ? err.message : err,
+        );
       }
     }
 
@@ -429,6 +466,26 @@ export class StorageService implements OnModuleInit {
       });
     }
 
+    // Replicate manifest to storage providers for disaster recovery
+    try {
+      const manifestForReplication: ManifestData = {
+        fileId,
+        chunks: processedChunks.map((c) => ({
+          chunkId: c.chunkId,
+          chunkIndex: c.chunkIndex,
+          size: c.size,
+        })),
+        fileKeyEncrypted: encrypt(fileKey, masterKey),
+        signature: Buffer.alloc(64), // TODO: Ed25519 sign
+        version: 1,
+      };
+      const serialized = serializeManifest(manifestForReplication);
+      const targetNodes = [...new Set(replicaRecords.map((r) => r.nodeId))];
+      await this.replicateManifest(fileId, serialized, targetNodes);
+    } catch {
+      // Manifest replication failure is non-blocking
+    }
+
     return {
       chunksCount: processedChunks.length,
       replicasCount,
@@ -474,7 +531,12 @@ export class StorageService implements OnModuleInit {
       throw new Error('No nodes available for erasure distribution');
     }
 
-    const shardRecords: Array<{ shardId: string; shardIndex: number; size: number; nodeId: string }> = [];
+    const shardRecords: Array<{
+      shardId: string;
+      shardIndex: number;
+      size: number;
+      nodeId: string;
+    }> = [];
 
     for (let i = 0; i < TOTAL_SHARDS; i++) {
       const shard = shards[i]!;
@@ -482,7 +544,11 @@ export class StorageService implements OnModuleInit {
       const nodeId = nodeIds[i % nodeIds.length]!;
 
       const encResult = encrypt(shard, fileKey);
-      const encryptedBuffer = Buffer.concat([encResult.iv, encResult.authTag, encResult.ciphertext]);
+      const encryptedBuffer = Buffer.concat([
+        encResult.iv,
+        encResult.authTag,
+        encResult.ciphertext,
+      ]);
 
       const provider = this.providers.get(nodeId)!;
       await provider.put(shardHash, encryptedBuffer);
@@ -495,14 +561,23 @@ export class StorageService implements OnModuleInit {
       for (const rec of shardRecords) {
         const existing = await tx.chunk.findUnique({ where: { id: rec.shardId } });
         if (existing) {
-          await tx.chunk.update({ where: { id: rec.shardId }, data: { referenceCount: { increment: 1 } } });
+          await tx.chunk.update({
+            where: { id: rec.shardId },
+            data: { referenceCount: { increment: 1 } },
+          });
         } else {
           await tx.chunk.create({ data: { id: rec.shardId, size: rec.size, referenceCount: 1 } });
         }
-        await tx.chunkReplica.create({ data: { chunkId: rec.shardId, nodeId: rec.nodeId, status: 'healthy' } });
+        await tx.chunkReplica.create({
+          data: { chunkId: rec.shardId, nodeId: rec.nodeId, status: 'healthy' },
+        });
       }
 
-      const chunksJson = shardRecords.map((r) => ({ chunkId: r.shardId, chunkIndex: r.shardIndex, size: r.size }));
+      const chunksJson = shardRecords.map((r) => ({
+        chunkId: r.shardId,
+        chunkIndex: r.shardIndex,
+        size: r.size,
+      }));
 
       const manifest = await tx.manifest.create({
         data: {
@@ -612,9 +687,7 @@ export class StorageService implements OnModuleInit {
       where: { chunkId, status: 'healthy' },
       select: { nodeId: true },
     });
-    const excludeAll = [
-      ...new Set([...excludeNodeIds, ...allReplicaNodeIds.map((r) => r.nodeId)]),
-    ];
+    const excludeAll = [...new Set([...excludeNodeIds, ...allReplicaNodeIds.map((r) => r.nodeId)])];
 
     const candidates = this.ring.getNodes(chunkId, 1, excludeAll);
     if (candidates.length === 0) {
@@ -807,7 +880,18 @@ export class StorageService implements OnModuleInit {
   private async decryptNodeConfig(
     configEncrypted: Buffer | Uint8Array | null | undefined,
     clusterId: string,
-  ): Promise<{ endpoint?: string; bucket?: string; accessKey?: string; secretKey?: string; region?: string } | null> {
+  ): Promise<{
+    endpoint?: string;
+    bucket?: string;
+    accessKey?: string;
+    secretKey?: string;
+    region?: string;
+    accessToken?: string;
+    refreshToken?: string;
+    expiresAt?: string;
+    accountEmail?: string;
+    accountId?: string;
+  } | null> {
     if (!configEncrypted || configEncrypted.length < 29) return null;
     try {
       const buf = Buffer.from(configEncrypted);
@@ -837,5 +921,118 @@ export class StorageService implements OnModuleInit {
       throw new Error(`Cluster ${clusterId} not found or missing encrypted_private_key`);
     }
     return createHash('sha256').update(Buffer.from(cluster.encryptedPrivateKey)).digest();
+  }
+
+  /**
+   * Sincroniza um nodeConfig especifico no vault do admin apos token refresh.
+   * Graceful: nao falha se sessionKey nao estiver em cache ou vault update falhar.
+   */
+  private async syncNodeConfigToVault(
+    ownerId: string,
+    nodeId: string,
+    tokenUpdate: Record<string, unknown>,
+  ): Promise<void> {
+    const sessionData = this.sessionKeyService.get(ownerId);
+    if (!sessionData) return;
+
+    try {
+      await this.vaultService.update(
+        ownerId,
+        sessionData.adminPassword,
+        sessionData.masterKey,
+        (current) => ({
+          ...current,
+          nodeConfigs: current.nodeConfigs.map((nc) =>
+            nc.nodeId === nodeId ? { ...nc, ...tokenUpdate } : nc,
+          ),
+        }),
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      console.warn(`[StorageService] Vault sync failed for node ${nodeId}: ${message}`);
+    }
+  }
+
+  /**
+   * Substitui todos os nodeConfigs no vault do admin.
+   * Usado pelo endpoint manual POST /api/nodes/vault-sync.
+   */
+  async syncAllNodeConfigsToVault(
+    adminMemberId: string,
+    adminPassword: string,
+    masterKey: Buffer,
+    nodeConfigs: Array<Record<string, unknown>>,
+  ): Promise<void> {
+    await this.vaultService.update(
+      adminMemberId,
+      adminPassword,
+      masterKey,
+      (current) => ({
+        ...current,
+        nodeConfigs: nodeConfigs as typeof current.nodeConfigs,
+        clusterConfig: current.clusterConfig
+          ? {
+              ...current.clusterConfig,
+              nodeList: nodeConfigs.map((nc) => nc.nodeId as string),
+            }
+          : undefined,
+      }),
+    );
+  }
+
+  /**
+   * Replica manifest serializado nos storage providers.
+   * Key: manifest:{fileId} (convencao de naming para distinguir de chunks).
+   * Atualiza manifest.replicatedTo no DB.
+   */
+  async replicateManifest(
+    fileId: string,
+    manifestData: Buffer,
+    targetNodeIds: string[],
+  ): Promise<string[]> {
+    const key = `manifest:${fileId}`;
+    const replicatedTo: string[] = [];
+
+    for (const nodeId of targetNodeIds) {
+      const provider = this.providers.get(nodeId);
+      if (!provider) continue;
+
+      try {
+        await provider.put(key, manifestData);
+        replicatedTo.push(nodeId);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Unknown error';
+        console.warn(`[StorageService] Failed to replicate manifest ${fileId} to ${nodeId}: ${msg}`);
+      }
+    }
+
+    if (replicatedTo.length > 0) {
+      await this.prisma.manifest.update({
+        where: { fileId },
+        data: { replicatedTo },
+      });
+    }
+
+    return replicatedTo;
+  }
+
+  /**
+   * Retorna todos os providers registrados no hash ring.
+   * Usado pelo RecoveryService para scan de manifests/chunks.
+   */
+  getAllProviders(): Map<string, StorageProvider> {
+    return new Map(this.providers);
+  }
+
+  async encryptNodeConfig(
+    config: string,
+    clusterId: string,
+  ): Promise<Uint8Array<ArrayBuffer>> {
+    const key = await this.getEncryptionKey(clusterId);
+    const iv = randomBytes(12);
+    const cipher = createCipheriv('aes-256-gcm', key, iv);
+    const encrypted = Buffer.concat([cipher.update(config, 'utf-8'), cipher.final()]);
+    const authTag = cipher.getAuthTag();
+    return new Uint8Array(Buffer.concat([iv, authTag, encrypted])) as Uint8Array<ArrayBuffer>;
   }
 }

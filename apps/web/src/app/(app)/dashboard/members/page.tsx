@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAuthStore } from '@/store/auth-store';
-import { useMembers, useInvite, useRemoveMember, useSetQuota } from '@/features/members';
+import { useMembers, useInvite, useRemoveMember } from '@/features/members';
 import { Users, UserPlus, Trash2, Copy, Check, Crown, Eye } from 'lucide-react';
 
 /**
@@ -37,7 +37,6 @@ export default function MembersPage() {
   const { data: members, isLoading } = useMembers(clusterId);
   const invite = useInvite(clusterId);
   const removeMember = useRemoveMember(clusterId);
-  const setQuota = useSetQuota(clusterId);
 
   const [showInvite, setShowInvite] = useState(false);
   const [email, setEmail] = useState('');
@@ -77,7 +76,10 @@ export default function MembersPage() {
         </div>
 
         <button
-          onClick={() => { setShowInvite(true); setInviteUrl(null); }}
+          onClick={() => {
+            setShowInvite(true);
+            setInviteUrl(null);
+          }}
           className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition-opacity"
         >
           <UserPlus size={16} />
@@ -131,7 +133,9 @@ export default function MembersPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              <p className="text-sm text-emerald-600">Convite criado! Copie o link e envie ao convidado:</p>
+              <p className="text-sm text-emerald-600">
+                Convite criado! Copie o link e envie ao convidado:
+              </p>
               <div className="flex gap-2">
                 <input
                   readOnly
@@ -147,7 +151,10 @@ export default function MembersPage() {
                 </button>
               </div>
               <button
-                onClick={() => { setShowInvite(false); setInviteUrl(null); }}
+                onClick={() => {
+                  setShowInvite(false);
+                  setInviteUrl(null);
+                }}
                 className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
               >
                 Fechar
@@ -159,7 +166,9 @@ export default function MembersPage() {
 
       {/* Members List */}
       {isLoading && (
-        <div className="text-center py-12 text-[var(--muted-foreground)]">Carregando membros...</div>
+        <div className="text-center py-12 text-[var(--muted-foreground)]">
+          Carregando membros...
+        </div>
       )}
 
       {members && (
@@ -179,7 +188,9 @@ export default function MembersPage() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-[var(--foreground)] truncate">{m.name}</span>
+                    <span className="text-sm font-medium text-[var(--foreground)] truncate">
+                      {m.name}
+                    </span>
                     {isCurrentUser && (
                       <span className="text-xs text-[var(--muted-foreground)]">(voce)</span>
                     )}

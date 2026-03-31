@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  Optional,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Optional } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
 import { DomainEventService } from '../../common/events';
@@ -12,12 +8,23 @@ import {
   InsufficientNodesError,
   InvalidStateTransitionError,
 } from '../../common/errors';
-import { S3StorageProvider, LocalStorageProvider } from '@alexandria/core-sdk';
-import { randomBytes, createCipheriv, createHash } from 'node:crypto';
+import {
+  S3StorageProvider,
+  LocalStorageProvider,
+  type StorageProvider,
+} from '@alexandria/core-sdk';
+import { randomBytes, createCipheriv, createDecipheriv, createHash } from 'node:crypto';
 import { resolve } from 'node:path';
+import {
+  createOAuthStorageProvider,
+  isOAuthNodeType,
+  type OAuthNodeConfig,
+} from './oauth-storage-provider';
+import { VaultService } from '../member/vault.service';
+import { SessionKeyService } from '../../common/services/session-key.service';
 
-const LOCAL_CHUNKS_DIR = process.env.LOCAL_STORAGE_PATH
-  || resolve(process.cwd(), '../..', 'apps', 'data', 'chunks');
+const LOCAL_CHUNKS_DIR =
+  process.env.LOCAL_STORAGE_PATH || resolve(process.cwd(), '../..', 'apps', 'data', 'chunks');
 const MAX_NODES_PER_CLUSTER = parseInt(process.env.MAX_NODES_PER_CLUSTER || '50', 10);
 const MIN_NODES_FOR_REPLICATION = parseInt(process.env.MIN_NODES_FOR_REPLICATION || '1', 10);
 
@@ -30,6 +37,8 @@ export class NodeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly storageService: StorageService,
+    private readonly vaultService: VaultService,
+    private readonly sessionKeyService: SessionKeyService,
     @Optional() private readonly events?: DomainEventService,
   ) {}
 
@@ -48,6 +57,12 @@ export class NodeService {
       accessKey?: string;
       secretKey?: string;
       region?: string;
+      accessToken?: string;
+      refreshToken?: string;
+      expiresAt?: string;
+      accountEmail?: string;
+      accountId?: string;
+      adminPassword?: string;
     },
   ) {
     // RN-C4: Max 50 nos
@@ -56,49 +71,16 @@ export class NodeService {
       throw new ClusterFullError('Cluster atingiu o limite de 50 nos');
     }
 
-    // RN-N4: Encrypt credentials before storing
-    const config = JSON.stringify({
-      endpoint: dto.endpoint,
-      bucket: dto.bucket,
-      accessKey: dto.accessKey,
-      secretKey: dto.secretKey,
-      region: dto.region,
-    });
-    const configEncrypted = await this.encryptConfig(config, clusterId);
-
-    const nodeToken = randomBytes(32).toString('hex');
-
-    const node = await this.prisma.node.create({
-      data: {
-        clusterId,
-        ownerId,
-        name: dto.name,
-        type: dto.type,
-        endpoint: dto.endpoint || (dto.type === 'local' ? LOCAL_CHUNKS_DIR : ''),
-        configEncrypted,
-        nodeToken,
-        status: 'online',
-        totalCapacity: BigInt(0),
-        usedCapacity: BigInt(0),
-        lastHeartbeat: new Date(),
-        tier: 'warm',
-      },
-    });
-
-    // Register node in StorageService hash ring with appropriate provider
-    let provider: LocalStorageProvider | S3StorageProvider;
-
-    if (dto.type === 'local') {
-      const ep = dto.endpoint || LOCAL_CHUNKS_DIR;
-      const localPath = ep.startsWith('/') ? ep : resolve(process.cwd(), '../..', ep);
-      provider = new LocalStorageProvider(localPath);
-    } else {
+    if (isOAuthNodeType(dto.type)) {
+      if (!dto.accessToken) {
+        throw new InvalidStateTransitionError('OAuth nodes require an access token');
+      }
+    } else if (dto.type !== 'local') {
       const accessKeyId = dto.accessKey || '';
       const secretAccessKey = dto.secretKey || '';
       const endpoint = dto.endpoint || '';
-
-      // R2/B2/VPS always need a custom endpoint; AWS S3 derives from region
       const needsEndpoint = dto.type !== 's3';
+
       if (needsEndpoint && !endpoint) {
         throw new InvalidStateTransitionError(
           `${dto.type.toUpperCase()} nodes require an explicit endpoint`,
@@ -110,6 +92,64 @@ export class NodeService {
           'S3-compatible nodes require accessKey and secretKey',
         );
       }
+    }
+
+    const serializedConfig = {
+      endpoint: dto.endpoint,
+      bucket: dto.bucket,
+      accessKey: dto.accessKey,
+      secretKey: dto.secretKey,
+      region: dto.region,
+      accessToken: dto.accessToken,
+      refreshToken: dto.refreshToken,
+      expiresAt: dto.expiresAt,
+      accountEmail: dto.accountEmail,
+      accountId: dto.accountId,
+    };
+
+    // RN-N4: Encrypt credentials before storing
+    const config = JSON.stringify(serializedConfig);
+    const configEncrypted = await this.encryptConfig(config, clusterId);
+
+    const nodeToken = randomBytes(32).toString('hex');
+
+    const node = await this.prisma.node.create({
+      data: {
+        clusterId,
+        ownerId,
+        name: dto.name,
+        type: dto.type,
+        endpoint:
+          dto.endpoint || this.defaultEndpointForType(dto.type, dto.accountEmail, dto.accountId),
+        configEncrypted,
+        nodeToken,
+        status: 'online',
+        totalCapacity: BigInt(0),
+        usedCapacity: BigInt(0),
+        lastHeartbeat: new Date(),
+        tier: 'warm',
+      },
+    });
+
+    // Register node in StorageService hash ring with appropriate provider
+    let provider: StorageProvider;
+
+    if (dto.type === 'local') {
+      const ep = dto.endpoint || LOCAL_CHUNKS_DIR;
+      const localPath = ep.startsWith('/') ? ep : resolve(process.cwd(), '../..', ep);
+      provider = new LocalStorageProvider(localPath);
+    } else if (isOAuthNodeType(dto.type)) {
+      provider = createOAuthStorageProvider(dto.type, {
+        accessToken: dto.accessToken || '',
+        refreshToken: dto.refreshToken,
+        expiresAt: dto.expiresAt,
+        accountEmail: dto.accountEmail,
+        accountId: dto.accountId,
+      } satisfies OAuthNodeConfig);
+    } else {
+      const accessKeyId = dto.accessKey || '';
+      const secretAccessKey = dto.secretKey || '';
+      const endpoint = dto.endpoint || '';
 
       const s3Config: ConstructorParameters<typeof S3StorageProvider>[0] = {
         region: dto.region || 'us-east-1',
@@ -154,6 +194,9 @@ export class NodeService {
       nodeType: dto.type,
       timestamp: new Date(),
     });
+
+    // Persist node config in admin vault (RN-V1) — graceful degradation
+    await this.syncNodeConfigToVault(ownerId, node.id, dto);
 
     return {
       id: node.id,
@@ -236,7 +279,10 @@ export class NodeService {
   }
 
   /** Lista nos de um cluster com cursor pagination */
-  async listByCluster(clusterId: string, opts?: { cursor?: string; limit?: number; status?: string }) {
+  async listByCluster(
+    clusterId: string,
+    opts?: { cursor?: string; limit?: number; status?: string },
+  ) {
     const limit = opts?.limit ?? 20;
     const where: any = { clusterId };
     if (opts?.status) where.status = opts.status;
@@ -274,6 +320,37 @@ export class NodeService {
         hasMore,
       },
     };
+  }
+
+  /**
+   * Retorna todos os nodeConfigs decriptados do cluster.
+   * Usado pelo endpoint vault-sync para sincronizar configs no vault do admin.
+   */
+  async getDecryptedNodeConfigs(clusterId: string): Promise<Array<Record<string, unknown>>> {
+    const nodes = await this.prisma.node.findMany({
+      where: { clusterId, status: { in: ['online', 'suspect', 'lost'] } },
+      select: { id: true, type: true, configEncrypted: true },
+    });
+
+    const configs: Array<Record<string, unknown>> = [];
+    for (const node of nodes) {
+      if (node.type === 'local') continue; // local nodes don't have credentials to sync
+      try {
+        const key = await this.getEncryptionKey(clusterId);
+        const buf = Buffer.from(node.configEncrypted!);
+        const iv = buf.subarray(0, 12);
+        const authTag = buf.subarray(12, 28);
+        const ciphertext = buf.subarray(28);
+        const decipher = createDecipheriv('aes-256-gcm', key, iv);
+        decipher.setAuthTag(authTag);
+        const decrypted = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+        const config = JSON.parse(decrypted.toString('utf-8'));
+        configs.push({ nodeId: node.id, type: node.type, ...config });
+      } catch {
+        // Skip nodes with failed decryption
+      }
+    }
+    return configs;
   }
 
   /**
@@ -429,6 +506,61 @@ export class NodeService {
   }
 
   /**
+   * Persiste nodeConfig no vault do admin (RN-V1).
+   * Requer adminPassword no DTO e masterKey no SessionKeyService.
+   * Falha silenciosa: se não conseguir atualizar, loga warning mas não impede o registro.
+   */
+  private async syncNodeConfigToVault(
+    ownerId: string,
+    nodeId: string,
+    dto: Record<string, unknown>,
+  ): Promise<void> {
+    const adminPassword = dto.adminPassword as string | undefined;
+    if (!adminPassword) return;
+
+    const sessionData = this.sessionKeyService.get(ownerId);
+    if (!sessionData) return;
+
+    try {
+      await this.vaultService.update(
+        ownerId,
+        adminPassword,
+        sessionData.masterKey,
+        (current) => {
+          const filtered = current.nodeConfigs.filter((nc) => nc.nodeId !== nodeId);
+          const nodeConfig: Record<string, unknown> = {
+            nodeId,
+            type: dto.type,
+            endpoint: dto.endpoint,
+            bucket: dto.bucket,
+            accessKey: dto.accessKey,
+            secretKey: dto.secretKey,
+            region: dto.region,
+            accessToken: dto.accessToken,
+            refreshToken: dto.refreshToken,
+            expiresAt: dto.expiresAt,
+            accountEmail: dto.accountEmail,
+            accountId: dto.accountId,
+          };
+          // Remove undefined values
+          const cleanConfig = Object.fromEntries(
+            Object.entries(nodeConfig).filter(([, v]) => v !== undefined),
+          ) as typeof current.nodeConfigs[number];
+
+          return {
+            ...current,
+            nodeConfigs: [...filtered, cleanConfig],
+          };
+        },
+      );
+    } catch (err) {
+      // Graceful degradation: vault update failure should not block node registration
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      console.warn(`[NodeService] Failed to sync nodeConfig to vault: ${message}`);
+    }
+  }
+
+  /**
    * Criptografa config do no com AES-256-GCM (RN-N4).
    * Chave derivada de SHA-256(encrypted_private_key) do cluster.
    * Alinhado com envelope encryption: seed → master key → encrypted_private_key → node config key.
@@ -456,5 +588,17 @@ export class NodeService {
       throw new Error(`Cluster ${clusterId} not found or missing encrypted_private_key`);
     }
     return createHash('sha256').update(Buffer.from(cluster.encryptedPrivateKey)).digest();
+  }
+
+  private defaultEndpointForType(type: string, accountEmail?: string, accountId?: string): string {
+    if (type === 'local') {
+      return LOCAL_CHUNKS_DIR;
+    }
+
+    if (isOAuthNodeType(type)) {
+      return `oauth://${type}/${accountEmail || accountId || 'account'}`;
+    }
+
+    return '';
   }
 }

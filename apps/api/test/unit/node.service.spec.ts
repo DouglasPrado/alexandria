@@ -9,6 +9,8 @@ import {
 import { NodeService } from '../../src/modules/node/node.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { StorageService } from '../../src/modules/storage/storage.service';
+import { VaultService } from '../../src/modules/member/vault.service';
+import { SessionKeyService } from '../../src/common/services/session-key.service';
 
 /**
  * Testes do NodeService — registro de nos, heartbeat, drain, listagem.
@@ -55,6 +57,16 @@ const mockStorageService = {
   setNodeTier: jest.fn(),
 };
 
+const mockVaultService = {
+  update: jest.fn().mockResolvedValue(undefined),
+};
+
+const mockSessionKeyService = {
+  get: jest.fn().mockReturnValue(null),
+  store: jest.fn(),
+  clear: jest.fn(),
+};
+
 describe('NodeService', () => {
   let nodeService: NodeService;
 
@@ -66,6 +78,8 @@ describe('NodeService', () => {
         NodeService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: StorageService, useValue: mockStorageService },
+        { provide: VaultService, useValue: mockVaultService },
+        { provide: SessionKeyService, useValue: mockSessionKeyService },
       ],
     }).compile();
 
@@ -351,6 +365,168 @@ describe('NodeService', () => {
       const configStr = Buffer.from(capturedConfigEncrypted!).toString('utf-8');
       expect(configStr).not.toContain('AKIA_SECRET');
       expect(configStr).not.toContain('super_secret');
+    });
+  });
+
+  describe('register() — vault sync', () => {
+    const baseNodeCreate = (args: any) => ({
+      id: 'node-vault',
+      name: args.data.name,
+      type: args.data.type,
+      status: 'online',
+      totalCapacity: BigInt(0),
+      usedCapacity: BigInt(0),
+      lastHeartbeat: new Date(),
+      createdAt: new Date(),
+    });
+
+    it('should persist S3 node config in admin vault after registration', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.node.create.mockImplementation(baseNodeCreate);
+      mockSessionKeyService.get.mockReturnValue({
+        masterKey: Buffer.from('a'.repeat(64), 'hex'),
+        adminPassword: 'Str0ngP@ss!',
+      });
+
+      await nodeService.register('cluster-1', 'admin-1', {
+        name: 'S3 Vault Test',
+        type: 's3',
+        endpoint: 'https://s3.amazonaws.com',
+        bucket: 'test-bucket',
+        accessKey: 'AKIA...',
+        secretKey: 'secret...',
+        region: 'us-east-1',
+        adminPassword: 'Str0ngP@ss!',
+      });
+
+      expect(mockVaultService.update).toHaveBeenCalledWith(
+        'admin-1',
+        'Str0ngP@ss!',
+        expect.any(Buffer),
+        expect.any(Function),
+      );
+    });
+
+    it('should persist OAuth node config in admin vault after registration', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.node.create.mockImplementation(baseNodeCreate);
+      mockSessionKeyService.get.mockReturnValue({
+        masterKey: Buffer.from('a'.repeat(64), 'hex'),
+        adminPassword: 'Str0ngP@ss!',
+      });
+
+      await nodeService.register('cluster-1', 'admin-1', {
+        name: 'Google Drive',
+        type: 'google_drive',
+        accessToken: 'ya29.token',
+        refreshToken: '1//refresh',
+        expiresAt: '2026-04-01T00:00:00Z',
+        accountEmail: 'user@gmail.com',
+        accountId: 'perm-123',
+        adminPassword: 'Str0ngP@ss!',
+      });
+
+      expect(mockVaultService.update).toHaveBeenCalledWith(
+        'admin-1',
+        'Str0ngP@ss!',
+        expect.any(Buffer),
+        expect.any(Function),
+      );
+
+      // Verify the updater function adds the nodeConfig correctly
+      const updaterFn = mockVaultService.update.mock.calls[0][3];
+      const result = updaterFn({
+        credentials: { email: 'admin@test.com', role: 'admin' },
+        nodeConfigs: [],
+        clusterConfig: { name: 'Test', nodeList: [] },
+      });
+      expect(result.nodeConfigs).toHaveLength(1);
+      expect(result.nodeConfigs[0].nodeId).toBe('node-vault');
+      expect(result.nodeConfigs[0].type).toBe('google_drive');
+      expect(result.nodeConfigs[0].accessToken).toBe('ya29.token');
+    });
+
+    it('should skip vault update when adminPassword not provided', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.node.create.mockImplementation(baseNodeCreate);
+      mockSessionKeyService.get.mockReturnValue({
+        masterKey: Buffer.from('a'.repeat(64), 'hex'),
+        adminPassword: 'Str0ngP@ss!',
+      });
+
+      await nodeService.register('cluster-1', 'admin-1', {
+        name: 'No Password',
+        type: 'local',
+        endpoint: '/mnt/data',
+        // no adminPassword
+      });
+
+      expect(mockVaultService.update).not.toHaveBeenCalled();
+    });
+
+    it('should skip vault update when session key not cached', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.node.create.mockImplementation(baseNodeCreate);
+      mockSessionKeyService.get.mockReturnValue(null); // no cached key
+
+      await nodeService.register('cluster-1', 'admin-1', {
+        name: 'No Session',
+        type: 'local',
+        endpoint: '/mnt/data',
+        adminPassword: 'Str0ngP@ss!',
+      });
+
+      expect(mockVaultService.update).not.toHaveBeenCalled();
+    });
+
+    it('should succeed even if vault update fails (graceful degradation)', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.node.create.mockImplementation(baseNodeCreate);
+      mockSessionKeyService.get.mockReturnValue({
+        masterKey: Buffer.from('a'.repeat(64), 'hex'),
+        adminPassword: 'Str0ngP@ss!',
+      });
+      mockVaultService.update.mockRejectedValueOnce(new Error('Vault update failed'));
+
+      const result = await nodeService.register('cluster-1', 'admin-1', {
+        name: 'Vault Fail',
+        type: 'local',
+        endpoint: '/mnt/data',
+        adminPassword: 'Str0ngP@ss!',
+      });
+
+      // Node registration should still succeed
+      expect(result.name).toBe('Vault Fail');
+      expect(result.status).toBe('online');
+    });
+
+    it('should deduplicate nodeConfig by nodeId via updater', async () => {
+      mockPrisma.node.count.mockResolvedValue(3);
+      mockPrisma.node.create.mockImplementation(baseNodeCreate);
+      mockSessionKeyService.get.mockReturnValue({
+        masterKey: Buffer.from('a'.repeat(64), 'hex'),
+        adminPassword: 'Str0ngP@ss!',
+      });
+
+      await nodeService.register('cluster-1', 'admin-1', {
+        name: 'Dedup Test',
+        type: 's3',
+        endpoint: 'https://s3.amazonaws.com',
+        bucket: 'new-bucket',
+        accessKey: 'AKIA...',
+        secretKey: 'secret...',
+        adminPassword: 'Str0ngP@ss!',
+      });
+
+      // Verify updater deduplicates by nodeId
+      const updaterFn = mockVaultService.update.mock.calls[0][3];
+      const result = updaterFn({
+        credentials: { email: 'admin@test.com', role: 'admin' },
+        nodeConfigs: [{ nodeId: 'node-vault', type: 's3', bucket: 'old-bucket' }],
+        clusterConfig: { name: 'Test', nodeList: [] },
+      });
+      expect(result.nodeConfigs).toHaveLength(1);
+      expect(result.nodeConfigs[0].bucket).toBe('new-bucket');
     });
   });
 

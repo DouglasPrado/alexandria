@@ -5,6 +5,7 @@
 import { apiClient } from '@/lib/api-client';
 import type {
   MemberDTO,
+  MembersResponseDTO,
   InviteResultDTO,
   AcceptInviteResultDTO,
   CreateInviteInput,
@@ -13,8 +14,10 @@ import type {
 
 export const membersApi = {
   /** GET /api/clusters/:id/members — listar membros do cluster */
-  list: (clusterId: string): Promise<MemberDTO[]> =>
-    apiClient.get<MemberDTO[]>(`/clusters/${clusterId}/members`),
+  list: async (clusterId: string): Promise<MemberDTO[]> => {
+    const response = await apiClient.get<MembersResponseDTO>(`/clusters/${clusterId}/members`);
+    return response.data;
+  },
 
   /** POST /api/clusters/:id/invites — criar convite (admin) */
   invite: (clusterId: string, input: CreateInviteInput): Promise<InviteResultDTO> =>

@@ -5,6 +5,8 @@ import { HealthService } from '../../src/modules/health/health.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { StorageService } from '../../src/modules/storage/storage.service';
 import { NotificationService } from '../../src/modules/notification/notification.service';
+import { VaultService } from '../../src/modules/member/vault.service';
+import { SessionKeyService } from '../../src/common/services/session-key.service';
 import { JwtService } from '@nestjs/jwt';
 
 /**
@@ -137,6 +139,8 @@ describe('Cursor Pagination', () => {
           NodeService,
           { provide: PrismaService, useValue: mockPrisma },
           { provide: StorageService, useValue: {} },
+          { provide: VaultService, useValue: {} },
+          { provide: SessionKeyService, useValue: { get: jest.fn() } },
         ],
       }).compile();
       nodeService = module.get(NodeService);
