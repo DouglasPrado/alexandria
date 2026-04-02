@@ -1,12 +1,12 @@
 /**
  * DisconnectConfirmDialog — confirmação para drain + desconexão de nó.
  * Fonte: docs/frontend/web/04-components.md (DisconnectConfirmDialog)
- * Fonte: docs/frontend/web/08-flows.md (Fluxo 5: Desconectar nó)
+ * Design: Alexandria Protocol — rounded-3xl, tonal layering, no borders
  */
 'use client';
 
 import { useState } from 'react';
-import { AlertTriangle, Loader2 } from 'lucide-react';
+import { AlertTriangle, Loader2, X, HardDrive, Database } from 'lucide-react';
 import { useDrainNode, useRemoveNode } from '../hooks/useNodeMutations';
 import type { NodeDTO } from '../types/node.types';
 import { formatBytes } from '@/lib/format';
@@ -47,77 +47,190 @@ export function DisconnectConfirmDialog({ node, open, onClose }: DisconnectConfi
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-[var(--card)] border border-[var(--border)] rounded-[var(--radius)] w-full max-w-md shadow-xl p-6 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-[var(--warning)]/10 rounded-full">
-            <AlertTriangle size={24} className="text-[var(--warning)]" />
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ backgroundColor: 'rgba(19, 27, 46, 0.4)' }}
+    >
+      <div
+        className="w-full max-w-md rounded-3xl overflow-hidden"
+        style={{
+          backgroundColor: 'var(--surface-container-lowest)',
+          boxShadow: '0px 24px 48px rgba(19, 27, 46, 0.12)',
+        }}
+      >
+        {/* Header */}
+        <div className="p-6 pb-0 flex items-start justify-between">
+          <div className="flex items-center gap-4">
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+              style={{ backgroundColor: 'rgba(232, 163, 23, 0.12)' }}
+            >
+              <AlertTriangle size={22} style={{ color: 'var(--warning)' }} />
+            </div>
+            <div>
+              <h3 className="font-display font-extrabold text-lg" style={{ color: 'var(--foreground)' }}>
+                Desconectar nó
+              </h3>
+              <p className="text-sm mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
+                {isDraining ? 'Drain em andamento...' : 'Os chunks serão migrados antes da remoção.'}
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-semibold text-[var(--foreground)]">Desconectar &ldquo;{node.name}&rdquo;</h3>
-            <p className="text-sm text-[var(--muted-foreground)]">
-              {isDraining ? 'Drain em andamento...' : 'Os chunks serão migrados antes da remoção.'}
-            </p>
-          </div>
-        </div>
-
-        {/* Impact info */}
-        <div className="bg-[var(--secondary)] rounded-[var(--radius)] p-3 space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-[var(--muted-foreground)]">Chunks armazenados</span>
-            <span className="text-[var(--foreground)] font-medium">{node.chunksStored}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-[var(--muted-foreground)]">Espaço utilizado</span>
-            <span className="text-[var(--foreground)] font-medium">{formatBytes(node.usedCapacity)}</span>
-          </div>
-        </div>
-
-        {error && (
-          <div className="bg-[var(--destructive)]/10 border border-[var(--destructive)] rounded-[var(--radius)] p-3 text-sm text-[var(--destructive)]">
-            {error}
-          </div>
-        )}
-
-        <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 border border-[var(--border)] rounded-[var(--radius)] text-[var(--foreground)] font-medium hover:bg-[var(--secondary)] transition-colors text-sm"
+            className="p-1.5 rounded-full transition-colors"
+            style={{ color: 'var(--muted-foreground)' }}
+            aria-label="Fechar"
           >
-            Cancelar
+            <X size={16} />
           </button>
+        </div>
 
-          {isDisconnected ? (
-            <button
-              onClick={handleRemove}
-              disabled={removeNode.isPending}
-              className="flex-1 py-2.5 bg-[var(--destructive)] text-white rounded-[var(--radius)] font-medium hover:opacity-90 disabled:opacity-50 transition-opacity text-sm"
+        <div className="p-6 space-y-5">
+          {/* Node identity */}
+          <div
+            className="flex items-center gap-4 p-4 rounded-2xl"
+            style={{ backgroundColor: 'var(--surface-container-low)' }}
+          >
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+              style={{ backgroundColor: 'var(--surface-container-lowest)' }}
             >
-              {removeNode.isPending ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader2 size={14} className="animate-spin" /> Removendo...
+              <HardDrive size={18} style={{ color: 'var(--primary-container)' }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-display font-bold text-sm truncate" style={{ color: 'var(--foreground)' }}>
+                {node.name}
+              </p>
+              <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
+                {node.type.toUpperCase()} · {node.status.toUpperCase()}
+              </p>
+            </div>
+          </div>
+
+          {/* Impact — grid 2 cols */}
+          <div className="grid grid-cols-2 gap-3">
+            <div
+              className="p-4 rounded-2xl"
+              style={{ backgroundColor: 'var(--surface-container-low)' }}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Database size={14} style={{ color: 'var(--secondary)' }} />
+                <span
+                  className="text-[10px] font-bold uppercase tracking-widest"
+                  style={{ color: 'var(--muted-foreground)' }}
+                >
+                  Chunks
                 </span>
-              ) : 'Remover nó'}
-            </button>
-          ) : isDraining ? (
-            <button disabled className="flex-1 py-2.5 bg-[var(--info)] text-white rounded-[var(--radius)] font-medium opacity-70 text-sm">
-              <span className="flex items-center justify-center gap-2">
-                <Loader2 size={14} className="animate-spin" /> Migrando chunks...
+              </div>
+              <span className="text-2xl font-display font-extrabold" style={{ color: 'var(--foreground)' }}>
+                {node.chunksStored.toLocaleString('pt-BR')}
               </span>
-            </button>
-          ) : (
-            <button
-              onClick={handleDrain}
-              disabled={drainNode.isPending}
-              className="flex-1 py-2.5 bg-[var(--warning)] text-[var(--warning-foreground)] rounded-[var(--radius)] font-medium hover:opacity-90 disabled:opacity-50 transition-opacity text-sm"
+              <span className="text-xs block mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
+                a serem migrados
+              </span>
+            </div>
+            <div
+              className="p-4 rounded-2xl"
+              style={{ backgroundColor: 'var(--surface-container-low)' }}
             >
-              {drainNode.isPending ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader2 size={14} className="animate-spin" /> Iniciando...
+              <div className="flex items-center gap-2 mb-2">
+                <HardDrive size={14} style={{ color: 'var(--secondary)' }} />
+                <span
+                  className="text-[10px] font-bold uppercase tracking-widest"
+                  style={{ color: 'var(--muted-foreground)' }}
+                >
+                  Espaço
                 </span>
-              ) : 'Iniciar drain'}
-            </button>
+              </div>
+              <span className="text-2xl font-display font-extrabold" style={{ color: 'var(--foreground)' }}>
+                {formatBytes(node.usedCapacity)}
+              </span>
+              <span className="text-xs block mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
+                utilizado
+              </span>
+            </div>
+          </div>
+
+          {/* Warning message */}
+          {!isDraining && !isDisconnected && (
+            <div
+              className="flex items-start gap-3 p-4 rounded-xl text-sm"
+              style={{ backgroundColor: 'rgba(232, 163, 23, 0.08)', color: '#7a5900' }}
+            >
+              <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+              <span>
+                Ao desconectar, todos os chunks deste nó serão migrados para outros nós antes da remoção.
+                Este processo pode levar horas dependendo da quantidade de dados.
+              </span>
+            </div>
           )}
+
+          {/* Error */}
+          {error && (
+            <div
+              className="flex items-center gap-2 rounded-xl p-4 text-sm"
+              style={{ backgroundColor: 'rgba(186, 26, 26, 0.08)', color: 'var(--destructive)' }}
+            >
+              <AlertTriangle size={16} className="shrink-0" />
+              {error}
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-1">
+            <button
+              onClick={onClose}
+              className="flex-1 py-3.5 rounded-xl font-display font-bold text-sm transition-all active:scale-95"
+              style={{
+                backgroundColor: 'var(--surface-container-low)',
+                color: 'var(--foreground)',
+              }}
+            >
+              Cancelar
+            </button>
+
+            {isDisconnected ? (
+              <button
+                onClick={handleRemove}
+                disabled={removeNode.isPending}
+                className="flex-1 py-3.5 rounded-xl font-display font-bold text-sm text-white transition-all active:scale-95 disabled:opacity-50"
+                style={{ backgroundColor: 'var(--destructive)' }}
+              >
+                {removeNode.isPending ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 size={14} className="animate-spin" /> Removendo...
+                  </span>
+                ) : 'Remover nó'}
+              </button>
+            ) : isDraining ? (
+              <button
+                disabled
+                className="flex-1 py-3.5 rounded-xl font-display font-bold text-sm text-white opacity-70"
+                style={{ backgroundColor: 'var(--info)' }}
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 size={14} className="animate-spin" /> Migrando chunks...
+                </span>
+              </button>
+            ) : (
+              <button
+                onClick={handleDrain}
+                disabled={drainNode.isPending}
+                className="flex-1 py-3.5 rounded-xl font-display font-bold text-sm transition-all active:scale-95 disabled:opacity-50"
+                style={{
+                  backgroundColor: 'var(--destructive)',
+                  color: 'white',
+                }}
+              >
+                {drainNode.isPending ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 size={14} className="animate-spin" /> Iniciando...
+                  </span>
+                ) : 'Iniciar drain'}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

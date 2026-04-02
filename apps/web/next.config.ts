@@ -2,6 +2,9 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   transpilePackages: ['@alexandria/ui', '@alexandria/api-client'],
+  experimental: {
+    middlewareClientMaxBodySize: '10gb',
+  },
   async rewrites() {
     return [
       {

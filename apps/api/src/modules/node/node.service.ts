@@ -11,6 +11,7 @@ import {
 import {
   S3StorageProvider,
   LocalStorageProvider,
+  deserializeManifest,
   type StorageProvider,
 } from '@alexandria/core-sdk';
 import { randomBytes, createCipheriv, createDecipheriv, createHash } from 'node:crypto';
@@ -198,6 +199,9 @@ export class NodeService {
     // Persist node config in admin vault (RN-V1) — graceful degradation
     await this.syncNodeConfigToVault(ownerId, node.id, dto);
 
+    // Scan provider for existing data (disaster recovery: reconnecting after DB loss)
+    const scanResult = await this.scanProviderForExistingData(node.id, clusterId);
+
     return {
       id: node.id,
       name: node.name,
@@ -206,9 +210,11 @@ export class NodeService {
       nodeToken,
       totalCapacity,
       usedCapacity,
-      chunksStored: 0,
+      chunksStored: scanResult.discoveredChunks,
       lastHeartbeat: node.lastHeartbeat?.toISOString() ?? null,
       createdAt: node.createdAt.toISOString(),
+      discoveredChunks: scanResult.discoveredChunks,
+      discoveredManifests: scanResult.discoveredManifests,
     };
   }
 
@@ -257,7 +263,10 @@ export class NodeService {
   async findById(nodeId: string, clusterId: string) {
     const node = await this.prisma.node.findUnique({
       where: { id: nodeId },
-      include: { _count: { select: { chunkReplicas: true } } },
+      include: {
+        _count: { select: { chunkReplicas: true } },
+        owner: { select: { id: true, name: true } },
+      },
     });
 
     if (!node || node.clusterId !== clusterId) {
@@ -275,6 +284,7 @@ export class NodeService {
       chunksStored: (node as any)._count?.chunkReplicas ?? 0,
       lastHeartbeat: node.lastHeartbeat?.toISOString() ?? null,
       createdAt: node.createdAt.toISOString(),
+      owner: node.owner ? { id: node.owner.id, name: node.owner.name } : null,
     };
   }
 
@@ -289,7 +299,10 @@ export class NodeService {
 
     const query: any = {
       where,
-      include: { _count: { select: { chunkReplicas: true } } },
+      include: {
+        _count: { select: { chunkReplicas: true } },
+        owner: { select: { id: true, name: true } },
+      },
       orderBy: { createdAt: 'asc' },
       take: limit + 1,
     };
@@ -311,6 +324,7 @@ export class NodeService {
       chunksStored: n._count?.chunkReplicas ?? 0,
       lastHeartbeat: n.lastHeartbeat?.toISOString() ?? null,
       createdAt: n.createdAt.toISOString(),
+      owner: n.owner ? { id: n.owner.id, name: n.owner.name } : null,
     }));
 
     return {
@@ -503,6 +517,202 @@ export class NodeService {
     this.storageService.setNodeTier(nodeId, tier);
 
     return { id: updated.id, tier: updated.tier };
+  }
+
+  /**
+   * Scanneia provider por dados existentes (chunks e manifests).
+   * Executado apos registro do no para descobrir dados de um cluster recuperado.
+   * Non-blocking: falhas nao impedem o registro do no.
+   */
+  private async scanProviderForExistingData(
+    nodeId: string,
+    clusterId: string,
+  ): Promise<{ discoveredChunks: number; discoveredManifests: number }> {
+    let discoveredChunks = 0;
+    let discoveredManifests = 0;
+
+    try {
+      const provider = this.storageService.getProvider(nodeId);
+      if (!provider) return { discoveredChunks, discoveredManifests };
+
+      const keys = await provider.list();
+      if (!keys || keys.length === 0) return { discoveredChunks, discoveredManifests };
+
+      console.log(`[NodeService] Scanning provider ${nodeId}: found ${keys.length} keys`);
+
+      // Sort keys: manifests first, then filemeta, then previews, then chunks
+      // This ensures files exist in DB before metadata/previews try to update them
+      const sortOrder = (k: string) => {
+        if (k.startsWith('manifest:')) return 0;
+        if (k.startsWith('filemeta:')) return 1;
+        if (k.startsWith('preview:')) return 2;
+        return 3;
+      };
+      const sortedKeys = [...keys].sort((a, b) => sortOrder(a) - sortOrder(b));
+
+      for (const key of sortedKeys) {
+        try {
+          if (key.startsWith('manifest:')) {
+            const data = await provider.get(key);
+            if (data) {
+              const manifest = deserializeManifest(data);
+
+              // Find admin member for uploadedBy FK
+              const adminMember = await this.prisma.member.findFirst({
+                where: { clusterId, role: 'admin' },
+                select: { id: true },
+              });
+
+              // Upsert file record
+              await this.prisma.file.upsert({
+                where: { id: manifest.fileId },
+                create: {
+                  id: manifest.fileId,
+                  clusterId,
+                  uploadedBy: adminMember?.id || '',
+                  originalName: `recovered-${manifest.fileId.substring(0, 8)}`,
+                  mediaType: 'unknown',
+                  mimeType: 'application/octet-stream',
+                  originalSize: BigInt(manifest.chunks.reduce((sum, c) => sum + c.size, 0)),
+                  status: 'ready',
+                },
+                update: {},
+              });
+
+              // Upsert manifest
+              const fileKeyEncrypted = Buffer.concat([
+                manifest.fileKeyEncrypted.iv,
+                manifest.fileKeyEncrypted.authTag,
+                manifest.fileKeyEncrypted.ciphertext,
+              ]);
+
+              await this.prisma.manifest.upsert({
+                where: { fileId: manifest.fileId },
+                create: {
+                  fileId: manifest.fileId,
+                  chunksJson: JSON.parse(JSON.stringify(manifest.chunks)),
+                  fileKeyEncrypted: new Uint8Array(fileKeyEncrypted) as Uint8Array<ArrayBuffer>,
+                  signature: new Uint8Array(manifest.signature) as Uint8Array<ArrayBuffer>,
+                  replicatedTo: [nodeId],
+                  version: manifest.version,
+                },
+                update: {},
+              });
+
+              // Upsert chunks from manifest — only create replica if chunk is on THIS node
+              const keysSet = new Set(sortedKeys);
+              for (const chunk of manifest.chunks) {
+                await this.prisma.chunk.upsert({
+                  where: { id: chunk.chunkId },
+                  create: { id: chunk.chunkId, size: chunk.size, referenceCount: 1 },
+                  update: {},
+                });
+                // Only create replica if this provider actually has the chunk
+                if (keysSet.has(chunk.chunkId)) {
+                  await this.prisma.chunkReplica.upsert({
+                    where: { chunkId_nodeId: { chunkId: chunk.chunkId, nodeId } },
+                    create: { chunkId: chunk.chunkId, nodeId, status: 'healthy' },
+                    update: {},
+                  });
+                }
+              }
+
+              // Upsert manifest_chunk join records
+              const dbManifest = await this.prisma.manifest.findUnique({ where: { fileId: manifest.fileId } });
+              if (dbManifest) {
+                for (const chunk of manifest.chunks) {
+                  await this.prisma.manifestChunk.upsert({
+                    where: {
+                      manifestId_chunkIndex: { manifestId: dbManifest.id, chunkIndex: chunk.chunkIndex },
+                    },
+                    create: {
+                      manifestId: dbManifest.id,
+                      chunkId: chunk.chunkId,
+                      chunkIndex: chunk.chunkIndex,
+                    },
+                    update: {},
+                  });
+                }
+              }
+
+              console.log(`[NodeService] Recovered manifest for file ${manifest.fileId} (${manifest.chunks.length} chunks)`);
+              discoveredManifests++;
+            }
+          } else if (key.startsWith('filemeta:')) {
+            // File metadata — restore originalName, mimeType, mediaType
+            const fileId = key.replace('filemeta:', '');
+            const metaData = await provider.get(key);
+            if (metaData) {
+              try {
+                const meta = JSON.parse(metaData.toString('utf-8'));
+                await this.prisma.file.updateMany({
+                  where: { id: fileId },
+                  data: {
+                    originalName: meta.originalName || undefined,
+                    mimeType: meta.mimeType || undefined,
+                    mediaType: meta.mediaType || undefined,
+                  },
+                });
+              } catch {
+                // Skip invalid metadata
+              }
+            }
+          } else if (key.startsWith('preview:')) {
+            // Restore preview record
+            const rest = key.replace('preview:', '');
+            const dotIdx = rest.lastIndexOf('.');
+            if (dotIdx > 0) {
+              const fileId = rest.substring(0, dotIdx);
+              const format = rest.substring(dotIdx + 1);
+              const previewData = await provider.get(key);
+              if (previewData) {
+                await this.prisma.preview.upsert({
+                  where: { fileId },
+                  create: {
+                    fileId,
+                    type: format === 'mp4' ? 'video' : 'image',
+                    format,
+                    size: BigInt(previewData.length),
+                    contentHash: '',
+                    storagePath: `${nodeId}:${key}`,
+                  },
+                  update: {},
+                });
+              }
+            }
+          } else {
+            // Regular chunk (SHA-256 hash, 64 hex chars)
+            if (/^[a-f0-9]{64}$/.test(key)) {
+              await this.prisma.chunk.upsert({
+                where: { id: key },
+                create: { id: key, size: 0, referenceCount: 1 },
+                update: {},
+              });
+              await this.prisma.chunkReplica.upsert({
+                where: { chunkId_nodeId: { chunkId: key, nodeId } },
+                create: { chunkId: key, nodeId, status: 'healthy' },
+                update: {},
+              });
+              discoveredChunks++;
+            }
+          }
+        } catch (keyErr) {
+          const keyMsg = keyErr instanceof Error ? keyErr.message : 'Unknown error';
+          console.warn(`[NodeService] Failed to process key "${key}": ${keyMsg}`);
+        }
+      }
+
+      if (discoveredChunks > 0 || discoveredManifests > 0) {
+        console.log(
+          `[NodeService] Scan complete for ${nodeId}: ${discoveredManifests} manifests, ${discoveredChunks} chunks`,
+        );
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      console.warn(`[NodeService] Provider scan failed for ${nodeId}: ${msg}`);
+    }
+
+    return { discoveredChunks, discoveredManifests };
   }
 
   /**

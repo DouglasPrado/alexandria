@@ -38,6 +38,7 @@ interface UploadedFile {
   mimetype: string;
   size: number;
   buffer: Buffer;
+  path?: string;
 }
 
 /**
@@ -158,9 +159,14 @@ export class FileService {
     });
 
     // Enqueue BullMQ job for media pipeline (optimize → chunk → encrypt → distribute)
+    // Use file path (disk storage) when available, fallback to buffer (memory storage)
+    const jobData = file.path
+      ? { fileId: record.id, filePath: file.path }
+      : { fileId: record.id, buffer: file.buffer.toString('base64') };
+
     await this.mediaQueue.add(
       'process-file',
-      { fileId: record.id, buffer: file.buffer.toString('base64') },
+      jobData,
       {
         attempts: 3,
         backoff: { type: 'exponential', delay: 5000 },
@@ -348,24 +354,36 @@ export class FileService {
       });
     }
 
-    // 5. Clean up chunk records: delete orphans, decrement shared
+    // 5. Delete manifest and filemeta from storage providers (disaster recovery cleanup)
+    const manifest = await this.prisma.manifest.findUnique({ where: { fileId } });
+    if (manifest) {
+      const replicatedTo = (manifest.replicatedTo as string[]) ?? [];
+      for (const nodeId of replicatedTo) {
+        await this.storageService.deleteFromNode(nodeId, `manifest:${fileId}`).catch(() => {});
+        await this.storageService.deleteFromNode(nodeId, `filemeta:${fileId}`).catch(() => {});
+      }
+      await this.prisma.manifestChunk.deleteMany({ where: { manifestId: manifest.id } });
+    }
+
+    // 6. Delete file (cascades to preview, manifest) — guard against double-delete
+    await this.prisma.file.delete({ where: { id: fileId } }).catch((err) => {
+      if ((err as any)?.code === 'P2025') return; // Already deleted (timeout retry)
+      throw err;
+    });
+
+    // 7. Clean up chunk records: delete orphans, decrement shared
     for (const chunkId of uniqueChunkIds) {
       const refCount = chunkMap.get(chunkId) ?? 1;
       if (refCount <= 1) {
-        // Delete replicas first (FK constraint), then the chunk itself
         await this.prisma.chunkReplica.deleteMany({ where: { chunkId } });
         await this.prisma.chunk.delete({ where: { id: chunkId } });
       } else {
-        // Shared chunk — only decrement reference count, keep replicas
         await this.prisma.chunk.update({
           where: { id: chunkId },
           data: { referenceCount: { decrement: 1 } },
         });
       }
     }
-
-    // 6. Delete file (cascades to preview, manifest, manifest_chunks)
-    await this.prisma.file.delete({ where: { id: fileId } });
   }
 
   /**
@@ -384,8 +402,9 @@ export class FileService {
     }
 
     // Decrypt file key from manifest (envelope encryption)
-    const masterKey = Buffer.alloc(32, 0xab); // TODO: get real master key from cluster vault
-    const fkBuf = manifest.fileKeyEncrypted as Buffer;
+    // TODO: replace placeholder with real master key from cluster vault
+    const masterKey = Buffer.alloc(32, 0xab);
+    const fkBuf = Buffer.from(manifest.fileKeyEncrypted as Buffer);
     const fileKey = decrypt(
       {
         iv: fkBuf.subarray(0, 12),
@@ -411,14 +430,20 @@ export class FileService {
       }
 
       // Fetch encrypted chunk from storage node
-      const encryptedBuf = await this.storageService.getFromNode(replica.nodeId, entry.chunkId);
+      let encryptedBuf: Buffer;
+      try {
+        encryptedBuf = await this.storageService.getFromNode(replica.nodeId, entry.chunkId);
+      } catch (fetchErr) {
+        const msg = fetchErr instanceof Error ? fetchErr.message : 'Unknown error';
+        throw new NotFoundException(`Falha ao buscar chunk ${entry.chunkId.substring(0, 16)} do no ${replica.nodeId}: ${msg}`);
+      }
 
       // Decrypt chunk (iv:12 + authTag:16 + ciphertext)
       const chunkData = decrypt(
         {
-          iv: encryptedBuf.subarray(0, 12),
-          authTag: encryptedBuf.subarray(12, 28),
-          ciphertext: encryptedBuf.subarray(28),
+          iv: Buffer.from(encryptedBuf).subarray(0, 12),
+          authTag: Buffer.from(encryptedBuf).subarray(12, 28),
+          ciphertext: Buffer.from(encryptedBuf).subarray(28),
         },
         fileKey,
       );
@@ -519,9 +544,13 @@ export class FileService {
       },
     });
 
+    const versionJobData = file.path
+      ? { fileId: record.id, filePath: file.path }
+      : { fileId: record.id, buffer: file.buffer.toString('base64') };
+
     await this.mediaQueue.add(
       'process-file',
-      { fileId: record.id, buffer: file.buffer.toString('base64') },
+      versionJobData,
       {
         attempts: 3,
         backoff: { type: 'exponential', delay: 5000 },

@@ -95,23 +95,85 @@ function PopoverContent({
   className?: string;
   align?: 'start' | 'center' | 'end';
 }) {
-  const { open } = usePopover();
-  if (!open) return null;
+  const { open, triggerRef } = usePopover();
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  const [position, setPosition] = React.useState<{
+    top?: string;
+    bottom?: string;
+    left?: string;
+    right?: string;
+    transform?: string;
+  }>({});
 
-  const alignClass = {
-    start: 'left-0',
-    center: 'left-1/2 -translate-x-1/2',
-    end: 'right-0',
-  }[align];
+  React.useEffect(() => {
+    if (!open || !triggerRef.current || !contentRef.current) return;
+
+    const trigger = triggerRef.current.getBoundingClientRect();
+    const content = contentRef.current.getBoundingClientRect();
+    const viewport = {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+
+    const gap = 8;
+    const newPos: typeof position = {};
+
+    // Vertical: prefer below, flip above if no space
+    const spaceBelow = viewport.height - trigger.bottom - gap;
+    const spaceAbove = trigger.top - gap;
+
+    if (spaceBelow >= content.height || spaceBelow >= spaceAbove) {
+      newPos.top = '100%';
+      newPos.bottom = undefined;
+    } else {
+      newPos.bottom = '100%';
+      newPos.top = undefined;
+    }
+
+    // Horizontal: align based on prop, but clamp to viewport
+    if (align === 'end') {
+      newPos.right = '0';
+      // Check if it overflows left
+      const leftEdge = trigger.right - content.width;
+      if (leftEdge < 0) {
+        newPos.right = undefined;
+        newPos.left = `${-trigger.left + gap}px`;
+      }
+    } else if (align === 'center') {
+      newPos.left = '50%';
+      newPos.transform = 'translateX(-50%)';
+    } else {
+      // start
+      newPos.left = '0';
+      // Check if it overflows right
+      const rightEdge = trigger.left + content.width;
+      if (rightEdge > viewport.width) {
+        newPos.left = undefined;
+        newPos.right = '0';
+      }
+    }
+
+    setPosition(newPos);
+  }, [open, align, triggerRef]);
+
+  if (!open) return null;
 
   return (
     <div
+      ref={contentRef}
       data-popover-content
       className={cn(
-        'absolute top-full z-50 mt-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--popover)] p-4 text-[var(--popover-foreground)] shadow-md animate-in fade-in-0 zoom-in-95',
-        alignClass,
+        'absolute z-50 mt-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--popover)] p-4 text-[var(--popover-foreground)] shadow-md animate-in fade-in-0 zoom-in-95',
         className,
       )}
+      style={{
+        top: position.top,
+        bottom: position.bottom,
+        left: position.left,
+        right: position.right,
+        transform: position.transform,
+        marginBottom: position.bottom ? '8px' : undefined,
+      }}
     >
       {children}
     </div>

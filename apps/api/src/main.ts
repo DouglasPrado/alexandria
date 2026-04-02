@@ -55,7 +55,7 @@ async function bootstrap() {
       ? [process.env.WEB_CLIENT_URL, 'http://localhost:3000']
       : 'http://localhost:3000',
     methods: 'GET,POST,PATCH,DELETE,OPTIONS',
-    allowedHeaders: 'Authorization,Content-Type,X-Request-Id,X-Node-Token',
+    allowedHeaders: 'Authorization,Content-Type,X-Request-Id,X-Node-Token,X-Correlation-Id',
     credentials: true,
     maxAge: 86400,
   });

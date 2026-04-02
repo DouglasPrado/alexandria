@@ -1,14 +1,17 @@
 import type { VaultBundle, VaultContents } from '@alexandria/core-sdk';
 import {
   S3StorageProvider,
+  createVault,
   deriveMasterKey,
   deserializeManifest,
+  encrypt,
   generateKeypair,
   hash,
   unlockVaultWithMasterKey,
   validateMnemonic,
 } from '@alexandria/core-sdk';
 import { BadRequestException, Injectable, UnprocessableEntityException } from '@nestjs/common';
+import * as argon2 from 'argon2';
 import { SessionKeyService } from '../../common/services/session-key.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { createOAuthStorageProvider, isOAuthNodeType } from '../node/oauth-storage-provider';
@@ -34,7 +37,13 @@ export class RecoveryService {
     private readonly sessionKeyService: SessionKeyService,
   ) {}
 
-  async recover(dto: { seedPhrase: string }) {
+  async recover(dto: {
+    seedPhrase: string;
+    clusterName?: string;
+    adminName?: string;
+    adminEmail?: string;
+    adminPassword?: string;
+  }) {
     // --- Passos 3-5: Validate → derive → find cluster ---
 
     if (!validateMnemonic(dto.seedPhrase)) {
@@ -44,17 +53,84 @@ export class RecoveryService {
     }
 
     const masterKey = deriveMasterKey(dto.seedPhrase);
-    const { publicKey } = generateKeypair(masterKey);
+    const { publicKey, privateKey } = generateKeypair(masterKey);
     const clusterId = hash(Buffer.from(publicKey));
 
-    const cluster = await this.prisma.cluster.findFirst({
+    let cluster = await this.prisma.cluster.findFirst({
       where: { clusterId },
     });
 
+    // --- Cold Recovery: cluster nao existe no DB, recriar a partir da seed ---
+    let coldRecovery = false;
+    let firstAdminMemberId: string | null = null;
+
     if (!cluster) {
-      throw new UnprocessableEntityException(
-        'Seed phrase nao corresponde a nenhum cluster. Verifique as palavras e tente novamente.',
-      );
+      if (!dto.adminName || !dto.adminEmail || !dto.adminPassword) {
+        throw new UnprocessableEntityException(
+          'Cluster nao encontrado no banco. Para cold recovery (DB vazio), informe clusterName, adminName, adminEmail e adminPassword.',
+        );
+      }
+
+      coldRecovery = true;
+
+      // Re-derive cryptographic identity
+      const encryptedPrivateKey = encrypt(Buffer.from(privateKey), masterKey);
+      const encryptedPrivateKeyBuffer = Buffer.concat([
+        encryptedPrivateKey.iv,
+        encryptedPrivateKey.authTag,
+        encryptedPrivateKey.ciphertext,
+      ]);
+
+      const passwordHash = await argon2.hash(dto.adminPassword);
+
+      const vaultContents: VaultContents = {
+        credentials: { email: dto.adminEmail, role: 'admin' },
+        nodeConfigs: [],
+        clusterConfig: { name: dto.clusterName || 'Recovered Cluster', nodeList: [] },
+      };
+      const vaultBundle = createVault(vaultContents, dto.adminPassword, masterKey);
+
+      const result = await this.prisma.$transaction(async (tx) => {
+        const newCluster = await tx.cluster.create({
+          data: {
+            clusterId,
+            name: dto.clusterName || 'Recovered Cluster',
+            publicKey: new Uint8Array(publicKey) as Uint8Array<ArrayBuffer>,
+            encryptedPrivateKey: new Uint8Array(encryptedPrivateKeyBuffer) as Uint8Array<ArrayBuffer>,
+            status: 'active',
+          },
+        });
+
+        const member = await tx.member.create({
+          data: {
+            clusterId: newCluster.id,
+            name: dto.adminName!,
+            email: dto.adminEmail!,
+            passwordHash,
+            role: 'admin',
+          },
+        });
+
+        await tx.vault.create({
+          data: {
+            memberId: member.id,
+            vaultData: new Uint8Array(vaultBundle.encryptedData) as Uint8Array<ArrayBuffer>,
+            passwordSalt: new Uint8Array(vaultBundle.passwordSalt) as Uint8Array<ArrayBuffer>,
+            masterKeySalt: new Uint8Array(vaultBundle.masterKeySalt) as Uint8Array<ArrayBuffer>,
+            encryptionAlgorithm: 'AES-256-GCM',
+            replicatedTo: [],
+            isAdminVault: true,
+          },
+        });
+
+        return { cluster: newCluster, member };
+      });
+
+      cluster = result.cluster;
+      firstAdminMemberId = result.member.id;
+
+      // Cache session key with real password for subsequent vault operations
+      this.sessionKeyService.store(firstAdminMemberId, masterKey, dto.adminPassword);
     }
 
     // --- Passo 6: Decrypt vaults → extract node configs ---
@@ -67,7 +143,6 @@ export class RecoveryService {
     let recoveredVaults = 0;
     let failedVaults = 0;
     const allNodeConfigs: VaultContents['nodeConfigs'] = [];
-    let firstAdminMemberId: string | null = null;
 
     for (const vault of vaults) {
       try {
@@ -101,9 +176,8 @@ export class RecoveryService {
     }
 
     // Cache masterKey for admin so subsequent operations (vault sync, node registration) work
-    if (firstAdminMemberId) {
-      // Use a placeholder password — admin will need to re-authenticate for vault updates
-      this.sessionKeyService.store(firstAdminMemberId, masterKey, '__recovery__');
+    if (firstAdminMemberId && !coldRecovery) {
+      this.sessionKeyService.store(firstAdminMemberId, masterKey, dto.adminPassword || '__recovery__');
     }
 
     // --- Passo 7: Reconnect storage providers ---
@@ -236,6 +310,8 @@ export class RecoveryService {
 
     return {
       status: 'recovered' as const,
+      coldRecovery,
+      clusterId: cluster.id,
       recoveredVaults,
       failedVaults,
       recoveredManifests,
@@ -250,6 +326,14 @@ export class RecoveryService {
         healthyChunks,
         pendingHealing,
       },
+      nextSteps: coldRecovery
+        ? [
+            'Cluster recriado a partir da seed phrase.',
+            'Faca login com as credenciais informadas.',
+            'Reconecte os providers cloud (Google Drive, Dropbox, etc.) via OAuth.',
+            'Ao reconectar cada provider, o sistema vai escanear os dados existentes automaticamente.',
+          ]
+        : [],
     };
   }
 

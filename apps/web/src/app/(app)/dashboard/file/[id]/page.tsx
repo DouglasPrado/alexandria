@@ -43,7 +43,7 @@ export default function FileDetailPage({ params }: { params: Promise<{ id: strin
 
   if (!file) {
     return (
-      <div className="p-6 text-center">
+      <div className="text-center py-20">
         <p className="text-[var(--muted-foreground)]">Arquivo não encontrado.</p>
         <button onClick={() => router.push('/dashboard')} className="mt-4 text-sm text-[var(--primary)] hover:underline">
           Voltar para a galeria
@@ -55,7 +55,7 @@ export default function FileDetailPage({ params }: { params: Promise<{ id: strin
   const Icon = file.mediaType === 'photo' ? ImageIcon : file.mediaType === 'video' ? Film : file.mediaType === 'archive' ? Archive : FileText;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       {/* Back nav */}
       <button
         onClick={() => router.back()}

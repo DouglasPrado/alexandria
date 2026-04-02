@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertCircle, CheckCircle2, Cloud, HardDrive, Loader2, Server, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Cloud, HardDrive, Loader2, Server, X, ArrowLeft } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useRegisterNode, useStartNodeOAuth } from '../hooks/useNodeMutations';
 import type { NodeType, OAuthNodeProvider, RegisterNodeRequest } from '../types/node.types';
@@ -197,195 +197,164 @@ export function AddNodeDialog({ open, onClose }: AddNodeDialogProps) {
   const isSubmitting = registerNode.isPending || startNodeOAuth.isPending;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-lg rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] shadow-xl">
-        <div className="flex items-center justify-between border-b border-[var(--border)] p-5">
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">Adicionar No</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(19, 27, 46, 0.4)' }}>
+      <div
+        className="w-full rounded-3xl shadow-2xl overflow-hidden"
+        style={{
+          maxWidth: step === 'type' ? '640px' : '480px',
+          backgroundColor: 'var(--surface-container-lowest)',
+          boxShadow: '0px 24px 48px rgba(19, 27, 46, 0.12)',
+        }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-6">
+          <div>
+            <h2 className="text-xl font-extrabold font-display tracking-tight" style={{ color: 'var(--foreground)' }}>
+              {step === 'type' ? 'Adicionar Nó' : step === 'config' ? selectedConfig?.label : 'Sucesso'}
+            </h2>
+            {step === 'type' && (
+              <p className="text-sm mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
+                Selecione o provedor de armazenamento
+              </p>
+            )}
+          </div>
           <button
             aria-label="Fechar dialogo"
             onClick={handleClose}
-            className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+            className="p-2 rounded-full transition-colors"
+            style={{ color: 'var(--muted-foreground)' }}
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
-        <div className="p-5">
+        <div className="px-6 pb-6">
+          {/* Step 1: Type selection — Grid 2 cols */}
           {step === 'type' && (
-            <div className="space-y-3">
-              <p className="text-sm text-[var(--muted-foreground)]">
-                Selecione o tipo de no de armazenamento:
-              </p>
-              <div className="space-y-2">
-                {NODE_TYPES.map((nodeType) => {
-                  const Icon = nodeType.icon;
-                  return (
-                    <button
-                      key={nodeType.value}
-                      type="button"
-                      onClick={() => {
-                        setSelectedType(nodeType.value);
-                        setStep('config');
-                      }}
-                      className="w-full rounded-[var(--radius)] border border-[var(--border)] p-3 text-left transition-colors hover:border-[var(--primary)] hover:bg-[var(--secondary)]"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Icon size={20} className="flex-shrink-0 text-[var(--muted-foreground)]" />
-                        <div>
-                          <div className="text-sm font-medium text-[var(--foreground)]">
-                            {nodeType.label}
-                          </div>
-                          <div className="text-xs text-[var(--muted-foreground)]">
-                            {nodeType.description}
-                          </div>
-                        </div>
+            <div className="grid grid-cols-2 gap-3">
+              {NODE_TYPES.map((nodeType) => {
+                const Icon = nodeType.icon;
+                const isOAuth = nodeType.mode === 'oauth';
+                return (
+                  <button
+                    key={nodeType.value}
+                    type="button"
+                    onClick={() => {
+                      setSelectedType(nodeType.value);
+                      setStep('config');
+                    }}
+                    className="p-5 rounded-2xl text-left transition-all group hover:shadow-md active:scale-[0.98]"
+                    style={{ backgroundColor: 'var(--surface-container-low)' }}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div
+                        className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all group-hover:scale-105"
+                        style={{ backgroundColor: 'var(--surface-container-lowest)' }}
+                      >
+                        <Icon size={20} style={{ color: 'var(--primary-container)' }} />
                       </div>
-                    </button>
-                  );
-                })}
-              </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-display font-bold text-sm" style={{ color: 'var(--foreground)' }}>
+                            {nodeType.label}
+                          </span>
+                          {isOAuth && (
+                            <span
+                              className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                              style={{ backgroundColor: 'rgba(111, 251, 190, 0.2)', color: '#005236' }}
+                            >
+                              OAuth
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs mt-0.5 leading-relaxed" style={{ color: 'var(--muted-foreground)' }}>
+                          {nodeType.description}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
 
+          {/* Step 2: Config form */}
           {step === 'config' && selectedType && (
             <form onSubmit={handleSubmit} className="space-y-4">
               <button
                 type="button"
                 onClick={() => setStep('type')}
-                className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                className="flex items-center gap-1.5 text-sm transition-colors mb-2"
+                style={{ color: 'var(--muted-foreground)' }}
               >
-                ← Voltar
+                <ArrowLeft size={14} />
+                Voltar
               </button>
 
-              <div>
-                <label
-                  htmlFor="node-name"
-                  className="mb-1.5 block text-sm font-medium text-[var(--foreground)]"
-                >
-                  Nome do no
-                </label>
-                <input
-                  id="node-name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  placeholder="Ex: NAS Casa, Drive da Familia"
-                  className="w-full rounded-[var(--radius)] border border-[var(--input)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-                />
-              </div>
+              <InputField
+                id="node-name"
+                label="Nome do nó"
+                value={name}
+                onChange={setName}
+                required
+                placeholder="Ex: NAS Casa, Drive da Familia"
+              />
 
               {selectedType === 'local' && (
-                <div className="flex items-start gap-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--secondary)] p-3 text-sm text-[var(--muted-foreground)]">
-                  <HardDrive size={16} className="mt-0.5 flex-shrink-0" />
+                <div
+                  className="flex items-start gap-3 rounded-xl p-4 text-sm"
+                  style={{ backgroundColor: 'var(--surface-container-low)', color: 'var(--muted-foreground)' }}
+                >
+                  <HardDrive size={16} className="mt-0.5 shrink-0" />
                   <span>
-                    Os arquivos serao armazenados neste dispositivo. Nenhuma configuracao adicional
-                    necessaria.
+                    Os arquivos serão armazenados neste dispositivo. Nenhuma configuração adicional necessária.
                   </span>
                 </div>
               )}
 
               {(selectedType === 'vps' || selectedType === 'r2' || selectedType === 'b2') && (
-                <div>
-                  <label
-                    htmlFor="node-endpoint"
-                    className="mb-1.5 block text-sm font-medium text-[var(--foreground)]"
-                  >
-                    Endpoint
-                  </label>
-                  <input
-                    id="node-endpoint"
-                    type="url"
-                    value={endpoint}
-                    onChange={(e) => setEndpoint(e.target.value)}
-                    required
-                    placeholder="https://192.168.1.100:8081"
-                    className="w-full rounded-[var(--radius)] border border-[var(--input)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-                  />
-                </div>
+                <InputField
+                  id="node-endpoint"
+                  label="Endpoint"
+                  value={endpoint}
+                  onChange={setEndpoint}
+                  required
+                  placeholder="https://192.168.1.100:8081"
+                  type="url"
+                />
               )}
 
               {isCloudType && (
                 <>
-                  <div>
-                    <label
-                      htmlFor="node-bucket"
-                      className="mb-1.5 block text-sm font-medium text-[var(--foreground)]"
-                    >
-                      Bucket
-                    </label>
-                    <input
-                      id="node-bucket"
-                      type="text"
-                      value={bucket}
-                      onChange={(e) => setBucket(e.target.value)}
-                      required
-                      placeholder="meu-bucket-alexandria"
-                      className="w-full rounded-[var(--radius)] border border-[var(--input)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="node-access-key"
-                      className="mb-1.5 block text-sm font-medium text-[var(--foreground)]"
-                    >
-                      Access Key
-                    </label>
-                    <input
-                      id="node-access-key"
-                      type="text"
-                      value={accessKey}
-                      onChange={(e) => setAccessKey(e.target.value)}
-                      required
-                      className="w-full rounded-[var(--radius)] border border-[var(--input)] bg-[var(--background)] px-3 py-2 font-mono text-sm text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="node-secret-key"
-                      className="mb-1.5 block text-sm font-medium text-[var(--foreground)]"
-                    >
-                      Secret Key
-                    </label>
-                    <input
-                      id="node-secret-key"
-                      type="password"
-                      value={secretKey}
-                      onChange={(e) => setSecretKey(e.target.value)}
-                      required
-                      className="w-full rounded-[var(--radius)] border border-[var(--input)] bg-[var(--background)] px-3 py-2 font-mono text-sm text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="node-region"
-                      className="mb-1.5 block text-sm font-medium text-[var(--foreground)]"
-                    >
-                      Regiao {selectedType !== 'r2' ? '(obrigatoria)' : '(opcional)'}
-                    </label>
-                    <input
-                      id="node-region"
-                      type="text"
-                      value={region}
-                      onChange={(e) => setRegion(e.target.value)}
-                      required={selectedType !== 'r2'}
-                      placeholder={selectedType === 'r2' ? 'auto' : 'us-east-1'}
-                      className="w-full rounded-[var(--radius)] border border-[var(--input)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-                    />
-                  </div>
+                  <InputField id="node-bucket" label="Bucket" value={bucket} onChange={setBucket} required placeholder="meu-bucket-alexandria" />
+                  <InputField id="node-access-key" label="Access Key" value={accessKey} onChange={setAccessKey} required mono />
+                  <InputField id="node-secret-key" label="Secret Key" value={secretKey} onChange={setSecretKey} required mono type="password" />
+                  <InputField
+                    id="node-region"
+                    label={`Região ${selectedType !== 'r2' ? '(obrigatória)' : '(opcional)'}`}
+                    value={region}
+                    onChange={setRegion}
+                    required={selectedType !== 'r2'}
+                    placeholder={selectedType === 'r2' ? 'auto' : 'us-east-1'}
+                  />
                 </>
               )}
 
               {isOAuthType && (
-                <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--secondary)] p-3 text-sm text-[var(--muted-foreground)]">
-                  Vamos abrir a autorizacao do provedor para conectar a conta cloud e registrar o no
-                  automaticamente.
+                <div
+                  className="rounded-xl p-4 text-sm"
+                  style={{ backgroundColor: 'var(--surface-container-low)', color: 'var(--muted-foreground)' }}
+                >
+                  Vamos abrir a autorização do provedor para conectar a conta cloud e registrar o nó automaticamente.
                 </div>
               )}
 
               {error && (
-                <div className="flex items-center gap-2 rounded-[var(--radius)] border border-[var(--destructive)] bg-[var(--destructive)]/10 p-3 text-sm text-[var(--destructive)]">
-                  <AlertCircle size={16} className="flex-shrink-0" />
+                <div
+                  className="flex items-center gap-2 rounded-xl p-4 text-sm"
+                  style={{ backgroundColor: 'rgba(186, 26, 26, 0.08)', color: 'var(--destructive)' }}
+                >
+                  <AlertCircle size={16} className="shrink-0" />
                   {error}
                 </div>
               )}
@@ -393,7 +362,8 @@ export function AddNodeDialog({ open, onClose }: AddNodeDialogProps) {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full rounded-[var(--radius)] bg-[var(--primary)] py-2.5 text-sm font-medium text-[var(--primary-foreground)] transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="w-full py-3.5 rounded-xl font-display font-bold text-sm text-white transition-all active:scale-95 disabled:opacity-50 hover:opacity-90"
+                style={{ backgroundColor: 'var(--primary-container)' }}
               >
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
@@ -403,25 +373,33 @@ export function AddNodeDialog({ open, onClose }: AddNodeDialogProps) {
                 ) : isOAuthType ? (
                   'Conectar conta'
                 ) : (
-                  'Registrar no'
+                  'Registrar nó'
                 )}
               </button>
             </form>
           )}
 
+          {/* Step 3: Result */}
           {step === 'result' && (
-            <div className="space-y-4 text-center">
-              <CheckCircle2 size={48} className="mx-auto text-[var(--success)]" />
+            <div className="space-y-6 text-center py-4">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto"
+                style={{ backgroundColor: 'rgba(111, 251, 190, 0.15)' }}
+              >
+                <CheckCircle2 size={32} style={{ color: 'var(--success)' }} />
+              </div>
               <div>
-                <h3 className="text-lg font-semibold text-[var(--foreground)]">No registrado</h3>
-                <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-                  O no &ldquo;{name}&rdquo; foi adicionado ao cluster. O primeiro heartbeat deve
-                  chegar em instantes.
+                <h3 className="text-lg font-extrabold font-display" style={{ color: 'var(--foreground)' }}>
+                  Nó registrado
+                </h3>
+                <p className="mt-2 text-sm" style={{ color: 'var(--muted-foreground)' }}>
+                  O nó &ldquo;{name}&rdquo; foi adicionado ao cluster. O primeiro heartbeat deve chegar em instantes.
                 </p>
               </div>
               <button
                 onClick={handleClose}
-                className="w-full rounded-[var(--radius)] bg-[var(--primary)] py-2.5 text-sm font-medium text-[var(--primary-foreground)] transition-opacity hover:opacity-90"
+                className="w-full py-3.5 rounded-xl font-display font-bold text-sm text-white transition-all active:scale-95 hover:opacity-90"
+                style={{ backgroundColor: 'var(--primary-container)' }}
               >
                 Fechar
               </button>
@@ -429,6 +407,53 @@ export function AddNodeDialog({ open, onClose }: AddNodeDialogProps) {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function InputField({
+  id,
+  label,
+  value,
+  onChange,
+  required,
+  placeholder,
+  type = 'text',
+  mono,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  required?: boolean;
+  placeholder?: string;
+  type?: string;
+  mono?: boolean;
+}) {
+  return (
+    <div>
+      <label
+        htmlFor={id}
+        className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest"
+        style={{ color: 'var(--muted-foreground)' }}
+      >
+        {label}
+      </label>
+      <input
+        id={id}
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required={required}
+        placeholder={placeholder}
+        className={`w-full rounded-xl border-none px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2 ${mono ? 'font-mono' : ''}`}
+        style={{
+          backgroundColor: 'var(--surface-container-low)',
+          color: 'var(--foreground)',
+          // @ts-expect-error CSS custom property
+          '--tw-ring-color': 'var(--surface-tint)',
+        }}
+      />
     </div>
   );
 }

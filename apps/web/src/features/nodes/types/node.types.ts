@@ -27,6 +27,7 @@ export interface NodeDTO {
   chunksStored: number;
   lastHeartbeat: string | null;
   createdAt: string;
+  owner: { id: string; name: string } | null;
 }
 
 export interface RegisterNodeRequest {

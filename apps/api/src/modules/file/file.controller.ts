@@ -13,24 +13,40 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { randomBytes } from 'node:crypto';
 import { FileService } from './file.service';
+
+const uploadStorage = diskStorage({
+  destination: join(tmpdir(), 'alexandria-uploads'),
+  filename: (_req, _file, cb) => cb(null, `upload-${randomBytes(16).toString('hex')}`),
+});
+
+const UPLOAD_LIMIT = 10 * 1024 * 1024 * 1024; // 10GB
 import { ListFilesQueryDto } from './dto';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import {
   CurrentMember,
   type CurrentMemberPayload,
 } from '../../common/decorators/current-member.decorator';
+import { JwtService } from '@nestjs/jwt';
 import type { Response } from 'express';
 
 @Controller('files')
 export class FileController {
-  constructor(private readonly fileService: FileService) {}
+  constructor(
+    private readonly fileService: FileService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   /** POST /api/files/upload — Upload multipart (JWT, admin/member, UC-004) */
   @Post('upload')
   @Roles('admin', 'member')
   @HttpCode(HttpStatus.ACCEPTED)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', { storage: uploadStorage, limits: { fileSize: UPLOAD_LIMIT } }))
   async upload(
     @UploadedFile() file: Express.Multer.File,
     @CurrentMember() member: CurrentMemberPayload,
@@ -102,7 +118,7 @@ export class FileController {
   @Post(':id/versions')
   @Roles('admin', 'member')
   @HttpCode(HttpStatus.ACCEPTED)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', { storage: uploadStorage, limits: { fileSize: UPLOAD_LIMIT } }))
   async createVersion(
     @Param('id', ParseUUIDPipe) id: string,
     @UploadedFile() file: Express.Multer.File,
@@ -111,9 +127,42 @@ export class FileController {
     return this.fileService.createVersion(id, member.clusterId, member.memberId, file);
   }
 
-  /** GET /api/files/:id/download — Download arquivo reassemblado (JWT, UC-005) */
+  /** POST /api/files/:id/download-token — Gera token temporario para download direto */
+  @Post(':id/download-token')
+  @HttpCode(HttpStatus.OK)
+  async createDownloadToken(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentMember() member: CurrentMemberPayload,
+  ) {
+    const token = this.jwtService.sign(
+      { fileId: id, sub: member.memberId, purpose: 'download' },
+      { expiresIn: '10m' },
+    );
+    const apiBase = process.env.API_BASE_URL ?? 'http://localhost:3333/api';
+    return { downloadUrl: `${apiBase}/files/${id}/download?token=${token}` };
+  }
+
+  /** GET /api/files/:id/download — Download arquivo reassemblado (JWT cookie ou token query param, UC-005) */
+  @Public()
   @Get(':id/download')
-  async download(@Param('id', ParseUUIDPipe) id: string, @Res() res: Response) {
+  async download(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('token') token: string | undefined,
+    @Res() res: Response,
+  ) {
+    // Verify auth: query param token OR cookie
+    const authToken = token || (res.req as any)?.cookies?.access_token;
+    if (!authToken) {
+      res.status(401).json({ error: { code: 'INVALID_TOKEN', message: 'Token necessario' } });
+      return;
+    }
+    try {
+      this.jwtService.verify(authToken);
+    } catch {
+      res.status(401).json({ error: { code: 'INVALID_TOKEN', message: 'Token invalido' } });
+      return;
+    }
+
     const file = await this.fileService.download(id);
 
     res.setHeader('Content-Type', file.mimeType);

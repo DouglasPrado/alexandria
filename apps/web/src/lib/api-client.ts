@@ -86,10 +86,12 @@ async function request<T>(
       });
 
       if (!res.ok) {
-        const body = await res.json().catch(() => ({
+        const raw = await res.json().catch(() => ({
           code: 'UNKNOWN',
           message: res.statusText,
         }));
+        // Backend wraps errors in { error: { code, message, ... } }
+        const body = raw?.error ?? raw;
         const error = new ApiError(res.status, body);
 
         // Retry apenas para 5xx em metodos idempotentes
@@ -142,7 +144,7 @@ export const apiClient = {
     request<T>(path, { method: 'DELETE' }),
 
   /**
-   * Upload multipart — timeout de 5 minutos.
+   * Upload multipart — timeout de 30 minutos para arquivos grandes.
    * Nao envia Content-Type (browser seta automaticamente com boundary).
    */
   upload: async <T>(path: string, file: File): Promise<T> => {
@@ -150,7 +152,8 @@ export const apiClient = {
     formData.append('file', file);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), config.uploadTimeout);
+    const uploadTimeout = 30 * 60_000; // 30 minutes for large files
+    const timeoutId = setTimeout(() => controller.abort(), uploadTimeout);
 
     try {
       const res = await fetch(`${config.baseUrl}${path}`, {

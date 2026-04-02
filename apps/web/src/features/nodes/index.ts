@@ -1,4 +1,5 @@
 export { NodeList } from './components/NodeList';
+export { NodeCardList } from './components/NodeCardList';
 export { NodeStatusBadge } from './components/NodeStatusBadge';
 export { TierBadge } from './components/TierBadge';
 export { AddNodeDialog } from './components/AddNodeDialog';

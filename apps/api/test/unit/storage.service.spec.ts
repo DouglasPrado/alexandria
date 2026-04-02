@@ -22,6 +22,7 @@ const mockPrisma = {
   },
   chunkReplica: {
     create: jest.fn(),
+    count: jest.fn().mockResolvedValue(0),
     findMany: jest.fn().mockResolvedValue([]),
     delete: jest.fn().mockResolvedValue({}),
   },
@@ -31,6 +32,7 @@ const mockPrisma = {
   },
   manifestChunk: {
     create: jest.fn(),
+    findFirst: jest.fn().mockResolvedValue(null),
   },
   file: {
     update: jest.fn(),
@@ -160,8 +162,9 @@ describe('StorageService', () => {
     });
 
     it('should deduplicate existing chunks', async () => {
-      // First chunk already exists
+      // First chunk already exists with healthy replicas
       mockPrisma.chunk.findUnique.mockResolvedValueOnce({ id: 'existing', referenceCount: 1 });
+      mockPrisma.chunkReplica.count.mockResolvedValueOnce(2); // has accessible replicas
       mockPrisma.chunk.update.mockResolvedValue({});
       mockPrisma.manifest.create.mockResolvedValue({ id: 'm1' });
       mockPrisma.manifest.findUnique.mockResolvedValue({ id: 'm1' });
@@ -194,7 +197,7 @@ describe('StorageService', () => {
         expect.objectContaining({
           data: expect.objectContaining({
             fileId: 'file-4',
-            fileKeyEncrypted: expect.any(Buffer),
+            fileKeyEncrypted: expect.any(Uint8Array),
             version: 1,
           }),
         }),

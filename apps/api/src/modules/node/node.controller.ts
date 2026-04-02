@@ -1,32 +1,32 @@
 import {
-  Controller,
-  Post,
-  Patch,
-  Get,
-  Delete,
   Body,
-  Param,
-  Query,
+  Controller,
+  Delete,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   ParseUUIDPipe,
-  UseGuards,
+  Patch,
+  Post,
+  Query,
   Res,
   UnprocessableEntityException,
+  UseGuards,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { NodeService } from './node.service';
-import { StorageService } from '../storage/storage.service';
-import { RegisterNodeDto } from './dto/register-node.dto';
-import { Public } from '../../common/decorators/public.decorator';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { NodeTokenGuard } from '../../common/guards/node-token.guard';
 import {
   CurrentMember,
   type CurrentMemberPayload,
 } from '../../common/decorators/current-member.decorator';
-import { NodeOAuthService } from './node-oauth.service';
+import { Public } from '../../common/decorators/public.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { NodeTokenGuard } from '../../common/guards/node-token.guard';
 import { SessionKeyService } from '../../common/services/session-key.service';
+import { StorageService } from '../storage/storage.service';
+import { RegisterNodeDto } from './dto/register-node.dto';
+import { NodeOAuthService } from './node-oauth.service';
+import { NodeService } from './node.service';
 
 @Controller('nodes')
 export class NodeController {
@@ -38,7 +38,7 @@ export class NodeController {
   ) {}
 
   @Get('oauth/:provider/start')
-  @Roles('admin')
+  @Roles('admin', 'member')
   async startOAuth(
     @Param('provider') provider: string,
     @Query('name') nodeName: string,
@@ -76,9 +76,9 @@ export class NodeController {
     }
   }
 
-  /** POST /api/nodes — Registrar no (JWT+admin, UC-003) */
+  /** POST /api/nodes — Registrar no (JWT+admin/member, UC-003) */
   @Post()
-  @Roles('admin')
+  @Roles('admin', 'member')
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() dto: RegisterNodeDto, @CurrentMember() member: CurrentMemberPayload) {
     return this.nodeService.register(member.clusterId, member.memberId, dto);
@@ -169,6 +169,30 @@ export class NodeController {
     );
 
     return { status: 'synced', nodeConfigsCount: nodeConfigs.length };
+  }
+
+  /** POST /api/nodes/:id/purge — Limpar todos os dados de um provider (JWT+admin, dev only) */
+  @Post(':id/purge')
+  @Roles('admin')
+  @HttpCode(HttpStatus.OK)
+  async purgeNode(@Param('id', ParseUUIDPipe) id: string) {
+    const provider = this.storageService.getProvider(id);
+    if (!provider) {
+      throw new UnprocessableEntityException('Provider nao encontrado no hash ring');
+    }
+
+    const keys = await provider.list();
+    let deleted = 0;
+    for (const key of keys) {
+      try {
+        await provider.delete(key);
+        deleted++;
+      } catch {
+        // skip
+      }
+    }
+
+    return { nodeId: id, keysFound: keys.length, keysDeleted: deleted };
   }
 
   /** POST /api/nodes/rebalance — Rebalancear chunks entre nos (JWT+admin) */

@@ -136,14 +136,14 @@ export class GoogleDriveStorageProvider extends OAuthStorageProvider {
       return;
     }
 
-    const boundary = `alexandria-${chunkId}`;
+    const boundary = `alexandria${Date.now()}`;
     const metadata = JSON.stringify({ name: chunkId, parents: ['appDataFolder'] });
     const body = Buffer.concat([
       Buffer.from(
         `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n`,
       ),
       Buffer.from(`--${boundary}\r\nContent-Type: application/octet-stream\r\n\r\n`),
-      data,
+      Buffer.from(data),
       Buffer.from(`\r\n--${boundary}--\r\n`),
     ]);
 
@@ -304,7 +304,8 @@ export class DropboxStorageProvider extends OAuthStorageProvider {
   private readonly rootPath = '/alexandria-chunks';
 
   private chunkPath(chunkId: string): string {
-    return `${this.rootPath}/${chunkId}`;
+    // Dropbox does not allow ':' in paths — replace with '_'
+    return `${this.rootPath}/${chunkId.replace(/:/g, '_')}`;
   }
 
   async put(chunkId: string, data: Buffer): Promise<void> {
@@ -319,10 +320,10 @@ export class DropboxStorageProvider extends OAuthStorageProvider {
           path: this.chunkPath(chunkId),
         }),
       },
-      body: data,
+      body: Buffer.from(data),
     });
     if (!response.ok) {
-      throw new Error('Failed to upload chunk to Dropbox');
+      throw await createHttpError(response, 'Failed to upload chunk to Dropbox');
     }
   }
 
@@ -364,7 +365,14 @@ export class DropboxStorageProvider extends OAuthStorageProvider {
     });
     if (!response.ok) return [];
     const body = await parseJson<{ entries?: Array<{ name: string }> }>(response);
-    const names = (body.entries ?? []).map((entry) => entry.name);
+    // Restore ':' from '_' for prefixed keys (manifest_, preview_, filemeta_)
+    const names = (body.entries ?? []).map((entry) => {
+      const name = entry.name;
+      if (name.startsWith('manifest_')) return name.replace('manifest_', 'manifest:');
+      if (name.startsWith('preview_')) return name.replace('preview_', 'preview:');
+      if (name.startsWith('filemeta_')) return name.replace('filemeta_', 'filemeta:');
+      return name;
+    });
     return prefix ? names.filter((name) => name.startsWith(prefix)) : names;
   }
 

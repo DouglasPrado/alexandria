@@ -29,7 +29,13 @@ export const filesApi = {
   /** DELETE /api/files/:id — deletar arquivo */
   remove: (id: string): Promise<void> => apiClient.delete<void>(`/files/${id}`),
 
-  /** GET /api/files/:id/download — retorna URL ou blob */
+  /** POST /api/files/:id/download-token → URL direta ao backend (bypass proxy) */
+  getDownloadUrl: async (id: string): Promise<string> => {
+    const res = await apiClient.post<{ downloadUrl: string }>(`/files/${id}/download-token`);
+    return res.downloadUrl;
+  },
+
+  /** Fallback URL via proxy (para arquivos pequenos) */
   downloadUrl: (id: string): string =>
     `${process.env.NEXT_PUBLIC_API_URL ?? '/api'}/files/${id}/download`,
 

@@ -305,19 +305,31 @@ export class StorageService implements OnModuleInit {
     }> = [];
 
     for (const chunk of chunks) {
-      // 4. Dedup check
+      // 4. Dedup check — chunk exists AND has accessible replicas
       const existing = await this.prisma.chunk.findUnique({ where: { id: chunk.hash } });
 
       if (existing) {
-        // Reutiliza chunk existente — incrementa referencia
-        processedChunks.push({
-          chunkId: chunk.hash,
-          chunkIndex: chunk.chunkIndex,
-          size: chunk.size,
-          encrypted: Buffer.alloc(0), // nao precisa re-criptografar
-          isNew: false,
+        // Verify chunk actually has healthy replicas on registered nodes
+        const healthyReplicas = await this.prisma.chunkReplica.count({
+          where: {
+            chunkId: chunk.hash,
+            status: 'healthy',
+            nodeId: { in: [...this.providers.keys()] },
+          },
         });
-        continue;
+
+        if (healthyReplicas > 0) {
+          // Reutiliza chunk existente — incrementa referencia
+          processedChunks.push({
+            chunkId: chunk.hash,
+            chunkIndex: chunk.chunkIndex,
+            size: chunk.size,
+            encrypted: Buffer.alloc(0), // nao precisa re-criptografar
+            isNew: false,
+          });
+          continue;
+        }
+        // Chunk exists in DB but no accessible replicas — treat as new
       }
 
       // 6. Encrypt chunk with file key (AES-256-GCM)
@@ -409,18 +421,40 @@ export class StorageService implements OnModuleInit {
       }));
 
       // Encrypt file key with master key for storage in manifest
-      const fileKeyEncResult = encrypt(fileKey, masterKey);
-      const fileKeyEncrypted = Buffer.concat([
-        fileKeyEncResult.iv,
-        fileKeyEncResult.authTag,
-        fileKeyEncResult.ciphertext,
-      ]);
+      // If ALL chunks are deduped, reuse fileKeyEncrypted from an existing manifest
+      // (chunks are encrypted with the original fileKey, not the new one)
+      const allDeduped = processedChunks.every((c) => !c.isNew);
+      let fileKeyEncrypted: Buffer;
+
+      if (allDeduped && processedChunks.length > 0) {
+        const existingManifestChunk = await tx.manifestChunk.findFirst({
+          where: { chunkId: processedChunks[0]!.chunkId },
+          include: { manifest: { select: { fileKeyEncrypted: true } } },
+        });
+        if (existingManifestChunk?.manifest?.fileKeyEncrypted) {
+          fileKeyEncrypted = Buffer.from(existingManifestChunk.manifest.fileKeyEncrypted as Buffer);
+        } else {
+          const fileKeyEncResult = encrypt(fileKey, masterKey);
+          fileKeyEncrypted = Buffer.concat([
+            fileKeyEncResult.iv,
+            fileKeyEncResult.authTag,
+            fileKeyEncResult.ciphertext,
+          ]);
+        }
+      } else {
+        const fileKeyEncResult = encrypt(fileKey, masterKey);
+        fileKeyEncrypted = Buffer.concat([
+          fileKeyEncResult.iv,
+          fileKeyEncResult.authTag,
+          fileKeyEncResult.ciphertext,
+        ]);
+      }
 
       await tx.manifest.create({
         data: {
           fileId,
           chunksJson,
-          fileKeyEncrypted,
+          fileKeyEncrypted: new Uint8Array(fileKeyEncrypted) as Uint8Array<ArrayBuffer>,
           signature: Buffer.alloc(64), // TODO: Ed25519 sign with cluster private key
           replicatedTo: [],
           version: 1,
@@ -466,24 +500,69 @@ export class StorageService implements OnModuleInit {
       });
     }
 
-    // Replicate manifest to storage providers for disaster recovery
+    // Replicate manifest + file metadata to storage providers for disaster recovery
+    // If all chunks were deduped, find target nodes from existing replicas
+    let targetNodes = [...new Set(replicaRecords.map((r) => r.nodeId))];
+    if (targetNodes.length === 0) {
+      const chunkIds = processedChunks.map((c) => c.chunkId);
+      const existingReplicas = await this.prisma.chunkReplica.findMany({
+        where: { chunkId: { in: chunkIds }, status: 'healthy' },
+        select: { nodeId: true },
+        distinct: ['nodeId'],
+      });
+      targetNodes = existingReplicas.map((r) => r.nodeId).filter((id) => this.providers.has(id));
+    }
     try {
-      const manifestForReplication: ManifestData = {
-        fileId,
-        chunks: processedChunks.map((c) => ({
-          chunkId: c.chunkId,
-          chunkIndex: c.chunkIndex,
-          size: c.size,
-        })),
-        fileKeyEncrypted: encrypt(fileKey, masterKey),
-        signature: Buffer.alloc(64), // TODO: Ed25519 sign
-        version: 1,
-      };
-      const serialized = serializeManifest(manifestForReplication);
-      const targetNodes = [...new Set(replicaRecords.map((r) => r.nodeId))];
-      await this.replicateManifest(fileId, serialized, targetNodes);
+      // Read the manifest from DB to get the EXACT fileKeyEncrypted bytes
+      // (avoids re-encryption which creates different bytes)
+      const dbManifest = await this.prisma.manifest.findUnique({ where: { fileId } });
+      if (dbManifest) {
+        const fkBuf = Buffer.from(dbManifest.fileKeyEncrypted as Buffer);
+        const manifestForReplication: ManifestData = {
+          fileId,
+          chunks: processedChunks.map((c) => ({
+            chunkId: c.chunkId,
+            chunkIndex: c.chunkIndex,
+            size: c.size,
+          })),
+          fileKeyEncrypted: {
+            iv: fkBuf.subarray(0, 12),
+            authTag: fkBuf.subarray(12, 28),
+            ciphertext: fkBuf.subarray(28),
+          },
+          signature: Buffer.from(dbManifest.signature as Buffer),
+          version: dbManifest.version,
+        };
+        const serialized = serializeManifest(manifestForReplication);
+        await this.replicateManifest(fileId, serialized, targetNodes);
+      }
     } catch {
       // Manifest replication failure is non-blocking
+    }
+
+    // Replicate file metadata for recovery (originalName, mimeType, mediaType)
+    try {
+      const file = await this.prisma.file.findUnique({
+        where: { id: fileId },
+        select: { originalName: true, mimeType: true, mediaType: true, originalSize: true },
+      });
+      if (file) {
+        const metaBuffer = Buffer.from(JSON.stringify({
+          originalName: file.originalName,
+          mimeType: file.mimeType,
+          mediaType: file.mediaType,
+          originalSize: Number(file.originalSize),
+        }));
+        const metaKey = `filemeta:${fileId}`;
+        for (const nodeId of targetNodes) {
+          const provider = this.providers.get(nodeId);
+          if (provider) {
+            await provider.put(metaKey, metaBuffer).catch(() => {});
+          }
+        }
+      }
+    } catch {
+      // Metadata replication failure is non-blocking
     }
 
     return {
